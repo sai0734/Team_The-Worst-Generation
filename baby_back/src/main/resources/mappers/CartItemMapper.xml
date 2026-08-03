@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.backend.mapper.CartItemMapper">
+
+    <resultMap id="cartItemResultMap" type="com.backend.domain.CartItem">
+        <id property="cino" column="cino"/>
+        <result property="qty" column="qty"/>
+    </resultMap>
+
+    <select id="selectOne" resultMap="cartItemResultMap">
+        SELECT cino, qty
+        FROM tbl_cart_item
+        WHERE cino = #{cino}
+    </select>
+
+    <select id="selectByEmailAndPno" resultMap="cartItemResultMap">
+        SELECT ci.cino, ci.qty
+        FROM tbl_cart_item ci
+        INNER JOIN tbl_cart c ON ci.cart_cno = c.cno
+        WHERE c.member_owner = #{email} AND ci.product_pno = #{pno}
+    </select>
+
+    <select id="selectCnoByCino" resultType="long">
+        SELECT cart_cno
+        FROM tbl_cart_item
+        WHERE cino = #{cino}
+    </select>
+
+    <resultMap id="cartItemListResultMap" type="com.backend.dto.CartItemListDTO">
+        <id property="cino" column="cino"/>
+        <result property="qty" column="qty"/>
+        <result property="pno" column="pno"/>
+        <result property="pname" column="pname"/>
+        <result property="price" column="price"/>
+        <result property="imageFile" column="file_name"/>
+    </resultMap>
+
+    <!-- 대표 이미지(ord=0)를 조인해서 함께 조회. JPA의 getItemsOfCartDTOByEmail()과 동일한 조건 -->
+    <select id="selectListByEmail" resultMap="cartItemListResultMap">
+        SELECT ci.cino, ci.qty, p.pno, p.pname, p.price, pi.file_name
+        FROM tbl_cart_item ci
+        INNER JOIN tbl_cart c ON ci.cart_cno = c.cno
+        LEFT JOIN tbl_product p ON ci.product_pno = p.pno
+        LEFT JOIN tbl_product_image pi ON pi.pno = p.pno AND pi.ord = 0
+        WHERE c.member_owner = #{email}
+        ORDER BY ci.cino DESC
+    </select>
+
+    <select id="selectListByCno" resultMap="cartItemListResultMap">
+        SELECT ci.cino, ci.qty, p.pno, p.pname, p.price, pi.file_name
+        FROM tbl_cart_item ci
+        INNER JOIN tbl_cart c ON ci.cart_cno = c.cno
+        LEFT JOIN tbl_product p ON ci.product_pno = p.pno
+        LEFT JOIN tbl_product_image pi ON pi.pno = p.pno AND pi.ord = 0
+        WHERE c.cno = #{cno}
+        ORDER BY ci.cino DESC
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="cino" keyColumn="cino">
+        INSERT INTO tbl_cart_item (product_pno, cart_cno, qty)
+        VALUES (#{product.pno}, #{cart.cno}, #{qty})
+    </insert>
+
+    <update id="updateQty">
+        UPDATE tbl_cart_item
+        SET qty = #{qty}
+        WHERE cino = #{cino}
+    </update>
+
+    <delete id="deleteById">
+        DELETE FROM tbl_cart_item WHERE cino = #{cino}
+    </delete>
+
+</mapper>
