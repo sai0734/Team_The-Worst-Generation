@@ -1,16 +1,18 @@
-package com.backend.babyInfo.domain;
+package com.backend.babyInfo.dto;
 
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-@Getter
+@Data
 @Builder
-@ToString
 @AllArgsConstructor
 @NoArgsConstructor
-public class BabyGrowInfo {
+public class BabyGrowInfoDTO {
 
     // PK
     private Long babyGrowNo;
