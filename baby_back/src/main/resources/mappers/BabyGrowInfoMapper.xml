@@ -4,5 +4,26 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.backend.babyInfo.mapper.BabyGrowInfoMapper">
 
+    <select id="selectList" resultType="com.backend.babyInfo.domain.BabyGrowInfo">
+        SELECT baby_grow_no, baby_no, measured_date, weight, height, head, reg_time
+        FROM tbl_baby_grow_info
+        WHERE baby_no = #{babyNo}
+    </select>
+
+    <select id="selectByBabyGrowNo" resultType="com.backend.babyInfo.domain.BabyGrowInfo">
+        SELECT baby_grow_no, baby_no, measured_date, weight, height, head, reg_time
+        FROM tbl_baby_grow_info
+        WHERE baby_grow_no = #{babyGrowNo}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="babyGrowNo" keyColumn="baby_grow_no">
+        INSERT INTO tbl_baby_grow_info (baby_no, measured_date, weight, height, head)
+        VALUES (#{babyNo}, #{measuredDate}, #{weight}, #{height}, #{head})
+    </insert>
+
+    <delete id="remove">
+        DELETE FROM tbl_baby_grow_info
+        WHERE baby_grow_no = #{babyGrowNo}
+    </delete>
 
 </mapper>
