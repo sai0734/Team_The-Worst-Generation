@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.backend.ledger.mapper.LedgerSettingMapper">
+
+    <select id="selectByEmail" resultType="com.backend.ledger.domain.LedgerSetting">
+        SELECT email, briefing_day, last_briefing_cycle_start
+        FROM tbl_ledger_setting
+        WHERE email = #{email}
+    </select>
+
+    <insert id="insert">
+        INSERT INTO tbl_ledger_setting (email, briefing_day, last_briefing_cycle_start)
+        VALUES (#{email}, #{briefingDay}, #{lastBriefingCycleStart})
+    </insert>
+
+    <update id="updateBriefingDay">
+        UPDATE tbl_ledger_setting
+        SET briefing_day = #{briefingDay}
+        WHERE email = #{email}
+    </update>
+
+    <update id="updateLastBriefingCycleStart">
+        UPDATE tbl_ledger_setting
+        SET last_briefing_cycle_start = #{cycleStart}
+        WHERE email = #{email}
+    </update>
+
+</mapper>
