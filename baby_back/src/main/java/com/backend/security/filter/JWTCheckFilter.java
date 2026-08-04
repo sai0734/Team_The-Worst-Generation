@@ -44,6 +44,11 @@ public class JWTCheckFilter extends OncePerRequestFilter{
             return true;
         }
 
+        // OpenClaw 연동 경로는 JWT 대신 내부 키(X-OpenClaw-Key)로 별도 검증
+        if(path.startsWith("/api/openclaw/")){
+            return true;
+        }
+
         return false;
     }
 
