@@ -1,4 +1,4 @@
-package com.backend.config;
+package com.backend.global.config;
 
 import java.util.Arrays;
 
@@ -15,10 +15,10 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import com.backend.security.filter.JWTCheckFilter;
-import com.backend.security.handler.APILoginFailHandler;
-import com.backend.security.handler.APILoginSuccessHandler;
-import com.backend.security.handler.CustomAccessDeniedHandler;
+import com.backend.global.security.filter.JWTCheckFilter;
+import com.backend.global.security.handler.APILoginFailHandler;
+import com.backend.global.security.handler.APILoginSuccessHandler;
+import com.backend.global.security.handler.CustomAccessDeniedHandler;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;

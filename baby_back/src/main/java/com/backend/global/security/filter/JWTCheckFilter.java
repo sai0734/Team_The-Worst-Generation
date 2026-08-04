@@ -1,4 +1,4 @@
-package com.backend.security.filter;
+package com.backend.global.security.filter;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -11,7 +11,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.google.gson.Gson;
 import com.backend.dto.MemberDTO;
-import com.backend.util.JWTUtil;
+import com.backend.global.util.JWTUtil;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -44,10 +44,12 @@ public class JWTCheckFilter extends OncePerRequestFilter{
             return true;
         }
 
+        // KYI
         // OpenClaw 연동 경로는 JWT 대신 내부 키(X-OpenClaw-Key)로 별도 검증
         if(path.startsWith("/api/openclaw/")){
             return true;
         }
+        // KYI 끝
 
         return false;
     }

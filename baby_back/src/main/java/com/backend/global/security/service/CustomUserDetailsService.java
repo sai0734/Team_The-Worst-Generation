@@ -1,4 +1,4 @@
-package com.backend.security;
+package com.backend.global.security.service;
 
 import java.util.stream.Collectors;
 
