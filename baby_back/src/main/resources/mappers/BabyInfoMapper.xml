@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.backend.babyInfo.mapper.BabyInfoMapper">
+
+    <select id="selectList" resultType="com.backend.babyInfo.domain.BabyInfo">
+        SELECT baby_no, email, baby_name, birth_date, gender, profile_image_file_name,
+        blood_type, birth_week_count, reg_time, mod_time
+        FROM tbl_baby_info WHERE email = #{email}
+    </select>
+
+    <select id="selectByBabyNo" resultType="com.backend.babyInfo.domain.BabyInfo">
+        SELECT baby_no, email, baby_name, birth_date, gender, profile_image_file_name,
+        blood_type, birth_week_count, reg_time, mod_time
+        FROM tbl_baby_info WHERE baby_no = #{babyNo}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="babyNo" keyColumn="baby_no">
+        INSERT INTO tbl_baby_info (email, baby_name, birth_date, gender, profile_image_file_name,
+        blood_type, birth_week_count)
+        VALUES (#{email}, #{babyName}, #{birthDate}, #{gender}, #{profileImageFileName}, #{bloodType}, #{birthWeekCount})
+    </insert>
+
+    <update id="update">
+        UPDATE tbl_baby_info
+        SET baby_name = #{babyName},
+        birth_date = #{birthDate},
+        gender = #{gender},
+        profile_image_file_name = #{profileImageFileName},
+        blood_type = #{bloodType},
+        birth_week_count = #{birthWeekCount}
+        WHERE baby_no = #{babyNo};
+    </update>
+    
+    <delete id="delete">
+        DELETE FROM tbl_baby_info
+        WHERE baby_no = #{babyNo}
+    </delete>
+
+</mapper>

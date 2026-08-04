@@ -3,88 +3,147 @@
 -- (spring.sql.init.mode=always in application.properties).
 
 CREATE TABLE IF NOT EXISTS tbl_member (
-    email    VARCHAR(100) NOT NULL,
+                                          email    VARCHAR(100) NOT NULL,
     pw       VARCHAR(100) NOT NULL,
     nickname VARCHAR(50)  NOT NULL,
     social   BOOLEAN      NOT NULL DEFAULT FALSE,
     PRIMARY KEY (email)
-);
+    );
 
 CREATE TABLE IF NOT EXISTS tbl_member_role (
-    member_email VARCHAR(100) NOT NULL,
+                                               member_email VARCHAR(100) NOT NULL,
     role_name    VARCHAR(20)  NOT NULL,
     CONSTRAINT fk_member_role_email FOREIGN KEY (member_email) REFERENCES tbl_member (email)
-);
+    );
 
 CREATE TABLE IF NOT EXISTS tbl_product (
-    pno      BIGINT AUTO_INCREMENT,
-    pname    VARCHAR(100)  NOT NULL,
+                                           pno      BIGINT AUTO_INCREMENT,
+                                           pname    VARCHAR(100)  NOT NULL,
     price    INT           NOT NULL DEFAULT 0,
     pdesc    VARCHAR(2000),
     del_flag BOOLEAN       NOT NULL DEFAULT FALSE,
     PRIMARY KEY (pno)
-);
+    );
 
 CREATE TABLE IF NOT EXISTS tbl_product_image (
-    pno       BIGINT       NOT NULL,
-    file_name VARCHAR(200) NOT NULL,
+                                                 pno       BIGINT       NOT NULL,
+                                                 file_name VARCHAR(200) NOT NULL,
     ord       INT          NOT NULL DEFAULT 0,
     CONSTRAINT fk_product_image_pno FOREIGN KEY (pno) REFERENCES tbl_product (pno)
-);
+    );
 
 CREATE TABLE IF NOT EXISTS tbl_todo (
-    tno      BIGINT AUTO_INCREMENT,
-    title    VARCHAR(200) NOT NULL,
+                                        tno      BIGINT AUTO_INCREMENT,
+                                        title    VARCHAR(200) NOT NULL,
     writer   VARCHAR(50),
     complete BOOLEAN      NOT NULL DEFAULT FALSE,
     due_date DATE,
     PRIMARY KEY (tno)
-);
+    );
 
 CREATE TABLE IF NOT EXISTS tbl_cart (
-    cno          BIGINT AUTO_INCREMENT,
-    member_owner VARCHAR(100) NOT NULL,
+                                        cno          BIGINT AUTO_INCREMENT,
+                                        member_owner VARCHAR(100) NOT NULL,
     PRIMARY KEY (cno),
     CONSTRAINT fk_cart_owner FOREIGN KEY (member_owner) REFERENCES tbl_member (email),
     INDEX idx_cart_email (member_owner)
-);
+    );
 
 CREATE TABLE IF NOT EXISTS tbl_cart_item (
-    cino        BIGINT AUTO_INCREMENT,
-    product_pno BIGINT NOT NULL,
-    cart_cno    BIGINT NOT NULL,
-    qty         INT    NOT NULL DEFAULT 1,
-    PRIMARY KEY (cino),
+                                             cino        BIGINT AUTO_INCREMENT,
+                                             product_pno BIGINT NOT NULL,
+                                             cart_cno    BIGINT NOT NULL,
+                                             qty         INT    NOT NULL DEFAULT 1,
+                                             PRIMARY KEY (cino),
     CONSTRAINT fk_cartitem_product FOREIGN KEY (product_pno) REFERENCES tbl_product (pno),
     CONSTRAINT fk_cartitem_cart FOREIGN KEY (cart_cno) REFERENCES tbl_cart (cno),
     INDEX idx_cartitem_cart (cart_cno),
     INDEX idx_cartitem_pno_cart (product_pno, cart_cno)
-);
+    );
 
 -- HYH
 CREATE TABLE IF NOT EXISTS tbl_baby_info (
-    babyNo BIGINT AUTO_INCREMENT,
-    email VARCHAR(100) NOT NULL,
-    babyName VARCHAR(100) NOT NULL,
-    birthDate DATE,
+                                             baby_no BIGINT AUTO_INCREMENT,
+                                             email VARCHAR(100) NOT NULL,
+    baby_name VARCHAR(100) NOT NULL,
+    birth_date DATE,
     gender VARCHAR(100) NOT NULL,
-    profileImageFileName VARCHAR(500),
-    bloodType VARCHAR(100),
-    birthWeekCount INT,
-    regTime DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    modTime DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    PRIMARY KEY (babyNo),
+    profile_image_file_name VARCHAR(500),
+    blood_type VARCHAR(100),
+    birth_week_count INT,
+    reg_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    mod_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (baby_no),
     CONSTRAINT fk_baby_info FOREIGN KEY (email) REFERENCES tbl_member (email)
-);
+    );
 
 CREATE TABLE IF NOT EXISTS tbl_baby_grow_info (
-    babyGrowNo BIGINT AUTO_INCREMENT,
-    babyNo BIGINT NOT NULL,
-    measuredDate DATE NOT NULL,
-    weight DECIMAL(5,2),
+                                                  baby_grow_no BIGINT AUTO_INCREMENT,
+                                                  baby_no BIGINT NOT NULL,
+                                                  measured_date DATE NOT NULL,
+                                                  weight DECIMAL(5,2),
     height DECIMAL(5,2),
     head DECIMAL(5,2),
+    reg_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (baby_grow_no),
+    CONSTRAINT fk_baby_grow_info FOREIGN KEY (baby_no) REFERENCES tbl_baby_info (baby_no)
+    );
+
+-- LMJ
+CREATE TABLE IF NOT EXISTS tbl_allergy_ingredient(
+                                                     ingredientNo BIGINT AUTO_INCREMENT,
+                                                     ingredientName VARCHAR(100) NOT NULL,
+    PRIMARY KEY(ingredientNo)
+    );
+
+CREATE TABLE IF NOT EXISTS tbl_baby_custom_allergy(
+                                                      customAllergyNo BIGINT AUTO_INCREMENT,
+                                                      babyNo BIGINT NOT NULL,
+                                                      ingredientName VARCHAR(100) NOT NULL,
     regTime DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (babyGrowNo),
-    CONSTRAINT fk_baby_grow_info FOREIGN KEY (babyNo) REFERENCES tbl_baby_info (babyNo)
-);
+    PRIMARY KEY(customAllergyNo),
+    CONSTRAINT fk_custom_allergy_baby FOREIGN KEY(babyNo) REFERENCES tbl_baby_info(babyNo)
+    );
+
+CREATE TABLE IF NOT EXISTS tbl_baby_allergy_check(
+                                                     checkNo BIGINT AUTO_INCREMENT,
+                                                     babyNo BIGINT NOT NULL,
+                                                     imageFileName VARCHAR(500),
+    ocrRawText VARCHAR(2000),
+    detectedAllergens VARCHAR(500),
+    detectedCustom VARCHAR(500),
+    regTime DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY(checkNo),
+    CONSTRAINT fk_allergy_check_baby FOREIGN KEY(babyNo) REFERENCES tbl_baby_info(babyNo)
+    );
+
+CREATE TABLE IF NOT EXISTS tbl_recipe_recommend(
+                                                   recommendNo BIGINT AUTO_INCREMENT,
+                                                   checkNo BIGINT NOT NULL,
+                                                   productType VARCHAR(20) NOT NULL,
+    recommendedRecipe VARCHAR(3000),
+    regTime DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY(recommendNo),
+    CONSTRAINT fk_recipe_recommend_check FOREIGN KEY(checkNo) REFERENCES tbl_baby_allergy_check(checkNo)
+    );
+
+INSERT INTO tbl_allergy_ingredient (ingredientName) VALUES
+                                                        ('알류(가금류)'),
+                                                        ('우유'),
+                                                        ('메밀'),
+                                                        ('땅콩'),
+                                                        ('대두'),
+                                                        ('밀'),
+                                                        ('고등어'),
+                                                        ('게'),
+                                                        ('새우'),
+                                                        ('돼지고기'),
+                                                        ('복숭아'),
+                                                        ('토마토'),
+                                                        ('아황산류'),
+                                                        ('호두'),
+                                                        ('닭고기'),
+                                                        ('쇠고기'),
+                                                        ('오징어'),
+                                                        ('조개류(굴, 전복, 홍합 포함)'),
+                                                        ('잣');
