@@ -1,4 +1,4 @@
-package com.backend.security.filter;
+package com.backend.global.security.filter;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -11,7 +11,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.google.gson.Gson;
 import com.backend.dto.MemberDTO;
-import com.backend.util.JWTUtil;
+import com.backend.global.util.JWTUtil;
 
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;

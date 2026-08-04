@@ -1,4 +1,4 @@
-package com.backend.security.handler;
+package com.backend.global.security.handler;
 
 import java.io.IOException;
 import java.io.PrintWriter;

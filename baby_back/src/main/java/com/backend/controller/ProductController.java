@@ -20,7 +20,7 @@ import com.backend.dto.PageRequestDTO;
 import com.backend.dto.PageResponseDTO;
 import com.backend.dto.ProductDTO;
 import com.backend.service.ProductService;
-import com.backend.util.CustomFileUtil;
+import com.backend.global.util.CustomFileUtil;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;

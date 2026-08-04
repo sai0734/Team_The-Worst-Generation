@@ -1,4 +1,4 @@
-package com.backend.security.handler;
+package com.backend.global.security.handler;
 
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -9,7 +9,7 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 
 import com.google.gson.Gson;
 import com.backend.dto.MemberDTO;
-import com.backend.util.JWTUtil;
+import com.backend.global.util.JWTUtil;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

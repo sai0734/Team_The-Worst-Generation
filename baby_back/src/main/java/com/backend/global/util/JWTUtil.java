@@ -1,4 +1,4 @@
-package com.backend.util;
+package com.backend.global.util;
 
 
 import java.time.ZonedDateTime;
