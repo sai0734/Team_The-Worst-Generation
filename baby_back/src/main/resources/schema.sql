@@ -60,3 +60,31 @@ CREATE TABLE IF NOT EXISTS tbl_cart_item (
     INDEX idx_cartitem_cart (cart_cno),
     INDEX idx_cartitem_pno_cart (product_pno, cart_cno)
 );
+
+-- HYH
+CREATE TABLE IF NOT EXISTS tbl_baby_info (
+    babyNo BIGINT AUTO_INCREMENT,
+    email VARCHAR(100) NOT NULL,
+    babyName VARCHAR(100) NOT NULL,
+    birthDate DATE,
+    gender VARCHAR(100) NOT NULL,
+    profileImageFileName VARCHAR(500),
+    bloodType VARCHAR(100),
+    birthWeekCount INT,
+    regTime DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    modTime DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (babyNo),
+    CONSTRAINT fk_baby_info FOREIGN KEY (email) REFERENCES tbl_member (email)
+);
+
+CREATE TABLE IF NOT EXISTS tbl_baby_grow_info (
+    babyGrowNo BIGINT AUTO_INCREMENT,
+    babyNo BIGINT NOT NULL,
+    measuredDate DATE NOT NULL,
+    weight DECIMAL(5,2),
+    height DECIMAL(5,2),
+    head DECIMAL(5,2),
+    regTime DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (babyGrowNo),
+    CONSTRAINT fk_baby_grow_info FOREIGN KEY (babyNo) REFERENCES tbl_baby_info (babyNo)
+);
