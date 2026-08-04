@@ -9,7 +9,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import com.backend.util.CustomJWTException;
+import com.backend.global.util.CustomJWTException;
 
 /**
  * CustomControllerAdvice
