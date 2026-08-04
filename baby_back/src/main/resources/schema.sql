@@ -88,3 +88,62 @@ CREATE TABLE IF NOT EXISTS tbl_baby_grow_info (
     PRIMARY KEY (babyGrowNo),
     CONSTRAINT fk_baby_grow_info FOREIGN KEY (babyNo) REFERENCES tbl_baby_info (babyNo)
 );
+
+-- LMJ
+CREATE TABLE IF NOT EXISTS tbl_allergy_ingredient(
+    ingredientNo BIGINT AUTO_INCREMENT,
+    ingredientName VARCHAR(100) NOT NULL,
+    PRIMARY KEY(ingredientNo)
+);
+
+CREATE TABLE IF NOT EXISTS tbl_baby_custom_allergy(
+    customAllergyNo BIGINT AUTO_INCREMENT,
+    babyNo BIGINT NOT NULL,
+    ingredientName VARCHAR(100) NOT NULL,
+    regTime DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY(customAllergyNo),
+    CONSTRAINT fk_custom_allergy_baby FOREIGN KEY(babyNo) REFERENCES tbl_baby_info(babyNo)
+);
+
+CREATE TABLE IF NOT EXISTS tbl_baby_allergy_check(
+    checkNo BIGINT AUTO_INCREMENT,
+    babyNo BIGINT NOT NULL,
+    imageFileName VARCHAR(500),
+    ocrRawText VARCHAR(2000),
+    detectedAllergens VARCHAR(500),
+    detectedCustom VARCHAR(500),
+    regTime DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY(checkNo),
+    CONSTRAINT fk_allergy_check_baby FOREIGN KEY(babyNo) REFERENCES tbl_baby_info(babyNo)
+);
+
+CREATE TABLE IF NOT EXISTS tbl_recipe_recommend(
+    recommendNo BIGINT AUTO_INCREMENT,
+    checkNo BIGINT NOT NULL,
+    productType VARCHAR(20) NOT NULL,
+    recommendedRecipe VARCHAR(3000),
+    regTime DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY(recommendNo),
+    CONSTRAINT fk_recipe_recommend_check FOREIGN KEY(checkNo) REFERENCES tbl_baby_allergy_check(checkNo)
+);
+
+INSERT INTO tbl_allergy_ingredient (ingredientName) VALUES
+       ('알류(가금류)'),
+       ('우유'),
+       ('메밀'),
+       ('땅콩'),
+       ('대두'),
+       ('밀'),
+       ('고등어'),
+       ('게'),
+       ('새우'),
+       ('돼지고기'),
+       ('복숭아'),
+       ('토마토'),
+       ('아황산류'),
+       ('호두'),
+       ('닭고기'),
+       ('쇠고기'),
+       ('오징어'),
+       ('조개류(굴, 전복, 홍합 포함)'),
+       ('잣');
