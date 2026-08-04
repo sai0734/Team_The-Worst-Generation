@@ -5,7 +5,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.backend.dto.MemberDTO;
 import com.backend.dto.MemberModifyDTO;
 import com.backend.service.MemberService;
-import com.backend.util.JWTUtil;
+import com.backend.global.util.JWTUtil;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
