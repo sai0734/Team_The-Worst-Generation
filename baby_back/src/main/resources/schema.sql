@@ -77,6 +77,30 @@ CREATE TABLE IF NOT EXISTS tbl_baby_info (
     CONSTRAINT fk_baby_info FOREIGN KEY (email) REFERENCES tbl_member (email)
 );
 
+-- KYI
+CREATE TABLE IF NOT EXISTS tbl_ledger (
+    lno      BIGINT AUTO_INCREMENT,
+    email    VARCHAR(100) NOT NULL,
+    type     VARCHAR(20)  NOT NULL,
+    category VARCHAR(30)  NOT NULL,
+    amount   INT          NOT NULL,
+    memo     VARCHAR(500),
+    tx_date  DATE         NOT NULL,
+    reg_time DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (lno),
+    CONSTRAINT fk_ledger_email FOREIGN KEY (email) REFERENCES tbl_member (email),
+    INDEX idx_ledger_email_date (email, tx_date)
+);
+
+CREATE TABLE IF NOT EXISTS tbl_ledger_setting (
+    email                    VARCHAR(100) NOT NULL,
+    briefing_day             INT,
+    last_briefing_cycle_start DATE,
+    PRIMARY KEY (email),
+    CONSTRAINT fk_ledger_setting_email FOREIGN KEY (email) REFERENCES tbl_member (email)
+);
+-- KYI 끝
+
 CREATE TABLE IF NOT EXISTS tbl_baby_grow_info (
     babyGrowNo BIGINT AUTO_INCREMENT,
     babyNo BIGINT NOT NULL,
