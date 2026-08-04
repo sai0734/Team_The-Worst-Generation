@@ -15,4 +15,5 @@ public interface BabyInfoService {
     void modify(BabyInfoDTO babyInfoDTO);
 
     void remove(Long babyNo);
+
 }

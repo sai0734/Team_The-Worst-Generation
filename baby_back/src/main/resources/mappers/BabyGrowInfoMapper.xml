@@ -26,4 +26,9 @@
         WHERE baby_grow_no = #{babyGrowNo}
     </delete>
 
+    <delete id="removeByBabyNo">
+        DELETE FROM tbl_baby_grow_info
+        WHERE baby_no = #{babyNo}
+    </delete>
+
 </mapper>
