@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.backend.ledger.mapper.LedgerMapper">
+
+    <select id="selectListByEmailAndRange" resultType="com.backend.ledger.domain.Ledger">
+        SELECT lno, email, type, category, amount, memo, tx_date, reg_time
+        FROM tbl_ledger
+        WHERE email = #{email}
+          AND tx_date BETWEEN #{start} AND #{end}
+        ORDER BY tx_date DESC, lno DESC
+    </select>
+
+    <select id="selectByLno" resultType="com.backend.ledger.domain.Ledger">
+        SELECT lno, email, type, category, amount, memo, tx_date, reg_time
+        FROM tbl_ledger
+        WHERE lno = #{lno}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="lno" keyColumn="lno">
+        INSERT INTO tbl_ledger (email, type, category, amount, memo, tx_date)
+        VALUES (#{email}, #{type}, #{category}, #{amount}, #{memo}, #{txDate})
+    </insert>
+
+    <update id="update">
+        UPDATE tbl_ledger
+        SET type     = #{type},
+            category = #{category},
+            amount   = #{amount},
+            memo     = #{memo},
+            tx_date  = #{txDate}
+        WHERE lno = #{lno}
+    </update>
+
+    <delete id="delete">
+        DELETE FROM tbl_ledger WHERE lno = #{lno}
+    </delete>
+
+</mapper>
