@@ -14,4 +14,6 @@ public interface BabyGrowInfoService {
 
     void remove(Long babyGrowNo);
 
+    void removeAll(Long babyNo);
+
 }

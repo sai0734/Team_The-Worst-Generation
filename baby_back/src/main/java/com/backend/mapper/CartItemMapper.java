@@ -2,11 +2,13 @@ package com.backend.mapper;
 
 import java.util.List;
 
+import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import com.backend.domain.CartItem;
 import com.backend.dto.CartItemListDTO;
 
+@Mapper
 public interface CartItemMapper {
 
   // cino로 단건 조회 (JPA의 findById()를 대체)

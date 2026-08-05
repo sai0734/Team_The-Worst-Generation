@@ -1,9 +1,11 @@
 package com.backend.mapper;
 
+import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import com.backend.domain.Member;
 
+@Mapper
 public interface MemberMapper {
 
   // 회원 정보 + 권한 목록을 함께 조회 (JPA의 getWithRoles()를 대체)
