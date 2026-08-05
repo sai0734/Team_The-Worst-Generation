@@ -2,10 +2,12 @@ package com.backend.ledger.mapper;
 
 import java.time.LocalDate;
 
+import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import com.backend.ledger.domain.LedgerSetting;
 
+@Mapper
 public interface LedgerSettingMapper {
 
     LedgerSetting selectByEmail(@Param("email") String email);
