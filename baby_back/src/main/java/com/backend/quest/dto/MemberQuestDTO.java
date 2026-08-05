@@ -23,8 +23,9 @@ public class MemberQuestDTO {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate assignedDate;
 
+    // YSJ - completedAt으로 통일
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime completeAt;
+    private LocalDateTime completedAt;
 
     private QuestDTO quest;
 }

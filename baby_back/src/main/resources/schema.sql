@@ -171,3 +171,31 @@ INSERT INTO tbl_allergy_ingredient (ingredientName) VALUES
     ('오징어'),
     ('조개류(굴, 전복, 홍합 포함)'),
     ('잣');
+
+-- YSJ - 일퀘/긴급퀘 마스터
+CREATE TABLE IF NOT EXISTS tbl_quest (
+    quest_id    BIGINT AUTO_INCREMENT,
+    title       VARCHAR(200) NOT NULL,
+    description TEXT,
+    type        VARCHAR(20) NOT NULL, -- DAILY | URGENT
+    repeat_type VARCHAR(20) NOT NULL, -- DAILY | WEEKLY
+    reward      INT         NOT NULL DEFAULT 0, -- 포인트
+    urgency     INT         NOT NULL DEFAULT 1, -- 1 ~ 3
+    active      BOOLEAN     NOT NULL DEFAULT TRUE,
+    PRIMARY KEY (quest_id)
+);
+
+-- YSJ - 회원별 진행/완료
+CREATE TABLE IF NOT EXISTS tbl_member_quest (
+    id              BIGINT AUTO_INCREMENT,
+    member_email    VARCHAR(100) NOT NULL,
+    quest_id        BIGINT       NOT NULL,
+    status          VARCHAR(20)  NOT NULL DEFAULT 'TODO', -- TODO | DONE
+    assigned_date   DATE         NOT NULL,
+    completed_at    DATETIME,
+    PRIMARY KEY (id),
+    CONSTRAINT fk_mq_member FOREIGN KEY (member_email) REFERENCES tbl_member (email),
+    CONSTRAINT fk_mq_quest FOREIGN KEY (quest_id) REFERENCES tbl_quest (quest_id),
+    INDEX idx_mq_member_date (member_email, assigned_date)
+);
+-- YSJ끝

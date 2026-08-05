@@ -7,8 +7,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 // KYI: 기능별 하위 패키지의 매퍼 인터페이스도 스캔 대상에 추가
 // (com.backend 전체를 스캔하면 Service 인터페이스까지 매퍼로 잘못 등록되어 빈 충돌이 남 — 패키지를 각각 명시)
-@MapperScan({"com.backend.mapper", "com.backend.ledger.mapper", "com.backend.babyInfo.mapper"})
+@MapperScan({"com.backend.mapper", "com.backend.ledger.mapper", "com.backend.babyInfo.mapper", "com.backend.quest.mapper"})
 // KYI 끝
+// YSJ - quest.mapper 스캔 추가
 public class BackendApplication {
 
 	public static void main(String[] args) {
