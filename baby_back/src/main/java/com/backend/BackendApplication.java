@@ -5,6 +5,7 @@ import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
+
 @SpringBootApplication
 // KYI: com.backend 전체에서 @Mapper 붙은 인터페이스만 매퍼로 등록.
 // (패키지 이름을 나열하는 대신 어노테이션으로 필터링 — 이렇게 해야 Service 인터페이스가

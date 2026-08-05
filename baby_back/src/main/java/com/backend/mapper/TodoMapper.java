@@ -5,7 +5,9 @@ import java.util.List;
 import org.apache.ibatis.annotations.Param;
 
 import com.backend.domain.Todo;
+import org.apache.ibatis.annotations.Mapper;
 
+@Mapper
 public interface TodoMapper {
 
   List<Todo> selectList(@Param("skip") int skip, @Param("size") int size);
