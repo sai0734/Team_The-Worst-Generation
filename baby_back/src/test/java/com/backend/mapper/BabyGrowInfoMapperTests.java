@@ -2,8 +2,6 @@ package com.backend.mapper;
 
 import com.backend.babyInfo.domain.BabyGrowInfo;
 import com.backend.babyInfo.mapper.BabyGrowInfoMapper;
-import com.backend.babyInfo.mapper.BabyInfoMapper;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +12,7 @@ import java.util.List;
 
 @SpringBootTest
 @Log4j2
-public class BabyGrowInfoTests {
+public class BabyGrowInfoMapperTests {
 
     @Autowired
     BabyGrowInfoMapper babyGrowInfoMapper;
@@ -22,7 +20,7 @@ public class BabyGrowInfoTests {
     @Test
     public void register() {
 
-        for(Long i = 0L; i < 9L; i++) {
+        for(Long i = 0L; i < 10L; i++) {
 
             BabyGrowInfo babyGrowInfo = BabyGrowInfo.builder()
                     .babyNo(i+2L)

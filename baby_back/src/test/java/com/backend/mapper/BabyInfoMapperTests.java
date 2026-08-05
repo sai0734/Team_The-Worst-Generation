@@ -12,7 +12,7 @@ import java.util.List;
 
 @SpringBootTest
 @Log4j2
-public class BabyInfoTests {
+public class BabyInfoMapperTests {
 
     @Autowired
     BabyInfoMapper babyInfoMapper;

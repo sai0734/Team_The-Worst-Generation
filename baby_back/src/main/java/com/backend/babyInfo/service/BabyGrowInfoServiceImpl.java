@@ -75,4 +75,14 @@ public class BabyGrowInfoServiceImpl implements BabyGrowInfoService{
         babyGrowInfoMapper.remove(babyGrowNo);
 
     }
+
+    @Override
+    public void removeAll(Long babyNo) {
+
+        log.info("babyGrowInfo_Service_removeAll_실행~~~~~~~~~~~~");
+
+        babyGrowInfoMapper.removeByBabyNo(babyNo);
+
+    }
+
 }

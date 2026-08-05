@@ -1,11 +1,13 @@
 package com.backend.quest.mapper;
 
 import com.backend.quest.domain.MemberQuest;
+import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import java.time.LocalDate;
 import java.util.List;
 
+@Mapper
 // YSJ - MyBatis QuestMapper 인터페이스 복구
 public interface QuestMapper {
 

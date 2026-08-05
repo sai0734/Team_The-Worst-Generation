@@ -1,10 +1,12 @@
 package com.backend.babyInfo.mapper;
 
 import com.backend.babyInfo.domain.BabyInfo;
+import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
+@Mapper
 public interface BabyInfoMapper {
 
     List<BabyInfo> selectList(@Param("email") String email);
