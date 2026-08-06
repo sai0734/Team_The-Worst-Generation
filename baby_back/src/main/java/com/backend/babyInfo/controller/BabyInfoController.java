@@ -76,10 +76,9 @@ public class BabyInfoController {
         return Map.of("BabyNo", babyNo);
 
     }
-
-    @PreAuthorize("hasAnyRole('ROLE_USER')")
+    
     @GetMapping("/view/{fileName}")
-    public ResponseEntity<Resource> viewFileGet(@PathVariable("fileName") String fileName, Principal principal) {
+    public ResponseEntity<Resource> viewFileGet(@PathVariable("fileName") String fileName) {
 
         log.info("babyInfo_Controller_viewFileGet_실행~~~~~~~~~~~~");
 
