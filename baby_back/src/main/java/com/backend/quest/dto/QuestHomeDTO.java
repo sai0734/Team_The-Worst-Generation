@@ -13,7 +13,10 @@ import java.util.List;
 @NoArgsConstructor
 public class QuestHomeDTO {
     private List<MemberQuestDTO> dailyQuests;
+    private List<MemberQuestDTO> weeklyQuests;
+    private List<MemberQuestDTO> eventQuests;
     private List<MemberQuestDTO> urgentQuests;
-    private QuestStreakDTO streak;
-    private QuestStatsDTO stats;
+    private int point;
+    private List<ChallengeDTO> challenges;
+    private MonthlyPopupDTO monthlyPopupDTO;
 }

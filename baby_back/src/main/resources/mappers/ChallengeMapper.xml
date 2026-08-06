@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.backend.quest.mapper.ChallengeMapper">
+
+    <select id="selectOngoingByMember" resultType="com.backend.quest.domain.MemberChallenge">
+        SELECT mc.id, mc.member_email, mc.challenge_id, mc.status, mc.current_streak,
+        mc.start_date, mc.end_date, mc.last_check_date,
+        c.title, c.target_days
+        FROM tbl_member_challenge mc
+        JOIN tbl_challenge c ON mc.challenge_id = c.challenge_id
+        WHERE mc.member_email = #{email} AND mc.status = 'ONGOING'
+    </select>
+
+    <select id="selectById" resultType="com.backend.quest.domain.Challenge">
+        SELECT challenge_id, title, description, target_days, success_point, fail_point, active
+        FROM tbl_challenge WHERE challenge_id = #{id}
+    </select>
+
+    <insert id="insertMemberChallenge" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO tbl_member_challenge
+        (member_email, challenge_id, status, current_streak, start_date, end_date, last_check_date)
+        VALUES
+        (#{memberEmail}, #{challengeId}, #{status}, #{currentStreak},
+        #{startDate}, #{endDate}, #{lastCheckDate})
+    </insert>
+
+    <select id="selectMemberChallenge" resultType="com.backend.quest.domain.MemberChallenge">
+        SELECT mc.*, c.title, c.target_days
+        FROM tbl_member_challenge mc
+        JOIN tbl_challenge c ON mc.challenge_id = c.challenge_id
+        WHERE mc.id = #{id} AND mc.member_email = #{email}
+    </select>
+
+    <insert id="insertCheckin">
+        INSERT INTO tbl_challenge_checkin (member_challenge_id, check_date)
+        VALUES (#{mcId}, #{date})
+    </insert>
+
+    <update id="updateMemberChallenge">
+        UPDATE tbl_member_challenge
+        SET status = #{status},
+        current_streak = #{currentStreak},
+        last_check_date = #{lastCheckDate}
+        WHERE id = #{id}
+    </update>
+</mapper>
