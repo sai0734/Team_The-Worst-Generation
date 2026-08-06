@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.backend.market.mapper.RentalDetailMapper">
+
+    <select id="selectByItemNo" resultType="com.backend.market.domain.RentalDetail">
+        SELECT item_no, deposit, min_days, max_days
+        FROM tbl_rental_detail
+        WHERE item_no = #{itemNo}
+    </select>
+
+    <insert id="insert">
+        INSERT INTO tbl_rental_detail (item_no, deposit, min_days, max_days)
+        VALUES (#{itemNo}, #{deposit}, #{minDays}, #{maxDays})
+    </insert>
+
+    <update id="update">
+        UPDATE tbl_rental_detail
+        SET deposit = #{deposit},
+        min_days = #{minDays},
+        max_days = #{maxDays}
+        WHERE item_no = #{itemNo}
+    </update>
+
+    <delete id="delete">
+        DELETE FROM tbl_rental_detail WHERE item_no = #{itemNo}
+    </delete>
+
+</mapper>

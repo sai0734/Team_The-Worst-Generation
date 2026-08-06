@@ -199,3 +199,109 @@ CREATE TABLE IF NOT EXISTS tbl_member_quest (
     INDEX idx_mq_member_date (member_email, assigned_date)
 );
 -- YSJ끝
+
+-- LJW 시작
+CREATE TABLE IF NOT EXISTS tbl_market_item (
+                                               item_no        BIGINT AUTO_INCREMENT,
+                                               seller_email   VARCHAR(100)  NOT NULL,
+    title          VARCHAR(100)  NOT NULL,
+    price          INT           NOT NULL DEFAULT 0,
+    description    VARCHAR(2000),
+    trade_type     VARCHAR(10)   NOT NULL,
+    category       VARCHAR(30)   NOT NULL,
+    age_range      VARCHAR(30),
+    `condition`    VARCHAR(20),
+    allow_offer    BOOLEAN       NOT NULL DEFAULT FALSE,
+    status         VARCHAR(20)   NOT NULL DEFAULT '거래가능',
+    location_name  VARCHAR(100),
+    latitude       DECIMAL(10,7),
+    longitude      DECIMAL(10,7),
+    view_count     INT           NOT NULL DEFAULT 0,
+    recall_checked BOOLEAN       NOT NULL DEFAULT FALSE,
+    recall_flag    BOOLEAN       NOT NULL DEFAULT FALSE,
+    bump_at        DATETIME,
+    del_flag       BOOLEAN       NOT NULL DEFAULT FALSE,
+    reg_time       DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    mod_time       DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (item_no),
+    CONSTRAINT fk_market_item_seller FOREIGN KEY (seller_email) REFERENCES tbl_member (email)
+    );
+
+CREATE TABLE IF NOT EXISTS tbl_market_item_image (
+                                                     item_no   BIGINT       NOT NULL,
+                                                     file_name VARCHAR(200) NOT NULL,
+    ord       INT          NOT NULL DEFAULT 0,
+    CONSTRAINT fk_market_item_image_item FOREIGN KEY (item_no) REFERENCES tbl_market_item (item_no)
+    );
+
+CREATE TABLE IF NOT EXISTS tbl_market_profile (
+                                                  email             VARCHAR(100)  NOT NULL,
+    manner_temp       DECIMAL(4,1)  NOT NULL DEFAULT 36.5,
+    location_name     VARCHAR(100),
+    latitude          DECIMAL(10,7),
+    longitude         DECIMAL(10,7),
+    location_verified BOOLEAN       NOT NULL DEFAULT FALSE,
+    PRIMARY KEY (email),
+    CONSTRAINT fk_market_profile_email FOREIGN KEY (email) REFERENCES tbl_member (email)
+    );
+
+CREATE TABLE IF NOT EXISTS tbl_rental_detail (
+                                                 item_no  BIGINT NOT NULL,
+                                                 deposit  INT    NOT NULL DEFAULT 0,
+                                                 min_days INT,
+                                                 max_days INT,
+                                                 PRIMARY KEY (item_no),
+    CONSTRAINT fk_rental_detail_item FOREIGN KEY (item_no) REFERENCES tbl_market_item (item_no)
+    );
+
+CREATE TABLE IF NOT EXISTS tbl_wish (
+                                        wno          BIGINT AUTO_INCREMENT,
+                                        item_no      BIGINT       NOT NULL,
+                                        member_email VARCHAR(100) NOT NULL,
+    reg_time     DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (wno),
+    CONSTRAINT fk_wish_item FOREIGN KEY (item_no) REFERENCES tbl_market_item (item_no),
+    CONSTRAINT fk_wish_member FOREIGN KEY (member_email) REFERENCES tbl_member (email),
+    CONSTRAINT uq_wish UNIQUE (item_no, member_email)
+    );
+
+CREATE TABLE IF NOT EXISTS tbl_chat_room (
+                                             room_no      BIGINT AUTO_INCREMENT,
+                                             item_no      BIGINT       NOT NULL,
+                                             buyer_email  VARCHAR(100) NOT NULL,
+    seller_email VARCHAR(100) NOT NULL,
+    reg_time     DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (room_no),
+    CONSTRAINT fk_chat_room_item FOREIGN KEY (item_no) REFERENCES tbl_market_item (item_no),
+    CONSTRAINT fk_chat_room_buyer FOREIGN KEY (buyer_email) REFERENCES tbl_member (email),
+    CONSTRAINT fk_chat_room_seller FOREIGN KEY (seller_email) REFERENCES tbl_member (email)
+    );
+
+CREATE TABLE IF NOT EXISTS tbl_chat_message (
+                                                msg_no       BIGINT AUTO_INCREMENT,
+                                                room_no      BIGINT       NOT NULL,
+                                                sender_email VARCHAR(100) NOT NULL,
+    msg_type     VARCHAR(10)  NOT NULL DEFAULT 'TEXT',
+    content      VARCHAR(1000),
+    offer_price  INT,
+    offer_status VARCHAR(10),
+    reg_time     DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (msg_no),
+    CONSTRAINT fk_chat_message_room FOREIGN KEY (room_no) REFERENCES tbl_chat_room (room_no),
+    CONSTRAINT fk_chat_message_sender FOREIGN KEY (sender_email) REFERENCES tbl_member (email)
+    );
+
+CREATE TABLE IF NOT EXISTS tbl_review (
+                                          review_no    BIGINT AUTO_INCREMENT,
+                                          item_no      BIGINT,
+                                          writer_email VARCHAR(100) NOT NULL,
+    target_email VARCHAR(100) NOT NULL,
+    rating       INT          NOT NULL,
+    content      VARCHAR(500),
+    reg_time     DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (review_no),
+    CONSTRAINT fk_review_item FOREIGN KEY (item_no) REFERENCES tbl_market_item (item_no),
+    CONSTRAINT fk_review_writer FOREIGN KEY (writer_email) REFERENCES tbl_member (email),
+    CONSTRAINT fk_review_target FOREIGN KEY (target_email) REFERENCES tbl_member (email)
+    );
+-- LJW 끝

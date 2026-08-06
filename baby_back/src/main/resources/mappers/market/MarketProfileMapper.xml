@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.backend.market.mapper.MarketProfileMapper">
+
+    <select id="selectByEmail" resultType="com.backend.market.domain.MarketProfile">
+        SELECT email, manner_temp, location_name, latitude, longitude, location_verified
+        FROM tbl_market_profile
+        WHERE email = #{email}
+    </select>
+
+    <insert id="insert">
+        INSERT INTO tbl_market_profile (email, manner_temp, location_name, latitude, longitude, location_verified)
+        VALUES (#{email}, #{mannerTemp}, #{locationName}, #{latitude}, #{longitude}, #{locationVerified})
+    </insert>
+
+    <update id="update">
+        UPDATE tbl_market_profile
+        SET manner_temp = #{mannerTemp},
+        location_name = #{locationName},
+        latitude = #{latitude},
+        longitude = #{longitude},
+        location_verified = #{locationVerified}
+        WHERE email = #{email}
+    </update>
+
+</mapper>
