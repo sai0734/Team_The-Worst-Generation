@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.backend.market.mapper.ReviewMapper">
+
+    <select id="selectListByTarget" resultType="com.backend.market.domain.Review">
+        SELECT review_no, item_no, writer_email, target_email, rating, content, reg_time
+        FROM tbl_review
+        WHERE target_email = #{targetEmail}
+        ORDER BY reg_time DESC
+    </select>
+
+    <select id="selectAvgRatingByTarget" resultType="java.lang.Double">
+        SELECT AVG(rating) FROM tbl_review WHERE target_email = #{targetEmail}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="reviewNo" keyColumn="review_no">
+        INSERT INTO tbl_review (item_no, writer_email, target_email, rating, content)
+        VALUES (#{itemNo}, #{writerEmail}, #{targetEmail}, #{rating}, #{content})
+    </insert>
+
+</mapper>
