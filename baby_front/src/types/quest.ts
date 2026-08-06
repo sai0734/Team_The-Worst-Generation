@@ -1,16 +1,33 @@
-export type QuestType = "DAILY" | "URGENT";
-export type QuestStatus = "TODO" | "DONE";
+export type QuestType = "DAILY" | "WEEKLY" | "EVENT" | "URGENT";
+export type QuestStatus = "TODO" | "DONE" | "FAILED" | "EXPIRED";
 
-
+export interface Quest {
+  questId: number;
+  title: string;
+  description?: string;
+  type: QuestType;
+  reward: number;
+  urgency?: number;
+  difficulty?: string;
+  theme?: string;
+  dueDays?: number;
+}
 
 export interface MemberQuest {
-    id: number;
-    questId: number;
-    title: string;
-    type: QuestType;
-    description?: string;
-    reward?: number;
-    status: QuestStatus;
-    assignedDate: string; //yyyy-MM-dd
-    completeAt: string | null;
+  id: number;
+  memberEmail?: string;
+  questId: number;
+  status: QuestStatus;
+  assignedDate: string;
+  completedAt: string | null;
+  dueDate?: string | null;
+  quest: Quest;
+}
+
+export interface QuestHome {
+  dailyQuests: MemberQuest[];
+  weeklyQuests: MemberQuest[];
+  eventQuests: MemberQuest[];
+  urgentQuests: MemberQuest[];
+  point: number;
 }

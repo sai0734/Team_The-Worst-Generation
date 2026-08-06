@@ -1,6 +1,7 @@
 package com.backend.quest.mapper;
 
 import com.backend.quest.domain.MemberQuest;
+import com.backend.quest.domain.Quest;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -42,4 +43,40 @@ public interface QuestMapper {
     List<LocalDate> selectCompletedDates(
             @Param("email") String email,
             @Param("from") LocalDate from);
+
+
+    //활성 일퀘 마스터
+    List<Quest> selectActiveDailyQuests();
+
+    //오늘 이미 배정되었는지
+    int countTodayAssigned(
+            @Param("email") String email,
+            @Param("date") LocalDate date,
+            @Param("type") String type);
+
+    //    일퀘 배정 insert
+    void insertMemberQuest(MemberQuest memberQuest);
+
+    //배우자 이메일 조회
+    String selectPartnerEmail(@Param("email") String email);
+
+    //긴급퀘 마스터 생성
+    void insertUrgentQuest(Quest quest);
+
+    void expireOverdue(@Param("email") String email, @Param("today") LocalDate today);
+
+    List<Quest> selectRandomDaily(@Param("limit") int limit);
+
+    int countAssignedTodayByType(@Param("email") String email,
+                                 @Param("date") LocalDate date,
+                                 @Param("type") String type);
+
+    // YSJ - 기간 내 type별 배정 수 (주간퀘: 이번 주 1개 제한용)
+    int countAssignedBetweenByType(@Param("email") String email,
+                                   @Param("from") LocalDate from,
+                                   @Param("to") LocalDate to,
+                                   @Param("type") String type);
+
+    Quest selectActiveQuest(@Param("questId") Long questId, @Param("type") String type);
+
 }

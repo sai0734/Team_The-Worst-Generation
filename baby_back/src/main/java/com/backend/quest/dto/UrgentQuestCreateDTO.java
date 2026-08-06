@@ -7,21 +7,14 @@ import lombok.NoArgsConstructor;
 
 @Data
 @Builder
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 
-public class QuestDTO {
-    private Long questId;
+public class UrgentQuestCreateDTO {
     private String title;
     private String description;
-    private String type;
-    private String repeatType;
     private int reward;
     private int urgency;
-    private boolean active;
-    private String difficulty;
-    private String theme;
-    private int dueDays;
-
-
 }
+
+
