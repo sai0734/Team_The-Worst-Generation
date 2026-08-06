@@ -13,4 +13,10 @@ public interface MarketItemService {
     Long register(MarketItemDTO marketItemDTO);
 
     void modify(MarketItemDTO marketItemDTO);
+
+    void remove(Long itemNo);
+
+    void increaseViewCount(Long itemNo);
+
+    void bump(Long itemNo);
 }
