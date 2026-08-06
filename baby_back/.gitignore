@@ -13,3 +13,6 @@ out
 
 # Logs
 *.log
+
+#google.vision.api-key
+application-secret.properties
