@@ -8,12 +8,11 @@ public interface BabyInfoService {
 
     List<BabyInfoDTO> getList(String email);
 
-    BabyInfoDTO getBabyInfo(Long babyNo);
+    BabyInfoDTO getBabyInfo(Long babyNo, String email);
 
-    Long register(BabyInfoDTO babyInfoDTO);
+    Long register(BabyInfoDTO babyInfoDTO, String email);
 
-    void modify(BabyInfoDTO babyInfoDTO);
+    void modify(BabyInfoDTO babyInfoDTO, String email);
 
-    void remove(Long babyNo);
-
+    void remove(Long babyNo, String email);
 }

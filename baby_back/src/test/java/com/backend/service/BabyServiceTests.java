@@ -31,7 +31,7 @@ public class BabyServiceTests {
                     .birthWeekCount(37)
                     .build();
 
-            babyInfoService.register(babyInfoDTO);
+            babyInfoService.register(babyInfoDTO, "user1@aaa.com");
 
             log.info(babyInfoDTO.toString());
 
@@ -51,7 +51,7 @@ public class BabyServiceTests {
     @Test
     public void getOne() {
 
-        BabyInfoDTO babyInfoDTO = babyInfoService.getBabyInfo(3L);
+        BabyInfoDTO babyInfoDTO = babyInfoService.getBabyInfo(3L, "user1@aaa.com");
 
         log.info(babyInfoDTO.toString());
 
@@ -70,7 +70,7 @@ public class BabyServiceTests {
                 .birthWeekCount(50)
                 .build();
 
-        babyInfoService.modify(babyInfoDTO);
+        babyInfoService.modify(babyInfoDTO, "user1@aaa.com");
 
         log.info(babyInfoDTO.toString());
 
@@ -79,7 +79,7 @@ public class BabyServiceTests {
     @Test
     public void remove() {
 
-        babyInfoService.remove(2L);
+        babyInfoService.remove(2L, "user1@aaa.com");
 
     }
 

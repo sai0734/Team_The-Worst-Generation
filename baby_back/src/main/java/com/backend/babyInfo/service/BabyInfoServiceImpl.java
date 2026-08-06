@@ -41,11 +41,11 @@ public class BabyInfoServiceImpl implements BabyInfoService{
     }
 
     @Override
-    public BabyInfoDTO getBabyInfo(Long babyNo) {
+    public BabyInfoDTO getBabyInfo(Long babyNo, String email) {
 
         log.info("babyInfo_Service_getBabyInfo_실행~~~~~~~~~~~~");
 
-        BabyInfo babyInfo = babyInfoMapper.selectByBabyNo(babyNo);
+        BabyInfo babyInfo = babyInfoMapper.selectByBabyNo(babyNo, email);
 
         if(babyInfo == null ) {
             throw new IllegalArgumentException("존재하지 않는 아이입니다: " + babyNo);
@@ -58,24 +58,24 @@ public class BabyInfoServiceImpl implements BabyInfoService{
     }
 
     @Override
-    public Long register(BabyInfoDTO babyInfoDTO) {
+    public Long register(BabyInfoDTO babyInfoDTO, String email) {
 
         log.info("babyInfo_Service_register_실행~~~~~~~~~~~~");
 
         BabyInfo babyInfo = modelMapper.map(babyInfoDTO, BabyInfo.class);
 
-        babyInfoMapper.insert(babyInfo);
+        babyInfoMapper.insert(babyInfo, email);
 
         return babyInfo.getBabyNo();
 
     }
 
     @Override
-    public void modify(BabyInfoDTO babyInfoDTO) {
+    public void modify(BabyInfoDTO babyInfoDTO, String email) {
 
         log.info("babyInfo_Service_modify_실행~~~~~~~~~~~~");
 
-        BabyInfo babyInfo = babyInfoMapper.selectByBabyNo(babyInfoDTO.getBabyNo());
+        BabyInfo babyInfo = babyInfoMapper.selectByBabyNo(babyInfoDTO.getBabyNo(), email);
 
         if(babyInfo == null) {
             throw new IllegalArgumentException("존재하지 않는 아이입니다:" + babyInfoDTO.getBabyNo());
@@ -88,18 +88,18 @@ public class BabyInfoServiceImpl implements BabyInfoService{
         babyInfo.changeBirthWeekCount(babyInfoDTO.getBirthWeekCount());
         babyInfo.changeProfileImageFileName(babyInfoDTO.getProfileImageFileName());
 
-        babyInfoMapper.update(babyInfo);
+        babyInfoMapper.update(babyInfo, email);
 
     }
 
     @Override
-    public void remove(Long babyNo) {
+    public void remove(Long babyNo, String email) {
 
         log.info("babyInfo_Service_remove_실행~~~~~~~~~~~~");
 
-        babyGrowInfoMapper.removeByBabyNo(babyNo);
+        babyGrowInfoMapper.removeByBabyNo(babyNo, email);
 
-        babyInfoMapper.delete(babyNo);
+        babyInfoMapper.delete(babyNo, email);
 
     }
 }
