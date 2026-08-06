@@ -2,11 +2,13 @@ package com.backend.mapper;
 
 import java.util.List;
 
+import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
 import com.backend.domain.Product;
 import com.backend.domain.ProductImage;
 
+@Mapper
 public interface ProductMapper {
 
   // 목록: 삭제되지 않았고 ord=0인 이미지가 있는 상품 (기존 JPA 쿼리와 동일한 조건)
