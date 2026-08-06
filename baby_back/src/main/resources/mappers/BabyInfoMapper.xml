@@ -13,29 +13,30 @@
     <select id="selectByBabyNo" resultType="com.backend.babyInfo.domain.BabyInfo">
         SELECT baby_no, email, baby_name, birth_date, gender, profile_image_file_name,
         blood_type, birth_week_count, reg_time, mod_time
-        FROM tbl_baby_info WHERE baby_no = #{babyNo}
+        FROM tbl_baby_info WHERE baby_no = #{babyNo} AND email = #{email}
     </select>
 
-    <insert id="insert" useGeneratedKeys="true" keyProperty="babyNo" keyColumn="baby_no">
+    <insert id="insert" useGeneratedKeys="true" keyProperty="babyInfo.babyNo" keyColumn="baby_no">
         INSERT INTO tbl_baby_info (email, baby_name, birth_date, gender, profile_image_file_name,
         blood_type, birth_week_count)
-        VALUES (#{email}, #{babyName}, #{birthDate}, #{gender}, #{profileImageFileName}, #{bloodType}, #{birthWeekCount})
+        VALUES (#{email}, #{babyInfo.babyName}, #{babyInfo.birthDate}, #{babyInfo.gender},
+        #{babyInfo.profileImageFileName}, #{babyInfo.bloodType}, #{babyInfo.birthWeekCount})
     </insert>
 
     <update id="update">
         UPDATE tbl_baby_info
-        SET baby_name = #{babyName},
-        birth_date = #{birthDate},
-        gender = #{gender},
-        profile_image_file_name = #{profileImageFileName},
-        blood_type = #{bloodType},
-        birth_week_count = #{birthWeekCount}
-        WHERE baby_no = #{babyNo};
+        SET baby_name = #{babyInfo.babyName},
+        birth_date = #{babyInfo.birthDate},
+        gender = #{babyInfo.gender},
+        profile_image_file_name = #{babyInfo.profileImageFileName},
+        blood_type = #{babyInfo.bloodType},
+        birth_week_count = #{babyInfo.birthWeekCount}
+        WHERE baby_no = #{babyInfo.babyNo} AND email = #{email}
     </update>
     
     <delete id="delete">
         DELETE FROM tbl_baby_info
-        WHERE baby_no = #{babyNo}
+        WHERE baby_no = #{babyNo} AND email = #{email}
     </delete>
 
 </mapper>

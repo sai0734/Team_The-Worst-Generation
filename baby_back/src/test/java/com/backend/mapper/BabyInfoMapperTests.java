@@ -30,7 +30,7 @@ public class BabyInfoMapperTests {
                     .birthWeekCount(10 + i)
                     .build();
 
-            babyInfoMapper.insert(babyInfo);
+            babyInfoMapper.insert(babyInfo, "user" + i + "@aaa.com");
 
             log.info(babyInfo.toString());
         }
@@ -49,7 +49,7 @@ public class BabyInfoMapperTests {
     @Test
     public void getOne() {
 
-        BabyInfo babyInfo = babyInfoMapper.selectByBabyNo(2L);
+        BabyInfo babyInfo = babyInfoMapper.selectByBabyNo(2L, "user1@aaa.com");
 
         log.info(babyInfo.toString());
 
@@ -58,17 +58,17 @@ public class BabyInfoMapperTests {
     @Test
     public void modify() {
 
-        BabyInfo babyInfo = babyInfoMapper.selectByBabyNo(2L);
+        BabyInfo babyInfo = babyInfoMapper.selectByBabyNo(2L, "user1@aaa.com");
 
         babyInfo.changeName("정서아");
         babyInfo.changeGender("여자");
 
-        babyInfoMapper.update(babyInfo);
+        babyInfoMapper.update(babyInfo, "user1@aaa.com");
 
     }
 
     @Test
     public void remove() {
-        babyInfoMapper.delete(11L);
+        babyInfoMapper.delete(11L, "user1@aaa.com");
     }
 }

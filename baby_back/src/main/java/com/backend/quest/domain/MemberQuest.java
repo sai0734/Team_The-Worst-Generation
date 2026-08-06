@@ -31,4 +31,13 @@ public class MemberQuest {
     private int reward;
     private int urgency;
 
+    // YSJ - 긴급퀘 생성자(시스템 배정이면 null)
+    private String createdBy;
+
+    private LocalDate dueDate;
+    private String difficulty;
+    private String theme;
+    private int dueDays;
+//    TODO/ DONE/FAILED/EXPIRED
+
 }

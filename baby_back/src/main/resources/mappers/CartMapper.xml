@@ -6,7 +6,7 @@
 
     <resultMap id="cartResultMap" type="com.backend.domain.Cart">
         <id property="cno" column="cno"/>
-        <association property="owner" javaType="com.backend.domain.Member">
+        <association property="owner" javaType="com.backend.auth.domain.Member">
             <id property="email" column="member_owner"/>
         </association>
     </resultMap>

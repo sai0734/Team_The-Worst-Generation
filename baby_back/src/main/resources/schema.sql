@@ -16,6 +16,19 @@ CREATE TABLE IF NOT EXISTS tbl_member_role (
     CONSTRAINT fk_member_role_email FOREIGN KEY (member_email) REFERENCES tbl_member (email)
     );
 
+CREATE TABLE IF NOT EXISTS tbl_member_social (
+                                                 id             BIGINT AUTO_INCREMENT,
+    member_email   VARCHAR(100) NOT NULL,
+    provider       VARCHAR(20)  NOT NULL,
+    provider_id    VARCHAR(100) NOT NULL,
+    provider_email VARCHAR(100),
+    connected_at   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_member_social_provider (provider, provider_id),
+    UNIQUE KEY uk_member_social_member_provider (member_email, provider),
+    CONSTRAINT fk_member_social_email FOREIGN KEY (member_email) REFERENCES tbl_member (email)
+    );
+
 CREATE TABLE IF NOT EXISTS tbl_product (
                                            pno      BIGINT AUTO_INCREMENT,
                                            pname    VARCHAR(100)  NOT NULL,

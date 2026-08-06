@@ -9,13 +9,13 @@ import java.util.List;
 @Mapper
 public interface BabyGrowInfoMapper {
 
-    List<BabyGrowInfo> selectList(@Param("babyNo") Long babyNo);
+    List<BabyGrowInfo> selectList(@Param("babyNo") Long babyNo, @Param("email") String email);
 
-    BabyGrowInfo selectByBabyGrowNo(@Param("babyGrowNo") Long babyGrowNo);
+    BabyGrowInfo selectByBabyGrowNo(@Param("babyGrowNo") Long babyGrowNo, @Param("email") String email);
 
     void insert(BabyGrowInfo babyGrowInfo);
 
-    void remove(@Param("babyGrowNo") Long babyGrowNo);
+    void remove(@Param("babyGrowNo") Long babyGrowNo, @Param("email") String email);
 
-    void removeByBabyNo(@Param("babyNo") Long babyNo);
+    void removeByBabyNo(@Param("babyNo") Long babyNo, @Param("email") String email);
 }

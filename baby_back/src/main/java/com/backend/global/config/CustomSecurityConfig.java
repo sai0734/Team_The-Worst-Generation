@@ -4,6 +4,9 @@ import java.util.Arrays;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -15,6 +18,8 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import com.backend.global.security.SecurityPaths;
+import com.backend.global.security.filter.APILoginFilter;
 import com.backend.global.security.filter.JWTCheckFilter;
 import com.backend.global.security.handler.APILoginFailHandler;
 import com.backend.global.security.handler.APILoginSuccessHandler;
@@ -29,40 +34,52 @@ import lombok.extern.log4j.Log4j2;
 @EnableMethodSecurity
 public class CustomSecurityConfig {
 
-    @Bean
-  public PasswordEncoder passwordEncoder(){
+  private final AuthenticationConfiguration authenticationConfiguration;
+
+  @Bean
+  public PasswordEncoder passwordEncoder() {
     return new BCryptPasswordEncoder();
   }
 
-
-@Bean
+  @Bean
   public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-    
+
     log.info("---------------------security config---------------------------");
 
-    http.cors(httpSecurityCorsConfigurer -> {
-      httpSecurityCorsConfigurer.configurationSource(corsConfigurationSource());
-    });
+    AuthenticationManager authenticationManager = authenticationConfiguration.getAuthenticationManager();
 
-    http.sessionManagement(sessionConfig ->  sessionConfig.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
+    http.cors(config -> config.configurationSource(corsConfigurationSource()));
+
+    http.sessionManagement(config -> config.sessionCreationPolicy(SessionCreationPolicy.STATELESS));
 
     http.csrf(config -> config.disable());
 
-        http.formLogin(config ->{
-      config.loginPage("/api/member/login");
-      config.successHandler(new APILoginSuccessHandler());
-       config.failureHandler(new APILoginFailHandler());
+    http.formLogin(config -> config.disable());
+
+    http.httpBasic(config -> config.disable());
+
+    http.authorizeHttpRequests(auth -> {
+      auth.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll();
+      auth.requestMatchers(SecurityPaths.PUBLIC_URLS).permitAll();
+      auth.anyRequest().authenticated();
     });
 
-      http.addFilterBefore(new JWTCheckFilter(), UsernamePasswordAuthenticationFilter.class); //JWT 체크
+    APILoginFilter apiLoginFilter = new APILoginFilter("/api/member/login");
+    apiLoginFilter.setAuthenticationManager(authenticationManager);
+    apiLoginFilter.setAuthenticationSuccessHandler(new APILoginSuccessHandler());
+    apiLoginFilter.setAuthenticationFailureHandler(new APILoginFailHandler());
 
-        http.exceptionHandling(config -> {config.accessDeniedHandler(new CustomAccessDeniedHandler());
-    });
+    http.authenticationManager(authenticationManager);
+    http.addFilterBefore(apiLoginFilter, UsernamePasswordAuthenticationFilter.class);
+    http.addFilterBefore(new JWTCheckFilter(), UsernamePasswordAuthenticationFilter.class);
+
+    http.exceptionHandling(config -> config.accessDeniedHandler(new CustomAccessDeniedHandler()));
+
     return http.build();
   }
 
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
+  @Bean
+  public CorsConfigurationSource corsConfigurationSource() {
 
     CorsConfiguration configuration = new CorsConfiguration();
 
@@ -76,5 +93,7 @@ public class CustomSecurityConfig {
 
     return source;
   }
-  
 }
+
+
+

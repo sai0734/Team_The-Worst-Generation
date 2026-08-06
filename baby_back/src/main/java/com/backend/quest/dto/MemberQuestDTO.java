@@ -28,4 +28,6 @@ public class MemberQuestDTO {
     private LocalDateTime completedAt;
 
     private QuestDTO quest;
+
+    private LocalDate dueDate;
 }

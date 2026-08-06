@@ -4,7 +4,7 @@ import QuestPanel from "../components/quest/QuestPanel";
 const MainPage = () => {
   return (
     <BasicLayout>
-      <div className="text-3xl">Main Page</div>
+      <div className="mb-4 text-2xl font-bold text-gray-900">오늘의 퀘스트</div>
       <QuestPanel />
     </BasicLayout>
   );
