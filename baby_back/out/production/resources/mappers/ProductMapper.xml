@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.backend.mapper.ProductMapper">
+
+    <!-- 목록: 상품마다 ord=0인 대표 이미지 하나를 조인 (이미지가 없는 상품은 기존 JPA 쿼리와 동일하게 제외됨) -->
+    <resultMap id="productListResultMap" type="com.backend.domain.Product">
+        <id property="pno" column="pno"/>
+        <result property="pname" column="pname"/>
+        <result property="price" column="price"/>
+        <result property="pdesc" column="pdesc"/>
+        <result property="delFlag" column="del_flag"/>
+        <collection property="imageList" ofType="com.backend.domain.ProductImage">
+            <result property="fileName" column="file_name"/>
+            <result property="ord" column="img_ord"/>
+        </collection>
+    </resultMap>
+
+    <select id="selectList" resultMap="productListResultMap">
+        SELECT p.pno, p.pname, p.price, p.pdesc, p.del_flag, pi.file_name, pi.ord AS img_ord
+        FROM tbl_product p
+        JOIN tbl_product_image pi ON p.pno = pi.pno AND pi.ord = 0
+        WHERE p.del_flag = false
+        ORDER BY p.pno DESC
+        LIMIT #{size} OFFSET #{skip}
+    </select>
+
+    <select id="selectListCount" resultType="long">
+        SELECT COUNT(*)
+        FROM tbl_product p
+        JOIN tbl_product_image pi ON p.pno = pi.pno AND pi.ord = 0
+        WHERE p.del_flag = false
+    </select>
+
+    <resultMap id="productResultMap" type="com.backend.domain.Product">
+        <id property="pno" column="pno"/>
+        <result property="pname" column="pname"/>
+        <result property="price" column="price"/>
+        <result property="pdesc" column="pdesc"/>
+        <result property="delFlag" column="del_flag"/>
+        <collection property="imageList"
+                    column="pno"
+                    javaType="java.util.ArrayList"
+                    ofType="com.backend.domain.ProductImage"
+                    select="selectImages"/>
+    </resultMap>
+
+    <select id="selectOne" resultMap="productResultMap">
+        SELECT pno, pname, price, pdesc, del_flag
+        FROM tbl_product
+        WHERE pno = #{pno}
+    </select>
+
+    <select id="selectImages" resultType="com.backend.domain.ProductImage">
+        SELECT file_name, ord
+        FROM tbl_product_image
+        WHERE pno = #{pno}
+        ORDER BY ord
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="pno" keyColumn="pno">
+        INSERT INTO tbl_product (pname, price, pdesc, del_flag)
+        VALUES (#{pname}, #{price}, #{pdesc}, #{delFlag})
+    </insert>
+
+    <insert id="insertImage">
+        INSERT INTO tbl_product_image (pno, file_name, ord)
+        VALUES (#{pno}, #{image.fileName}, #{image.ord})
+    </insert>
+
+    <delete id="deleteImages">
+        DELETE FROM tbl_product_image WHERE pno = #{pno}
+    </delete>
+
+    <update id="update">
+        UPDATE tbl_product
+        SET pname = #{pname},
+            pdesc = #{pdesc},
+            price = #{price}
+        WHERE pno = #{pno}
+    </update>
+
+    <update id="updateToDelete">
+        UPDATE tbl_product
+        SET del_flag = #{flag}
+        WHERE pno = #{pno}
+    </update>
+
+</mapper>
