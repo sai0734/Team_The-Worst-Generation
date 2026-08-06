@@ -172,30 +172,166 @@ INSERT INTO tbl_allergy_ingredient (ingredientName) VALUES
     ('조개류(굴, 전복, 홍합 포함)'),
     ('잣');
 
--- YSJ - 일퀘/긴급퀘 마스터
+-- YSJ - 퀘스트 마스터 (풀 ~100개: DAILY/WEEKLY/EVENT/URGENT)
 CREATE TABLE IF NOT EXISTS tbl_quest (
-    quest_id    BIGINT AUTO_INCREMENT,
-    title       VARCHAR(200) NOT NULL,
-    description TEXT,
-    type        VARCHAR(20) NOT NULL, -- DAILY | URGENT
-    repeat_type VARCHAR(20) NOT NULL, -- DAILY | WEEKLY
-    reward      INT         NOT NULL DEFAULT 0, -- 포인트
-    urgency     INT         NOT NULL DEFAULT 1, -- 1 ~ 3
-    active      BOOLEAN     NOT NULL DEFAULT TRUE,
-    PRIMARY KEY (quest_id)
+    quest_id     BIGINT AUTO_INCREMENT,
+    title        VARCHAR(200) NOT NULL,
+    description  TEXT,
+    type         VARCHAR(20)  NOT NULL, -- DAILY | WEEKLY | EVENT | URGENT
+    difficulty   VARCHAR(20)  NOT NULL DEFAULT 'MEDIUM', -- EASY | MEDIUM | HARD
+    theme        VARCHAR(50),                          -- CARE | ACTIVITY | EMOTION 등
+    reward       INT          NOT NULL DEFAULT 0,
+    urgency      INT          NOT NULL DEFAULT 1,      -- URGENT용 1~3
+    due_days     INT          NOT NULL DEFAULT 1,      -- WEEKLY=7, EVENT=기간
+    active       BOOLEAN      NOT NULL DEFAULT TRUE,
+    PRIMARY KEY (quest_id),
+    INDEX idx_quest_type_active (type, active)
 );
 
--- YSJ - 회원별 진행/완료
+-- YSJ - 회원 배정/수령
 CREATE TABLE IF NOT EXISTS tbl_member_quest (
     id              BIGINT AUTO_INCREMENT,
     member_email    VARCHAR(100) NOT NULL,
     quest_id        BIGINT       NOT NULL,
-    status          VARCHAR(20)  NOT NULL DEFAULT 'TODO', -- TODO | DONE
+    status          VARCHAR(20)  NOT NULL DEFAULT 'TODO', -- TODO | DONE | FAILED | EXPIRED
     assigned_date   DATE         NOT NULL,
+    due_date        DATE         NOT NULL,
     completed_at    DATETIME,
+    created_by      VARCHAR(100) NULL, -- URGENT 생성 배우자
     PRIMARY KEY (id),
     CONSTRAINT fk_mq_member FOREIGN KEY (member_email) REFERENCES tbl_member (email),
-    CONSTRAINT fk_mq_quest FOREIGN KEY (quest_id) REFERENCES tbl_quest (quest_id),
-    INDEX idx_mq_member_date (member_email, assigned_date)
+    CONSTRAINT fk_mq_quest  FOREIGN KEY (quest_id) REFERENCES tbl_quest (quest_id),
+    INDEX idx_mq_member_date (member_email, assigned_date),
+    INDEX idx_mq_member_status (member_email, status)
 );
+
+-- YSJ - 배우자(부부) 연동
+CREATE TABLE IF NOT EXISTS tbl_couple (
+    couple_id BIGINT AUTO_INCREMENT,
+    email1    VARCHAR(100) NOT NULL,
+    email2    VARCHAR(100) NOT NULL,
+    PRIMARY KEY (couple_id),
+    CONSTRAINT fk_couple_email1 FOREIGN KEY (email1) REFERENCES tbl_member (email),
+    CONSTRAINT fk_couple_email2 FOREIGN KEY (email2) REFERENCES tbl_member (email),
+    UNIQUE KEY uk_couple_pair (email1, email2)
+);
+
+-- YSJ - 케어 챌린지 마스터
+CREATE TABLE IF NOT EXISTS tbl_challenge (
+    challenge_id   BIGINT AUTO_INCREMENT,
+    title          VARCHAR(200) NOT NULL,
+    description    TEXT,
+    target_days    INT NOT NULL,                 -- 7, 14, 30
+    success_point  INT NOT NULL DEFAULT 50,
+    fail_point     INT NOT NULL DEFAULT 20,      -- 실패 시 차감
+    active         BOOLEAN NOT NULL DEFAULT TRUE,
+    PRIMARY KEY (challenge_id)
+);
+
+-- YSJ - 회원별 챌린지 진행
+CREATE TABLE IF NOT EXISTS tbl_member_challenge (
+    id                BIGINT AUTO_INCREMENT,
+    member_email      VARCHAR(100) NOT NULL,
+    challenge_id      BIGINT NOT NULL,
+    status            VARCHAR(20) NOT NULL DEFAULT 'ONGOING', -- ONGOING | SUCCESS | FAILED
+    current_streak    INT NOT NULL DEFAULT 0,
+    start_date        DATE NOT NULL,
+    end_date          DATE NOT NULL,
+    last_check_date   DATE NULL,
+    PRIMARY KEY (id),
+    CONSTRAINT fk_mc_member FOREIGN KEY (member_email) REFERENCES tbl_member (email),
+    CONSTRAINT fk_mc_chal   FOREIGN KEY (challenge_id) REFERENCES tbl_challenge (challenge_id)
+);
+
+-- YSJ - 챌린지 일일 체크인
+CREATE TABLE IF NOT EXISTS tbl_challenge_checkin (
+    id                    BIGINT AUTO_INCREMENT,
+    member_challenge_id   BIGINT NOT NULL,
+    check_date            DATE NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_check (member_challenge_id, check_date),
+    CONSTRAINT fk_check_mc FOREIGN KEY (member_challenge_id) REFERENCES tbl_member_challenge (id)
+);
+
+-- YSJ - 회원 포인트
+CREATE TABLE IF NOT EXISTS tbl_member_point (
+    member_email VARCHAR(100) NOT NULL,
+    point        INT NOT NULL DEFAULT 0,
+    PRIMARY KEY (member_email),
+    CONSTRAINT fk_point_member FOREIGN KEY (member_email) REFERENCES tbl_member (email)
+);
+
+-- YSJ - 포인트 적립/차감 로그
+CREATE TABLE IF NOT EXISTS tbl_point_log (
+    id           BIGINT AUTO_INCREMENT,
+    member_email VARCHAR(100) NOT NULL,
+    amount       INT NOT NULL,              -- +적립 / -차감
+    reason       VARCHAR(100) NOT NULL,     -- QUEST | CHALLENGE_SUCCESS | CHALLENGE_FAIL | MONTHLY
+    ref_id       BIGINT NULL,
+    created_at   DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    INDEX idx_point_log_member (member_email, created_at)
+);
+
+-- YSJ - 월간 부부 대결 결과
+CREATE TABLE IF NOT EXISTS tbl_monthly_result (
+    id             BIGINT AUTO_INCREMENT,
+    couple_id      BIGINT NOT NULL,
+    year_month     CHAR(7) NOT NULL,        -- 2026-08
+    winner_email   VARCHAR(100) NULL,       -- null + is_draw=true 면 공동
+    is_draw        BOOLEAN NOT NULL DEFAULT FALSE,
+    email1_point   INT NOT NULL,
+    email2_point   INT NOT NULL,
+    popup_shown1   BOOLEAN NOT NULL DEFAULT FALSE,
+    popup_shown2   BOOLEAN NOT NULL DEFAULT FALSE,
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_couple_month (couple_id, year_month),
+    CONSTRAINT fk_monthly_couple FOREIGN KEY (couple_id) REFERENCES tbl_couple (couple_id)
+);
+
+-- YSJ - 승리 혜택 쿠폰 마스터
+CREATE TABLE IF NOT EXISTS tbl_coupon (
+    coupon_id   BIGINT AUTO_INCREMENT,
+    title       VARCHAR(100) NOT NULL,
+    description VARCHAR(300),
+    active      BOOLEAN NOT NULL DEFAULT TRUE,
+    PRIMARY KEY (coupon_id)
+);
+
+-- YSJ - 회원 보유 쿠폰
+CREATE TABLE IF NOT EXISTS tbl_member_coupon (
+    id           BIGINT AUTO_INCREMENT,
+    member_email VARCHAR(100) NOT NULL,
+    coupon_id    BIGINT NOT NULL,
+    year_month   CHAR(7) NOT NULL,
+    status       VARCHAR(20) NOT NULL DEFAULT 'UNUSED', -- UNUSED | USED
+    issued_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    used_at      DATETIME NULL,
+    PRIMARY KEY (id),
+    CONSTRAINT fk_mcoupon_member FOREIGN KEY (member_email) REFERENCES tbl_member (email),
+    CONSTRAINT fk_mcoupon_coupon FOREIGN KEY (coupon_id) REFERENCES tbl_coupon (coupon_id)
+);
+
+-- YSJ - 케어 챌린지 예시 데이터
+INSERT INTO tbl_challenge (title, description, target_days, success_point, fail_point, active)
+SELECT * FROM (
+    SELECT '7일 연속 양치시키기' AS title, '매일 아이 양치 케어' AS description, 7 AS target_days, 50 AS success_point, 20 AS fail_point, TRUE AS active
+    UNION ALL SELECT '30일 연속 육아일기', '매일 육아일기 작성', 30, 150, 40, TRUE
+    UNION ALL SELECT '14일 연속 산책', '매일 아이와 산책', 14, 80, 25, TRUE
+    UNION ALL SELECT '일주일 TV 없이 놀아주기', 'TV 없이 함께 놀이', 7, 60, 20, TRUE
+) AS tmp
+WHERE NOT EXISTS (SELECT 1 FROM tbl_challenge LIMIT 1);
+
+-- YSJ - 승리 혜택 쿠폰 예시 데이터
+INSERT INTO tbl_coupon (title, description, active)
+SELECT * FROM (
+    SELECT '오늘 설거지 면제권' AS title, '오늘 설거지 스킵' AS description, TRUE AS active
+    UNION ALL SELECT '영화 선택권', '오늘 볼 영화 결정', TRUE
+    UNION ALL SELECT '야식 선택권', '야식 메뉴 결정', TRUE
+    UNION ALL SELECT '주말 외출 코스 결정권', '주말 코스 결정', TRUE
+    UNION ALL SELECT '커피 한 잔 얻기', '커피 한 잔 받기', TRUE
+    UNION ALL SELECT '안마 15분 받기', '안마 15분', TRUE
+    UNION ALL SELECT '게임 2시간 허용', '게임 2시간 허용', TRUE
+) AS tmp
+WHERE NOT EXISTS (SELECT 1 FROM tbl_coupon LIMIT 1);
 -- YSJ끝
