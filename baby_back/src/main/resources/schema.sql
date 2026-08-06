@@ -277,7 +277,7 @@ CREATE TABLE IF NOT EXISTS tbl_point_log (
 CREATE TABLE IF NOT EXISTS tbl_monthly_result (
     id             BIGINT AUTO_INCREMENT,
     couple_id      BIGINT NOT NULL,
-    year_month     CHAR(7) NOT NULL,        -- 2026-08
+    month_key     CHAR(7) NOT NULL,        -- 2026-08
     winner_email   VARCHAR(100) NULL,       -- null + is_draw=true 면 공동
     is_draw        BOOLEAN NOT NULL DEFAULT FALSE,
     email1_point   INT NOT NULL,
@@ -285,7 +285,7 @@ CREATE TABLE IF NOT EXISTS tbl_monthly_result (
     popup_shown1   BOOLEAN NOT NULL DEFAULT FALSE,
     popup_shown2   BOOLEAN NOT NULL DEFAULT FALSE,
     PRIMARY KEY (id),
-    UNIQUE KEY uk_couple_month (couple_id, year_month),
+    UNIQUE KEY uk_couple_month (couple_id, month_key),
     CONSTRAINT fk_monthly_couple FOREIGN KEY (couple_id) REFERENCES tbl_couple (couple_id)
 );
 
@@ -303,7 +303,7 @@ CREATE TABLE IF NOT EXISTS tbl_member_coupon (
     id           BIGINT AUTO_INCREMENT,
     member_email VARCHAR(100) NOT NULL,
     coupon_id    BIGINT NOT NULL,
-    year_month   CHAR(7) NOT NULL,
+    month_key    CHAR(7) NOT NULL,
     status       VARCHAR(20) NOT NULL DEFAULT 'UNUSED', -- UNUSED | USED
     issued_at    DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     used_at      DATETIME NULL,
@@ -314,17 +314,19 @@ CREATE TABLE IF NOT EXISTS tbl_member_coupon (
 
 -- YSJ - 케어 챌린지 예시 데이터
 INSERT INTO tbl_challenge (title, description, target_days, success_point, fail_point, active)
-SELECT * FROM (
+SELECT t.title, t.description, t.target_days, t.success_point, t.fail_point, t.active
+FROM (
     SELECT '7일 연속 양치시키기' AS title, '매일 아이 양치 케어' AS description, 7 AS target_days, 50 AS success_point, 20 AS fail_point, TRUE AS active
     UNION ALL SELECT '30일 연속 육아일기', '매일 육아일기 작성', 30, 150, 40, TRUE
     UNION ALL SELECT '14일 연속 산책', '매일 아이와 산책', 14, 80, 25, TRUE
     UNION ALL SELECT '일주일 TV 없이 놀아주기', 'TV 없이 함께 놀이', 7, 60, 20, TRUE
-) AS tmp
-WHERE NOT EXISTS (SELECT 1 FROM tbl_challenge LIMIT 1);
+) AS t
+WHERE (SELECT COUNT(*) FROM tbl_challenge) = 0;
 
 -- YSJ - 승리 혜택 쿠폰 예시 데이터
 INSERT INTO tbl_coupon (title, description, active)
-SELECT * FROM (
+SELECT t.title, t.description, t.active
+FROM (
     SELECT '오늘 설거지 면제권' AS title, '오늘 설거지 스킵' AS description, TRUE AS active
     UNION ALL SELECT '영화 선택권', '오늘 볼 영화 결정', TRUE
     UNION ALL SELECT '야식 선택권', '야식 메뉴 결정', TRUE
@@ -332,6 +334,6 @@ SELECT * FROM (
     UNION ALL SELECT '커피 한 잔 얻기', '커피 한 잔 받기', TRUE
     UNION ALL SELECT '안마 15분 받기', '안마 15분', TRUE
     UNION ALL SELECT '게임 2시간 허용', '게임 2시간 허용', TRUE
-) AS tmp
-WHERE NOT EXISTS (SELECT 1 FROM tbl_coupon LIMIT 1);
+) AS t
+WHERE (SELECT COUNT(*) FROM tbl_coupon) = 0;
 -- YSJ끝
