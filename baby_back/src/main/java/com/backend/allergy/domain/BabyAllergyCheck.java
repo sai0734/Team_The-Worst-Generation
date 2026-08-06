@@ -1,14 +1,14 @@
-package com.backend.allergy.vo;
+package com.backend.allergy.domain;
 
 import java.time.LocalDateTime;
 
 import lombok.Data;
 
 @Data
-public class BabyAllergyCheckVO {
+public class BabyAllergyCheck {
 
-    private Long checkNo;
-    private Long babyNo;
+    private Long checkNo; //pk
+    private Long babyNo; // fk
     private String imageFileName;
     private String ocrRawText;
     private String detectedAllergens;
