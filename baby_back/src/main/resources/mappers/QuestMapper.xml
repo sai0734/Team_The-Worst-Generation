@@ -1,0 +1,161 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- YSJ -->
+<mapper namespace="com.backend.quest.mapper.QuestMapper">
+
+    <select id="selectTodayByMember" resultType="com.backend.quest.domain.MemberQuest">
+        SELECT
+            mq.id, mq.member_email, mq.quest_id, mq.status,
+            mq.assigned_date, mq.due_date, mq.completed_at, mq.created_by,
+            q.title, q.description, q.type, q.difficulty, q.theme,
+            q.reward, q.urgency, q.due_days
+        FROM tbl_member_quest mq
+        JOIN tbl_quest q ON mq.quest_id = q.quest_id
+        WHERE mq.member_email = #{email}
+          AND mq.assigned_date = #{date}
+          AND q.active = TRUE
+        ORDER BY q.urgency DESC, mq.id ASC
+    </select>
+
+    <select id="selectMemberQuest" resultType="com.backend.quest.domain.MemberQuest">
+        SELECT
+            mq.id, mq.member_email, mq.quest_id, mq.status,
+            mq.assigned_date, mq.due_date, mq.completed_at, mq.created_by,
+            q.title, q.description, q.type, q.difficulty, q.theme,
+            q.reward, q.urgency, q.due_days
+        FROM tbl_member_quest mq
+        JOIN tbl_quest q ON mq.quest_id = q.quest_id
+        WHERE mq.id = #{id}
+          AND mq.member_email = #{email}
+    </select>
+
+    <update id="completeMemberQuest">
+        UPDATE tbl_member_quest
+        SET status = 'DONE',
+            completed_at = NOW()
+        WHERE id = #{id}
+          AND member_email = #{email}
+          AND status = 'TODO'
+    </update>
+
+    <select id="countCompletedBetween" resultType="int">
+        SELECT COUNT(*)
+        FROM tbl_member_quest
+        WHERE member_email = #{email}
+          AND status = 'DONE'
+          AND assigned_date BETWEEN #{from} AND #{to}
+    </select>
+
+    <select id="countTotalBetween" resultType="int">
+        SELECT COUNT(*)
+        FROM tbl_member_quest
+        WHERE member_email = #{email}
+          AND assigned_date BETWEEN #{from} AND #{to}
+    </select>
+
+    <select id="sumRewardBetween" resultType="int">
+        SELECT COALESCE(SUM(q.reward), 0)
+        FROM tbl_member_quest mq
+        JOIN tbl_quest q ON mq.quest_id = q.quest_id
+        WHERE mq.member_email = #{email}
+          AND mq.status = 'DONE'
+          AND mq.assigned_date BETWEEN #{from} AND #{to}
+    </select>
+
+    <select id="selectCompletedDates" resultType="java.time.LocalDate">
+        SELECT DISTINCT assigned_date
+        FROM tbl_member_quest
+        WHERE member_email = #{email}
+          AND status = 'DONE'
+          AND assigned_date &gt;= #{from}
+        ORDER BY assigned_date DESC
+    </select>
+
+    <select id="selectActiveDailyQuests" resultType="com.backend.quest.domain.Quest">
+        SELECT quest_id, title, description, type, difficulty, theme,
+               reward, urgency, due_days, active
+        FROM tbl_quest
+        WHERE type = 'DAILY'
+          AND active = TRUE
+    </select>
+
+    <select id="countTodayAssigned" resultType="int">
+        SELECT COUNT(*)
+        FROM tbl_member_quest mq
+        JOIN tbl_quest q ON mq.quest_id = q.quest_id
+        WHERE mq.member_email = #{email}
+          AND mq.assigned_date = #{date}
+          AND q.type = #{type}
+    </select>
+
+    <insert id="insertMemberQuest" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
+        INSERT INTO tbl_member_quest
+            (member_email, quest_id, status, assigned_date, due_date, created_by)
+        VALUES
+            (#{memberEmail}, #{questId}, #{status}, #{assignedDate}, #{dueDate}, #{createdBy})
+    </insert>
+
+    <select id="selectPartnerEmail" resultType="string">
+        SELECT CASE
+                 WHEN email1 = #{email} THEN email2
+                 ELSE email1
+               END
+        FROM tbl_couple
+        WHERE email1 = #{email} OR email2 = #{email}
+        LIMIT 1
+    </select>
+
+    <insert id="insertUrgentQuest" useGeneratedKeys="true" keyProperty="questId" keyColumn="quest_id">
+        INSERT INTO tbl_quest
+            (title, description, type, difficulty, theme, reward, urgency, due_days, active)
+        VALUES
+            (#{title}, #{description}, #{type}, #{difficulty}, #{theme},
+             #{reward}, #{urgency}, #{dueDays}, #{active})
+    </insert>
+
+    <select id="selectRandomDaily" resultType="com.backend.quest.domain.Quest">
+        SELECT quest_id, title, description, type, difficulty, theme,
+               reward, urgency, due_days, active
+        FROM tbl_quest
+        WHERE type = 'DAILY' AND active = TRUE
+        ORDER BY RAND()
+        LIMIT #{limit}
+    </select>
+
+    <select id="countAssignedTodayByType" resultType="int">
+        SELECT COUNT(*)
+        FROM tbl_member_quest mq
+        JOIN tbl_quest q ON mq.quest_id = q.quest_id
+        WHERE mq.member_email = #{email}
+          AND mq.assigned_date = #{date}
+          AND q.type = #{type}
+    </select>
+
+    <select id="countAssignedBetweenByType" resultType="int">
+        SELECT COUNT(*)
+        FROM tbl_member_quest mq
+        JOIN tbl_quest q ON mq.quest_id = q.quest_id
+        WHERE mq.member_email = #{email}
+          AND mq.assigned_date BETWEEN #{from} AND #{to}
+          AND q.type = #{type}
+    </select>
+
+    <update id="expireOverdue">
+        UPDATE tbl_member_quest
+        SET status = 'EXPIRED'
+        WHERE member_email = #{email}
+          AND status = 'TODO'
+          AND due_date &lt; #{today}
+    </update>
+
+    <select id="selectActiveQuest" resultType="com.backend.quest.domain.Quest">
+        SELECT quest_id, title, description, type, difficulty, theme,
+               reward, urgency, due_days, active
+        FROM tbl_quest
+        WHERE quest_id = #{questId}
+          AND type = #{type}
+          AND active = TRUE
+    </select>
+
+</mapper>

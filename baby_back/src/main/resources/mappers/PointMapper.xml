@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.backend.quest.mapper.PointMapper">
+
+    <select id="selectPoint" resultType="int">
+        SELECT COALESCE(point, 0) FROM tbl_member_point WHERE member_email = #{email}
+    </select>
+
+    <insert id="upsertPoint">
+        INSERT INTO tbl_member_point (member_email, point)
+        VALUES (#{email}, #{amount})
+        ON DUPLICATE KEY UPDATE point = point + #{amount}
+    </insert>
+
+    <insert id="insertLog">
+        INSERT INTO tbl_point_log (member_email, amount, reason, ref_id)
+        VALUES (#{email}, #{amount}, #{reason}, #{refId})
+    </insert>
+
+    <select id="sumMonthPoint" resultType="int">
+        SELECT COALESCE(SUM(amount), 0)
+        FROM tbl_point_log
+        WHERE member_email = #{email}
+        AND DATE_FORMAT(created_at, '%Y-%m') = #{yearMonth}
+    </select>
+</mapper>

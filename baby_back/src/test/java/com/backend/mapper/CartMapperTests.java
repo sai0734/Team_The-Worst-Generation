@@ -10,7 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.backend.domain.Cart;
 import com.backend.domain.CartItem;
-import com.backend.domain.Member;
+import com.backend.auth.domain.Member;
 import com.backend.domain.Product;
 import com.backend.dto.CartItemListDTO;
 

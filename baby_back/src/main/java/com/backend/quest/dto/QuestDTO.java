@@ -19,5 +19,9 @@ public class QuestDTO {
     private int reward;
     private int urgency;
     private boolean active;
+    private String difficulty;
+    private String theme;
+    private int dueDays;
+
 
 }

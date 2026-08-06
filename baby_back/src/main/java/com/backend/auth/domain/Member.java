@@ -1,4 +1,4 @@
-package com.backend.domain;
+package com.backend.auth.domain;
 
 import lombok.*;
 

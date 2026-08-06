@@ -6,8 +6,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import com.backend.domain.Member;
-import com.backend.domain.MemberRole;
+import com.backend.auth.domain.Member;
+import com.backend.auth.domain.MemberRole;
+import com.backend.auth.mapper.MemberMapper;
 
 @SpringBootTest
 @Log4j2
