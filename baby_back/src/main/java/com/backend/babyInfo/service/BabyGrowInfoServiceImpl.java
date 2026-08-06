@@ -1,8 +1,10 @@
 package com.backend.babyInfo.service;
 
 import com.backend.babyInfo.domain.BabyGrowInfo;
+import com.backend.babyInfo.domain.BabyInfo;
 import com.backend.babyInfo.dto.BabyGrowInfoDTO;
 import com.backend.babyInfo.mapper.BabyGrowInfoMapper;
+import com.backend.babyInfo.mapper.BabyInfoMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.modelmapper.ModelMapper;
@@ -20,14 +22,16 @@ public class BabyGrowInfoServiceImpl implements BabyGrowInfoService{
 
     private final BabyGrowInfoMapper babyGrowInfoMapper;
 
+    private final BabyInfoMapper babyInfoMapper;
+
     private final ModelMapper modelMapper;
 
     @Override
-    public List<BabyGrowInfoDTO> getList(Long babyNo) {
+    public List<BabyGrowInfoDTO> getList(Long babyNo, String email) {
 
         log.info("babyGrowInfo_Service_getList_실행~~~~~~~~~~~~");
 
-        List<BabyGrowInfo> result = babyGrowInfoMapper.selectList(babyNo);
+        List<BabyGrowInfo> result = babyGrowInfoMapper.selectList(babyNo, email);
 
         List<BabyGrowInfoDTO> babyGrowInfoDTOList = result.stream()
                 .map(babyGrowInfo -> modelMapper.map(babyGrowInfo, BabyGrowInfoDTO.class))
@@ -38,11 +42,11 @@ public class BabyGrowInfoServiceImpl implements BabyGrowInfoService{
     }
 
     @Override
-    public BabyGrowInfoDTO getBabyGrowInfo(Long babyGrowNo) {
+    public BabyGrowInfoDTO getBabyGrowInfo(Long babyGrowNo, String email) {
 
         log.info("babyGrowInfo_Service_getBabyGrowInfo_실행~~~~~~~~~~~~");
 
-        BabyGrowInfo babyGrowInfo = babyGrowInfoMapper.selectByBabyGrowNo(babyGrowNo);
+        BabyGrowInfo babyGrowInfo = babyGrowInfoMapper.selectByBabyGrowNo(babyGrowNo, email);
 
         if(babyGrowInfo == null) {
             throw new IllegalArgumentException("존재하지 않는 성장 정보 입니다: " + babyGrowNo);
@@ -55,9 +59,15 @@ public class BabyGrowInfoServiceImpl implements BabyGrowInfoService{
     }
 
     @Override
-    public Long register(BabyGrowInfoDTO babyGrowInfoDTO) {
+    public Long register(BabyGrowInfoDTO babyGrowInfoDTO, String email) {
 
         log.info("babyGrowInfo_Service_register_실행~~~~~~~~~~~~");
+
+        BabyInfo babyInfo = babyInfoMapper.selectByBabyNo(babyGrowInfoDTO.getBabyNo(), email);
+
+        if(babyInfo == null) {
+            throw new IllegalArgumentException("존재하지 않는 아이입니다: " + babyGrowInfoDTO.getBabyNo());
+        }
 
         BabyGrowInfo babyGrowInfo = modelMapper.map(babyGrowInfoDTO, BabyGrowInfo.class);
 
@@ -68,20 +78,20 @@ public class BabyGrowInfoServiceImpl implements BabyGrowInfoService{
     }
 
     @Override
-    public void remove(Long babyGrowNo) {
+    public void remove(Long babyGrowNo, String email) {
 
         log.info("babyGrowInfo_Service_remove_실행~~~~~~~~~~~~");
 
-        babyGrowInfoMapper.remove(babyGrowNo);
+        babyGrowInfoMapper.remove(babyGrowNo, email);
 
     }
 
     @Override
-    public void removeAll(Long babyNo) {
+    public void removeAll(Long babyNo, String email) {
 
         log.info("babyGrowInfo_Service_removeAll_실행~~~~~~~~~~~~");
 
-        babyGrowInfoMapper.removeByBabyNo(babyNo);
+        babyGrowInfoMapper.removeByBabyNo(babyNo, email);
 
     }
 

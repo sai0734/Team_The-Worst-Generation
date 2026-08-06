@@ -30,7 +30,7 @@ public class BabyGrowInfoServiceTests {
                     .head(15.1 + i)
                     .build();
 
-            babyGrowInfoService.register(babyGrowInfoDTO);
+            babyGrowInfoService.register(babyGrowInfoDTO, "user1@aaa.com");
 
             log.info(babyGrowInfoDTO);
 
@@ -41,7 +41,7 @@ public class BabyGrowInfoServiceTests {
     @Test
     public void getList() {
 
-        List<BabyGrowInfoDTO> babyGrowInfoDTOList = babyGrowInfoService.getList(2L);
+        List<BabyGrowInfoDTO> babyGrowInfoDTOList = babyGrowInfoService.getList(2L, "user1@aaa.com");
 
         log.info(babyGrowInfoDTOList);
 
@@ -49,7 +49,7 @@ public class BabyGrowInfoServiceTests {
 
     @Test void getOne() {
 
-        BabyGrowInfoDTO babyGrowInfoDTO = babyGrowInfoService.getBabyGrowInfo(1L);
+        BabyGrowInfoDTO babyGrowInfoDTO = babyGrowInfoService.getBabyGrowInfo(1L, "user1@aaa.com");
 
         log.info(babyGrowInfoDTO.toString());
 
@@ -58,14 +58,14 @@ public class BabyGrowInfoServiceTests {
     @Test
     public void remove() {
 
-        babyGrowInfoService.remove(1L);
+        babyGrowInfoService.remove(1L, "user1@aaa.com");
 
     }
 
     @Test
     public void removeAll() {
 
-        babyGrowInfoService.removeAll(3L);
+        babyGrowInfoService.removeAll(3L, "user1@aaa.com");
 
     }
 

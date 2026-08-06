@@ -40,7 +40,7 @@ public class BabyGrowInfoMapperTests {
     @Test
     public void getList() {
 
-        List<BabyGrowInfo> babyGrowInfoList = babyGrowInfoMapper.selectList(2L);
+        List<BabyGrowInfo> babyGrowInfoList = babyGrowInfoMapper.selectList(2L, "user1@aaa.com");
 
         log.info(babyGrowInfoList.stream().toList());
 
@@ -49,7 +49,7 @@ public class BabyGrowInfoMapperTests {
     @Test
     public void getOne() {
 
-        BabyGrowInfo babyGrowInfo = babyGrowInfoMapper.selectByBabyGrowNo(2L);
+        BabyGrowInfo babyGrowInfo = babyGrowInfoMapper.selectByBabyGrowNo(2L, "user1@aaa.com");
 
         log.info(babyGrowInfo);
 
@@ -58,7 +58,8 @@ public class BabyGrowInfoMapperTests {
     @Test
     public void remove() {
 
-        babyGrowInfoMapper.remove(2L);
+        babyGrowInfoMapper.remove(2L, "user1@aaa.com");
 
     }
+
 }

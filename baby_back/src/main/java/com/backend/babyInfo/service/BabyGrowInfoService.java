@@ -6,14 +6,14 @@ import java.util.List;
 
 public interface BabyGrowInfoService {
 
-    List<BabyGrowInfoDTO> getList(Long babyNo);
+    List<BabyGrowInfoDTO> getList(Long babyNo, String email);
 
-    BabyGrowInfoDTO getBabyGrowInfo(Long babyGrowNo);
+    BabyGrowInfoDTO getBabyGrowInfo(Long babyGrowNo, String email);
 
-    Long register(BabyGrowInfoDTO babyGrowInfoDTO);
+    Long register(BabyGrowInfoDTO babyGrowInfoDTO, String email);
 
-    void remove(Long babyGrowNo);
+    void remove(Long babyGrowNo, String email);
 
-    void removeAll(Long babyNo);
+    void removeAll(Long babyNo, String email);
 
 }
