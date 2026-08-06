@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.backend.market.mapper.ChatRoomMapper">
+
+    <select id="selectByItemAndMembers" resultType="com.backend.market.domain.ChatRoom">
+        SELECT room_no, item_no, buyer_email, seller_email, reg_time
+        FROM tbl_chat_room
+        WHERE item_no = #{itemNo} AND buyer_email = #{buyerEmail} AND seller_email = #{sellerEmail}
+    </select>
+
+    <select id="selectListByMember" resultType="com.backend.market.domain.ChatRoom">
+        SELECT room_no, item_no, buyer_email, seller_email, reg_time
+        FROM tbl_chat_room
+        WHERE buyer_email = #{memberEmail} OR seller_email = #{memberEmail}
+        ORDER BY reg_time DESC
+    </select>
+
+    <select id="selectOne" resultType="com.backend.market.domain.ChatRoom">
+        SELECT room_no, item_no, buyer_email, seller_email, reg_time
+        FROM tbl_chat_room
+        WHERE room_no = #{roomNo}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="roomNo" keyColumn="room_no">
+        INSERT INTO tbl_chat_room (item_no, buyer_email, seller_email)
+        VALUES (#{itemNo}, #{buyerEmail}, #{sellerEmail})
+    </insert>
+
+</mapper>

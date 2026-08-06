@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.backend.market.mapper.MarketItemMapper">
+
+    <!-- 목록: 매물마다 ord=0인 대표 이미지 하나를 조인 -->
+    <resultMap id="marketItemListResultMap" type="com.backend.market.domain.MarketItem">
+        <id property="itemNo" column="item_no"/>
+        <result property="sellerEmail" column="seller_email"/>
+        <result property="title" column="title"/>
+        <result property="price" column="price"/>
+        <result property="tradeType" column="trade_type"/>
+        <result property="category" column="category"/>
+        <result property="ageRange" column="age_range"/>
+        <result property="condition" column="condition"/>
+        <result property="allowOffer" column="allow_offer"/>
+        <result property="status" column="status"/>
+        <result property="locationName" column="location_name"/>
+        <result property="viewCount" column="view_count"/>
+        <result property="recallFlag" column="recall_flag"/>
+        <result property="regTime" column="reg_time"/>
+        <collection property="imageList" ofType="com.backend.market.domain.MarketItemImage">
+            <result property="fileName" column="file_name"/>
+            <result property="ord" column="img_ord"/>
+        </collection>
+    </resultMap>
+
+    <select id="selectList" resultMap="marketItemListResultMap">
+        SELECT i.item_no, i.seller_email, i.title, i.price, i.trade_type, i.category, i.age_range,
+        i.`condition`, i.allow_offer, i.status, i.location_name, i.view_count, i.recall_flag,
+        i.reg_time, img.file_name, img.ord AS img_ord
+        FROM tbl_market_item i
+        LEFT JOIN tbl_market_item_image img ON i.item_no = img.item_no AND img.ord = 0
+        WHERE i.del_flag = false
+        ORDER BY i.item_no DESC
+        LIMIT #{size} OFFSET #{skip}
+    </select>
+
+    <select id="selectListCount" resultType="long">
+        SELECT COUNT(*)
+        FROM tbl_market_item
+        WHERE del_flag = false
+    </select>
+
+    <!-- 단건 조회: 이미지 전체 목록 포함 -->
+    <resultMap id="marketItemResultMap" type="com.backend.market.domain.MarketItem">
+        <id property="itemNo" column="item_no"/>
+        <result property="sellerEmail" column="seller_email"/>
+        <result property="title" column="title"/>
+        <result property="price" column="price"/>
+        <result property="description" column="description"/>
+        <result property="tradeType" column="trade_type"/>
+        <result property="category" column="category"/>
+        <result property="ageRange" column="age_range"/>
+        <result property="condition" column="condition"/>
+        <result property="allowOffer" column="allow_offer"/>
+        <result property="status" column="status"/>
+        <result property="locationName" column="location_name"/>
+        <result property="latitude" column="latitude"/>
+        <result property="longitude" column="longitude"/>
+        <result property="viewCount" column="view_count"/>
+        <result property="recallChecked" column="recall_checked"/>
+        <result property="recallFlag" column="recall_flag"/>
+        <result property="bumpAt" column="bump_at"/>
+        <result property="delFlag" column="del_flag"/>
+        <result property="regTime" column="reg_time"/>
+        <result property="modTime" column="mod_time"/>
+        <collection property="imageList"
+                    column="item_no"
+                    javaType="java.util.ArrayList"
+                    ofType="com.backend.market.domain.MarketItemImage"
+                    select="selectImages"/>
+    </resultMap>
+
+    <select id="selectOne" resultMap="marketItemResultMap">
+        SELECT item_no, seller_email, title, price, description, trade_type, category, age_range,
+        `condition`, allow_offer, status, location_name, latitude, longitude, view_count,
+        recall_checked, recall_flag, bump_at, del_flag, reg_time, mod_time
+        FROM tbl_market_item
+        WHERE item_no = #{itemNo}
+    </select>
+
+    <select id="selectImages" resultType="com.backend.market.domain.MarketItemImage">
+        SELECT file_name, ord
+        FROM tbl_market_item_image
+        WHERE item_no = #{itemNo}
+        ORDER BY ord
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="itemNo" keyColumn="item_no">
+        INSERT INTO tbl_market_item
+        (seller_email, title, price, description, trade_type, category, age_range, `condition`,
+        allow_offer, status, location_name, latitude, longitude)
+        VALUES
+        (#{sellerEmail}, #{title}, #{price}, #{description}, #{tradeType}, #{category}, #{ageRange}, #{condition},
+        #{allowOffer}, #{status}, #{locationName}, #{latitude}, #{longitude})
+    </insert>
+
+    <insert id="insertImage">
+        INSERT INTO tbl_market_item_image (item_no, file_name, ord)
+        VALUES (#{itemNo}, #{image.fileName}, #{image.ord})
+    </insert>
+
+    <delete id="deleteImages">
+        DELETE FROM tbl_market_item_image WHERE item_no = #{itemNo}
+    </delete>
+
+    <update id="update">
+        UPDATE tbl_market_item
+        SET title = #{title},
+        price = #{price},
+        description = #{description},
+        category = #{category},
+        age_range = #{ageRange},
+        `condition` = #{condition},
+        allow_offer = #{allowOffer},
+        status = #{status}
+        WHERE item_no = #{itemNo}
+    </update>
+
+    <update id="updateToDelete">
+        UPDATE tbl_market_item
+        SET del_flag = #{flag}
+        WHERE item_no = #{itemNo}
+    </update>
+
+    <update id="increaseViewCount">
+        UPDATE tbl_market_item
+        SET view_count = view_count + 1
+        WHERE item_no = #{itemNo}
+    </update>
+
+    <update id="bump">
+        UPDATE tbl_market_item
+        SET bump_at = CURRENT_TIMESTAMP
+        WHERE item_no = #{itemNo}
+    </update>
+
+</mapper>

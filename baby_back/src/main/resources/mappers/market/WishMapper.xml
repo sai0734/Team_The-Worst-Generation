@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.backend.market.mapper.WishMapper">
+
+    <select id="selectListByMember" resultType="com.backend.market.domain.Wish">
+        SELECT wno, item_no, member_email, reg_time
+        FROM tbl_wish
+        WHERE member_email = #{memberEmail}
+        ORDER BY reg_time DESC
+    </select>
+
+    <select id="selectOne" resultType="com.backend.market.domain.Wish">
+        SELECT wno, item_no, member_email, reg_time
+        FROM tbl_wish
+        WHERE item_no = #{itemNo} AND member_email = #{memberEmail}
+    </select>
+
+    <select id="countByItemNo" resultType="long">
+        SELECT COUNT(*) FROM tbl_wish WHERE item_no = #{itemNo}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="wno" keyColumn="wno">
+        INSERT INTO tbl_wish (item_no, member_email)
+        VALUES (#{itemNo}, #{memberEmail})
+    </insert>
+
+    <delete id="delete">
+        DELETE FROM tbl_wish WHERE item_no = #{itemNo} AND member_email = #{memberEmail}
+    </delete>
+
+</mapper>

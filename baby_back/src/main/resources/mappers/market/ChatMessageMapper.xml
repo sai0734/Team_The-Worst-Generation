@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.backend.market.mapper.ChatMessageMapper">
+    <select id="selectListByRoom" resultType="com.backend.market.domain.ChatMessage">
+        SELECT msg_no, room_no, sender_email, msg_type, content, offer_price, offer_status, reg_time
+        FROM tbl_chat_message
+        WHERE room_no = #{roomNo}
+        ORDER BY reg_time ASC
+    </select>
+
+    <select id="selectOne" resultType="com.backend.market.domain.ChatMessage">
+        SELECT msg_no, room_no, sender_email, msg_type, content, offer_price, offer_status, reg_time
+        FROM tbl_chat_message
+        WHERE msg_no = #{msgNo}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="msgNo" keyColumn="msg_no">
+        INSERT INTO tbl_chat_message (room_no, sender_email, msg_type, content, offer_price, offer_status)
+        VALUES (#{roomNo}, #{senderEmail}, #{msgType}, #{content}, #{offerPrice}, #{offerStatus})
+    </insert>
+
+    <update id="updateOfferStatus">
+        UPDATE tbl_chat_message
+        SET offer_status = #{offerStatus}
+        WHERE msg_no = #{msgNo}
+    </update>
+</mapper>
