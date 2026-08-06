@@ -44,19 +44,15 @@ public class ReviewServiceImpl implements ReviewService {
 
         reviewMapper.insert(review);
 
-        recalcMannerTemp(dto.getTargetEmail());
+        applyMannerTempChange(dto.getTargetEmail(), dto.getRating());
 
         return review.getReviewNo();
     }
 
-    // TODO: 정확한 매너온도 계산식은 기획 확정 필요. 지금은 임시로 평균점수
-    private void recalcMannerTemp(String targetEmail) {
-
-        Double avgRating = reviewMapper.selectAvgRatingByTarget(targetEmail);
-
-        if (avgRating == null) {
-            return;
-        }
+    // 매너온도 계산식: 최초 36.5도에서 시작(MarketProfile 기본값), 후기 하나 등록될 때마다
+    // 그 후기의 평점(1~5점)이 3점에서 벗어난 만큼 1점당 0.5도씩 "현재 온도에 누적"으로 가감.
+    // (5점=+1.0, 4점=+0.5, 3점=0, 2점=-0.5, 1점=-1.0)
+    private void applyMannerTempChange(String targetEmail, int rating) {
 
         MarketProfile profile = marketProfileMapper.selectByEmail(targetEmail);
 
@@ -65,7 +61,8 @@ public class ReviewServiceImpl implements ReviewService {
             marketProfileMapper.insert(profile);
         }
 
-        BigDecimal newTemp = new BigDecimal("36.5").add(BigDecimal.valueOf(avgRating - 3));
+        BigDecimal delta = BigDecimal.valueOf((rating - 3) * 0.5);
+        BigDecimal newTemp = profile.getMannerTemp().add(delta);
 
         profile.changeMannerTemp(newTemp);
 

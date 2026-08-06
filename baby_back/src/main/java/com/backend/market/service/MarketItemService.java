@@ -12,9 +12,9 @@ public interface MarketItemService {
 
     Long register(MarketItemDTO marketItemDTO);
 
-    void modify(MarketItemDTO marketItemDTO);
+    void modify(MarketItemDTO marketItemDTO, String requesterEmail);
 
-    void remove(Long itemNo);
+    void remove(Long itemNo, String requesterEmail);
 
     void increaseViewCount(Long itemNo);
 

@@ -11,6 +11,8 @@ public interface ChatMessageMapper {
 
     List<ChatMessage> selectListByRoom(@Param("roomNo") Long roomNo);
 
+    ChatMessage selectOne(@Param("msgNo") Long msgNo);
+
     void insert(ChatMessage chatMessage);
 
     void updateOfferStatus(@Param("msgNo") Long msgNo, @Param("offerStatus") String offerStatus);

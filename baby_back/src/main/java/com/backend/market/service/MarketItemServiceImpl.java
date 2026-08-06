@@ -11,6 +11,7 @@ import com.backend.market.mapper.RentalDetailMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -91,10 +92,14 @@ public class MarketItemServiceImpl implements MarketItemService{
     }
 
     @Override
-    public void modify(MarketItemDTO dto) {
+    public void modify(MarketItemDTO dto, String requesterEmail) {
 
         MarketItem item = Optional.ofNullable(marketItemMapper.selectOne(dto.getItemNo()))
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 매물입니다: " + dto.getItemNo()));
+
+        if (!item.getSellerEmail().equals(requesterEmail)) {
+            throw new AccessDeniedException("본인이 등록한 매물만 수정할 수 있습니다.");
+        }
 
         item.changeTitle(dto.getTitle());
         item.changeDescription(dto.getDescription());
@@ -132,7 +137,15 @@ public class MarketItemServiceImpl implements MarketItemService{
     }
 
     @Override
-    public void remove(Long itemNo){
+    public void remove(Long itemNo, String requesterEmail) {
+
+        MarketItem item = Optional.ofNullable(marketItemMapper.selectOne(itemNo))
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 매물입니다: " + itemNo));
+
+        if (!item.getSellerEmail().equals(requesterEmail)) {
+            throw new AccessDeniedException("본인이 등록한 매물만 삭제할 수 있습니다.");
+        }
+
         marketItemMapper.updateToDelete(itemNo, true);
     }
 

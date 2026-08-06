@@ -10,6 +10,12 @@
         ORDER BY reg_time ASC
     </select>
 
+    <select id="selectOne" resultType="com.backend.market.domain.ChatMessage">
+        SELECT msg_no, room_no, sender_email, msg_type, content, offer_price, offer_status, reg_time
+        FROM tbl_chat_message
+        WHERE msg_no = #{msgNo}
+    </select>
+
     <insert id="insert" useGeneratedKeys="true" keyProperty="msgNo" keyColumn="msg_no">
         INSERT INTO tbl_chat_message (room_no, sender_email, msg_type, content, offer_price, offer_status)
         VALUES (#{roomNo}, #{senderEmail}, #{msgType}, #{content}, #{offerPrice}, #{offerStatus})
