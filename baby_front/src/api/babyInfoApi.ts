@@ -1,7 +1,38 @@
+import jwtAxios from "../util/jwtUtil";
 import { API_SERVER_HOST } from "./todoApi";
 
 const host = `${API_SERVER_HOST}/api/baby-info`;
 
 export const getList = async () => {
-  const res = () => {};
+  const res = await jwtAxios.get(`${host}/list`);
+
+  return res.data;
+};
+
+export const getOne = async (babyNo: number | string) => {
+  const res = await jwtAxios.get(`${host}/${babyNo}`);
+
+  return res.data;
+};
+
+export const register = async (babyInfo: FormData) => {
+  const header = { headers: { "Content-Type": "multipart/form-data" } };
+
+  const res = await jwtAxios.post(`${host}/`, babyInfo, header);
+
+  return res.data;
+};
+
+export const modify = async (babyInfo: FormData, babyNo: number | string) => {
+  const header = { headers: { "Content-Type": "multipart/form-data" } };
+
+  const res = await jwtAxios.put(`${host}/${babyNo}`, babyInfo, header);
+
+  return res.data;
+};
+
+export const remove = async (babyNo: number | string) => {
+  const res = await jwtAxios.delete(`${host}/${babyNo}`);
+
+  return res.data;
 };
