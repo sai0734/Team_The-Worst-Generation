@@ -1,5 +1,7 @@
 package com.backend.domain;
 
+import com.backend.auth.domain.Member;
+
 import lombok.*;
 
 @Builder
