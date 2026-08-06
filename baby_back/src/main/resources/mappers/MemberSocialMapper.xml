@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.backend.auth.mapper.MemberSocialMapper">
+
+    <resultMap id="memberSocialResultMap" type="com.backend.auth.domain.MemberSocial">
+        <id property="id" column="id"/>
+        <result property="memberEmail" column="member_email"/>
+        <result property="provider" column="provider"/>
+        <result property="providerId" column="provider_id"/>
+        <result property="providerEmail" column="provider_email"/>
+        <result property="connectedAt" column="connected_at"/>
+    </resultMap>
+
+    <select id="selectByProvider" resultMap="memberSocialResultMap">
+        SELECT id, member_email, provider, provider_id, provider_email, connected_at
+        FROM tbl_member_social
+        WHERE provider = #{provider}
+          AND provider_id = #{providerId}
+    </select>
+
+    <select id="selectByMemberAndProvider" resultMap="memberSocialResultMap">
+        SELECT id, member_email, provider, provider_id, provider_email, connected_at
+        FROM tbl_member_social
+        WHERE member_email = #{memberEmail}
+          AND provider = #{provider}
+    </select>
+
+    <insert id="insert">
+        INSERT INTO tbl_member_social (member_email, provider, provider_id, provider_email)
+        VALUES (#{memberEmail}, #{provider}, #{providerId}, #{providerEmail})
+    </insert>
+
+</mapper>
+
+
+

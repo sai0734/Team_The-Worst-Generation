@@ -2,9 +2,9 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.backend.mapper.MemberMapper">
+<mapper namespace="com.backend.auth.mapper.MemberMapper">
 
-    <resultMap id="memberResultMap" type="com.backend.domain.Member">
+    <resultMap id="memberResultMap" type="com.backend.auth.domain.Member">
         <id property="email" column="email"/>
         <result property="pw" column="pw"/>
         <result property="nickname" column="nickname"/>
@@ -12,7 +12,7 @@
         <collection property="memberRoleList"
                     column="email"
                     javaType="java.util.ArrayList"
-                    ofType="com.backend.domain.MemberRole"
+                    ofType="com.backend.auth.domain.MemberRole"
                     select="selectRoles"/>
     </resultMap>
 
@@ -22,7 +22,7 @@
         WHERE email = #{email}
     </select>
 
-    <select id="selectRoles" resultType="com.backend.domain.MemberRole">
+    <select id="selectRoles" resultType="com.backend.auth.domain.MemberRole">
         SELECT role_name
         FROM tbl_member_role
         WHERE member_email = #{email}
@@ -51,3 +51,4 @@
     </update>
 
 </mapper>
+
