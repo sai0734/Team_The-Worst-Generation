@@ -8,7 +8,7 @@ const Dashboard = lazy(() => import("../pages/babyInfo/BabyInfoPage"));
 const babyInfoRouter = (): RouteObject[] => {
   return [
     {
-      path: "dashboard",
+      path: "dashboard/:babyNo",
       element: (
         <Suspense fallback={Loading}>
           <Dashboard />
