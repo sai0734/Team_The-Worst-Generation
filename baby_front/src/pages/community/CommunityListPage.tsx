@@ -1,11 +1,10 @@
-import BasicLayout from "../../layouts/BasicLayout";
 import CommunityListComponent from "../../components/community/CommunityListComponent";
 
 const CommunityListPage = () => {
   return (
-    <BasicLayout>
+    <div>
       <CommunityListComponent />
-    </BasicLayout>
+    </div>
   );
 };
 

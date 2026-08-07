@@ -8,9 +8,13 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.backend.babysitter.domain.BabysitterAvailability;
+import com.backend.babysitter.domain.BabysitterGrade;
 import com.backend.babysitter.domain.BabysitterProfile;
+import com.backend.babysitter.dto.BabysitterAvailabilityDTO;
 import com.backend.babysitter.dto.BabysitterProfileDTO;
 import com.backend.babysitter.dto.BabysitterSearchDTO;
+import com.backend.babysitter.mapper.BabysitterPickMapper;
 import com.backend.babysitter.mapper.BabysitterProfileMapper;
 import com.backend.global.dto.PageResponseDTO;
 
@@ -24,6 +28,8 @@ import lombok.extern.log4j.Log4j2;
 public class BabysitterProfileServiceImpl implements BabysitterProfileService {
 
     private final BabysitterProfileMapper babysitterProfileMapper;
+
+    private final BabysitterPickMapper babysitterPickMapper;
 
     @Override
     public BabysitterProfileDTO get(String email) {
@@ -51,20 +57,31 @@ public class BabysitterProfileServiceImpl implements BabysitterProfileService {
                 .build();
 
             babysitterProfileMapper.insert(profile);
+        } else {
 
-            return;
+            profile.changeProfile(
+                profileDTO.getName(),
+                profileDTO.getCareerYears(),
+                profileDTO.getRegion(),
+                profileDTO.getAvailableTime(),
+                profileDTO.getHourlyRate(),
+                profileDTO.getIntro()
+            );
+
+            babysitterProfileMapper.update(profile);
         }
 
-        profile.changeProfile(
-            profileDTO.getName(),
-            profileDTO.getCareerYears(),
-            profileDTO.getRegion(),
-            profileDTO.getAvailableTime(),
-            profileDTO.getHourlyRate(),
-            profileDTO.getIntro()
-        );
+        babysitterProfileMapper.deleteAvailability(profileDTO.getEmail());
 
-        babysitterProfileMapper.update(profile);
+        for (BabysitterAvailabilityDTO slot : profileDTO.getAvailability()) {
+            babysitterProfileMapper.insertAvailability(
+                BabysitterAvailability.builder()
+                    .email(profileDTO.getEmail())
+                    .dayOfWeek(slot.getDayOfWeek())
+                    .timeSlot(slot.getTimeSlot())
+                    .build()
+            );
+        }
     }
 
     @Override
@@ -73,6 +90,7 @@ public class BabysitterProfileServiceImpl implements BabysitterProfileService {
         Optional.ofNullable(babysitterProfileMapper.selectByEmail(email))
             .orElseThrow(() -> new NoSuchElementException("등록된 시터 프로필이 없습니다."));
 
+        babysitterProfileMapper.deleteAvailability(email);
         babysitterProfileMapper.delete(email);
     }
 
@@ -97,6 +115,16 @@ public class BabysitterProfileServiceImpl implements BabysitterProfileService {
 
     private BabysitterProfileDTO toDTO(BabysitterProfile profile) {
 
+        List<BabysitterAvailabilityDTO> availability = profile.getAvailabilityList()
+            .stream()
+            .map(slot -> BabysitterAvailabilityDTO.builder()
+                .dayOfWeek(slot.getDayOfWeek())
+                .timeSlot(slot.getTimeSlot())
+                .build())
+            .collect(Collectors.toList());
+
+        long pickCount = babysitterPickMapper.countBySitter(profile.getEmail());
+
         return BabysitterProfileDTO.builder()
             .email(profile.getEmail())
             .name(profile.getName())
@@ -106,6 +134,9 @@ public class BabysitterProfileServiceImpl implements BabysitterProfileService {
             .hourlyRate(profile.getHourlyRate())
             .intro(profile.getIntro())
             .status(profile.getStatus())
+            .availability(availability)
+            .pickCount(pickCount)
+            .grade(BabysitterGrade.fromPickCount(pickCount))
             .regTime(profile.getRegTime())
             .modTime(profile.getModTime())
             .build();

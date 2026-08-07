@@ -59,6 +59,19 @@ public class CommunityPostController {
         return Map.of("fileNames", savedNames);
     }
 
+    @PreAuthorize("hasAnyRole('ROLE_USER')")
+    @DeleteMapping("/{postNo}/images/{fileName}")
+    public Map<String, String> removeImage(
+        @PathVariable Long postNo,
+        @PathVariable String fileName,
+        Principal principal
+    ) {
+
+        communityPostService.removeImage(postNo, principal.getName(), fileName);
+
+        return Map.of("RESULT", "SUCCESS");
+    }
+
     @GetMapping("/{postNo}")
     public CommunityPostDTO get(@PathVariable Long postNo) {
 
