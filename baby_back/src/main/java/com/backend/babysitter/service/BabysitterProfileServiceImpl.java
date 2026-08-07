@@ -2,11 +2,13 @@ package com.backend.babysitter.service;
 
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.backend.babysitter.domain.BabysitterAvailability;
 import com.backend.babysitter.domain.BabysitterGrade;
@@ -16,7 +18,9 @@ import com.backend.babysitter.dto.BabysitterProfileDTO;
 import com.backend.babysitter.dto.BabysitterSearchDTO;
 import com.backend.babysitter.mapper.BabysitterPickMapper;
 import com.backend.babysitter.mapper.BabysitterProfileMapper;
+import com.backend.babysitter.mapper.BabysitterReviewMapper;
 import com.backend.global.dto.PageResponseDTO;
+import com.backend.global.util.CustomFileUtil;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -30,6 +34,10 @@ public class BabysitterProfileServiceImpl implements BabysitterProfileService {
     private final BabysitterProfileMapper babysitterProfileMapper;
 
     private final BabysitterPickMapper babysitterPickMapper;
+
+    private final BabysitterReviewMapper babysitterReviewMapper;
+
+    private final CustomFileUtil fileUtil;
 
     @Override
     public BabysitterProfileDTO get(String email) {
@@ -113,6 +121,37 @@ public class BabysitterProfileServiceImpl implements BabysitterProfileService {
             .build();
     }
 
+    @Override
+    public List<BabysitterProfileDTO> getMyPicks(String email) {
+
+        return babysitterPickMapper.selectSitterEmailsByPicker(email)
+            .stream()
+            .map(babysitterProfileMapper::selectByEmail)
+            .filter(Objects::nonNull)
+            .map(this::toDTO)
+            .collect(Collectors.toList());
+    }
+
+    @Override
+    public String changeProfileImage(String email, MultipartFile file) {
+
+        BabysitterProfile profile = Optional.ofNullable(babysitterProfileMapper.selectByEmail(email))
+            .orElseThrow(() -> new NoSuchElementException("등록된 시터 프로필이 없습니다."));
+
+        String oldFileName = profile.getProfileImageFileName();
+
+        List<String> savedNames = fileUtil.saveFiles(List.of(file));
+        String newFileName = savedNames.get(0);
+
+        babysitterProfileMapper.updateProfileImage(email, newFileName);
+
+        if (oldFileName != null) {
+            fileUtil.deleteFiles(List.of(oldFileName));
+        }
+
+        return newFileName;
+    }
+
     private BabysitterProfileDTO toDTO(BabysitterProfile profile) {
 
         List<BabysitterAvailabilityDTO> availability = profile.getAvailabilityList()
@@ -125,6 +164,9 @@ public class BabysitterProfileServiceImpl implements BabysitterProfileService {
 
         long pickCount = babysitterPickMapper.countBySitter(profile.getEmail());
 
+        Double averageRating = babysitterReviewMapper.selectAverageRatingBySitter(profile.getEmail());
+        long reviewCount = babysitterReviewMapper.countBySitter(profile.getEmail());
+
         return BabysitterProfileDTO.builder()
             .email(profile.getEmail())
             .name(profile.getName())
@@ -133,10 +175,13 @@ public class BabysitterProfileServiceImpl implements BabysitterProfileService {
             .availableTime(profile.getAvailableTime())
             .hourlyRate(profile.getHourlyRate())
             .intro(profile.getIntro())
+            .profileImageFileName(profile.getProfileImageFileName())
             .status(profile.getStatus())
             .availability(availability)
             .pickCount(pickCount)
             .grade(BabysitterGrade.fromPickCount(pickCount))
+            .averageRating(averageRating)
+            .reviewCount(reviewCount)
             .regTime(profile.getRegTime())
             .modTime(profile.getModTime())
             .build();

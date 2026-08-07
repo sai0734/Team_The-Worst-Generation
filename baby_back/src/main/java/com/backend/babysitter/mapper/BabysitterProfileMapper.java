@@ -20,6 +20,11 @@ public interface BabysitterProfileMapper {
 
     void delete(@Param("email") String email);
 
+    void updateProfileImage(
+        @Param("email") String email,
+        @Param("profileImageFileName") String profileImageFileName
+    );
+
     List<BabysitterProfile> selectList(
         @Param("search") BabysitterSearchDTO search,
         @Param("skip") int skip

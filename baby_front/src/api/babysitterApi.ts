@@ -5,6 +5,10 @@ const API_SERVER_HOST = "http://localhost:8080";
 const prefix = `${API_SERVER_HOST}/api/babysitter/profiles`;
 const locationPrefix = `${API_SERVER_HOST}/api/babysitter/location`;
 const pickPrefix = `${API_SERVER_HOST}/api/babysitter/picks`;
+const requestPrefix = `${API_SERVER_HOST}/api/babysitter/requests`;
+const reviewPrefix = `${API_SERVER_HOST}/api/babysitter/reviews`;
+
+export const getFileUrl = (fileName: string): string => `${prefix}/files/${fileName}`;
 
 export type BabysitterGrade = "NEW" | "POPULAR" | "VETERAN" | "TOP";
 
@@ -34,6 +38,8 @@ export const TIME_SLOT_LABELS: Record<TimeSlot, string> = {
   EVENING: "저녁",
 };
 
+export type SortOption = "recent" | "pick" | "career";
+
 export interface BabysitterAvailability {
   dayOfWeek: DayOfWeek;
   timeSlot: TimeSlot;
@@ -47,10 +53,13 @@ export interface BabysitterProfile {
   availableTime: string | null;
   hourlyRate: number | null;
   intro: string | null;
+  profileImageFileName: string | null;
   status: "ACTIVE" | "INACTIVE";
   availability: BabysitterAvailability[];
   pickCount: number;
   grade: BabysitterGrade;
+  averageRating: number | null;
+  reviewCount: number;
   regTime: string;
   modTime: string;
 }
@@ -71,6 +80,7 @@ export interface BabysitterSearchParam extends PageRequestParam {
   minCareerYears?: number;
   dayOfWeek?: DayOfWeek;
   timeSlot?: TimeSlot;
+  sort?: SortOption;
 }
 
 export const getMine = async (): Promise<BabysitterProfile> => {
@@ -107,6 +117,23 @@ export const getList = async (
   return res.data;
 };
 
+export const getMyPicks = async (): Promise<BabysitterProfile[]> => {
+  const res = await jwtAxios.get(`${prefix}/picks/mine`);
+
+  return res.data;
+};
+
+export const uploadPhoto = async (file: File): Promise<{ fileName: string }> => {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const res = await jwtAxios.post(`${prefix}/me/photo`, formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+
+  return res.data;
+};
+
 export const getMyLocation = async (): Promise<string> => {
   const res = await jwtAxios.get(`${locationPrefix}/`);
 
@@ -131,4 +158,115 @@ export const isPicked = async (email: string): Promise<boolean> => {
   const res = await jwtAxios.get(`${pickPrefix}/${email}/mine`);
 
   return res.data.picked;
+};
+
+// ---------- 요청(선정) ----------
+
+export type RequestStatus = "PENDING" | "ACCEPTED" | "REJECTED" | "CANCELED";
+
+export const REQUEST_STATUS_LABELS: Record<RequestStatus, string> = {
+  PENDING: "대기중",
+  ACCEPTED: "수락됨",
+  REJECTED: "거절됨",
+  CANCELED: "취소됨",
+};
+
+export interface BabysitterRequest {
+  requestNo: number;
+  sitterEmail: string;
+  sitterName: string | null;
+  parentEmail: string;
+  parentNickname: string | null;
+  requestDate: string;
+  timeSlot: TimeSlot;
+  message: string | null;
+  status: RequestStatus;
+  reviewed: boolean;
+  regTime: string;
+  modTime: string;
+}
+
+export interface BabysitterRequestInput {
+  sitterEmail: string;
+  requestDate: string;
+  timeSlot: TimeSlot;
+  message?: string;
+}
+
+export const registerRequest = async (
+  input: BabysitterRequestInput,
+): Promise<{ requestNo: number }> => {
+  const res = await jwtAxios.post(`${requestPrefix}/`, input);
+
+  return res.data;
+};
+
+export const getReceivedRequests = async (): Promise<BabysitterRequest[]> => {
+  const res = await jwtAxios.get(`${requestPrefix}/received`);
+
+  return res.data;
+};
+
+export const getSentRequests = async (): Promise<BabysitterRequest[]> => {
+  const res = await jwtAxios.get(`${requestPrefix}/sent`);
+
+  return res.data;
+};
+
+export const acceptRequest = async (
+  requestNo: number,
+): Promise<{ RESULT: string }> => {
+  const res = await jwtAxios.put(`${requestPrefix}/${requestNo}/accept`);
+
+  return res.data;
+};
+
+export const rejectRequest = async (
+  requestNo: number,
+): Promise<{ RESULT: string }> => {
+  const res = await jwtAxios.put(`${requestPrefix}/${requestNo}/reject`);
+
+  return res.data;
+};
+
+export const cancelRequest = async (
+  requestNo: number,
+): Promise<{ RESULT: string }> => {
+  const res = await jwtAxios.put(`${requestPrefix}/${requestNo}/cancel`);
+
+  return res.data;
+};
+
+// ---------- 후기 ----------
+
+export interface BabysitterReview {
+  reviewNo: number;
+  requestNo: number;
+  sitterEmail: string;
+  writerNickname: string | null;
+  rating: number;
+  content: string | null;
+  regTime: string;
+}
+
+export interface BabysitterReviewInput {
+  requestNo: number;
+  rating: number;
+  content?: string;
+}
+
+export const registerReview = async (
+  input: BabysitterReviewInput,
+): Promise<{ reviewNo: number }> => {
+  const res = await jwtAxios.post(`${reviewPrefix}/`, input);
+
+  return res.data;
+};
+
+export const getReviewsBySitter = async (
+  sitterEmail: string,
+): Promise<BabysitterReview[]> => {
+  const res = await jwtAxios.get(`${reviewPrefix}/sitter/${sitterEmail}`);
+
+  return res.data;
 };

@@ -32,6 +32,8 @@ public class BabysitterProfileDTO {
 
     private String intro;
 
+    private String profileImageFileName;
+
     private BabysitterStatus status;
 
     @Builder.Default
@@ -40,6 +42,10 @@ public class BabysitterProfileDTO {
     private long pickCount;
 
     private BabysitterGrade grade;
+
+    private Double averageRating;
+
+    private long reviewCount;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime regTime;
