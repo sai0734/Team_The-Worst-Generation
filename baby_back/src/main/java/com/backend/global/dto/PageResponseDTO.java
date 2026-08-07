@@ -1,4 +1,4 @@
-package com.backend.dto;
+package com.backend.global.dto;
 
 import lombok.Builder;
 import lombok.Data;
