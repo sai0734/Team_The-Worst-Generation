@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useState } from "react";
+import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import * as babysitterApi from "../../api/babysitterApi";
 import {
@@ -29,6 +29,8 @@ const BabysitterFormComponent = () => {
   const [intro, setIntro] = useState("");
   const [exists, setExists] = useState(false);
   const [selectedSlots, setSelectedSlots] = useState<Set<string>>(new Set());
+  const [photoFileName, setPhotoFileName] = useState<string | null>(null);
+  const [photoUploading, setPhotoUploading] = useState(false);
 
   useEffect(() => {
     babysitterApi
@@ -43,12 +45,31 @@ const BabysitterFormComponent = () => {
         setSelectedSlots(
           new Set(profile.availability.map((a) => slotKey(a.dayOfWeek, a.timeSlot))),
         );
+        setPhotoFileName(profile.profileImageFileName);
         setExists(true);
       })
       .catch(() => {
         setExists(false);
       });
   }, []);
+
+  const handlePhotoChange = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) {
+      return;
+    }
+
+    setPhotoUploading(true);
+    try {
+      const res = await babysitterApi.uploadPhoto(file);
+      setPhotoFileName(res.fileName);
+    } catch (err) {
+      console.error(err);
+      alert(`사진 업로드에 실패했습니다.\n(${describeError(err)})`);
+    } finally {
+      setPhotoUploading(false);
+    }
+  };
 
   const toggleSlot = (day: DayOfWeek, slot: TimeSlot) => {
     const key = slotKey(day, slot);
@@ -112,6 +133,23 @@ const BabysitterFormComponent = () => {
       <h2 className="text-xl font-bold">
         {exists ? "내 시터 프로필 수정" : "시터 프로필 등록"}
       </h2>
+
+      {exists ? (
+        <div className="my-2">
+          <p>프로필 사진</p>
+          {photoFileName && (
+            <img
+              src={babysitterApi.getFileUrl(photoFileName)}
+              className="w-24 h-24 rounded-full object-cover mb-1"
+            />
+          )}
+          <input type="file" accept="image/*" onChange={handlePhotoChange} disabled={photoUploading} />
+        </div>
+      ) : (
+        <p className="text-sm text-gray-500 my-2">
+          프로필 사진은 먼저 저장한 뒤 업로드할 수 있습니다.
+        </p>
+      )}
 
       <p>이름</p>
       <input value={name} onChange={(e) => setName(e.target.value)} required />

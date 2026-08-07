@@ -12,6 +12,7 @@
         <result property="availableTime" column="available_time"/>
         <result property="hourlyRate" column="hourly_rate"/>
         <result property="intro" column="intro"/>
+        <result property="profileImageFileName" column="profile_image_file_name"/>
         <result property="status" column="status"/>
         <result property="regTime" column="reg_time"/>
         <result property="modTime" column="mod_time"/>
@@ -23,7 +24,8 @@
     </resultMap>
 
     <select id="selectByEmail" resultMap="profileResultMap">
-        SELECT email, name, career_years, region, available_time, hourly_rate, intro, status, reg_time, mod_time
+        SELECT email, name, career_years, region, available_time, hourly_rate, intro,
+               profile_image_file_name, status, reg_time, mod_time
         FROM tbl_babysitter_profile
         WHERE email = #{email}
     </select>
@@ -63,15 +65,34 @@
         WHERE email = #{email}
     </update>
 
+    <update id="updateProfileImage">
+        UPDATE tbl_babysitter_profile
+        SET profile_image_file_name = #{profileImageFileName},
+            mod_time                = CURRENT_TIMESTAMP
+        WHERE email = #{email}
+    </update>
+
     <delete id="delete">
         DELETE FROM tbl_babysitter_profile WHERE email = #{email}
     </delete>
 
     <select id="selectList" resultType="com.backend.babysitter.domain.BabysitterProfile">
-        SELECT email, name, career_years, region, available_time, hourly_rate, intro, status, reg_time, mod_time
+        SELECT email, name, career_years, region, available_time, hourly_rate, intro,
+               profile_image_file_name, status, reg_time, mod_time
         FROM tbl_babysitter_profile
         <include refid="searchWhere"/>
-        ORDER BY reg_time DESC
+        <choose>
+            <when test="search.sort == 'pick'">
+                ORDER BY (SELECT COUNT(*) FROM tbl_babysitter_pick p
+                          WHERE p.sitter_email = tbl_babysitter_profile.email) DESC, reg_time DESC
+            </when>
+            <when test="search.sort == 'career'">
+                ORDER BY career_years DESC, reg_time DESC
+            </when>
+            <otherwise>
+                ORDER BY reg_time DESC
+            </otherwise>
+        </choose>
         LIMIT #{search.size} OFFSET #{skip}
     </select>
 

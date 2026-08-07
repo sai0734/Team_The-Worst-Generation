@@ -1,5 +1,9 @@
 package com.backend.babysitter.service;
 
+import java.util.List;
+
+import org.springframework.web.multipart.MultipartFile;
+
 import com.backend.babysitter.dto.BabysitterProfileDTO;
 import com.backend.babysitter.dto.BabysitterSearchDTO;
 import com.backend.global.dto.PageResponseDTO;
@@ -13,4 +17,8 @@ public interface BabysitterProfileService {
     void remove(String email);
 
     PageResponseDTO<BabysitterProfileDTO> getList(BabysitterSearchDTO searchDTO);
+
+    List<BabysitterProfileDTO> getMyPicks(String email);
+
+    String changeProfileImage(String email, MultipartFile file);
 }

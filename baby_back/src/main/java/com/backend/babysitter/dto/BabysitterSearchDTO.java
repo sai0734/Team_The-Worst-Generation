@@ -26,4 +26,7 @@ public class BabysitterSearchDTO extends PageRequestDTO {
     private DayOfWeekType dayOfWeek;
 
     private TimeSlotType timeSlot;
+
+    // recent(기본) | pick | career
+    private String sort;
 }

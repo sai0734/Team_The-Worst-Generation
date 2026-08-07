@@ -167,6 +167,8 @@ CREATE TABLE IF NOT EXISTS tbl_babysitter_profile (
     INDEX idx_babysitter_profile_region (region)
 );
 
+ALTER TABLE tbl_babysitter_profile ADD COLUMN IF NOT EXISTS profile_image_file_name VARCHAR(500) NULL;
+
 -- KYI - 베이비시터 가능 요일/시간대
 CREATE TABLE IF NOT EXISTS tbl_babysitter_availability (
     email       VARCHAR(100) NOT NULL,
@@ -194,6 +196,40 @@ CREATE TABLE IF NOT EXISTS tbl_babysitter_pick (
     CONSTRAINT fk_babysitter_pick_sitter FOREIGN KEY (sitter_email) REFERENCES tbl_babysitter_profile (email),
     CONSTRAINT fk_babysitter_pick_picker FOREIGN KEY (picker_email) REFERENCES tbl_member (email),
     CONSTRAINT uq_babysitter_pick UNIQUE (sitter_email, picker_email)
+);
+
+-- KYI - 베이비시터 요청(선정)
+CREATE TABLE IF NOT EXISTS tbl_babysitter_request (
+    request_no   BIGINT AUTO_INCREMENT,
+    sitter_email VARCHAR(100) NOT NULL,
+    parent_email VARCHAR(100) NOT NULL,
+    request_date DATE         NOT NULL,
+    time_slot    VARCHAR(10)  NOT NULL,
+    message      VARCHAR(500),
+    status       VARCHAR(20)  NOT NULL DEFAULT 'PENDING',
+    reg_time     DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    mod_time     DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (request_no),
+    CONSTRAINT fk_babysitter_request_sitter FOREIGN KEY (sitter_email) REFERENCES tbl_babysitter_profile (email),
+    CONSTRAINT fk_babysitter_request_parent FOREIGN KEY (parent_email) REFERENCES tbl_member (email),
+    INDEX idx_babysitter_request_sitter (sitter_email, status),
+    INDEX idx_babysitter_request_parent (parent_email, status)
+);
+
+-- KYI - 베이비시터 후기 (요청 1건당 후기 1개)
+CREATE TABLE IF NOT EXISTS tbl_babysitter_review (
+    review_no    BIGINT AUTO_INCREMENT,
+    request_no   BIGINT       NOT NULL,
+    sitter_email VARCHAR(100) NOT NULL,
+    writer_email VARCHAR(100) NOT NULL,
+    rating       INT          NOT NULL,
+    content      VARCHAR(500),
+    reg_time     DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (review_no),
+    CONSTRAINT fk_babysitter_review_request FOREIGN KEY (request_no) REFERENCES tbl_babysitter_request (request_no),
+    CONSTRAINT fk_babysitter_review_sitter FOREIGN KEY (sitter_email) REFERENCES tbl_babysitter_profile (email),
+    CONSTRAINT fk_babysitter_review_writer FOREIGN KEY (writer_email) REFERENCES tbl_member (email),
+    UNIQUE KEY uq_babysitter_review_request (request_no)
 );
 
 -- KYI - 커뮤니티 게시글

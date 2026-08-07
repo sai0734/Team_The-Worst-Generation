@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.backend.babysitter.mapper.BabysitterRequestMapper">
+
+    <select id="selectByRequestNo" resultType="com.backend.babysitter.domain.BabysitterRequest">
+        SELECT request_no, sitter_email, parent_email, request_date, time_slot, message, status, reg_time, mod_time
+        FROM tbl_babysitter_request
+        WHERE request_no = #{requestNo}
+    </select>
+
+    <select id="selectListBySitter" resultType="com.backend.babysitter.domain.BabysitterRequest">
+        SELECT request_no, sitter_email, parent_email, request_date, time_slot, message, status, reg_time, mod_time
+        FROM tbl_babysitter_request
+        WHERE sitter_email = #{sitterEmail}
+        ORDER BY reg_time DESC
+    </select>
+
+    <select id="selectListByParent" resultType="com.backend.babysitter.domain.BabysitterRequest">
+        SELECT request_no, sitter_email, parent_email, request_date, time_slot, message, status, reg_time, mod_time
+        FROM tbl_babysitter_request
+        WHERE parent_email = #{parentEmail}
+        ORDER BY reg_time DESC
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="requestNo" keyColumn="request_no">
+        INSERT INTO tbl_babysitter_request (sitter_email, parent_email, request_date, time_slot, message, status)
+        VALUES (#{sitterEmail}, #{parentEmail}, #{requestDate}, #{timeSlot}, #{message}, #{status})
+    </insert>
+
+    <update id="updateStatus">
+        UPDATE tbl_babysitter_request
+        SET status   = #{status},
+            mod_time = CURRENT_TIMESTAMP
+        WHERE request_no = #{requestNo}
+    </update>
+
+</mapper>
