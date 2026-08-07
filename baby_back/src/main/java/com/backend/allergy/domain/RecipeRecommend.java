@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
 @Data
 public class RecipeRecommend {
     private  long recommendNo; // pk
-    private long checkNO; // fk
+    private long checkNo; // fk
     private String productType;
     private String recommendRecipe;
     private String mixingInstruction;
