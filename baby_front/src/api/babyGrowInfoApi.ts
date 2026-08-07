@@ -1,5 +1,5 @@
 import jwtAxios from "../util/jwtUtil";
-import { API_SERVER_HOST } from "./todoApi";
+const API_SERVER_HOST = "http://localhost:8080";
 
 const host = `${API_SERVER_HOST}/api/baby-grow-info`;
 
