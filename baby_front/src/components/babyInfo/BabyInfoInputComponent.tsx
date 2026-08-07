@@ -61,7 +61,7 @@ const BabyInfoInputComponent = () => {
         {preview ? (
           <img
             className="w-[88px] h-[88px] rounded-full object-cover"
-            src="{preview}"
+            src={preview}
             alt="미리보기"
           />
         ) : (
