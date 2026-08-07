@@ -79,6 +79,74 @@ CREATE TABLE IF NOT EXISTS tbl_ledger_setting (
     PRIMARY KEY (email),
     CONSTRAINT fk_ledger_setting_email FOREIGN KEY (email) REFERENCES tbl_member (email)
 );
+
+CREATE TABLE IF NOT EXISTS tbl_babysitter_profile (
+    email          VARCHAR(100) NOT NULL,
+    name           VARCHAR(50)  NOT NULL,
+    career_years   INT          NOT NULL DEFAULT 0,
+    region         VARCHAR(100),
+    available_time VARCHAR(255),
+    hourly_rate    INT,
+    intro          VARCHAR(1000),
+    status         VARCHAR(20)  NOT NULL DEFAULT 'ACTIVE',
+    reg_time       DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    mod_time       DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (email),
+    CONSTRAINT fk_babysitter_profile_email FOREIGN KEY (email) REFERENCES tbl_member (email),
+    INDEX idx_babysitter_profile_region (region)
+);
+
+CREATE TABLE IF NOT EXISTS tbl_community_post (
+    post_no       BIGINT AUTO_INCREMENT,
+    writer_email  VARCHAR(100)  NOT NULL,
+    nickname      VARCHAR(50)   NOT NULL,
+    title         VARCHAR(200)  NOT NULL,
+    content       TEXT          NOT NULL,
+    ai_summary    TEXT,
+    view_count    INT           NOT NULL DEFAULT 0,
+    comment_count INT           NOT NULL DEFAULT 0,
+    del_flag      BOOLEAN       NOT NULL DEFAULT FALSE,
+    reg_time      DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    mod_time      DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (post_no),
+    CONSTRAINT fk_community_post_email FOREIGN KEY (writer_email) REFERENCES tbl_member (email)
+);
+
+CREATE TABLE IF NOT EXISTS tbl_community_post_image (
+    image_no  BIGINT AUTO_INCREMENT,
+    post_no   BIGINT       NOT NULL,
+    file_name VARCHAR(300) NOT NULL,
+    video     BOOLEAN      NOT NULL DEFAULT FALSE,
+    ord       INT          NOT NULL DEFAULT 0,
+    PRIMARY KEY (image_no),
+    CONSTRAINT fk_community_post_image_post FOREIGN KEY (post_no) REFERENCES tbl_community_post (post_no)
+);
+
+CREATE TABLE IF NOT EXISTS tbl_community_comment (
+    comment_no        BIGINT AUTO_INCREMENT,
+    post_no           BIGINT        NOT NULL,
+    writer_email      VARCHAR(100)  NOT NULL,
+    nickname          VARCHAR(50)   NOT NULL,
+    parent_comment_no BIGINT,
+    content           VARCHAR(1000) NOT NULL,
+    del_flag          BOOLEAN       NOT NULL DEFAULT FALSE,
+    reg_time          DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    mod_time          DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (comment_no),
+    CONSTRAINT fk_community_comment_post FOREIGN KEY (post_no) REFERENCES tbl_community_post (post_no),
+    CONSTRAINT fk_community_comment_email FOREIGN KEY (writer_email) REFERENCES tbl_member (email),
+    CONSTRAINT fk_community_comment_parent FOREIGN KEY (parent_comment_no) REFERENCES tbl_community_comment (comment_no)
+);
+
+CREATE TABLE IF NOT EXISTS tbl_community_comment_image (
+    image_no   BIGINT AUTO_INCREMENT,
+    comment_no BIGINT       NOT NULL,
+    file_name  VARCHAR(300) NOT NULL,
+    video      BOOLEAN      NOT NULL DEFAULT FALSE,
+    ord        INT          NOT NULL DEFAULT 0,
+    PRIMARY KEY (image_no),
+    CONSTRAINT fk_community_comment_image_comment FOREIGN KEY (comment_no) REFERENCES tbl_community_comment (comment_no)
+);
 -- KYI 끝
 
 -- LMJ

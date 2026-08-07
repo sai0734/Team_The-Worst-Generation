@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.backend.ledger.ai.OllamaClient;
+import com.backend.global.ai.OllamaClient;
 import com.backend.ledger.domain.Ledger;
 import com.backend.ledger.domain.LedgerCategory;
 import com.backend.ledger.domain.LedgerSetting;
