@@ -1,7 +1,7 @@
 package com.backend.service;
 
-import com.backend.dto.PageRequestDTO;
-import com.backend.dto.PageResponseDTO;
+import com.backend.global.dto.PageRequestDTO;
+import com.backend.global.dto.PageResponseDTO;
 import com.backend.dto.TodoDTO;
 
 public interface TodoService {

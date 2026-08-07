@@ -7,8 +7,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.backend.auth.dto.KakaoLoginResultDTO;
 import com.backend.auth.domain.Member;
 import com.backend.auth.dto.SocialSignupRequestDTO;
-import com.backend.dto.MemberDTO;
-import com.backend.dto.MemberModifyDTO;
+import com.backend.auth.dto.MemberDTO;
+import com.backend.auth.dto.MemberModifyDTO;
 
 @Transactional
 public interface MemberService {

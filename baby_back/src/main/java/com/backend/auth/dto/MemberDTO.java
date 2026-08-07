@@ -1,4 +1,4 @@
-package com.backend.dto;
+package com.backend.auth.dto;
 
 import java.util.*;
 import java.util.stream.Collectors;

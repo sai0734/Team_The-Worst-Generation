@@ -11,7 +11,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import com.backend.dto.MemberDTO;
+import com.backend.auth.dto.MemberDTO;
 import com.backend.global.security.SecurityPaths;
 import com.backend.global.util.CustomJWTException;
 import com.backend.global.util.JWTUtil;

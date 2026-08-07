@@ -1,4 +1,4 @@
-package com.backend.controller.advice;
+package com.backend.global.advice;
 
 import java.util.Map;
 import java.util.NoSuchElementException;

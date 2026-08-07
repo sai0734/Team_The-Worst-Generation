@@ -9,8 +9,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.backend.domain.Todo;
-import com.backend.dto.PageRequestDTO;
-import com.backend.dto.PageResponseDTO;
+import com.backend.global.dto.PageRequestDTO;
+import com.backend.global.dto.PageResponseDTO;
 import com.backend.dto.TodoDTO;
 import com.backend.mapper.TodoMapper;
 

@@ -2,8 +2,8 @@ package com.backend.service;
 
 import org.springframework.transaction.annotation.Transactional;
 
-import com.backend.dto.PageRequestDTO;
-import com.backend.dto.PageResponseDTO;
+import com.backend.global.dto.PageRequestDTO;
+import com.backend.global.dto.PageResponseDTO;
 import com.backend.dto.ProductDTO;
 
 @Transactional
