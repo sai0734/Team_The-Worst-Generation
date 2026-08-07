@@ -124,6 +124,22 @@ CREATE TABLE IF NOT EXISTS tbl_ledger_setting (
     PRIMARY KEY (email),
     CONSTRAINT fk_ledger_setting_email FOREIGN KEY (email) REFERENCES tbl_member (email)
 );
+
+CREATE TABLE IF NOT EXISTS tbl_babysitter_profile (
+    email          VARCHAR(100) NOT NULL,
+    name           VARCHAR(50)  NOT NULL,
+    career_years   INT          NOT NULL DEFAULT 0,
+    region         VARCHAR(100),
+    available_time VARCHAR(255),
+    hourly_rate    INT,
+    intro          VARCHAR(1000),
+    status         VARCHAR(20)  NOT NULL DEFAULT 'ACTIVE',
+    reg_time       DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    mod_time       DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (email),
+    CONSTRAINT fk_babysitter_profile_email FOREIGN KEY (email) REFERENCES tbl_member (email),
+    INDEX idx_babysitter_profile_region (region)
+);
 -- KYI 끝
 
 -- LMJ

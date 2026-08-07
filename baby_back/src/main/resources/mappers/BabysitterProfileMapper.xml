@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.backend.babysitter.mapper.BabysitterProfileMapper">
+
+    <select id="selectByEmail" resultType="com.backend.babysitter.domain.BabysitterProfile">
+        SELECT email, name, career_years, region, available_time, hourly_rate, intro, status, reg_time, mod_time
+        FROM tbl_babysitter_profile
+        WHERE email = #{email}
+    </select>
+
+    <insert id="insert">
+        INSERT INTO tbl_babysitter_profile
+            (email, name, career_years, region, available_time, hourly_rate, intro, status)
+        VALUES
+            (#{email}, #{name}, #{careerYears}, #{region}, #{availableTime}, #{hourlyRate}, #{intro}, #{status})
+    </insert>
+
+    <update id="update">
+        UPDATE tbl_babysitter_profile
+        SET name           = #{name},
+            career_years   = #{careerYears},
+            region         = #{region},
+            available_time = #{availableTime},
+            hourly_rate    = #{hourlyRate},
+            intro          = #{intro},
+            status         = #{status},
+            mod_time       = CURRENT_TIMESTAMP
+        WHERE email = #{email}
+    </update>
+
+    <delete id="delete">
+        DELETE FROM tbl_babysitter_profile WHERE email = #{email}
+    </delete>
+
+    <select id="selectList" resultType="com.backend.babysitter.domain.BabysitterProfile">
+        SELECT email, name, career_years, region, available_time, hourly_rate, intro, status, reg_time, mod_time
+        FROM tbl_babysitter_profile
+        <include refid="searchWhere"/>
+        ORDER BY reg_time DESC
+        LIMIT #{search.size} OFFSET #{skip}
+    </select>
+
+    <select id="selectListCount" resultType="long">
+        SELECT COUNT(*)
+        FROM tbl_babysitter_profile
+        <include refid="searchWhere"/>
+    </select>
+
+    <sql id="searchWhere">
+        WHERE status = 'ACTIVE'
+        <if test="search.region != null and search.region != ''">
+            AND region = #{search.region}
+        </if>
+        <if test="search.minCareerYears != null">
+            AND career_years &gt;= #{search.minCareerYears}
+        </if>
+        <if test="search.keyword != null and search.keyword != ''">
+            AND (name LIKE CONCAT('%', #{search.keyword}, '%')
+                 OR intro LIKE CONCAT('%', #{search.keyword}, '%'))
+        </if>
+    </sql>
+
+</mapper>
