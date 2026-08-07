@@ -1,6 +1,9 @@
 import jwtAxios from "../util/jwtUtil";
 import type { PageRequestParam, PageResponse } from "../types/page";
 
+const API_SERVER_HOST = "http://localhost:8080";
+const prefix = `${API_SERVER_HOST}/api/babysitter/profiles`;
+
 export interface BabysitterProfile {
   email: string;
   name: string;
@@ -29,34 +32,36 @@ export interface BabysitterSearchParam extends PageRequestParam {
   minCareerYears?: number;
 }
 
-const API_SERVER_HOST = "http://localhost:8080";
-const prefix = `${API_SERVER_HOST}/api/babysitter/profiles`;
+export const getMine = async (): Promise<BabysitterProfile> => {
+  const res = await jwtAxios.get(`${prefix}/me`);
 
-export const babysitterApi = {
-  getMine: async (): Promise<BabysitterProfile> => {
-    const res = await jwtAxios.get(`${prefix}/me`);
-    return res.data;
-  },
+  return res.data;
+};
 
-  getOne: async (email: string): Promise<BabysitterProfile> => {
-    const res = await jwtAxios.get(`${prefix}/${email}`);
-    return res.data;
-  },
+export const getOne = async (email: string): Promise<BabysitterProfile> => {
+  const res = await jwtAxios.get(`${prefix}/${email}`);
 
-  save: async (profile: BabysitterProfileInput): Promise<{ RESULT: string }> => {
-    const res = await jwtAxios.put(`${prefix}/`, profile);
-    return res.data;
-  },
+  return res.data;
+};
 
-  remove: async (): Promise<{ RESULT: string }> => {
-    const res = await jwtAxios.delete(`${prefix}/`);
-    return res.data;
-  },
+export const save = async (
+  profile: BabysitterProfileInput,
+): Promise<{ RESULT: string }> => {
+  const res = await jwtAxios.put(`${prefix}/`, profile);
 
-  getList: async (
-    searchParam: BabysitterSearchParam,
-  ): Promise<PageResponse<BabysitterProfile>> => {
-    const res = await jwtAxios.get(`${prefix}/list`, { params: searchParam });
-    return res.data;
-  },
+  return res.data;
+};
+
+export const remove = async (): Promise<{ RESULT: string }> => {
+  const res = await jwtAxios.delete(`${prefix}/`);
+
+  return res.data;
+};
+
+export const getList = async (
+  searchParam: BabysitterSearchParam,
+): Promise<PageResponse<BabysitterProfile>> => {
+  const res = await jwtAxios.get(`${prefix}/list`, { params: searchParam });
+
+  return res.data;
 };

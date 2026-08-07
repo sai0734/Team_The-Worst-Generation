@@ -1,6 +1,12 @@
 import jwtAxios from "../util/jwtUtil";
 import type { PageRequestParam, PageResponse } from "../types/page";
 
+const API_SERVER_HOST = "http://localhost:8080";
+const prefix = `${API_SERVER_HOST}/api/community/posts`;
+
+export const getFileUrl = (fileName: string): string =>
+  `${prefix}/files/${fileName}`;
+
 export interface CommunityImage {
   fileName: string;
   video: boolean;
@@ -47,105 +53,118 @@ export interface CommunityCommentInput {
   parentCommentNo?: number;
 }
 
-const API_SERVER_HOST = "http://localhost:8080";
-const prefix = `${API_SERVER_HOST}/api/community/posts`;
-
 const toImageFormData = (files: File[]): FormData => {
   const formData = new FormData();
   files.forEach((file) => formData.append("files", file));
   return formData;
 };
 
-export const communityApi = {
-  register: async (post: CommunityPostInput): Promise<{ postNo: number }> => {
-    const res = await jwtAxios.post(`${prefix}/`, post);
-    return res.data;
-  },
+export const register = async (
+  post: CommunityPostInput,
+): Promise<{ postNo: number }> => {
+  const res = await jwtAxios.post(`${prefix}/`, post);
 
-  addImages: async (
-    postNo: number,
-    files: File[],
-  ): Promise<{ fileNames: string[] }> => {
-    const res = await jwtAxios.post(
-      `${prefix}/${postNo}/images`,
-      toImageFormData(files),
-      { headers: { "Content-Type": "multipart/form-data" } },
-    );
-    return res.data;
-  },
+  return res.data;
+};
 
-  getOne: async (postNo: number): Promise<CommunityPost> => {
-    const res = await jwtAxios.get(`${prefix}/${postNo}`);
-    return res.data;
-  },
+export const addImages = async (
+  postNo: number,
+  files: File[],
+): Promise<{ fileNames: string[] }> => {
+  const res = await jwtAxios.post(
+    `${prefix}/${postNo}/images`,
+    toImageFormData(files),
+    { headers: { "Content-Type": "multipart/form-data" } },
+  );
 
-  getSummary: async (postNo: number): Promise<{ summary: string }> => {
-    const res = await jwtAxios.get(`${prefix}/${postNo}/summary`);
-    return res.data;
-  },
+  return res.data;
+};
 
-  getList: async (
-    searchParam: CommunityPostSearchParam,
-  ): Promise<PageResponse<CommunityPost>> => {
-    const res = await jwtAxios.get(`${prefix}/list`, { params: searchParam });
-    return res.data;
-  },
+export const getOne = async (postNo: number): Promise<CommunityPost> => {
+  const res = await jwtAxios.get(`${prefix}/${postNo}`);
 
-  modify: async (
-    postNo: number,
-    post: CommunityPostInput,
-  ): Promise<{ RESULT: string }> => {
-    const res = await jwtAxios.put(`${prefix}/${postNo}`, post);
-    return res.data;
-  },
+  return res.data;
+};
 
-  remove: async (postNo: number): Promise<{ RESULT: string }> => {
-    const res = await jwtAxios.delete(`${prefix}/${postNo}`);
-    return res.data;
-  },
+export const getSummary = async (
+  postNo: number,
+): Promise<{ summary: string }> => {
+  const res = await jwtAxios.get(`${prefix}/${postNo}/summary`);
 
-  registerComment: async (
-    postNo: number,
-    comment: CommunityCommentInput,
-  ): Promise<{ commentNo: number }> => {
-    const res = await jwtAxios.post(`${prefix}/${postNo}/comments/`, comment);
-    return res.data;
-  },
+  return res.data;
+};
 
-  addCommentImages: async (
-    postNo: number,
-    commentNo: number,
-    files: File[],
-  ): Promise<{ fileNames: string[] }> => {
-    const res = await jwtAxios.post(
-      `${prefix}/${postNo}/comments/${commentNo}/images`,
-      toImageFormData(files),
-      { headers: { "Content-Type": "multipart/form-data" } },
-    );
-    return res.data;
-  },
+export const getList = async (
+  searchParam: CommunityPostSearchParam,
+): Promise<PageResponse<CommunityPost>> => {
+  const res = await jwtAxios.get(`${prefix}/list`, { params: searchParam });
 
-  getComments: async (postNo: number): Promise<CommunityComment[]> => {
-    const res = await jwtAxios.get(`${prefix}/${postNo}/comments/`);
-    return res.data;
-  },
+  return res.data;
+};
 
-  modifyComment: async (
-    postNo: number,
-    commentNo: number,
-    content: string,
-  ): Promise<{ RESULT: string }> => {
-    const res = await jwtAxios.put(`${prefix}/${postNo}/comments/${commentNo}`, {
-      content,
-    });
-    return res.data;
-  },
+export const modify = async (
+  postNo: number,
+  post: CommunityPostInput,
+): Promise<{ RESULT: string }> => {
+  const res = await jwtAxios.put(`${prefix}/${postNo}`, post);
 
-  removeComment: async (
-    postNo: number,
-    commentNo: number,
-  ): Promise<{ RESULT: string }> => {
-    const res = await jwtAxios.delete(`${prefix}/${postNo}/comments/${commentNo}`);
-    return res.data;
-  },
+  return res.data;
+};
+
+export const remove = async (postNo: number): Promise<{ RESULT: string }> => {
+  const res = await jwtAxios.delete(`${prefix}/${postNo}`);
+
+  return res.data;
+};
+
+export const registerComment = async (
+  postNo: number,
+  comment: CommunityCommentInput,
+): Promise<{ commentNo: number }> => {
+  const res = await jwtAxios.post(`${prefix}/${postNo}/comments/`, comment);
+
+  return res.data;
+};
+
+export const addCommentImages = async (
+  postNo: number,
+  commentNo: number,
+  files: File[],
+): Promise<{ fileNames: string[] }> => {
+  const res = await jwtAxios.post(
+    `${prefix}/${postNo}/comments/${commentNo}/images`,
+    toImageFormData(files),
+    { headers: { "Content-Type": "multipart/form-data" } },
+  );
+
+  return res.data;
+};
+
+export const getComments = async (
+  postNo: number,
+): Promise<CommunityComment[]> => {
+  const res = await jwtAxios.get(`${prefix}/${postNo}/comments/`);
+
+  return res.data;
+};
+
+export const modifyComment = async (
+  postNo: number,
+  commentNo: number,
+  content: string,
+): Promise<{ RESULT: string }> => {
+  const res = await jwtAxios.put(`${prefix}/${postNo}/comments/${commentNo}`, {
+    content,
+  });
+
+  return res.data;
+};
+
+export const removeComment = async (
+  postNo: number,
+  commentNo: number,
+): Promise<{ RESULT: string }> => {
+  const res = await jwtAxios.delete(`${prefix}/${postNo}/comments/${commentNo}`);
+
+  return res.data;
 };
