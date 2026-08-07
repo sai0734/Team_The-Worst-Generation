@@ -1,8 +1,6 @@
 package com.backend.quest.service;
 
-import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -42,16 +40,6 @@ public class QuestServiceImpl implements QuestService {
                 .map(this::toDTO)
                 .collect(Collectors.toList());
 
-        List<MemberQuestDTO> weekly = list.stream()
-                .filter(q -> "WEEKLY".equals(q.getType()))
-                .map(this::toDTO)
-                .collect(Collectors.toList());
-
-        List<MemberQuestDTO> event = list.stream()
-                .filter(q -> "EVENT".equals(q.getType()))
-                .map(this::toDTO)
-                .collect(Collectors.toList());
-
         List<MemberQuestDTO> urgent = list.stream()
                 .filter(q -> "URGENT".equals(q.getType()))
                 .map(this::toDTO)
@@ -59,8 +47,6 @@ public class QuestServiceImpl implements QuestService {
 
         return QuestHomeDTO.builder()
                 .dailyQuests(daily)
-                .weeklyQuests(weekly)
-                .eventQuests(event)
                 .urgentQuests(urgent)
                 .point(0)
                 .challenges(Collections.emptyList())
@@ -83,16 +69,31 @@ public class QuestServiceImpl implements QuestService {
     }
 
     @Override
+    public MemberQuestDTO uncomplete(String email, Long id) {
+        MemberQuest mq = questMapper.selectMemberQuest(id, email);
+        if (mq == null) {
+            throw new IllegalArgumentException("퀘스트 없음");
+        }
+        if (!"DONE".equals(mq.getStatus())) {
+            return toDTO(mq);
+        }
+
+        questMapper.uncompleteMemberQuest(id, email);
+        return toDTO(questMapper.selectMemberQuest(id, email));
+    }
+
+    @Override
     public void ensureDailyQuests(String email) {
         LocalDate today = LocalDate.now();
 
         int exists = questMapper.countAssignedTodayByType(email, today, "DAILY");
-        if (exists > 0) {
+        int need = 3 - exists;
+        if (need <= 0) {
             return;
         }
 
-        // YSJ - 활성 일퀘 중 랜덤 5개만 배정
-        List<Quest> dailies = questMapper.selectRandomDaily(5);
+        // YSJ - 활성 일퀘 중 랜덤 최대 3개 배정
+        List<Quest> dailies = questMapper.selectRandomDaily(need);
         for (Quest q : dailies) {
             MemberQuest mq = MemberQuest.builder()
                     .memberEmail(email)
@@ -139,66 +140,6 @@ public class QuestServiceImpl implements QuestService {
         questMapper.insertMemberQuest(mq);
 
         return toDTO(questMapper.selectMemberQuest(mq.getId(), partner));
-    }
-
-    // YSJ - 주간퀘스트: 일주일에 1개만 수령 (월~일)
-    @Override
-    public MemberQuestDTO claimWeekly(String email, Long questId) {
-        LocalDate today = LocalDate.now();
-        LocalDate weekStart = today.with(DayOfWeek.MONDAY);
-        LocalDate weekEnd = today.with(DayOfWeek.SUNDAY);
-
-        int count = questMapper.countAssignedBetweenByType(email, weekStart, weekEnd, "WEEKLY");
-        if (count >= 1) {
-            throw new IllegalStateException("주간 퀘스트는 일주일에 1개만 수령할 수 있습니다.");
-        }
-
-        Quest quest = questMapper.selectActiveQuest(questId, "WEEKLY");
-        if (quest == null) {
-            throw new IllegalArgumentException("주간 퀘스트가 없거나 비활성입니다.");
-        }
-
-        MemberQuest mq = MemberQuest.builder()
-                .memberEmail(email)
-                .questId(questId)
-                .status("TODO")
-                .assignedDate(today)
-                .dueDate(today.plusDays(7))
-                .createdBy(null)
-                .build();
-
-        questMapper.insertMemberQuest(mq);
-        return toDTO(questMapper.selectMemberQuest(mq.getId(), email));
-    }
-
-    // YSJ - 이벤트퀘스트: 하루에 2개만 수령
-    @Override
-    public MemberQuestDTO claimEvent(String email, Long questId) {
-        LocalDate today = LocalDate.now();
-
-        int count = questMapper.countAssignedTodayByType(email, today, "EVENT");
-        if (count >= 2) {
-            throw new IllegalStateException("이벤트 퀘스트는 하루에 2개만 수령할 수 있습니다.");
-        }
-
-        Quest quest = questMapper.selectActiveQuest(questId, "EVENT");
-        if (quest == null) {
-            throw new IllegalArgumentException("이벤트 퀘스트가 없거나 비활성입니다.");
-        }
-
-        int dueDays = quest.getDueDays() > 0 ? quest.getDueDays() : 7;
-
-        MemberQuest mq = MemberQuest.builder()
-                .memberEmail(email)
-                .questId(questId)
-                .status("TODO")
-                .assignedDate(today)
-                .dueDate(today.plusDays(dueDays))
-                .createdBy(null)
-                .build();
-
-        questMapper.insertMemberQuest(mq);
-        return toDTO(questMapper.selectMemberQuest(mq.getId(), email));
     }
 
     private MemberQuestDTO toDTO(MemberQuest mq) {
