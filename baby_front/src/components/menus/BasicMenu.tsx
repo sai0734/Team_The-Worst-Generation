@@ -22,9 +22,6 @@ const BasicMenu = () => {
               <li className="pr-6 text-2xl">
                 <Link to={"/babyInfo"}>응애관리</Link>
               </li>
-              <li className="pr-6 text-2xl">
-                <Link to={"/babysitter"}>베이비시터</Link>
-              </li>
             </>
           ) : (
             <></>

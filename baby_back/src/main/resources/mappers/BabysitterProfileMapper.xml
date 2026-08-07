@@ -4,11 +4,44 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.backend.babysitter.mapper.BabysitterProfileMapper">
 
-    <select id="selectByEmail" resultType="com.backend.babysitter.domain.BabysitterProfile">
+    <resultMap id="profileResultMap" type="com.backend.babysitter.domain.BabysitterProfile">
+        <id property="email" column="email"/>
+        <result property="name" column="name"/>
+        <result property="careerYears" column="career_years"/>
+        <result property="region" column="region"/>
+        <result property="availableTime" column="available_time"/>
+        <result property="hourlyRate" column="hourly_rate"/>
+        <result property="intro" column="intro"/>
+        <result property="status" column="status"/>
+        <result property="regTime" column="reg_time"/>
+        <result property="modTime" column="mod_time"/>
+        <collection property="availabilityList"
+                    column="email"
+                    javaType="java.util.ArrayList"
+                    ofType="com.backend.babysitter.domain.BabysitterAvailability"
+                    select="selectAvailability"/>
+    </resultMap>
+
+    <select id="selectByEmail" resultMap="profileResultMap">
         SELECT email, name, career_years, region, available_time, hourly_rate, intro, status, reg_time, mod_time
         FROM tbl_babysitter_profile
         WHERE email = #{email}
     </select>
+
+    <select id="selectAvailability" resultType="com.backend.babysitter.domain.BabysitterAvailability">
+        SELECT email, day_of_week, time_slot
+        FROM tbl_babysitter_availability
+        WHERE email = #{email}
+    </select>
+
+    <insert id="insertAvailability">
+        INSERT INTO tbl_babysitter_availability (email, day_of_week, time_slot)
+        VALUES (#{email}, #{dayOfWeek}, #{timeSlot})
+    </insert>
+
+    <delete id="deleteAvailability">
+        DELETE FROM tbl_babysitter_availability WHERE email = #{email}
+    </delete>
 
     <insert id="insert">
         INSERT INTO tbl_babysitter_profile
@@ -59,6 +92,14 @@
         <if test="search.keyword != null and search.keyword != ''">
             AND (name LIKE CONCAT('%', #{search.keyword}, '%')
                  OR intro LIKE CONCAT('%', #{search.keyword}, '%'))
+        </if>
+        <if test="search.dayOfWeek != null and search.timeSlot != null">
+            AND EXISTS (
+                SELECT 1 FROM tbl_babysitter_availability a
+                WHERE a.email = tbl_babysitter_profile.email
+                  AND a.day_of_week = #{search.dayOfWeek}
+                  AND a.time_slot = #{search.timeSlot}
+            )
         </if>
     </sql>
 

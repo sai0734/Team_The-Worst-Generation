@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useState } from "react";
+import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import * as communityApi from "../../api/communityApi";
 import type {
@@ -6,6 +6,15 @@ import type {
   CommunityPost,
 } from "../../api/communityApi";
 import useCustomLogin from "../../hooks/useCustomLogin";
+
+const describeError = (err: any): string =>
+  err?.response?.data?.error ||
+  err?.response?.data?.msg ||
+  err?.message ||
+  "알 수 없는 오류";
+
+// 본문이 이 길이 미만이면 AI 요약 API 자체를 호출하지 않는다 (짧은 글은 요약할 필요가 없음).
+const AI_SUMMARY_MIN_CONTENT_LENGTH = 150;
 
 const CommunityDetailComponent = () => {
   const { postNo } = useParams();
@@ -18,8 +27,10 @@ const CommunityDetailComponent = () => {
   const [summaryLoading, setSummaryLoading] = useState(false);
 
   const [newComment, setNewComment] = useState("");
+  const [newCommentFiles, setNewCommentFiles] = useState<File[]>([]);
   const [replyingTo, setReplyingTo] = useState<number | null>(null);
   const [replyContent, setReplyContent] = useState("");
+  const [replyFiles, setReplyFiles] = useState<File[]>([]);
   const [editingCommentNo, setEditingCommentNo] = useState<number | null>(null);
   const [editContent, setEditContent] = useState("");
 
@@ -40,8 +51,28 @@ const CommunityDetailComponent = () => {
   useEffect(() => {
     loadPost();
     loadComments();
+    setSummary(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [postNo]);
+
+  useEffect(() => {
+    if (!post || !postNo) {
+      return;
+    }
+
+    if (post.content.length < AI_SUMMARY_MIN_CONTENT_LENGTH) {
+      return;
+    }
+
+    setSummaryLoading(true);
+
+    communityApi
+      .getSummary(Number(postNo))
+      .then((res) => setSummary(res.summary))
+      .catch((err) => console.error(err))
+      .finally(() => setSummaryLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [post?.postNo]);
 
   if (!post || !postNo) {
     return <div>불러오는 중...</div>;
@@ -49,22 +80,17 @@ const CommunityDetailComponent = () => {
 
   const isMine = loginState.email === post.writerEmail;
 
-  const handleSummary = async () => {
-    setSummaryLoading(true);
-    try {
-      const res = await communityApi.getSummary(Number(postNo));
-      setSummary(res.summary);
-    } finally {
-      setSummaryLoading(false);
-    }
-  };
-
   const handleDeletePost = async () => {
     if (!confirm("게시글을 삭제할까요?")) {
       return;
     }
-    await communityApi.remove(Number(postNo));
-    navigate("/community");
+    try {
+      await communityApi.remove(Number(postNo));
+      navigate("/community");
+    } catch (err) {
+      console.error(err);
+      alert(`삭제에 실패했습니다.\n(${describeError(err)})`);
+    }
   };
 
   const handleAddComment = async (e: FormEvent) => {
@@ -72,39 +98,77 @@ const CommunityDetailComponent = () => {
     if (!newComment.trim()) {
       return;
     }
-    await communityApi.registerComment(Number(postNo), { content: newComment });
-    setNewComment("");
-    await loadComments();
+    try {
+      const result = await communityApi.registerComment(Number(postNo), {
+        content: newComment,
+      });
+      if (newCommentFiles.length > 0) {
+        await communityApi.addCommentImages(
+          Number(postNo),
+          result.commentNo,
+          newCommentFiles,
+        );
+      }
+      setNewComment("");
+      setNewCommentFiles([]);
+      await loadComments();
+    } catch (err) {
+      console.error(err);
+      alert(`댓글 등록에 실패했습니다.\n(${describeError(err)})`);
+    }
   };
 
   const handleAddReply = async (parentCommentNo: number) => {
     if (!replyContent.trim()) {
       return;
     }
-    await communityApi.registerComment(Number(postNo), {
-      content: replyContent,
-      parentCommentNo,
-    });
-    setReplyContent("");
-    setReplyingTo(null);
-    await loadComments();
+    try {
+      const result = await communityApi.registerComment(Number(postNo), {
+        content: replyContent,
+        parentCommentNo,
+      });
+      if (replyFiles.length > 0) {
+        await communityApi.addCommentImages(
+          Number(postNo),
+          result.commentNo,
+          replyFiles,
+        );
+      }
+      setReplyContent("");
+      setReplyFiles([]);
+      setReplyingTo(null);
+      await loadComments();
+    } catch (err) {
+      console.error(err);
+      alert(`답글 등록에 실패했습니다.\n(${describeError(err)})`);
+    }
   };
 
   const handleEditComment = async (commentNo: number) => {
     if (!editContent.trim()) {
       return;
     }
-    await communityApi.modifyComment(Number(postNo), commentNo, editContent);
-    setEditingCommentNo(null);
-    await loadComments();
+    try {
+      await communityApi.modifyComment(Number(postNo), commentNo, editContent);
+      setEditingCommentNo(null);
+      await loadComments();
+    } catch (err) {
+      console.error(err);
+      alert(`댓글 수정에 실패했습니다.\n(${describeError(err)})`);
+    }
   };
 
   const handleDeleteComment = async (commentNo: number) => {
     if (!confirm("댓글을 삭제할까요?")) {
       return;
     }
-    await communityApi.removeComment(Number(postNo), commentNo);
-    await loadComments();
+    try {
+      await communityApi.removeComment(Number(postNo), commentNo);
+      await loadComments();
+    } catch (err) {
+      console.error(err);
+      alert(`댓글 삭제에 실패했습니다.\n(${describeError(err)})`);
+    }
   };
 
   const topComments = comments.filter((c) => c.parentCommentNo == null);
@@ -197,6 +261,14 @@ const CommunityDetailComponent = () => {
                   value={replyContent}
                   onChange={(e) => setReplyContent(e.target.value)}
                 />
+                <input
+                  type="file"
+                  accept="image/*,video/*"
+                  multiple
+                  onChange={(e: ChangeEvent<HTMLInputElement>) =>
+                    setReplyFiles(e.target.files ? Array.from(e.target.files) : [])
+                  }
+                />
                 <button onClick={() => handleAddReply(comment.commentNo)}>
                   등록
                 </button>
@@ -244,12 +316,12 @@ const CommunityDetailComponent = () => {
 
       <p className="whitespace-pre-wrap my-3">{post.content}</p>
 
-      <div className="mb-3">
-        <button onClick={handleSummary} disabled={summaryLoading}>
-          {summaryLoading ? "요약 중..." : "AI 한줄요약"}
-        </button>
-        {summary && <p className="italic mt-1">{summary}</p>}
-      </div>
+      {post.content.length >= AI_SUMMARY_MIN_CONTENT_LENGTH && (
+        <div className="mb-3">
+          {summaryLoading && <p className="italic text-gray-400">AI 요약 생성 중...</p>}
+          {!summaryLoading && summary && <p className="italic">AI 한줄요약: {summary}</p>}
+        </div>
+      )}
 
       {isMine && (
         <div className="flex gap-2 mb-3">
@@ -270,6 +342,14 @@ const CommunityDetailComponent = () => {
             placeholder="댓글을 입력하세요"
             value={newComment}
             onChange={(e) => setNewComment(e.target.value)}
+          />
+          <input
+            type="file"
+            accept="image/*,video/*"
+            multiple
+            onChange={(e: ChangeEvent<HTMLInputElement>) =>
+              setNewCommentFiles(e.target.files ? Array.from(e.target.files) : [])
+            }
           />
           <button type="submit">등록</button>
         </form>

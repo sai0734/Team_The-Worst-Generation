@@ -80,6 +80,17 @@ export const addImages = async (
   return res.data;
 };
 
+export const removeImage = async (
+  postNo: number,
+  fileName: string,
+): Promise<{ RESULT: string }> => {
+  const res = await jwtAxios.delete(
+    `${prefix}/${postNo}/images/${encodeURIComponent(fileName)}`,
+  );
+
+  return res.data;
+};
+
 export const getOne = async (postNo: number): Promise<CommunityPost> => {
   const res = await jwtAxios.get(`${prefix}/${postNo}`);
 

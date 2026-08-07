@@ -1,11 +1,13 @@
 package com.backend.babysitter.domain;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import lombok.*;
 
 @Getter
-@ToString
+@ToString(exclude = "availabilityList")
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
@@ -32,6 +34,9 @@ public class BabysitterProfile {
     private LocalDateTime regTime;
 
     private LocalDateTime modTime;
+
+    @Builder.Default
+    private List<BabysitterAvailability> availabilityList = new ArrayList<>();
 
     public void changeProfile(String name, int careerYears, String region, String availableTime,
                                Integer hourlyRate, String intro) {

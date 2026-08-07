@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.backend.babysitter.mapper.BabysitterPickMapper">
+
+    <select id="selectOne" resultType="com.backend.babysitter.domain.BabysitterPick">
+        SELECT pick_no, sitter_email, picker_email, reg_time
+        FROM tbl_babysitter_pick
+        WHERE sitter_email = #{sitterEmail} AND picker_email = #{pickerEmail}
+    </select>
+
+    <select id="countBySitter" resultType="long">
+        SELECT COUNT(*)
+        FROM tbl_babysitter_pick
+        WHERE sitter_email = #{sitterEmail}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="pickNo" keyColumn="pick_no">
+        INSERT INTO tbl_babysitter_pick (sitter_email, picker_email)
+        VALUES (#{sitterEmail}, #{pickerEmail})
+    </insert>
+
+    <delete id="delete">
+        DELETE FROM tbl_babysitter_pick WHERE sitter_email = #{sitterEmail} AND picker_email = #{pickerEmail}
+    </delete>
+
+</mapper>

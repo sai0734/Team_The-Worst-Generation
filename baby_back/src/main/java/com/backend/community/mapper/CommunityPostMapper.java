@@ -33,4 +33,6 @@ public interface CommunityPostMapper {
     void insertImage(CommunityPostImage image);
 
     List<CommunityPostImage> selectImages(@Param("postNo") Long postNo);
+
+    void deleteImage(@Param("postNo") Long postNo, @Param("fileName") String fileName);
 }

@@ -1,6 +1,13 @@
 import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import * as communityApi from "../../api/communityApi";
+import type { CommunityImage } from "../../api/communityApi";
+
+const describeError = (err: any): string =>
+  err?.response?.data?.error ||
+  err?.response?.data?.msg ||
+  err?.message ||
+  "알 수 없는 오류";
 
 const CommunityFormComponent = () => {
   const { postNo } = useParams();
@@ -10,6 +17,7 @@ const CommunityFormComponent = () => {
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [files, setFiles] = useState<File[]>([]);
+  const [existingImages, setExistingImages] = useState<CommunityImage[]>([]);
 
   useEffect(() => {
     if (!isEdit || !postNo) {
@@ -19,11 +27,30 @@ const CommunityFormComponent = () => {
     communityApi.getOne(Number(postNo)).then((post) => {
       setTitle(post.title);
       setContent(post.content);
+      setExistingImages(post.imageList);
     });
   }, [isEdit, postNo]);
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     setFiles(e.target.files ? Array.from(e.target.files) : []);
+  };
+
+  const handleRemoveExistingImage = async (fileName: string) => {
+    if (!postNo) {
+      return;
+    }
+
+    if (!confirm("이 이미지를 삭제할까요?")) {
+      return;
+    }
+
+    try {
+      await communityApi.removeImage(Number(postNo), fileName);
+      setExistingImages((prev) => prev.filter((img) => img.fileName !== fileName));
+    } catch (err) {
+      console.error(err);
+      alert(`이미지 삭제에 실패했습니다.\n(${describeError(err)})`);
+    }
   };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -46,8 +73,8 @@ const CommunityFormComponent = () => {
 
       navigate(`/community/${targetPostNo}`);
     } catch (err) {
-      alert("저장에 실패했습니다.");
       console.error(err);
+      alert(`저장에 실패했습니다.\n(${describeError(err)})`);
     }
   };
 
@@ -65,6 +92,37 @@ const CommunityFormComponent = () => {
         rows={10}
         required
       />
+
+      {existingImages.length > 0 && (
+        <>
+          <p>기존 첨부 이미지/영상</p>
+          <div className="flex gap-2 flex-wrap mb-2">
+            {existingImages.map((img) => (
+              <div key={img.fileName} className="relative">
+                {img.video ? (
+                  <video
+                    src={communityApi.getFileUrl(img.fileName)}
+                    controls
+                    className="h-24"
+                  />
+                ) : (
+                  <img
+                    src={communityApi.getFileUrl(img.fileName)}
+                    className="h-24"
+                  />
+                )}
+                <button
+                  type="button"
+                  onClick={() => handleRemoveExistingImage(img.fileName)}
+                  className="absolute top-0 right-0 bg-black/60 text-white px-1 text-xs"
+                >
+                  삭제
+                </button>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
 
       <p>이미지/영상 첨부</p>
       <input type="file" accept="image/*,video/*" multiple onChange={handleFileChange} />
