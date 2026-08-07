@@ -1,7 +1,7 @@
 package com.backend.market.controller;
 
-import com.backend.dto.PageRequestDTO;
-import com.backend.dto.PageResponseDTO;
+import com.backend.global.dto.PageRequestDTO;
+import com.backend.global.dto.PageResponseDTO;
 import com.backend.global.util.CustomFileUtil;
 import com.backend.market.domain.MarketItem;
 import com.backend.market.dto.MarketItemDTO;

@@ -29,51 +29,6 @@ CREATE TABLE IF NOT EXISTS tbl_member_social (
     CONSTRAINT fk_member_social_email FOREIGN KEY (member_email) REFERENCES tbl_member (email)
     );
 
-CREATE TABLE IF NOT EXISTS tbl_product (
-                                           pno      BIGINT AUTO_INCREMENT,
-                                           pname    VARCHAR(100)  NOT NULL,
-    price    INT           NOT NULL DEFAULT 0,
-    pdesc    VARCHAR(2000),
-    del_flag BOOLEAN       NOT NULL DEFAULT FALSE,
-    PRIMARY KEY (pno)
-    );
-
-CREATE TABLE IF NOT EXISTS tbl_product_image (
-                                                 pno       BIGINT       NOT NULL,
-                                                 file_name VARCHAR(200) NOT NULL,
-    ord       INT          NOT NULL DEFAULT 0,
-    CONSTRAINT fk_product_image_pno FOREIGN KEY (pno) REFERENCES tbl_product (pno)
-    );
-
-CREATE TABLE IF NOT EXISTS tbl_todo (
-                                        tno      BIGINT AUTO_INCREMENT,
-                                        title    VARCHAR(200) NOT NULL,
-    writer   VARCHAR(50),
-    complete BOOLEAN      NOT NULL DEFAULT FALSE,
-    due_date DATE,
-    PRIMARY KEY (tno)
-    );
-
-CREATE TABLE IF NOT EXISTS tbl_cart (
-                                        cno          BIGINT AUTO_INCREMENT,
-                                        member_owner VARCHAR(100) NOT NULL,
-    PRIMARY KEY (cno),
-    CONSTRAINT fk_cart_owner FOREIGN KEY (member_owner) REFERENCES tbl_member (email),
-    INDEX idx_cart_email (member_owner)
-    );
-
-CREATE TABLE IF NOT EXISTS tbl_cart_item (
-                                             cino        BIGINT AUTO_INCREMENT,
-                                             product_pno BIGINT NOT NULL,
-                                             cart_cno    BIGINT NOT NULL,
-                                             qty         INT    NOT NULL DEFAULT 1,
-                                             PRIMARY KEY (cino),
-    CONSTRAINT fk_cartitem_product FOREIGN KEY (product_pno) REFERENCES tbl_product (pno),
-    CONSTRAINT fk_cartitem_cart FOREIGN KEY (cart_cno) REFERENCES tbl_cart (cno),
-    INDEX idx_cartitem_cart (cart_cno),
-    INDEX idx_cartitem_pno_cart (product_pno, cart_cno)
-    );
-
 -- HYH
 CREATE TABLE IF NOT EXISTS tbl_baby_info (
     baby_no BIGINT AUTO_INCREMENT,
