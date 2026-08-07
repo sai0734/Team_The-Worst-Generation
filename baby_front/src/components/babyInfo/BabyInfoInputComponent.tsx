@@ -1,6 +1,7 @@
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import * as babyInfoApi from "../../api/babyInfoApi";
 import * as babyGrowInfoApi from "../../api/babyGrowInfoApi";
+import { BabyInfo } from "../../api/babyInfoApi";
 
 const BabyInfoInputComponent = () => {
   const [file, setFile] = useState<File | null>(null);
@@ -15,6 +16,44 @@ const BabyInfoInputComponent = () => {
   const [birthWeight, setBirthWeight] = useState("");
   const [birthHeight, setBirthHeight] = useState("");
   const [head, setHead] = useState("");
+  const [registeredList, setRegisteredList] = useState<BabyInfo[]>([]);
+
+  const loadRegisteredList = async () => {
+    const list: BabyInfo[] = await babyInfoApi.getList();
+    setRegisteredList(list);
+  };
+
+  useEffect(() => {
+    loadRegisteredList();
+  }, []);
+
+  const handleClickAddNew = () => {
+    setFile(null);
+    setPreview(null);
+    setBirthWeekCount("");
+    setBabyName("");
+    setBirthDate("");
+    setGender("");
+    setbloodType("");
+    setWeight("");
+    setHeight("");
+    setBirthWeight("");
+    setBirthHeight("");
+    setHead("");
+  };
+
+  const handleClickRemove = async (babyNo?: number) => {
+    if (!babyNo) return;
+    if (!window.confirm("정말 삭제하시겠습니까?")) return;
+
+    try {
+      await babyInfoApi.remove(babyNo);
+      await loadRegisteredList();
+    } catch (err) {
+      alert("삭제에 실패했습니다.");
+      console.error(err);
+    }
+  };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -48,6 +87,7 @@ const BabyInfoInputComponent = () => {
         weight: weight ? Number(weight) : undefined,
         height: height ? Number(height) : undefined,
       });
+      await loadRegisteredList();
       alert(`등록이 완료되었습니다. (babyNo: ${result.babyNo})`);
     } catch (err) {
       alert("등록에 실패하셨습니다.");
@@ -65,7 +105,9 @@ const BabyInfoInputComponent = () => {
             alt="미리보기"
           />
         ) : (
-          <p>사진</p>
+          <div className="w-[88px] h-[88px] rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-xs">
+            사진
+          </div>
         )}
         <input
           type="file"
@@ -175,6 +217,36 @@ const BabyInfoInputComponent = () => {
         placeholder="머리둘레(cm)"
       />
       <button type="submit">아이 등록하기</button>
+
+      <div>
+        <p>등록된 아이</p>
+        {registeredList.map((baby) => (
+          <div key={baby.babyNo}>
+            {baby.profileImageFileName ? (
+              <img
+                className="w-[36px] h-[36px] rounded-full object-cover"
+                src={babyInfoApi.getViewUrl(baby.profileImageFileName)}
+                alt={baby.babyName}
+              />
+            ) : (
+              <div className="w-[36px] h-[36px] rounded-full bg-gray-200 flex items-center justify-center text-xs">
+                응애
+              </div>
+            )}
+            <span>{baby.babyName}</span>
+            <button
+              type="button"
+              onClick={() => handleClickRemove(baby.babyNo)}
+            >
+              X
+            </button>
+          </div>
+        ))}
+        <div onClick={handleClickAddNew}>
+          <span>+</span>
+          <span>새 아이 추가</span>
+        </div>
+      </div>
     </form>
   );
 };
