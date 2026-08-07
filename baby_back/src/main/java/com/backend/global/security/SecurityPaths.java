@@ -12,7 +12,8 @@ public final class SecurityPaths {
       "/api/member/refresh",
       "/api/products/view/**",
       "/api/community/posts/files/**",
-      "/api/openclaw/**"
+      "/api/openclaw/**",
+          "/api/baby-info/view/**",
   };
 
   private static final AntPathMatcher PATH_MATCHER = new AntPathMatcher();

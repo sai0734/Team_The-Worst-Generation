@@ -78,6 +78,54 @@ CREATE TABLE IF NOT EXISTS tbl_baby_grow_info (
     CONSTRAINT fk_baby_grow_info FOREIGN KEY (baby_no) REFERENCES tbl_baby_info (baby_no)
     );
 
+CREATE TABLE IF NOT EXISTS tbl_vaccine_schedule (
+    schedule_no BIGINT AUTO_INCREMENT,
+    vaccine_name VARCHAR(100) NOT NULL,
+    dose_label VARCHAR(20) NOT NULL,
+    recommended_month INT NOT NULL,
+    display_order INT NOT NULL,
+    PRIMARY KEY (schedule_no)
+    );
+
+INSERT INTO tbl_vaccine_schedule (vaccine_name, dose_label, recommended_month, display_order)
+SELECT t.vaccine_name, t.dose_label, t.recommended_month, t.display_order
+FROM (
+         SELECT 'B형간염' AS vaccine_name, '1차' AS dose_label, 0 AS recommended_month, 1 AS display_order
+         UNION ALL SELECT 'BCG(결핵)', '1회', 1, 2
+         UNION ALL SELECT 'B형간염', '2차', 1, 3
+         UNION ALL SELECT 'DTaP', '1차', 2, 4
+         UNION ALL SELECT '폴리오', '1차', 2, 5
+         UNION ALL SELECT 'DTaP', '2차', 4, 6
+         UNION ALL SELECT '폴리오', '2차', 4, 7
+         UNION ALL SELECT 'B형간염', '3차', 6, 8
+         UNION ALL SELECT 'DTaP', '3차', 6, 9
+         UNION ALL SELECT '폴리오', '3차', 6, 10
+         UNION ALL SELECT 'MMR', '1차', 12, 11
+         UNION ALL SELECT '수두', '1회', 12, 12
+     ) AS t
+WHERE (SELECT COUNT(*) FROM tbl_vaccine_schedule) = 0;
+
+CREATE TABLE IF NOT EXISTS tbl_baby_vaccination (
+    vaccination_no BIGINT AUTO_INCREMENT,
+    baby_no BIGINT NOT NULL,
+    schedule_no BIGINT,
+    vaccine_name VARCHAR(100) NOT NULL,
+    dose_label VARCHAR(20),
+    recommended_month INT,
+    completed BOOLEAN NOT NULL DEFAULT FALSE,
+    completed_date DATE,
+    hospital_name VARCHAR(100),
+    is_custom BOOLEAN NOT NULL DEFAULT FALSE,
+    reg_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (vaccination_no),
+    CONSTRAINT fk_baby_vaccination_baby FOREIGN KEY (baby_no) REFERENCES tbl_baby_info (baby_no),
+    CONSTRAINT fk_baby_vaccination_schedule FOREIGN KEY (schedule_no) REFERENCES tbl_vaccine_schedule (schedule_no)
+    );
+
+
+
+
+
 -- KYI - 가계부 내역
 CREATE TABLE IF NOT EXISTS tbl_ledger (
     lno      BIGINT AUTO_INCREMENT,
