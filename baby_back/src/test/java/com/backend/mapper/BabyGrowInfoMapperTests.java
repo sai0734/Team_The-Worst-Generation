@@ -27,7 +27,6 @@ public class BabyGrowInfoMapperTests {
                     .measuredDate(LocalDate.parse("2017-12-07"))
                     .weight(50.1)
                     .height(170.1)
-                    .head(15.1)
                     .build();
 
             babyGrowInfoMapper.insert(babyGrowInfo);
