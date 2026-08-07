@@ -5,7 +5,7 @@ import com.backend.allergy.domain.BabyAllergyCheck;
 import com.backend.allergy.domain.RecipeRecommend;
 import com.backend.allergy.mapper.BabyAllergyCheckMapper;
 import com.backend.allergy.mapper.RecipeRecommendMapper;
-import com.backend.ledger.ai.OllamaClient;
+import com.backend.global.ai.OllamaClient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

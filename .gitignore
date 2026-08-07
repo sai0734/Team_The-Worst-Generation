@@ -1,0 +1,16 @@
+# 환경변수 / 시크릿
+.env
+.env.*
+!.env.example
+
+# 도커
+docker-compose.override.yml
+
+# IDE
+.idea
+*.iml
+.vscode
+
+# OS
+.DS_Store
+Thumbs.db

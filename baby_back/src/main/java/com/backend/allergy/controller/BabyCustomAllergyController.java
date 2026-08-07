@@ -38,7 +38,7 @@ public class BabyCustomAllergyController {
 
     @DeleteMapping("/{customAllergyNo}")
     public ResponseEntity<Void> removeCustomAllergy(
-            @PathVariable("customAllergyNO") Long customAllergyNo){
+            @PathVariable("customAllergyNo") Long customAllergyNo){
 
         babyCustomAllergyServiceImpl.removeCustomAllergy(customAllergyNo);
 
