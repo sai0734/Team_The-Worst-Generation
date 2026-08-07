@@ -2,6 +2,8 @@ import { Suspense, lazy } from "react";
 import { createBrowserRouter } from "react-router-dom";
 import memberRouter from "./memberRouter";
 import babyInfoRouter from "./babyInfoRouter";
+import babysitterRouter from "./babysitterRouter";
+import communityRouter from "./communityRouter";
 
 const Loading = <div>Loading....</div>;
 const Main = lazy(() => import("../pages/MainPage"));
@@ -37,6 +39,14 @@ const root = createBrowserRouter([
       </Suspense>
     ),
     children: babyInfoRouter(),
+  },
+  {
+    path: "babysitter",
+    children: babysitterRouter(),
+  },
+  {
+    path: "community",
+    children: communityRouter(),
   },
 ]);
 

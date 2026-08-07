@@ -1,26 +1,67 @@
-import type { MemberQuest, QuestHome } from "../types/quest";
 import jwtAxios from "../util/jwtUtil";
 
-export const API_SERVER_HOST = "http://localhost:8080";
-const prefix = `${API_SERVER_HOST}/api/quest`;
+// YSJ - 퀘스트 타입
+export type QuestType = "DAILY" | "URGENT";
+export type QuestStatus = "TODO" | "DONE" | "FAILED" | "EXPIRED";
 
-// YSJ - 홈 퀘스트(일일/주간/이벤트/긴급)
-export const getQuestHome = async (): Promise<QuestHome> => {
-  const res = await jwtAxios.get(`${prefix}/home`);
-  return res.data;
-};
+export interface Quest {
+  questId: number;
+  title: string;
+  description?: string;
+  type: QuestType;
+  reward: number;
+  urgency?: number;
+  difficulty?: string;
+  theme?: string;
+  dueDays?: number;
+}
 
-export const completeQuest = async (id: number): Promise<MemberQuest> => {
-  const res = await jwtAxios.put(`${prefix}/${id}/complete`);
-  return res.data;
-};
+export interface MemberQuest {
+  id: number;
+  memberEmail?: string;
+  questId: number;
+  status: QuestStatus;
+  assignedDate: string;
+  completedAt: string | null;
+  dueDate?: string | null;
+  quest: Quest;
+}
 
-export const createUrgentQuest = async (payload: {
+export interface QuestHome {
+  dailyQuests: MemberQuest[];
+  urgentQuests: MemberQuest[];
+  point: number;
+}
+
+export interface UrgentQuestCreate {
   title: string;
   description?: string;
   reward: number;
   urgency: number;
-}) => {
-  const res = await jwtAxios.post(`${prefix}/urgent`, payload);
-  return res.data;
+}
+
+// YSJ - 백엔드 주소 연결
+export const API_SERVER_HOST = "http://localhost:8080";
+const prefix = `${API_SERVER_HOST}/api/quest`;
+
+export const questApi = {
+  getHome: async (): Promise<QuestHome> => {
+    const res = await jwtAxios.get(`${prefix}/home`);
+    return res.data;
+  },
+
+  complete: async (id: number): Promise<MemberQuest> => {
+    const res = await jwtAxios.put(`${prefix}/${id}/complete`);
+    return res.data;
+  },
+
+  uncomplete: async (id: number): Promise<MemberQuest> => {
+    const res = await jwtAxios.put(`${prefix}/${id}/uncomplete`);
+    return res.data;
+  },
+
+  createUrgent: async (payload: UrgentQuestCreate): Promise<MemberQuest> => {
+    const res = await jwtAxios.post(`${prefix}/urgent`, payload);
+    return res.data;
+  },
 };

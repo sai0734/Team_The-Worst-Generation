@@ -1,6 +1,5 @@
 package com.backend.quest.controller;
 
-import com.backend.quest.dto.ClaimQuestDTO;
 import com.backend.quest.dto.MemberQuestDTO;
 import com.backend.quest.dto.QuestHomeDTO;
 import com.backend.quest.dto.UrgentQuestCreateDTO;
@@ -42,16 +41,10 @@ public class QuestController {
     }
 
     @PreAuthorize("hasAnyRole('ROLE_USER')")
-    @PostMapping("/weekly/claim")
-    public MemberQuestDTO claimWeekly(Principal principal, @RequestBody ClaimQuestDTO dto) {
-        return questService.claimWeekly(principal.getName(), dto.getQuestId());
+    @PutMapping("/{id}/uncomplete")
+    public MemberQuestDTO uncomplete(
+            Principal principal,
+            @PathVariable("id") Long id) {
+        return questService.uncomplete(principal.getName(), id);
     }
-
-    @PreAuthorize("hasAnyRole('ROLE_USER')")
-    @PostMapping("/event/claim")
-    public MemberQuestDTO claimEvent(Principal principal, @RequestBody ClaimQuestDTO dto) {
-        return questService.claimEvent(principal.getName(), dto.getQuestId());
-    }
-
-    }
-
+}

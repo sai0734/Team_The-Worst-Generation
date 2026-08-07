@@ -81,6 +81,74 @@ CREATE TABLE IF NOT EXISTS tbl_ledger_setting (
     PRIMARY KEY (email),
     CONSTRAINT fk_ledger_setting_email FOREIGN KEY (email) REFERENCES tbl_member (email)
 );
+
+CREATE TABLE IF NOT EXISTS tbl_babysitter_profile (
+    email          VARCHAR(100) NOT NULL,
+    name           VARCHAR(50)  NOT NULL,
+    career_years   INT          NOT NULL DEFAULT 0,
+    region         VARCHAR(100),
+    available_time VARCHAR(255),
+    hourly_rate    INT,
+    intro          VARCHAR(1000),
+    status         VARCHAR(20)  NOT NULL DEFAULT 'ACTIVE',
+    reg_time       DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    mod_time       DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (email),
+    CONSTRAINT fk_babysitter_profile_email FOREIGN KEY (email) REFERENCES tbl_member (email),
+    INDEX idx_babysitter_profile_region (region)
+);
+
+CREATE TABLE IF NOT EXISTS tbl_community_post (
+    post_no       BIGINT AUTO_INCREMENT,
+    writer_email  VARCHAR(100)  NOT NULL,
+    nickname      VARCHAR(50)   NOT NULL,
+    title         VARCHAR(200)  NOT NULL,
+    content       TEXT          NOT NULL,
+    ai_summary    TEXT,
+    view_count    INT           NOT NULL DEFAULT 0,
+    comment_count INT           NOT NULL DEFAULT 0,
+    del_flag      BOOLEAN       NOT NULL DEFAULT FALSE,
+    reg_time      DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    mod_time      DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (post_no),
+    CONSTRAINT fk_community_post_email FOREIGN KEY (writer_email) REFERENCES tbl_member (email)
+);
+
+CREATE TABLE IF NOT EXISTS tbl_community_post_image (
+    image_no  BIGINT AUTO_INCREMENT,
+    post_no   BIGINT       NOT NULL,
+    file_name VARCHAR(300) NOT NULL,
+    video     BOOLEAN      NOT NULL DEFAULT FALSE,
+    ord       INT          NOT NULL DEFAULT 0,
+    PRIMARY KEY (image_no),
+    CONSTRAINT fk_community_post_image_post FOREIGN KEY (post_no) REFERENCES tbl_community_post (post_no)
+);
+
+CREATE TABLE IF NOT EXISTS tbl_community_comment (
+    comment_no        BIGINT AUTO_INCREMENT,
+    post_no           BIGINT        NOT NULL,
+    writer_email      VARCHAR(100)  NOT NULL,
+    nickname          VARCHAR(50)   NOT NULL,
+    parent_comment_no BIGINT,
+    content           VARCHAR(1000) NOT NULL,
+    del_flag          BOOLEAN       NOT NULL DEFAULT FALSE,
+    reg_time          DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    mod_time          DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (comment_no),
+    CONSTRAINT fk_community_comment_post FOREIGN KEY (post_no) REFERENCES tbl_community_post (post_no),
+    CONSTRAINT fk_community_comment_email FOREIGN KEY (writer_email) REFERENCES tbl_member (email),
+    CONSTRAINT fk_community_comment_parent FOREIGN KEY (parent_comment_no) REFERENCES tbl_community_comment (comment_no)
+);
+
+CREATE TABLE IF NOT EXISTS tbl_community_comment_image (
+    image_no   BIGINT AUTO_INCREMENT,
+    comment_no BIGINT       NOT NULL,
+    file_name  VARCHAR(300) NOT NULL,
+    video      BOOLEAN      NOT NULL DEFAULT FALSE,
+    ord        INT          NOT NULL DEFAULT 0,
+    PRIMARY KEY (image_no),
+    CONSTRAINT fk_community_comment_image_comment FOREIGN KEY (comment_no) REFERENCES tbl_community_comment (comment_no)
+);
 -- KYI 끝
 
 -- LMJ
@@ -142,32 +210,69 @@ INSERT INTO tbl_allergy_ingredient (ingredientName) VALUES
     ('조개류(굴, 전복, 홍합 포함)'),
     ('잣');
 
--- YSJ - 퀘스트 마스터 (풀 ~100개: DAILY/WEEKLY/EVENT/URGENT)
+-- =========================================================
+-- YSJ - 퀘스트 (DAILY / URGENT)
+-- =========================================================
+
 CREATE TABLE IF NOT EXISTS tbl_quest (
     quest_id     BIGINT AUTO_INCREMENT,
     title        VARCHAR(200) NOT NULL,
     description  TEXT,
-    type         VARCHAR(20)  NOT NULL, -- DAILY | WEEKLY | EVENT | URGENT
-    difficulty   VARCHAR(20)  NOT NULL DEFAULT 'MEDIUM', -- EASY | MEDIUM | HARD
-    theme        VARCHAR(50),                          -- CARE | ACTIVITY | EMOTION 등
+    type         VARCHAR(20)  NOT NULL,              -- DAILY | URGENT
+    difficulty   VARCHAR(20)  NOT NULL DEFAULT 'MEDIUM',
+    theme        VARCHAR(50)  NULL,
     reward       INT          NOT NULL DEFAULT 0,
-    urgency      INT          NOT NULL DEFAULT 1,      -- URGENT용 1~3
-    due_days     INT          NOT NULL DEFAULT 1,      -- WEEKLY=7, EVENT=기간
+    urgency      INT          NOT NULL DEFAULT 1,
+    due_days     INT          NOT NULL DEFAULT 1,
     active       BOOLEAN      NOT NULL DEFAULT TRUE,
     PRIMARY KEY (quest_id),
     INDEX idx_quest_type_active (type, active)
 );
 
--- YSJ - 회원 배정/수령
+-- 구DB 호환: 없는 컬럼만 추가
+ALTER TABLE tbl_quest ADD COLUMN IF NOT EXISTS difficulty  VARCHAR(20) NOT NULL DEFAULT 'MEDIUM';
+ALTER TABLE tbl_quest ADD COLUMN IF NOT EXISTS theme       VARCHAR(50) NULL;
+ALTER TABLE tbl_quest ADD COLUMN IF NOT EXISTS reward      INT NOT NULL DEFAULT 0;
+ALTER TABLE tbl_quest ADD COLUMN IF NOT EXISTS urgency     INT NOT NULL DEFAULT 1;
+ALTER TABLE tbl_quest ADD COLUMN IF NOT EXISTS due_days    INT NOT NULL DEFAULT 1;
+ALTER TABLE tbl_quest ADD COLUMN IF NOT EXISTS active      BOOLEAN NOT NULL DEFAULT TRUE;
+ALTER TABLE tbl_quest ADD COLUMN IF NOT EXISTS repeat_type VARCHAR(20) NULL DEFAULT 'DAILY';
+ALTER TABLE tbl_quest MODIFY COLUMN repeat_type VARCHAR(20) NULL DEFAULT 'DAILY';
+
+-- 일일 퀘스트 시드 (없을 때만)
+INSERT INTO tbl_quest
+    (title, description, type, repeat_type, difficulty, theme, reward, urgency, due_days, active)
+SELECT title, description, type, repeat_type, difficulty, theme, reward, urgency, due_days, active
+FROM (
+    SELECT '기저귀 교대' AS title, '오늘 기저귀 교대를 1회 이상 해주세요' AS description,
+           'DAILY' AS type, 'DAILY' AS repeat_type, 'EASY' AS difficulty, 'CARE' AS theme,
+           10 AS reward, 1 AS urgency, 1 AS due_days, TRUE AS active
+    UNION ALL SELECT '아이와 10분 놀아주기', '집중해서 아이와 10분 놀아주세요',
+           'DAILY', 'DAILY', 'EASY', 'ACTIVITY', 15, 1, 1, TRUE
+    UNION ALL SELECT '목욕 준비 돕기', '목욕 준비물을 챙겨 도와주세요',
+           'DAILY', 'DAILY', 'MEDIUM', 'CARE', 20, 1, 1, TRUE
+    UNION ALL SELECT '수유/이유식 챙기기', '수유 또는 이유식 한 끼를 담당해주세요',
+           'DAILY', 'DAILY', 'MEDIUM', 'CARE', 20, 1, 1, TRUE
+    UNION ALL SELECT '잠자리 루틴', '재우기 전 루틴을 함께 진행해주세요',
+           'DAILY', 'DAILY', 'EASY', 'CARE', 15, 1, 1, TRUE
+    UNION ALL SELECT '짧은 산책', '유모차 또는 아기띠로 짧게 산책하세요',
+           'DAILY', 'DAILY', 'EASY', 'ACTIVITY', 15, 1, 1, TRUE
+    UNION ALL SELECT '정리 정돈', '아이 용품을 정리해주세요',
+           'DAILY', 'DAILY', 'EASY', 'CARE', 10, 1, 1, TRUE
+    UNION ALL SELECT '칭찬 한마디', '배우자 또는 아이에게 칭찬을 전해주세요',
+           'DAILY', 'DAILY', 'EASY', 'EMOTION', 10, 1, 1, TRUE
+) AS seed
+WHERE (SELECT COUNT(*) FROM tbl_quest WHERE type = 'DAILY') = 0;
+
 CREATE TABLE IF NOT EXISTS tbl_member_quest (
     id              BIGINT AUTO_INCREMENT,
     member_email    VARCHAR(100) NOT NULL,
     quest_id        BIGINT       NOT NULL,
     status          VARCHAR(20)  NOT NULL DEFAULT 'TODO', -- TODO | DONE | FAILED | EXPIRED
     assigned_date   DATE         NOT NULL,
-    due_date        DATE         NOT NULL,
-    completed_at    DATETIME,
-    created_by      VARCHAR(100) NULL, -- URGENT 생성 배우자
+    due_date        DATE         NULL,
+    completed_at    DATETIME     NULL,
+    created_by      VARCHAR(100) NULL,                   -- URGENT 생성 배우자
     PRIMARY KEY (id),
     CONSTRAINT fk_mq_member FOREIGN KEY (member_email) REFERENCES tbl_member (email),
     CONSTRAINT fk_mq_quest  FOREIGN KEY (quest_id) REFERENCES tbl_quest (quest_id),
@@ -175,7 +280,10 @@ CREATE TABLE IF NOT EXISTS tbl_member_quest (
     INDEX idx_mq_member_status (member_email, status)
 );
 
--- YSJ - 배우자(부부) 연동
+ALTER TABLE tbl_member_quest ADD COLUMN IF NOT EXISTS due_date DATE NULL;
+ALTER TABLE tbl_member_quest ADD COLUMN IF NOT EXISTS completed_at DATETIME NULL;
+ALTER TABLE tbl_member_quest ADD COLUMN IF NOT EXISTS created_by VARCHAR(100) NULL;
+
 CREATE TABLE IF NOT EXISTS tbl_couple (
     couple_id BIGINT AUTO_INCREMENT,
     email1    VARCHAR(100) NOT NULL,

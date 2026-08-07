@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.backend.community.mapper.CommunityCommentMapper">
+
+    <resultMap id="commentResultMap" type="com.backend.community.domain.CommunityComment">
+        <id property="commentNo" column="comment_no"/>
+        <result property="postNo" column="post_no"/>
+        <result property="writerEmail" column="writer_email"/>
+        <result property="nickname" column="nickname"/>
+        <result property="parentCommentNo" column="parent_comment_no"/>
+        <result property="content" column="content"/>
+        <result property="delFlag" column="del_flag"/>
+        <result property="regTime" column="reg_time"/>
+        <result property="modTime" column="mod_time"/>
+        <collection property="imageList"
+                    column="comment_no"
+                    javaType="java.util.ArrayList"
+                    ofType="com.backend.community.domain.CommunityCommentImage"
+                    select="selectImages"/>
+    </resultMap>
+
+    <select id="selectByCommentNo" resultMap="commentResultMap">
+        SELECT comment_no, post_no, writer_email, nickname, parent_comment_no, content, del_flag, reg_time, mod_time
+        FROM tbl_community_comment
+        WHERE comment_no = #{commentNo}
+    </select>
+
+    <select id="selectListByPostNo" resultMap="commentResultMap">
+        SELECT comment_no, post_no, writer_email, nickname, parent_comment_no, content, del_flag, reg_time, mod_time
+        FROM tbl_community_comment
+        WHERE post_no = #{postNo}
+        ORDER BY reg_time ASC, comment_no ASC
+    </select>
+
+    <select id="selectImages" resultType="com.backend.community.domain.CommunityCommentImage">
+        SELECT image_no, comment_no, file_name, video, ord
+        FROM tbl_community_comment_image
+        WHERE comment_no = #{commentNo}
+        ORDER BY ord
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="commentNo" keyColumn="comment_no">
+        INSERT INTO tbl_community_comment (post_no, writer_email, nickname, parent_comment_no, content)
+        VALUES (#{postNo}, #{writerEmail}, #{nickname}, #{parentCommentNo}, #{content})
+    </insert>
+
+    <insert id="insertImage" useGeneratedKeys="true" keyProperty="imageNo" keyColumn="image_no">
+        INSERT INTO tbl_community_comment_image (comment_no, file_name, video, ord)
+        VALUES (#{commentNo}, #{fileName}, #{video}, #{ord})
+    </insert>
+
+    <update id="update">
+        UPDATE tbl_community_comment
+        SET content  = #{content},
+            mod_time = CURRENT_TIMESTAMP
+        WHERE comment_no = #{commentNo}
+    </update>
+
+    <update id="updateToDelete">
+        UPDATE tbl_community_comment
+        SET del_flag = true
+        WHERE comment_no = #{commentNo}
+    </update>
+
+</mapper>
