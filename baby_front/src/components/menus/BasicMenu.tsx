@@ -14,10 +14,16 @@ const BasicMenu = () => {
           <li className="pr-6 text-2xl">
             <Link to={"/about"}>About</Link>
           </li>
+          <li className="pr-6 text-2xl">
+            <Link to={"/community"}>커뮤니티</Link>
+          </li>
           {loginState.email ? ( // 로그인한 사용자만 출력되는 메뉴
             <>
               <li className="pr-6 text-2xl">
-                <Link to={"/babyInfo/dashboard/"}>응애관리</Link>
+                <Link to={"/babyInfo"}>응애관리</Link>
+              </li>
+              <li className="pr-6 text-2xl">
+                <Link to={"/babysitter"}>베이비시터</Link>
               </li>
             </>
           ) : (

@@ -14,9 +14,5 @@ public class QuestStatsDTO {
     private int dailyCompleted;
     private int dailyTotal;
     private double dailyRate;
-    private int weeklyCompleted;
-    private int weeklyTotal;
-    private double weeklyRate;
     private int pointsEarnedToday;
-    private int pointsEarnedWeek;
 }

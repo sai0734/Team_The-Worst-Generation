@@ -12,7 +12,7 @@ public class Quest {
     private Long questId;
     private String title;
     private String description;
-    private String type;       // DAILY | WEEKLY | EVENT | URGENT
+    private String type;       // DAILY | URGENT
     private String difficulty; // EASY | MEDIUM | HARD
     private String theme;      // CARE | ACTIVITY | EMOTION | REQUEST
     private int reward;

@@ -1,4 +1,4 @@
-package com.backend.ledger.ai;
+package com.backend.global.ai;
 
 import java.net.URI;
 import java.net.http.HttpClient;

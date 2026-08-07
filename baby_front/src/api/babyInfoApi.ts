@@ -12,6 +12,9 @@ export interface BabyInfo {
   profileImageFileName?: string;
   bloodType?: string;
   birthWeekCount?: number;
+  birthWeight?: number;
+  birthHeight?: number;
+  headCircumference?: number;
   regTime?: string;
   modTime?: string;
 }

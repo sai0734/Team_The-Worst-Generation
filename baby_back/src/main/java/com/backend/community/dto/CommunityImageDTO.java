@@ -1,4 +1,4 @@
-package com.backend.quest.dto;
+package com.backend.community.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -7,9 +7,11 @@ import lombok.NoArgsConstructor;
 
 @Data
 @Builder
-@NoArgsConstructor
 @AllArgsConstructor
+@NoArgsConstructor
+public class CommunityImageDTO {
 
-public class ClaimQuestDTO {
-    private Long questId;
+    private String fileName;
+
+    private boolean video;
 }
