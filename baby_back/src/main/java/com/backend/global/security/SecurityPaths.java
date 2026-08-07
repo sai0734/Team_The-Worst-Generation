@@ -12,6 +12,7 @@ public final class SecurityPaths {
       "/api/member/refresh",
       "/api/products/view/**",
       "/api/community/posts/files/**",
+      "/api/babysitter/profiles/files/**",
       "/api/openclaw/**",
           "/api/baby-info/view/**",
   };

@@ -28,6 +28,8 @@ public class BabysitterProfile {
 
     private String intro;
 
+    private String profileImageFileName;
+
     @Builder.Default
     private BabysitterStatus status = BabysitterStatus.ACTIVE;
 
@@ -50,5 +52,9 @@ public class BabysitterProfile {
 
     public void changeStatus(BabysitterStatus status) {
         this.status = status;
+    }
+
+    public void changeProfileImage(String profileImageFileName) {
+        this.profileImageFileName = profileImageFileName;
     }
 }

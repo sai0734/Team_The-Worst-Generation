@@ -25,4 +25,11 @@
         DELETE FROM tbl_babysitter_pick WHERE sitter_email = #{sitterEmail} AND picker_email = #{pickerEmail}
     </delete>
 
+    <select id="selectSitterEmailsByPicker" resultType="string">
+        SELECT sitter_email
+        FROM tbl_babysitter_pick
+        WHERE picker_email = #{pickerEmail}
+        ORDER BY reg_time DESC
+    </select>
+
 </mapper>

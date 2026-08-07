@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.backend.babysitter.mapper.BabysitterReviewMapper">
+
+    <select id="selectByRequestNo" resultType="com.backend.babysitter.domain.BabysitterReview">
+        SELECT review_no, request_no, sitter_email, writer_email, rating, content, reg_time
+        FROM tbl_babysitter_review
+        WHERE request_no = #{requestNo}
+    </select>
+
+    <select id="selectListBySitter" resultType="com.backend.babysitter.domain.BabysitterReview">
+        SELECT review_no, request_no, sitter_email, writer_email, rating, content, reg_time
+        FROM tbl_babysitter_review
+        WHERE sitter_email = #{sitterEmail}
+        ORDER BY reg_time DESC
+    </select>
+
+    <select id="selectAverageRatingBySitter" resultType="double">
+        SELECT AVG(rating)
+        FROM tbl_babysitter_review
+        WHERE sitter_email = #{sitterEmail}
+    </select>
+
+    <select id="countBySitter" resultType="long">
+        SELECT COUNT(*)
+        FROM tbl_babysitter_review
+        WHERE sitter_email = #{sitterEmail}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="reviewNo" keyColumn="review_no">
+        INSERT INTO tbl_babysitter_review (request_no, sitter_email, writer_email, rating, content)
+        VALUES (#{requestNo}, #{sitterEmail}, #{writerEmail}, #{rating}, #{content})
+    </insert>
+
+</mapper>

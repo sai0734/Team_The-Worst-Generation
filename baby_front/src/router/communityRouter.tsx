@@ -15,6 +15,15 @@ const BabysitterForm = lazy(
 const BabysitterDetail = lazy(
   () => import("../pages/babysitter/BabysitterDetailPage"),
 );
+const BabysitterMyPicks = lazy(
+  () => import("../pages/babysitter/BabysitterMyPicksPage"),
+);
+const BabysitterRequestsReceived = lazy(
+  () => import("../pages/babysitter/BabysitterRequestsReceivedPage"),
+);
+const BabysitterRequestsSent = lazy(
+  () => import("../pages/babysitter/BabysitterRequestsSentPage"),
+);
 
 const communityRouter = (): RouteObject[] => {
   return [
@@ -66,6 +75,30 @@ const communityRouter = (): RouteObject[] => {
           element: (
             <Suspense fallback={Loading}>
               <BabysitterForm />
+            </Suspense>
+          ),
+        },
+        {
+          path: "my-picks",
+          element: (
+            <Suspense fallback={Loading}>
+              <BabysitterMyPicks />
+            </Suspense>
+          ),
+        },
+        {
+          path: "requests/received",
+          element: (
+            <Suspense fallback={Loading}>
+              <BabysitterRequestsReceived />
+            </Suspense>
+          ),
+        },
+        {
+          path: "requests/sent",
+          element: (
+            <Suspense fallback={Loading}>
+              <BabysitterRequestsSent />
             </Suspense>
           ),
         },
