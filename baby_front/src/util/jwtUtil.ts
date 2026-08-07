@@ -1,6 +1,6 @@
 import axios, { type InternalAxiosRequestConfig } from "axios";
 import { getCookie, setCookie } from "./cookieUtil";
-import { API_SERVER_HOST } from "../api/todoApi";
+const API_SERVER_HOST = "http://localhost:8080";
 import type { LoginState } from "../types/member";
 
 const jwtAxios = axios.create();

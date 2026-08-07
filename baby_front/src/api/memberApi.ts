@@ -1,5 +1,5 @@
 import axios from "axios";
-import { API_SERVER_HOST } from "./todoApi";
+const API_SERVER_HOST = "http://localhost:8080";
 import jwtAxios from "../util/jwtUtil";
 import type { LoginParam, LoginState, MemberModify } from "../types/member";
 
