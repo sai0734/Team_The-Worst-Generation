@@ -1,11 +1,11 @@
 package com.backend.allergy.service;
 
 
-import com.backend.allergy.client.GeminiApiClient;
 import com.backend.allergy.domain.BabyAllergyCheck;
 import com.backend.allergy.domain.RecipeRecommend;
 import com.backend.allergy.mapper.BabyAllergyCheckMapper;
 import com.backend.allergy.mapper.RecipeRecommendMapper;
+import com.backend.ledger.ai.OllamaClient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -13,7 +13,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class RecipeRecommendService implements RecipeRecommendServiceImpl {
 
-    private final GeminiApiClient geminiApiClient;
+    private final OllamaClient ollamaClient;
     private final BabyAllergyCheckMapper babyAllergyCheckMapper;
     private final RecipeRecommendMapper recipeRecommendMapper;
 
@@ -24,7 +24,7 @@ public class RecipeRecommendService implements RecipeRecommendServiceImpl {
 
         String prompt = buildPrompt(babyAllergyCheck, productType);
 
-        String recipeText = geminiApiClient.generateRecipe(prompt);
+        String recipeText = ollamaClient.chat(prompt);
 
         RecipeRecommend recipeRecommend = new RecipeRecommend();
         recipeRecommend.setCheckNo(checkNo);
