@@ -1,4 +1,4 @@
-package com.backend.controller.formatter;
+package com.backend.global.formatter;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;

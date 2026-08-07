@@ -8,7 +8,7 @@ import java.util.Map;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 
-import com.backend.dto.MemberDTO;
+import com.backend.auth.dto.MemberDTO;
 import com.backend.global.util.JWTUtil;
 import com.google.gson.Gson;
 

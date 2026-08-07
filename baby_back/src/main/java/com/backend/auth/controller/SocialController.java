@@ -17,8 +17,8 @@ import com.backend.auth.dto.KakaoLinkRequestDTO;
 import com.backend.auth.dto.KakaoLoginResultDTO;
 import com.backend.auth.dto.SocialSignupRequestDTO;
 import com.backend.auth.service.MemberService;
-import com.backend.dto.MemberDTO;
-import com.backend.dto.MemberModifyDTO;
+import com.backend.auth.dto.MemberDTO;
+import com.backend.auth.dto.MemberModifyDTO;
 import com.backend.global.util.CustomJWTException;
 import com.backend.global.util.JWTUtil;
 
