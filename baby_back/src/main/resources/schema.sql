@@ -59,7 +59,7 @@ CREATE TABLE IF NOT EXISTS tbl_baby_grow_info (
     CONSTRAINT fk_baby_grow_info FOREIGN KEY (baby_no) REFERENCES tbl_baby_info (baby_no)
     );
 
--- KYI
+-- KYI - 가계부 내역
 CREATE TABLE IF NOT EXISTS tbl_ledger (
     lno      BIGINT AUTO_INCREMENT,
     email    VARCHAR(100) NOT NULL,
@@ -74,6 +74,7 @@ CREATE TABLE IF NOT EXISTS tbl_ledger (
     INDEX idx_ledger_email_date (email, tx_date)
 );
 
+-- KYI - 가계부 브리핑 설정
 CREATE TABLE IF NOT EXISTS tbl_ledger_setting (
     email                    VARCHAR(100) NOT NULL,
     briefing_day             INT,
@@ -82,6 +83,7 @@ CREATE TABLE IF NOT EXISTS tbl_ledger_setting (
     CONSTRAINT fk_ledger_setting_email FOREIGN KEY (email) REFERENCES tbl_member (email)
 );
 
+-- KYI - 베이비시터 프로필
 CREATE TABLE IF NOT EXISTS tbl_babysitter_profile (
     email          VARCHAR(100) NOT NULL,
     name           VARCHAR(50)  NOT NULL,
@@ -98,6 +100,36 @@ CREATE TABLE IF NOT EXISTS tbl_babysitter_profile (
     INDEX idx_babysitter_profile_region (region)
 );
 
+-- KYI - 베이비시터 가능 요일/시간대
+CREATE TABLE IF NOT EXISTS tbl_babysitter_availability (
+    email       VARCHAR(100) NOT NULL,
+    day_of_week VARCHAR(10)  NOT NULL,
+    time_slot   VARCHAR(10)  NOT NULL,
+    PRIMARY KEY (email, day_of_week, time_slot),
+    CONSTRAINT fk_babysitter_availability_email FOREIGN KEY (email) REFERENCES tbl_babysitter_profile (email)
+);
+
+-- KYI - 부모(사용자) 내 동네 설정
+CREATE TABLE IF NOT EXISTS tbl_babysitter_parent_location (
+    email  VARCHAR(100) NOT NULL,
+    region VARCHAR(100) NOT NULL,
+    PRIMARY KEY (email),
+    CONSTRAINT fk_babysitter_parent_location_email FOREIGN KEY (email) REFERENCES tbl_member (email)
+);
+
+-- KYI - 베이비시터 픽(찜)
+CREATE TABLE IF NOT EXISTS tbl_babysitter_pick (
+    pick_no      BIGINT AUTO_INCREMENT,
+    sitter_email VARCHAR(100) NOT NULL,
+    picker_email VARCHAR(100) NOT NULL,
+    reg_time     DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (pick_no),
+    CONSTRAINT fk_babysitter_pick_sitter FOREIGN KEY (sitter_email) REFERENCES tbl_babysitter_profile (email),
+    CONSTRAINT fk_babysitter_pick_picker FOREIGN KEY (picker_email) REFERENCES tbl_member (email),
+    CONSTRAINT uq_babysitter_pick UNIQUE (sitter_email, picker_email)
+);
+
+-- KYI - 커뮤니티 게시글
 CREATE TABLE IF NOT EXISTS tbl_community_post (
     post_no       BIGINT AUTO_INCREMENT,
     writer_email  VARCHAR(100)  NOT NULL,
@@ -114,6 +146,7 @@ CREATE TABLE IF NOT EXISTS tbl_community_post (
     CONSTRAINT fk_community_post_email FOREIGN KEY (writer_email) REFERENCES tbl_member (email)
 );
 
+-- KYI - 커뮤니티 게시글 첨부파일
 CREATE TABLE IF NOT EXISTS tbl_community_post_image (
     image_no  BIGINT AUTO_INCREMENT,
     post_no   BIGINT       NOT NULL,
@@ -124,6 +157,7 @@ CREATE TABLE IF NOT EXISTS tbl_community_post_image (
     CONSTRAINT fk_community_post_image_post FOREIGN KEY (post_no) REFERENCES tbl_community_post (post_no)
 );
 
+-- KYI - 커뮤니티 댓글/대댓글
 CREATE TABLE IF NOT EXISTS tbl_community_comment (
     comment_no        BIGINT AUTO_INCREMENT,
     post_no           BIGINT        NOT NULL,
@@ -140,6 +174,7 @@ CREATE TABLE IF NOT EXISTS tbl_community_comment (
     CONSTRAINT fk_community_comment_parent FOREIGN KEY (parent_comment_no) REFERENCES tbl_community_comment (comment_no)
 );
 
+-- KYI - 커뮤니티 댓글 첨부파일
 CREATE TABLE IF NOT EXISTS tbl_community_comment_image (
     image_no   BIGINT AUTO_INCREMENT,
     comment_no BIGINT       NOT NULL,

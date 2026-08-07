@@ -11,6 +11,7 @@ public final class SecurityPaths {
       "/api/member/social/signup",
       "/api/member/refresh",
       "/api/products/view/**",
+      "/api/community/posts/files/**",
       "/api/openclaw/**"
   };
 

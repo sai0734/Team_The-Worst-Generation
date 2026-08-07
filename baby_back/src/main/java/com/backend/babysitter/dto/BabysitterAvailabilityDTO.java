@@ -2,26 +2,17 @@ package com.backend.babysitter.dto;
 
 import com.backend.babysitter.domain.DayOfWeekType;
 import com.backend.babysitter.domain.TimeSlotType;
-import com.backend.global.dto.PageRequestDTO;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import lombok.experimental.SuperBuilder;
 
 @Data
-@EqualsAndHashCode(callSuper = true)
-@SuperBuilder
+@Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class BabysitterSearchDTO extends PageRequestDTO {
-
-    private String region;
-
-    private String keyword;
-
-    private Integer minCareerYears;
+public class BabysitterAvailabilityDTO {
 
     private DayOfWeekType dayOfWeek;
 
