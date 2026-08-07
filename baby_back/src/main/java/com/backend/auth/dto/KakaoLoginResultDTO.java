@@ -1,7 +1,5 @@
 package com.backend.auth.dto;
 
-import com.backend.dto.MemberDTO;
-
 import lombok.Builder;
 import lombok.Getter;
 

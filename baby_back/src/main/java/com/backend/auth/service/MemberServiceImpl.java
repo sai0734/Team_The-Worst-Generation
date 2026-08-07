@@ -21,9 +21,9 @@ import com.backend.auth.dto.KakaoLoginResultDTO;
 import com.backend.auth.dto.SocialSignupRequestDTO;
 import com.backend.auth.mapper.MemberSocialMapper;
 import com.backend.auth.domain.Member;
-import com.backend.dto.MemberModifyDTO;
+import com.backend.auth.dto.MemberModifyDTO;
 import com.backend.auth.mapper.MemberMapper;
-import com.backend.dto.MemberDTO;
+import com.backend.auth.dto.MemberDTO;
 import com.backend.global.util.JWTUtil;
 
 import lombok.RequiredArgsConstructor;
@@ -118,7 +118,7 @@ public class MemberServiceImpl implements MemberService {
     return entityToDTO(member);
   }
 
-  // 공통 연동 처리: 하나의 카카오 계정이 여러 회원에게 연결되지 않도록 막고 저장한다.
+  // 하나의 카카오 계정이 여러 회원에게 연결되지 않도록 막고 저장한다.
   private void linkMemberSocial(String memberEmail, SocialLinkInfo socialLinkInfo) {
 
     MemberSocial linkedSocial = memberSocialMapper.selectByProvider(
