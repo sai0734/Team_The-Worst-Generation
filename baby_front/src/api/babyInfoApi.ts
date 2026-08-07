@@ -52,3 +52,5 @@ export const remove = async (babyNo: number | string) => {
 
   return res.data;
 };
+
+export const getViewUrl = (fileName: string) => `${host}/view/${fileName}`;

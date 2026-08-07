@@ -22,5 +22,7 @@ public interface CommunityPostService {
 
     List<String> addImages(Long postNo, String email, List<MultipartFile> files);
 
+    void removeImage(Long postNo, String email, String fileName);
+
     String summarize(Long postNo);
 }

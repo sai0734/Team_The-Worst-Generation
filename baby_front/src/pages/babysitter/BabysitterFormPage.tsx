@@ -1,11 +1,10 @@
-import BasicLayout from "../../layouts/BasicLayout";
 import BabysitterFormComponent from "../../components/babysitter/BabysitterFormComponent";
 
 const BabysitterFormPage = () => {
   return (
-    <BasicLayout>
+    <div>
       <BabysitterFormComponent />
-    </BasicLayout>
+    </div>
   );
 };
 

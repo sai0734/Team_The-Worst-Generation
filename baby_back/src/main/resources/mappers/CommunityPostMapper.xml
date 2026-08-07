@@ -48,6 +48,10 @@
         VALUES (#{postNo}, #{fileName}, #{video}, #{ord})
     </insert>
 
+    <delete id="deleteImage">
+        DELETE FROM tbl_community_post_image WHERE post_no = #{postNo} AND file_name = #{fileName}
+    </delete>
+
     <update id="update">
         UPDATE tbl_community_post
         SET title      = #{title},

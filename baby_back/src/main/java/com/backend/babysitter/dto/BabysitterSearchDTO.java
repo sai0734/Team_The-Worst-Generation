@@ -1,5 +1,7 @@
 package com.backend.babysitter.dto;
 
+import com.backend.babysitter.domain.DayOfWeekType;
+import com.backend.babysitter.domain.TimeSlotType;
 import com.backend.global.dto.PageRequestDTO;
 
 import lombok.AllArgsConstructor;
@@ -20,4 +22,8 @@ public class BabysitterSearchDTO extends PageRequestDTO {
     private String keyword;
 
     private Integer minCareerYears;
+
+    private DayOfWeekType dayOfWeek;
+
+    private TimeSlotType timeSlot;
 }

@@ -6,8 +6,10 @@ import com.backend.global.util.CustomFileUtil;
 import com.backend.market.domain.MarketItem;
 import com.backend.market.dto.MarketItemDTO;
 import com.backend.market.service.MarketItemService;
+import org.springframework.core.io.Resource;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -104,5 +106,10 @@ public class MarketItemController {
         marketItemService.bump(itemNo);
 
         return Map.of("result", "success");
+    }
+
+    @GetMapping("/files/{fileName}")
+    public ResponseEntity<Resource> viewFile(@PathVariable String fileName) {
+        return fileUtil.getFile(fileName);
     }
 }

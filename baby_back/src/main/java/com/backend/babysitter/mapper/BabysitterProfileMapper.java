@@ -5,6 +5,7 @@ import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
+import com.backend.babysitter.domain.BabysitterAvailability;
 import com.backend.babysitter.domain.BabysitterProfile;
 import com.backend.babysitter.dto.BabysitterSearchDTO;
 
@@ -25,4 +26,10 @@ public interface BabysitterProfileMapper {
     );
 
     long selectListCount(@Param("search") BabysitterSearchDTO search);
+
+    List<BabysitterAvailability> selectAvailability(@Param("email") String email);
+
+    void insertAvailability(BabysitterAvailability availability);
+
+    void deleteAvailability(@Param("email") String email);
 }

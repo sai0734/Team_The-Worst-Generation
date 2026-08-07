@@ -133,6 +133,16 @@ public class CommunityPostServiceImpl implements CommunityPostService {
     }
 
     @Override
+    public void removeImage(Long postNo, String email, String fileName) {
+
+        findOwnedOrThrow(postNo, email);
+
+        communityPostMapper.deleteImage(postNo, fileName);
+
+        fileUtil.deleteFiles(List.of(fileName));
+    }
+
+    @Override
     public String summarize(Long postNo) {
 
         CommunityPost post = findOrThrow(postNo);
