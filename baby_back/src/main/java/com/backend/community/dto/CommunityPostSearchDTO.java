@@ -1,4 +1,4 @@
-package com.backend.babysitter.dto;
+package com.backend.community.dto;
 
 import com.backend.global.dto.PageRequestDTO;
 
@@ -13,11 +13,7 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @AllArgsConstructor
 @NoArgsConstructor
-public class BabysitterSearchDTO extends PageRequestDTO {
-
-    private String region;
+public class CommunityPostSearchDTO extends PageRequestDTO {
 
     private String keyword;
-
-    private Integer minCareerYears;
 }

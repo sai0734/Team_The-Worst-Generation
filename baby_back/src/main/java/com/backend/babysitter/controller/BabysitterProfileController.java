@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import com.backend.babysitter.dto.BabysitterProfileDTO;
 import com.backend.babysitter.dto.BabysitterSearchDTO;
 import com.backend.babysitter.service.BabysitterProfileService;
-import com.backend.dto.PageResponseDTO;
+import com.backend.global.dto.PageResponseDTO;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
