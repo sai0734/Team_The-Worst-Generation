@@ -1,7 +1,12 @@
-import { createAsyncThunk, createSlice, type PayloadAction } from "@reduxjs/toolkit";
+import {
+  createAsyncThunk,
+  createSlice,
+  type PayloadAction,
+} from "@reduxjs/toolkit";
 import { loginPost } from "../api/memberApi";
 import { getCookie, removeCookie, setCookie } from "../util/cookieUtil";
 import type { LoginParam, LoginState } from "../types/member";
+import axios from "axios";
 
 const initState: LoginState = {
   email: "",
@@ -17,12 +22,23 @@ const loadMemberCookie = (): LoginState | undefined => {
   }
   return memberInfo;
 };
-export const loginPostAsync = createAsyncThunk(
-  "loginPostAsync",
-  (param: LoginParam) => {
-    return loginPost(param);
-  },
-);
+export const loginPostAsync = createAsyncThunk<
+  LoginState,
+  LoginParam,
+  { rejectValue: { error: string } }
+>("loginPostAsync", async (param, { rejectWithValue }) => {
+  try {
+    return await loginPost(param);
+  } catch (error: unknown) {
+    if (axios.isAxiosError<{ error: string }>(error)) {
+      return rejectWithValue(
+        error.response?.data ?? { error: "UNKNOWN_ERROR" },
+      );
+    }
+
+    return rejectWithValue({ error: "UNKNOWN_ERROR" });
+  }
+});
 
 const loginSlice = createSlice({
   name: "LoginSlice",

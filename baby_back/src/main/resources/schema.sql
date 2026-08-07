@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS tbl_member_role (
     CONSTRAINT fk_member_role_email FOREIGN KEY (member_email) REFERENCES tbl_member (email)
     );
 
+-- LDH 시작
 CREATE TABLE IF NOT EXISTS tbl_member_social (
                                                  id             BIGINT AUTO_INCREMENT,
     member_email   VARCHAR(100) NOT NULL,
@@ -28,6 +29,24 @@ CREATE TABLE IF NOT EXISTS tbl_member_social (
     UNIQUE KEY uk_member_social_member_provider (member_email, provider),
     CONSTRAINT fk_member_social_email FOREIGN KEY (member_email) REFERENCES tbl_member (email)
     );
+
+CREATE TABLE IF NOT EXISTS tbl_member_refresh_token (
+                                                        id BIGINT AUTO_INCREMENT,
+    member_email VARCHAR(100) NOT NULL,
+    session_id VARCHAR(36) NOT NULL,
+    token_hash VARCHAR(64) NOT NULL,
+    expires_at DATETIME NOT NULL,
+    revoked BOOLEAN NOT NULL DEFAULT FALSE,
+    used_at DATETIME,
+    user_agent VARCHAR(255),
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_member_refresh_token_hash (token_hash),
+    INDEX idx_member_refresh_token_session_id (session_id),
+    INDEX idx_member_refresh_token_member_email (member_email),
+    CONSTRAINT fk_member_refresh_token_member FOREIGN KEY (member_email) REFERENCES tbl_member (email)
+    );
+-- LDH 끝
 
 -- HYH
 CREATE TABLE IF NOT EXISTS tbl_baby_info (
