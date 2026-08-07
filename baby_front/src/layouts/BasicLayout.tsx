@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import BasicMenu from "../components/menus/BasicMenu";
+import ChatbotWidget from "../components/chatbot/ChatbotWidget";
 
 interface BasicLayoutProps {
   children: ReactNode;
@@ -17,8 +18,8 @@ const BasicLayout = ({ children }: BasicLayoutProps) => {
           {/* 상단 여백 py-40 변경 flex 제거 */}
           {children}
         </main>
-
       </div>
+      <ChatbotWidget />
     </>
   );
 };
