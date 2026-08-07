@@ -73,7 +73,7 @@ public class BabyInfoController {
 
         Long babyNo = babyInfoService.register(babyInfoDTO, email);
 
-        return Map.of("BabyNo", babyNo);
+        return Map.of("babyNo", babyNo);
 
     }
     
@@ -118,7 +118,7 @@ public class BabyInfoController {
 
         babyInfoService.modify(babyInfoDTO, email);
 
-        return Map.of("BabyNo", babyInfoDTO.getBabyNo());
+        return Map.of("babyNo", babyInfoDTO.getBabyNo());
 
     }
 
@@ -132,7 +132,7 @@ public class BabyInfoController {
 
         babyInfoService.remove(babyNo, email);
 
-        return Map.of("BabyNo", babyNo);
+        return Map.of("babyNo", babyNo);
 
     }
 

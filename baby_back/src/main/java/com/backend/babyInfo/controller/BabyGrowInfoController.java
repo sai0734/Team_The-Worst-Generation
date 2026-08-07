@@ -57,7 +57,7 @@ public class BabyGrowInfoController {
 
         Long babyGrowNo = babyGrowInfoService.register(babyGrowInfoDTO, email);
 
-        return Map.of("BabyGrowNo", babyGrowNo);
+        return Map.of("babyGrowNo", babyGrowNo);
 
     }
 
@@ -71,7 +71,7 @@ public class BabyGrowInfoController {
 
         babyGrowInfoService.remove(babyGrowNo, email);
 
-        return Map.of("BabyGrowNo", babyGrowNo);
+        return Map.of("babyGrowNo", babyGrowNo);
 
     }
 
