@@ -17,12 +17,6 @@ const BasicMenu = () => {
           {loginState.email ? ( // 로그인한 사용자만 출력되는 메뉴
             <>
               <li className="pr-6 text-2xl">
-                <Link to={"/todo/"}>Todo</Link>
-              </li>
-              <li className="pr-6 text-2xl">
-                <Link to={"/products/"}>Products</Link>
-              </li>
-              <li className="pr-6 text-2xl">
                 <Link to={"/babyInfo/dashboard/"}>응애관리</Link>
               </li>
             </>

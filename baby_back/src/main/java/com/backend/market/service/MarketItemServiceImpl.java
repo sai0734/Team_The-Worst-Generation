@@ -1,7 +1,7 @@
 package com.backend.market.service;
 
-import com.backend.dto.PageRequestDTO;
-import com.backend.dto.PageResponseDTO;
+import com.backend.global.dto.PageRequestDTO;
+import com.backend.global.dto.PageResponseDTO;
 import com.backend.market.domain.MarketItem;
 import com.backend.market.domain.MarketItemImage;
 import com.backend.market.domain.RentalDetail;
