@@ -86,6 +86,9 @@ public class BabyInfoServiceImpl implements BabyInfoService{
         babyInfo.changeBirthDate(babyInfoDTO.getBirthDate());
         babyInfo.changeBloodType(babyInfoDTO.getBloodType());
         babyInfo.changeBirthWeekCount(babyInfoDTO.getBirthWeekCount());
+        babyInfo.changeBirthWeight(babyInfoDTO.getBirthWeight());
+        babyInfo.changeBirthHeight(babyInfoDTO.getBirthHeight());
+        babyInfo.changeHeadCircumference(babyInfoDTO.getHeadCircumference());
         babyInfo.changeProfileImageFileName(babyInfoDTO.getProfileImageFileName());
 
         babyInfoMapper.update(babyInfo, email);

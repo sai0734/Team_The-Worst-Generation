@@ -39,6 +39,9 @@ CREATE TABLE IF NOT EXISTS tbl_baby_info (
     profile_image_file_name VARCHAR(500),
     blood_type VARCHAR(100),
     birth_week_count INT,
+    birth_weight DECIMAL(5,2),
+    birth_height DECIMAL(5,2),
+    head_circumference DECIMAL(5,2),
     reg_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     mod_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (baby_no),
@@ -51,7 +54,6 @@ CREATE TABLE IF NOT EXISTS tbl_baby_grow_info (
     measured_date DATE NOT NULL,
     weight DECIMAL(5,2),
     height DECIMAL(5,2),
-    head DECIMAL(5,2),
     reg_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (baby_grow_no),
     CONSTRAINT fk_baby_grow_info FOREIGN KEY (baby_no) REFERENCES tbl_baby_info (baby_no)

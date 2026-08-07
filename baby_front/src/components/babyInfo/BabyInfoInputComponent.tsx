@@ -1,7 +1,9 @@
 import { FormEvent, useState } from "react";
 import * as babyInfoApi from "../../api/babyInfoApi";
+import * as babyGrowInfoApi from "../../api/babyGrowInfoApi";
 
 const BabyInfoInputComponent = () => {
+  const [file, setFile] = useState<File | null>(null);
   const [birthWeekCount, setBirthWeekCount] = useState("");
   const [babyName, setBabyName] = useState("");
   const [birthDate, setBirthDate] = useState("");
@@ -22,10 +24,30 @@ const BabyInfoInputComponent = () => {
     formData.append("gender", gender);
     formData.append("bloodType", bloodType);
     formData.append("birthWeekCount", birthWeekCount);
+    if (birthWeight) {
+      formData.append("birthWeight", birthWeight);
+    }
+    if (birthHeight) {
+      formData.append("birthHeight", birthHeight);
+    }
+    if (head) {
+      formData.append("headCircumference", head);
+    }
+    if (file) {
+      formData.append("files", file);
+    }
 
     try {
       const result = await babyInfoApi.register(formData);
-      alert(`등록이 완료되었습니다. (babyNo: ${result.BabyNo})`);
+      const babyNo = result.babyNo;
+
+      await babyGrowInfoApi.register({
+        babyNo,
+        measuredDate: new Date().toISOString().slice(0, 10),
+        weight: weight ? Number(weight) : undefined,
+        height: height ? Number(height) : undefined,
+      });
+      alert(`등록이 완료되었습니다. (babyNo: ${result.babyNo})`);
     } catch (err) {
       alert("등록에 실패하셨습니다.");
       console.error(err);
@@ -34,7 +56,11 @@ const BabyInfoInputComponent = () => {
 
   return (
     <form onSubmit={handleSubmit}>
-      <div>사진</div>
+      <input
+        type="file"
+        accept="image/*"
+        onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+      />
       <p>이름</p>
       <input
         name="babyName"

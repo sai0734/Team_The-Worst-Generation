@@ -24,8 +24,6 @@ public class BabyGrowInfo {
 
     private Double height;
 
-    private Double head;
-
     private LocalDateTime regTime;
 
 }

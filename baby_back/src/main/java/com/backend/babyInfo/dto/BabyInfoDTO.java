@@ -38,6 +38,12 @@ public class BabyInfoDTO {
 
     private Integer birthWeekCount;
 
+    private Double birthWeight;
+
+    private Double birthHeight;
+
+    private Double headCircumference;
+
     private LocalDateTime regTime;
 
     private LocalDateTime modTime;
