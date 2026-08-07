@@ -3,6 +3,19 @@ const API_SERVER_HOST = "http://localhost:8080";
 
 const host = `${API_SERVER_HOST}/api/baby-info`;
 
+export interface BabyInfo {
+  babyNo?: number;
+  email?: string;
+  babyName: string;
+  birthDate: string;
+  gender: string;
+  profileImageFileName?: string;
+  bloodType?: string;
+  birthWeekCount?: number;
+  regTime?: string;
+  modTime?: string;
+}
+
 export const getList = async () => {
   const res = await jwtAxios.get(`${host}/list`);
 
