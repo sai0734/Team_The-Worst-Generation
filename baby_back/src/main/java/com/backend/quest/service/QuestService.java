@@ -10,11 +10,10 @@ public interface QuestService {
 
     MemberQuestDTO complete(String email, Long id);
 
+    MemberQuestDTO uncomplete(String email, Long id);
+
     void ensureDailyQuests(String email);
 
     MemberQuestDTO createUrgentBySpouse(String creatorEmail, UrgentQuestCreateDTO dto);
-
-    MemberQuestDTO claimWeekly(String email, Long questId);
-    MemberQuestDTO claimEvent(String email, Long questId);
 
 }

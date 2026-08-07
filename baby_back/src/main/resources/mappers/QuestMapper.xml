@@ -108,9 +108,9 @@
 
     <insert id="insertUrgentQuest" useGeneratedKeys="true" keyProperty="questId" keyColumn="quest_id">
         INSERT INTO tbl_quest
-            (title, description, type, difficulty, theme, reward, urgency, due_days, active)
+            (title, description, type, repeat_type, difficulty, theme, reward, urgency, due_days, active)
         VALUES
-            (#{title}, #{description}, #{type}, #{difficulty}, #{theme},
+            (#{title}, #{description}, #{type}, #{type}, #{difficulty}, #{theme},
              #{reward}, #{urgency}, #{dueDays}, #{active})
     </insert>
 
@@ -132,15 +132,6 @@
           AND q.type = #{type}
     </select>
 
-    <select id="countAssignedBetweenByType" resultType="int">
-        SELECT COUNT(*)
-        FROM tbl_member_quest mq
-        JOIN tbl_quest q ON mq.quest_id = q.quest_id
-        WHERE mq.member_email = #{email}
-          AND mq.assigned_date BETWEEN #{from} AND #{to}
-          AND q.type = #{type}
-    </select>
-
     <update id="expireOverdue">
         UPDATE tbl_member_quest
         SET status = 'EXPIRED'
@@ -149,13 +140,13 @@
           AND due_date &lt; #{today}
     </update>
 
-    <select id="selectActiveQuest" resultType="com.backend.quest.domain.Quest">
-        SELECT quest_id, title, description, type, difficulty, theme,
-               reward, urgency, due_days, active
-        FROM tbl_quest
-        WHERE quest_id = #{questId}
-          AND type = #{type}
-          AND active = TRUE
-    </select>
+    <update id="uncompleteMemberQuest">
+        UPDATE tbl_member_quest
+        SET status = 'TODO',
+            completed_at = NULL
+        WHERE id = #{id}
+          AND member_email = #{email}
+          AND status = 'DONE'
+    </update>
 
 </mapper>

@@ -1,3 +1,153 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* YSJ - Nexon brand theme (main) */
+:root {
+  --nx-primary: #00de5a;
+  --nx-on-primary: #000000;
+  --nx-canvas: #ffffff;
+  --nx-ink: #17191d;
+  --nx-near-black: #080410;
+  --nx-body: #737881;
+  --nx-label: #4a4e57;
+  --nx-muted: #919191;
+  --nx-disabled: #9fa1a7;
+  --nx-pure-black: #000000;
+
+  --nx-font-brand: "NEXON Gothic Bold", "NexonGothic", "Malgun Gothic",
+    "맑은 고딕", sans-serif;
+  --nx-font-body: "Malgun Gothic", "맑은 고딕", sans-serif;
+
+  --nx-space-xs: 4px;
+  --nx-space-sm: 8px;
+  --nx-space-md: 12px;
+  --nx-space-base: 16px;
+  --nx-space-lg: 20px;
+  --nx-space-xl: 24px;
+  --nx-space-xxl: 36px;
+  --nx-space-section: 48px;
+
+  --nx-radius-sm: 0px;
+  --nx-radius-md: 4px;
+  --nx-radius-lg: 8px;
+  --nx-radius-full: 9999px;
+
+  --nx-shadow-flat: none;
+  --nx-shadow-ambient: rgba(0, 0, 0, 0.08) 0px 2px 8px;
+  --nx-shadow-elevated: rgba(0, 0, 0, 0.16) 0px 8px 24px;
+
+  --nx-motion-fast: 120ms;
+  --nx-motion-standard: 240ms;
+  --nx-ease: cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+@layer base {
+  body {
+    margin: 0;
+    background: var(--nx-canvas);
+    color: var(--nx-ink);
+    font-family: var(--nx-font-body);
+    font-size: 12px;
+    line-height: 1.2;
+  }
+}
+
+@layer components {
+  .nx-btn-primary {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--nx-primary);
+    color: var(--nx-on-primary);
+    border: 0;
+    border-radius: var(--nx-radius-sm);
+    padding: 12px 24px;
+    font-family: var(--nx-font-brand);
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 1.2;
+    cursor: pointer;
+    transition: filter var(--nx-motion-fast) var(--nx-ease);
+  }
+
+  .nx-btn-primary:hover {
+    filter: brightness(1.05);
+  }
+
+  .nx-btn-primary:disabled {
+    background: var(--nx-disabled);
+    color: #ffffff;
+    font-weight: 400;
+    cursor: not-allowed;
+    filter: none;
+  }
+
+  .nx-btn-ghost {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--nx-canvas);
+    color: var(--nx-ink);
+    border: 0;
+    border-radius: var(--nx-radius-sm);
+    padding: 10px 20px;
+    font-family: var(--nx-font-body);
+    font-size: 14px;
+    font-weight: 400;
+    line-height: 1.2;
+    cursor: pointer;
+  }
+
+  .nx-card {
+    background: var(--nx-canvas);
+    color: var(--nx-ink);
+    border-radius: var(--nx-radius-md);
+    padding: var(--nx-space-base);
+    box-shadow: var(--nx-shadow-ambient);
+  }
+
+  .nx-badge {
+    display: inline-flex;
+    align-items: center;
+    background: var(--nx-primary);
+    color: var(--nx-on-primary);
+    border-radius: var(--nx-radius-md);
+    padding: 2px 8px;
+    font-family: var(--nx-font-brand);
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  .nx-input {
+    background: var(--nx-canvas);
+    color: var(--nx-ink);
+    border: 1px solid #e5e5e5;
+    border-radius: var(--nx-radius-md);
+    padding: 8px 12px;
+    font-family: var(--nx-font-body);
+    font-size: 14px;
+    line-height: 1.2;
+  }
+
+  .nx-input::placeholder {
+    color: var(--nx-muted);
+  }
+
+  .nx-nav-link {
+    color: var(--nx-ink);
+    font-family: var(--nx-font-body);
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1.2;
+    padding: 0 16px;
+    text-decoration: none;
+    border-bottom: 2px solid transparent;
+  }
+
+  .nx-nav-link.is-active {
+    border-bottom-color: var(--nx-primary);
+    font-weight: 700;
+  }
+}
