@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
 import BasicMenu from "../components/menus/BasicMenu";
-import CartComponent from "../components/menus/CartComponent";
 
 interface BasicLayoutProps {
   children: ReactNode;
@@ -19,10 +18,6 @@ const BasicLayout = ({ children }: BasicLayoutProps) => {
           {children}
         </main>
 
-        <aside className="bg-gray-300 md:w-1/3 lg:w-1/4 px-5 flex py-5">
-          {/* 상단 여백 py-40 wprj flex 제거 */}
-          <CartComponent />
-        </aside>
       </div>
     </>
   );
