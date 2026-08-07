@@ -4,6 +4,7 @@ import * as babyGrowInfoApi from "../../api/babyGrowInfoApi";
 
 const BabyInfoInputComponent = () => {
   const [file, setFile] = useState<File | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
   const [birthWeekCount, setBirthWeekCount] = useState("");
   const [babyName, setBabyName] = useState("");
   const [birthDate, setBirthDate] = useState("");
@@ -56,11 +57,26 @@ const BabyInfoInputComponent = () => {
 
   return (
     <form onSubmit={handleSubmit}>
-      <input
-        type="file"
-        accept="image/*"
-        onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-      />
+      <div>
+        {preview ? (
+          <img
+            className="w-[88px] h-[88px] rounded-full object-cover"
+            src="{preview}"
+            alt="미리보기"
+          />
+        ) : (
+          <p>사진</p>
+        )}
+        <input
+          type="file"
+          accept="image/*"
+          onChange={(e) => {
+            const selected = e.target.files?.[0] ?? null;
+            setFile(selected);
+            setPreview(selected ? URL.createObjectURL(selected) : null);
+          }}
+        />
+      </div>
       <p>이름</p>
       <input
         name="babyName"
@@ -90,10 +106,24 @@ const BabyInfoInputComponent = () => {
       </div>
       <div>
         <p>성별</p>
-        <button type="button" value={"남자"} onClick={() => setGender("남자")}>
+        <button
+          className={
+            gender === "남자" ? "bg-black text-white" : "bg-white text-black"
+          }
+          type="button"
+          value={"남자"}
+          onClick={() => setGender("남자")}
+        >
           남자
         </button>
-        <button type="button" value={"여자"} onClick={() => setGender("여자")}>
+        <button
+          className={
+            gender === "여자" ? "bg-black text-white" : "bg-white text-black"
+          }
+          type="button"
+          value={"여자"}
+          onClick={() => setGender("여자")}
+        >
           여자
         </button>
       </div>
