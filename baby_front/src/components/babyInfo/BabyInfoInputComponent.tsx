@@ -63,7 +63,9 @@ const BabyInfoInputComponent = () => {
     formData.append("birthDate", birthDate);
     formData.append("gender", gender);
     formData.append("bloodType", bloodType);
-    formData.append("birthWeekCount", birthWeekCount);
+    if (birthWeekCount) {
+      formData.append("birthWeekCount", birthWeekCount);
+    }
     if (birthWeight) {
       formData.append("birthWeight", birthWeight);
     }
