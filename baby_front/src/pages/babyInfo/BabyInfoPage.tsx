@@ -4,6 +4,7 @@ import * as babyInfoApi from "../../api/babyInfoApi";
 import { BabyInfo } from "../../api/babyInfoApi";
 import BabyGrowthCardComponent from "../../components/babyInfo/BabyGrowthCardComponent";
 import BabyVaccinationCardComponent from "../../components/babyInfo/BabyVaccinationCardComponent";
+import BabySleepCardComponent from "../../components/babyInfo/BabySleepCardComponent";
 
 const BabyInfoPage = () => {
   const { babyNo } = useParams<{ babyNo: string }>();
@@ -68,7 +69,6 @@ const BabyInfoPage = () => {
           응애
         </div>
       )}
-      <p>{babyInfo.babyName}</p>
       <p>
         {babyInfo.babyName} ({getAgeInMonths(babyInfo.birthDate)}개월)
       </p>
@@ -82,6 +82,7 @@ const BabyInfoPage = () => {
           birthDate={babyInfo.birthDate}
         />
       )}
+      {babyInfo.babyNo && <BabySleepCardComponent babyNo={babyInfo.babyNo} />}
     </div>
   );
 };

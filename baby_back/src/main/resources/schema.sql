@@ -164,9 +164,16 @@ CREATE TABLE IF NOT EXISTS tbl_baby_vaccination (
     CONSTRAINT fk_baby_vaccination_schedule FOREIGN KEY (schedule_no) REFERENCES tbl_vaccine_schedule (schedule_no)
     );
 
-
-
-
+CREATE TABLE IF NOT EXISTS tbl_baby_sleep (
+    sleep_no BIGINT AUTO_INCREMENT,
+    baby_no BIGINT NOT NULL,
+    sleep_type VARCHAR(10) NOT NULL,
+    start_time DATETIME NOT NULL,
+    end_time DATETIME,
+    reg_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (sleep_no),
+    CONSTRAINT fk_baby_sleep_baby FOREIGN KEY (baby_no) REFERENCES tbl_baby_info (baby_no)
+);
 
 -- KYI - 가계부 내역
 CREATE TABLE IF NOT EXISTS tbl_ledger (
