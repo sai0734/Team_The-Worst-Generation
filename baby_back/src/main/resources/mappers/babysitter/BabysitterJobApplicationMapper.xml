@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.backend.babysitter.mapper.BabysitterJobApplicationMapper">
+
+    <select id="selectByApplicationNo" resultType="com.backend.babysitter.domain.BabysitterJobApplication">
+        SELECT application_no, job_no, sitter_email, message, status, reg_time, mod_time
+        FROM tbl_babysitter_job_application
+        WHERE application_no = #{applicationNo}
+    </select>
+
+    <select id="selectOne" resultType="com.backend.babysitter.domain.BabysitterJobApplication">
+        SELECT application_no, job_no, sitter_email, message, status, reg_time, mod_time
+        FROM tbl_babysitter_job_application
+        WHERE job_no = #{jobNo} AND sitter_email = #{sitterEmail}
+    </select>
+
+    <select id="selectListByJob" resultType="com.backend.babysitter.domain.BabysitterJobApplication">
+        SELECT application_no, job_no, sitter_email, message, status, reg_time, mod_time
+        FROM tbl_babysitter_job_application
+        WHERE job_no = #{jobNo}
+        ORDER BY reg_time ASC
+    </select>
+
+    <select id="selectListBySitter" resultType="com.backend.babysitter.domain.BabysitterJobApplication">
+        SELECT application_no, job_no, sitter_email, message, status, reg_time, mod_time
+        FROM tbl_babysitter_job_application
+        WHERE sitter_email = #{sitterEmail}
+        ORDER BY reg_time DESC
+    </select>
+
+    <select id="countByJob" resultType="long">
+        SELECT COUNT(*)
+        FROM tbl_babysitter_job_application
+        WHERE job_no = #{jobNo}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="applicationNo" keyColumn="application_no">
+        INSERT INTO tbl_babysitter_job_application (job_no, sitter_email, message, status)
+        VALUES (#{jobNo}, #{sitterEmail}, #{message}, #{status})
+    </insert>
+
+    <update id="updateStatus">
+        UPDATE tbl_babysitter_job_application
+        SET status   = #{status},
+            mod_time = CURRENT_TIMESTAMP
+        WHERE application_no = #{applicationNo}
+    </update>
+
+    <update id="rejectOtherPending">
+        UPDATE tbl_babysitter_job_application
+        SET status   = 'REJECTED',
+            mod_time = CURRENT_TIMESTAMP
+        WHERE job_no = #{jobNo}
+          AND application_no != #{exceptApplicationNo}
+          AND status = 'PENDING'
+    </update>
+
+</mapper>

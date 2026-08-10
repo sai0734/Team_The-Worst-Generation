@@ -265,6 +265,40 @@ CREATE TABLE IF NOT EXISTS tbl_babysitter_request (
     INDEX idx_babysitter_request_parent (parent_email, status)
 );
 
+-- KYI - 베이비시터 구인글 (부모가 올리는 요청, B안)
+CREATE TABLE IF NOT EXISTS tbl_babysitter_job_post (
+    job_no       BIGINT AUTO_INCREMENT,
+    parent_email VARCHAR(100) NOT NULL,
+    title        VARCHAR(200) NOT NULL,
+    region       VARCHAR(100),
+    desired_date DATE         NOT NULL,
+    time_slot    VARCHAR(10)  NOT NULL,
+    hourly_rate  INT,
+    message      VARCHAR(1000),
+    status       VARCHAR(20)  NOT NULL DEFAULT 'OPEN',
+    reg_time     DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    mod_time     DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (job_no),
+    CONSTRAINT fk_babysitter_job_post_parent FOREIGN KEY (parent_email) REFERENCES tbl_member (email),
+    INDEX idx_babysitter_job_post_region_date (region, desired_date),
+    INDEX idx_babysitter_job_post_status (status)
+);
+
+-- KYI - 베이비시터 구인글 지원
+CREATE TABLE IF NOT EXISTS tbl_babysitter_job_application (
+    application_no BIGINT AUTO_INCREMENT,
+    job_no         BIGINT       NOT NULL,
+    sitter_email   VARCHAR(100) NOT NULL,
+    message        VARCHAR(500),
+    status         VARCHAR(20)  NOT NULL DEFAULT 'PENDING',
+    reg_time       DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    mod_time       DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (application_no),
+    CONSTRAINT fk_babysitter_job_application_job FOREIGN KEY (job_no) REFERENCES tbl_babysitter_job_post (job_no),
+    CONSTRAINT fk_babysitter_job_application_sitter FOREIGN KEY (sitter_email) REFERENCES tbl_babysitter_profile (email),
+    CONSTRAINT uq_babysitter_job_application UNIQUE (job_no, sitter_email)
+);
+
 -- KYI - 베이비시터 후기 (요청 1건당 후기 1개)
 CREATE TABLE IF NOT EXISTS tbl_babysitter_review (
     review_no    BIGINT AUTO_INCREMENT,
