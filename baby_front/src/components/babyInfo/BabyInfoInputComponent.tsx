@@ -1,9 +1,21 @@
 import { FormEvent, useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import * as babyInfoApi from "../../api/babyInfoApi";
 import * as babyGrowInfoApi from "../../api/babyGrowInfoApi";
 import { BabyInfo } from "../../api/babyInfoApi";
 
+const getTodayStr = () => {
+  const date = new Date();
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
 const BabyInfoInputComponent = () => {
+  const { babyNo: editBabyNo } = useParams<{ babyNo?: string }>();
+  const isEditMode = !!editBabyNo;
+  const navigate = useNavigate();
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [birthWeekCount, setBirthWeekCount] = useState("");
@@ -26,6 +38,30 @@ const BabyInfoInputComponent = () => {
   useEffect(() => {
     loadRegisteredList();
   }, []);
+
+  useEffect(() => {
+    if (!editBabyNo) return;
+
+    babyInfoApi.getOne(editBabyNo).then((data) => {
+      setBabyName(data.babyName);
+      setBirthDate(data.birthDate);
+      setGender(data.gender);
+      setbloodType(data.bloodType ?? "");
+      setBirthWeekCount(
+        data.birthWeekCount != null ? String(data.birthWeekCount) : "",
+      );
+      setBirthWeight(data.birthWeight != null ? String(data.birthWeight) : "");
+      setBirthHeight(data.birthHeight != null ? String(data.birthHeight) : "");
+      setHead(
+        data.headCircumference != null ? String(data.headCircumference) : "",
+      );
+      setPreview(
+        data.profileImageFileName
+          ? babyInfoApi.getViewUrl(data.profileImageFileName)
+          : null,
+      );
+    });
+  }, [editBabyNo]);
 
   const handleClickAddNew = () => {
     setFile(null);
@@ -63,7 +99,9 @@ const BabyInfoInputComponent = () => {
     formData.append("birthDate", birthDate);
     formData.append("gender", gender);
     formData.append("bloodType", bloodType);
-    formData.append("birthWeekCount", birthWeekCount);
+    if (birthWeekCount) {
+      formData.append("birthWeekCount", birthWeekCount);
+    }
     if (birthWeight) {
       formData.append("birthWeight", birthWeight);
     }
@@ -77,13 +115,25 @@ const BabyInfoInputComponent = () => {
       formData.append("files", file);
     }
 
+    if (isEditMode) {
+      try {
+        await babyInfoApi.modify(formData, editBabyNo);
+        alert("수정이 완료되었습니다.");
+        navigate(`/babyInfo/dashboard/${editBabyNo}`);
+      } catch (err) {
+        alert("수정에 실패했습니다.");
+        console.error(err);
+      }
+      return;
+    }
+
     try {
       const result = await babyInfoApi.register(formData);
       const babyNo = result.babyNo;
 
       await babyGrowInfoApi.register({
         babyNo,
-        measuredDate: new Date().toISOString().slice(0, 10),
+        measuredDate: getTodayStr(),
         weight: weight ? Number(weight) : undefined,
         height: height ? Number(height) : undefined,
       });
@@ -177,22 +227,25 @@ const BabyInfoInputComponent = () => {
         onChange={(e) => setBirthWeekCount(e.target.value)}
         placeholder="출생 주수"
       />
-      <div>
-        <p>현재 체중(kg)</p>
-        <input
-          name="weight"
-          value={weight}
-          onChange={(e) => setWeight(e.target.value)}
-          placeholder="현재 체중(kg)"
-        />
-        <p>현재 키(cm)</p>
-        <input
-          name="height"
-          value={height}
-          onChange={(e) => setHeight(e.target.value)}
-          placeholder="현재 키(cm)"
-        />
-      </div>
+      {!isEditMode && (
+        <div>
+          <p>현재 체중(kg)</p>
+          <input
+            name="weight"
+            value={weight}
+            onChange={(e) => setWeight(e.target.value)}
+            placeholder="현재 체중(kg)"
+          />
+          <p>현재 키(cm)</p>
+          <input
+            name="height"
+            value={height}
+            onChange={(e) => setHeight(e.target.value)}
+            placeholder="현재 키(cm)"
+          />
+        </div>
+      )}
+
       <div>
         <p>출생 시 체중(kg)</p>
         <input
@@ -216,37 +269,49 @@ const BabyInfoInputComponent = () => {
         onChange={(e) => setHead(e.target.value)}
         placeholder="머리둘레(cm)"
       />
-      <button type="submit">아이 등록하기</button>
+      <button type="submit">
+        {isEditMode ? "정보 수정하기" : "아이 등록하기"}
+      </button>
 
-      <div>
-        <p>등록된 아이</p>
-        {registeredList.map((baby) => (
-          <div key={baby.babyNo}>
-            {baby.profileImageFileName ? (
-              <img
-                className="w-[36px] h-[36px] rounded-full object-cover"
-                src={babyInfoApi.getViewUrl(baby.profileImageFileName)}
-                alt={baby.babyName}
-              />
-            ) : (
-              <div className="w-[36px] h-[36px] rounded-full bg-gray-200 flex items-center justify-center text-xs">
-                응애
-              </div>
-            )}
-            <span>{baby.babyName}</span>
-            <button
-              type="button"
-              onClick={() => handleClickRemove(baby.babyNo)}
-            >
-              X
-            </button>
+      {!isEditMode && (
+        <div>
+          <p>등록된 아이</p>
+          {registeredList.map((baby) => (
+            <div key={baby.babyNo}>
+              {baby.profileImageFileName ? (
+                <img
+                  className="w-[36px] h-[36px] rounded-full object-cover"
+                  src={babyInfoApi.getViewUrl(baby.profileImageFileName)}
+                  alt={baby.babyName}
+                />
+              ) : (
+                <div className="w-[36px] h-[36px] rounded-full bg-gray-200 flex items-center justify-center text-xs">
+                  응애
+                </div>
+              )}
+              <span>{baby.babyName}</span>
+              <button
+                type="button"
+                onClick={() => {
+                  navigate(`/babyInfo/input/${baby.babyNo}`);
+                }}
+              >
+                수정
+              </button>
+              <button
+                type="button"
+                onClick={() => handleClickRemove(baby.babyNo)}
+              >
+                X
+              </button>
+            </div>
+          ))}
+          <div onClick={handleClickAddNew}>
+            <span>+</span>
+            <span>새 아이 추가</span>
           </div>
-        ))}
-        <div onClick={handleClickAddNew}>
-          <span>+</span>
-          <span>새 아이 추가</span>
         </div>
-      </div>
+      )}
     </form>
   );
 };
