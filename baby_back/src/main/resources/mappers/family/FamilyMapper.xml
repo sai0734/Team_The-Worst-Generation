@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.backend.family.mapper.FamilyMapper">
+
+    <resultMap id="familyResultMap" type="com.backend.family.domain.Family">
+        <id property="familyId" column="family_id"/>
+        <result property="familyName" column="family_name"/>
+        <result property="inviteCode" column="invite_code"/>
+        <result property="createdBy" column="created_by"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
+    <resultMap id="familyMemberResultMap" type="com.backend.family.domain.FamilyMember">
+        <id property="id" column="id"/>
+        <result property="familyId" column="family_id"/>
+        <result property="memberEmail" column="member_email"/>
+        <result property="familyRole" column="family_role"/>
+        <result property="parentType" column="parent_type"/>
+        <result property="joinedAt" column="joined_at"/>
+    </resultMap>
+
+    <insert id="insertFamily" useGeneratedKeys="true" keyProperty="familyId">
+        INSERT INTO tbl_family (
+        family_name,
+        invite_code,
+        created_by
+        )
+        VALUES (
+        #{familyName},
+        #{inviteCode},
+        #{createdBy}
+        )
+    </insert>
+
+    <insert id="insertFamilyMember">
+        INSERT INTO tbl_family_member (
+        family_id,
+        member_email,
+        family_role,
+        parent_type
+        )
+        VALUES (
+        #{familyId},
+        #{memberEmail},
+        #{familyRole},
+        #{parentType}
+        )
+    </insert>
+
+    <select id="selectFamilyByInviteCode" resultMap="familyResultMap">
+        SELECT family_id,
+        family_name,
+        invite_code,
+        created_by,
+        created_at
+        FROM tbl_family
+        WHERE invite_code = #{inviteCode}
+    </select>
+
+    <select id="selectFamilyByMemberEmail" resultMap="familyResultMap">
+        SELECT f.family_id,
+        f.family_name,
+        f.invite_code,
+        f.created_by,
+        f.created_at
+        FROM tbl_family f
+        INNER JOIN tbl_family_member fm
+        ON fm.family_id = f.family_id
+        WHERE fm.member_email = #{memberEmail}
+    </select>
+
+    <select id="selectFamilyMemberByEmail" resultMap="familyMemberResultMap">
+        SELECT id,
+        family_id,
+        member_email,
+        family_role,
+        parent_type,
+        joined_at
+        FROM tbl_family_member
+        WHERE member_email = #{memberEmail}
+    </select>
+
+    <select id="selectFamilyMembers" resultType="com.backend.family.projection.FamilyMemberProjection">
+        SELECT fm.id,
+        fm.family_id AS familyId,
+        fm.member_email AS memberEmail,
+        m.nickname AS nickname,
+        fm.family_role AS familyRole,
+        fm.parent_type AS parentType,
+        fm.joined_at AS joinedAt
+        FROM tbl_family_member fm
+        INNER JOIN tbl_member m
+        ON m.email = fm.member_email
+        WHERE fm.family_id = #{familyId}
+        ORDER BY fm.joined_at ASC
+    </select>
+
+    <delete id="deleteFamilyMember">
+        DELETE FROM tbl_family_member
+        WHERE member_email = #{memberEmail}
+    </delete>
+
+</mapper>

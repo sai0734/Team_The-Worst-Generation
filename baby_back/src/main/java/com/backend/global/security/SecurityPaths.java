@@ -10,6 +10,7 @@ public final class SecurityPaths {
       "/api/member/kakao",
       "/api/member/social/signup",
       "/api/member/refresh",
+      "/api/member/logout",
       "/api/products/view/**",
       "/api/community/posts/files/**",
       "/api/babysitter/profiles/files/**",

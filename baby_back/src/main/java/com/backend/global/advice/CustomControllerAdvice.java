@@ -3,6 +3,7 @@ package com.backend.global.advice;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
+import com.backend.family.exception.FamilyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -49,4 +50,11 @@ public class CustomControllerAdvice {
 
       return ResponseEntity.ok().body(Map.of("error", msg));
   }
+    @ExceptionHandler(FamilyException.class)
+    protected ResponseEntity<?> handleFamilyException(FamilyException e) {
+
+        return ResponseEntity
+                .status(e.getErrorCode().getStatus())
+                .body(Map.of("error", e.getErrorCode().name()));
+    }
 }
