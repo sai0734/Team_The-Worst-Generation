@@ -2,6 +2,7 @@ package com.backend.global.config;
 
 import java.util.Arrays;
 
+import com.backend.auth.service.AuthTokenService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -35,6 +36,7 @@ import lombok.extern.log4j.Log4j2;
 public class CustomSecurityConfig {
 
   private final AuthenticationConfiguration authenticationConfiguration;
+  private final AuthTokenService authTokenService;
 
   @Bean
   public PasswordEncoder passwordEncoder() {
@@ -66,7 +68,7 @@ public class CustomSecurityConfig {
 
     APILoginFilter apiLoginFilter = new APILoginFilter("/api/member/login");
     apiLoginFilter.setAuthenticationManager(authenticationManager);
-    apiLoginFilter.setAuthenticationSuccessHandler(new APILoginSuccessHandler());
+    apiLoginFilter.setAuthenticationSuccessHandler(new APILoginSuccessHandler(authTokenService));
     apiLoginFilter.setAuthenticationFailureHandler(new APILoginFailHandler());
 
     http.authenticationManager(authenticationManager);
@@ -83,8 +85,8 @@ public class CustomSecurityConfig {
 
     CorsConfiguration configuration = new CorsConfiguration();
 
-    configuration.setAllowedOriginPatterns(Arrays.asList("*"));
-    configuration.setAllowedMethods(Arrays.asList("HEAD", "GET", "POST", "PUT", "DELETE"));
+    configuration.setAllowedOrigins(Arrays.asList("http://localhost:3000"));
+    configuration.setAllowedMethods(Arrays.asList("HEAD", "GET", "POST", "PUT", "DELETE", "OPTIONS"));
     configuration.setAllowedHeaders(Arrays.asList("Authorization", "Cache-Control", "Content-Type"));
     configuration.setAllowCredentials(true);
 

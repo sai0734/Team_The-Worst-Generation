@@ -19,7 +19,7 @@ public class MemberRefreshToken {
 
     private String tokenHash;
 
-    private LocalDateTime expriesAt;
+    private LocalDateTime expiresAt;
 
     private boolean revoked;
 

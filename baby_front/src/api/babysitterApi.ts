@@ -7,6 +7,7 @@ const locationPrefix = `${API_SERVER_HOST}/api/babysitter/location`;
 const pickPrefix = `${API_SERVER_HOST}/api/babysitter/picks`;
 const requestPrefix = `${API_SERVER_HOST}/api/babysitter/requests`;
 const reviewPrefix = `${API_SERVER_HOST}/api/babysitter/reviews`;
+const jobPrefix = `${API_SERVER_HOST}/api/babysitter/jobs`;
 
 export const getFileUrl = (fileName: string): string => `${prefix}/files/${fileName}`;
 
@@ -267,6 +268,145 @@ export const getReviewsBySitter = async (
   sitterEmail: string,
 ): Promise<BabysitterReview[]> => {
   const res = await jwtAxios.get(`${reviewPrefix}/sitter/${sitterEmail}`);
+
+  return res.data;
+};
+
+// ---------- 구인글 (B안: 부모가 올리고 시터가 지원) ----------
+
+export type JobStatus = "OPEN" | "CLOSED" | "CANCELED";
+
+export const JOB_STATUS_LABELS: Record<JobStatus, string> = {
+  OPEN: "모집중",
+  CLOSED: "마감",
+  CANCELED: "취소됨",
+};
+
+export type JobApplicationStatus = "PENDING" | "ACCEPTED" | "REJECTED";
+
+export const JOB_APPLICATION_STATUS_LABELS: Record<JobApplicationStatus, string> = {
+  PENDING: "대기중",
+  ACCEPTED: "수락됨",
+  REJECTED: "거절됨",
+};
+
+export interface BabysitterJobPost {
+  jobNo: number;
+  parentEmail: string;
+  parentNickname: string | null;
+  title: string;
+  region: string | null;
+  desiredDate: string;
+  timeSlot: TimeSlot;
+  hourlyRate: number | null;
+  message: string | null;
+  status: JobStatus;
+  applicationCount: number;
+  regTime: string;
+  modTime: string;
+}
+
+export interface BabysitterJobPostInput {
+  title: string;
+  region?: string;
+  desiredDate: string;
+  timeSlot: TimeSlot;
+  hourlyRate?: number;
+  message?: string;
+}
+
+export interface BabysitterJobSearchParam extends PageRequestParam {
+  region?: string;
+  desiredDate?: string;
+  timeSlot?: TimeSlot;
+  keyword?: string;
+}
+
+export interface BabysitterJobApplication {
+  applicationNo: number;
+  jobNo: number;
+  jobTitle: string | null;
+  sitterEmail: string;
+  sitterName: string | null;
+  message: string | null;
+  status: JobApplicationStatus;
+  regTime: string;
+  modTime: string;
+}
+
+export const registerJobPost = async (
+  input: BabysitterJobPostInput,
+): Promise<{ jobNo: number }> => {
+  const res = await jwtAxios.post(`${jobPrefix}/`, input);
+
+  return res.data;
+};
+
+export const getJobList = async (
+  searchParam: BabysitterJobSearchParam,
+): Promise<PageResponse<BabysitterJobPost>> => {
+  const res = await jwtAxios.get(`${jobPrefix}/list`, { params: searchParam });
+
+  return res.data;
+};
+
+export const getMyJobPosts = async (): Promise<BabysitterJobPost[]> => {
+  const res = await jwtAxios.get(`${jobPrefix}/mine`);
+
+  return res.data;
+};
+
+export const getJobOne = async (jobNo: number): Promise<BabysitterJobPost> => {
+  const res = await jwtAxios.get(`${jobPrefix}/${jobNo}`);
+
+  return res.data;
+};
+
+export const cancelJobPost = async (
+  jobNo: number,
+): Promise<{ RESULT: string }> => {
+  const res = await jwtAxios.put(`${jobPrefix}/${jobNo}/cancel`);
+
+  return res.data;
+};
+
+export const applyToJob = async (
+  jobNo: number,
+  message?: string,
+): Promise<{ applicationNo: number }> => {
+  const res = await jwtAxios.post(`${jobPrefix}/${jobNo}/applications`, { message });
+
+  return res.data;
+};
+
+export const getJobApplications = async (
+  jobNo: number,
+): Promise<BabysitterJobApplication[]> => {
+  const res = await jwtAxios.get(`${jobPrefix}/${jobNo}/applications`);
+
+  return res.data;
+};
+
+export const getMyApplications = async (): Promise<BabysitterJobApplication[]> => {
+  const res = await jwtAxios.get(`${jobPrefix}/applications/mine`);
+
+  return res.data;
+};
+
+export const acceptJobApplication = async (
+  jobNo: number,
+  applicationNo: number,
+): Promise<{ RESULT: string }> => {
+  const res = await jwtAxios.put(`${jobPrefix}/${jobNo}/applications/${applicationNo}/accept`);
+
+  return res.data;
+};
+
+export const rejectJobApplication = async (
+  jobNo: number,
+  applicationNo: number,
+): Promise<{ RESULT: string }> => {
+  const res = await jwtAxios.put(`${jobPrefix}/${jobNo}/applications/${applicationNo}/reject`);
 
   return res.data;
 };
