@@ -42,26 +42,37 @@ const BabyInfoInputComponent = () => {
   useEffect(() => {
     if (!editBabyNo) return;
 
-    babyInfoApi.getOne(editBabyNo).then((data) => {
-      setBabyName(data.babyName);
-      setBirthDate(data.birthDate);
-      setGender(data.gender);
-      setbloodType(data.bloodType ?? "");
-      setBirthWeekCount(
-        data.birthWeekCount != null ? String(data.birthWeekCount) : "",
-      );
-      setBirthWeight(data.birthWeight != null ? String(data.birthWeight) : "");
-      setBirthHeight(data.birthHeight != null ? String(data.birthHeight) : "");
-      setHead(
-        data.headCircumference != null ? String(data.headCircumference) : "",
-      );
-      setPreview(
-        data.profileImageFileName
-          ? babyInfoApi.getViewUrl(data.profileImageFileName)
-          : null,
-      );
-    });
-  }, [editBabyNo]);
+    babyInfoApi
+      .getOne(editBabyNo)
+      .then((data) => {
+        setBabyName(data.babyName);
+        setBirthDate(data.birthDate);
+        setGender(data.gender);
+        setbloodType(data.bloodType ?? "");
+        setBirthWeekCount(
+          data.birthWeekCount != null ? String(data.birthWeekCount) : "",
+        );
+        setBirthWeight(
+          data.birthWeight != null ? String(data.birthWeight) : "",
+        );
+        setBirthHeight(
+          data.birthHeight != null ? String(data.birthHeight) : "",
+        );
+        setHead(
+          data.headCircumference != null ? String(data.headCircumference) : "",
+        );
+        setPreview(
+          data.profileImageFileName
+            ? babyInfoApi.getViewUrl(data.profileImageFileName)
+            : null,
+        );
+      })
+      .catch((err) => {
+        alert("수정할 아이 정보를 불러올 수 없습니다.");
+        console.error(err);
+        navigate("/babyInfo");
+      });
+  }, [editBabyNo, navigate]);
 
   const handleClickAddNew = () => {
     setFile(null);

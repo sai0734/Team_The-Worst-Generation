@@ -200,6 +200,18 @@ CREATE TABLE IF NOT EXISTS tbl_baby_sleep (
     CONSTRAINT fk_baby_sleep_baby FOREIGN KEY (baby_no) REFERENCES tbl_baby_info (baby_no)
 );
 
+CREATE TABLE IF NOT EXISTS tbl_baby_diary (
+    diary_no BIGINT AUTO_INCREMENT,
+    baby_no BIGINT NOT NULL,
+    diary_date DATE NOT NULL,
+    photo_file_name VARCHAR(500),
+    content TEXT NOT NULL,
+    reg_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    mod_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (diary_no),
+    CONSTRAINT fk_baby_diary FOREIGN KEY (baby_no) REFERENCES tbl_baby_info (baby_no)
+);
+
 -- KYI - 가계부 내역
 CREATE TABLE IF NOT EXISTS tbl_ledger (
     lno      BIGINT AUTO_INCREMENT,
