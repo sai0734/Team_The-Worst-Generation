@@ -16,7 +16,7 @@ const babyInfoRouter = (): RouteObject[] => {
       ),
     },
     {
-      path: "input",
+      path: "input/:babyNo?",
       element: (
         <Suspense fallback={Loading}>
           <Input />

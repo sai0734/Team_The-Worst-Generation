@@ -5,6 +5,14 @@ import {
   VaccinationProgress,
 } from "../../api/babyVaccinationApi";
 
+const getTodayStr = () => {
+  const date = new Date();
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
 interface BabyVaccinationCardProps {
   babyNo: number;
   birthDate: string;
@@ -81,7 +89,7 @@ const BabyVaccinationCardComponent = ({
   const handleOpenEdit = (item: BabyVaccination) => {
     if (!item.vaccinationNo) return;
     setEditingNo(item.vaccinationNo);
-    setEditDate(item.completedDate ?? new Date().toISOString().slice(0, 10));
+    setEditDate(item.completedDate ?? getTodayStr());
     setEditHospital(item.hospitalName ?? "");
   };
 
