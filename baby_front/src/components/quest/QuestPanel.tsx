@@ -47,9 +47,9 @@ const QuestPanel = () => {
     } catch (e) {
       console.error("quest home load failed", e);
       setHome(emptyHome);
-      alert(
-        "퀘스트를 불러오지 못했습니다. 로그인 상태와 백엔드 실행 여부를 확인하세요.",
-      );
+      // alert(
+      //   "퀘스트를 불러오지 못했습니다. 로그인 상태와 백엔드 실행 여부를 확인하세요.",  // 로그인이나 새로고침시 나오는 팝업창
+      // );
     } finally {
       setLoading(false);
     }
@@ -114,8 +114,7 @@ const QuestPanel = () => {
 
         <div className="mt-auto flex items-center justify-between gap-3 pt-2">
           <span className="text-sm text-gray-500">
-            보상{" "}
-            <span className="font-semibold text-gray-800">{reward}P</span>
+            보상 <span className="font-semibold text-gray-800">{reward}P</span>
           </span>
 
           {!isDone && (
