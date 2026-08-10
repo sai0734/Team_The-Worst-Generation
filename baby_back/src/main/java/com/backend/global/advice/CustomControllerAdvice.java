@@ -26,6 +26,14 @@ public class CustomControllerAdvice {
       return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("msg", msg));
   }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    protected ResponseEntity<?> handleIllegalArgumentException(IllegalArgumentException e) {
+
+        String msg = e.getMessage();
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("msg", msg));
+    }
+
   @ExceptionHandler(MethodArgumentNotValidException.class)
   protected ResponseEntity<?> handleIllegalArgumentException(MethodArgumentNotValidException e) {
 

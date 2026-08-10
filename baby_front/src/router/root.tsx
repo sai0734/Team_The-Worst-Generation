@@ -2,11 +2,16 @@ import { Suspense, lazy } from "react";
 import { createBrowserRouter } from "react-router-dom";
 import memberRouter from "./memberRouter";
 import babyInfoRouter from "./babyInfoRouter";
+import communityRouter from "./communityRouter";
+import marketRouter from "./marketRouter";
 
 const Loading = <div>Loading....</div>;
 const Main = lazy(() => import("../pages/MainPage"));
 const About = lazy(() => import("../pages/AboutPage"));
 const BabyInfoIndex = lazy(() => import("../pages/babyInfo/BabyInfoIndexPage"));
+const CommunityIndex = lazy(
+  () => import("../pages/community/CommunityIndexPage"),
+);
 
 const root = createBrowserRouter([
   {
@@ -37,6 +42,19 @@ const root = createBrowserRouter([
       </Suspense>
     ),
     children: babyInfoRouter(),
+  },
+  {
+    path: "community",
+    element: (
+      <Suspense fallback={Loading}>
+        <CommunityIndex />
+      </Suspense>
+    ),
+    children: communityRouter(),
+  },
+  {
+    path: "market",
+    children: marketRouter(),
   },
 ]);
 

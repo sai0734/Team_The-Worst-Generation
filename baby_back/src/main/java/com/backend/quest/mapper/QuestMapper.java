@@ -24,6 +24,10 @@ public interface QuestMapper {
             @Param("id") Long id,
             @Param("email") String email);
 
+    void uncompleteMemberQuest(
+            @Param("id") Long id,
+            @Param("email") String email);
+
     int countCompletedBetween(
             @Param("email") String email,
             @Param("from") LocalDate from,
@@ -70,13 +74,5 @@ public interface QuestMapper {
     int countAssignedTodayByType(@Param("email") String email,
                                  @Param("date") LocalDate date,
                                  @Param("type") String type);
-
-    // YSJ - 기간 내 type별 배정 수 (주간퀘: 이번 주 1개 제한용)
-    int countAssignedBetweenByType(@Param("email") String email,
-                                   @Param("from") LocalDate from,
-                                   @Param("to") LocalDate to,
-                                   @Param("type") String type);
-
-    Quest selectActiveQuest(@Param("questId") Long questId, @Param("type") String type);
 
 }

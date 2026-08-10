@@ -58,6 +58,9 @@ CREATE TABLE IF NOT EXISTS tbl_baby_info (
     profile_image_file_name VARCHAR(500),
     blood_type VARCHAR(100),
     birth_week_count INT,
+    birth_weight DECIMAL(5,2),
+    birth_height DECIMAL(5,2),
+    head_circumference DECIMAL(5,2),
     reg_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     mod_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (baby_no),
@@ -70,13 +73,109 @@ CREATE TABLE IF NOT EXISTS tbl_baby_grow_info (
     measured_date DATE NOT NULL,
     weight DECIMAL(5,2),
     height DECIMAL(5,2),
-    head DECIMAL(5,2),
     reg_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (baby_grow_no),
     CONSTRAINT fk_baby_grow_info FOREIGN KEY (baby_no) REFERENCES tbl_baby_info (baby_no)
     );
 
--- KYI
+CREATE TABLE IF NOT EXISTS tbl_growth_percentile (
+    percentile_no BIGINT AUTO_INCREMENT,
+    age_month INT NOT NULL,
+    gender VARCHAR(10) NOT NULL,
+    avg_weight_kg DECIMAL(5,2) NOT NULL,
+    avg_height_cm DECIMAL(5,2) NOT NULL,
+    PRIMARY KEY (percentile_no),
+    CONSTRAINT uq_growth_percentile UNIQUE (age_month, gender)
+    );
+
+INSERT INTO tbl_growth_percentile (age_month, gender, avg_weight_kg, avg_height_cm)
+SELECT t.age_month, t.gender, t.avg_weight_kg, t.avg_height_cm
+FROM (
+         SELECT 0 AS age_month, '남자' AS gender, 3.3 AS avg_weight_kg, 49.9 AS avg_height_cm
+         UNION ALL SELECT 3, '남자', 6.4, 61.4
+         UNION ALL SELECT 6, '남자', 7.9, 67.6
+         UNION ALL SELECT 9, '남자', 8.9, 72.0
+         UNION ALL SELECT 12, '남자', 9.6, 75.7
+         UNION ALL SELECT 15, '남자', 10.3, 79.1
+         UNION ALL SELECT 18, '남자', 10.9, 82.3
+         UNION ALL SELECT 21, '남자', 11.5, 85.1
+         UNION ALL SELECT 24, '남자', 12.2, 87.8
+         UNION ALL SELECT 27, '남자', 12.7, 89.6
+         UNION ALL SELECT 30, '남자', 13.3, 91.9
+         UNION ALL SELECT 33, '남자', 13.8, 94.1
+         UNION ALL SELECT 36, '남자', 14.3, 96.1
+         UNION ALL SELECT 0, '여자', 3.2, 49.1
+         UNION ALL SELECT 3, '여자', 5.8, 59.8
+         UNION ALL SELECT 6, '여자', 7.3, 65.7
+         UNION ALL SELECT 9, '여자', 8.2, 70.1
+         UNION ALL SELECT 12, '여자', 8.9, 74.0
+         UNION ALL SELECT 15, '여자', 9.6, 77.5
+         UNION ALL SELECT 18, '여자', 10.2, 80.7
+         UNION ALL SELECT 21, '여자', 10.9, 83.7
+         UNION ALL SELECT 24, '여자', 11.5, 86.4
+         UNION ALL SELECT 27, '여자', 12.1, 88.3
+         UNION ALL SELECT 30, '여자', 12.7, 90.7
+         UNION ALL SELECT 33, '여자', 13.3, 92.9
+         UNION ALL SELECT 36, '여자', 13.9, 95.1
+     ) t
+WHERE (SELECT COUNT(*) FROM tbl_growth_percentile) = 0;
+
+CREATE TABLE IF NOT EXISTS tbl_vaccine_schedule (
+    schedule_no BIGINT AUTO_INCREMENT,
+    vaccine_name VARCHAR(100) NOT NULL,
+    dose_label VARCHAR(20) NOT NULL,
+    recommended_month INT NOT NULL,
+    display_order INT NOT NULL,
+    PRIMARY KEY (schedule_no)
+    );
+
+INSERT INTO tbl_vaccine_schedule (vaccine_name, dose_label, recommended_month, display_order)
+SELECT t.vaccine_name, t.dose_label, t.recommended_month, t.display_order
+FROM (
+         SELECT 'B형간염' AS vaccine_name, '1차' AS dose_label, 0 AS recommended_month, 1 AS display_order
+         UNION ALL SELECT 'BCG(결핵)', '1회', 1, 2
+         UNION ALL SELECT 'B형간염', '2차', 1, 3
+         UNION ALL SELECT 'DTaP', '1차', 2, 4
+         UNION ALL SELECT '폴리오', '1차', 2, 5
+         UNION ALL SELECT 'DTaP', '2차', 4, 6
+         UNION ALL SELECT '폴리오', '2차', 4, 7
+         UNION ALL SELECT 'B형간염', '3차', 6, 8
+         UNION ALL SELECT 'DTaP', '3차', 6, 9
+         UNION ALL SELECT '폴리오', '3차', 6, 10
+         UNION ALL SELECT 'MMR', '1차', 12, 11
+         UNION ALL SELECT '수두', '1회', 12, 12
+     ) AS t
+WHERE (SELECT COUNT(*) FROM tbl_vaccine_schedule) = 0;
+
+CREATE TABLE IF NOT EXISTS tbl_baby_vaccination (
+    vaccination_no BIGINT AUTO_INCREMENT,
+    baby_no BIGINT NOT NULL,
+    schedule_no BIGINT,
+    vaccine_name VARCHAR(100) NOT NULL,
+    dose_label VARCHAR(20),
+    recommended_month INT,
+    completed BOOLEAN NOT NULL DEFAULT FALSE,
+    completed_date DATE,
+    hospital_name VARCHAR(100),
+    is_custom BOOLEAN NOT NULL DEFAULT FALSE,
+    reg_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (vaccination_no),
+    CONSTRAINT fk_baby_vaccination_baby FOREIGN KEY (baby_no) REFERENCES tbl_baby_info (baby_no),
+    CONSTRAINT fk_baby_vaccination_schedule FOREIGN KEY (schedule_no) REFERENCES tbl_vaccine_schedule (schedule_no)
+    );
+
+CREATE TABLE IF NOT EXISTS tbl_baby_sleep (
+    sleep_no BIGINT AUTO_INCREMENT,
+    baby_no BIGINT NOT NULL,
+    sleep_type VARCHAR(10) NOT NULL,
+    start_time DATETIME NOT NULL,
+    end_time DATETIME,
+    reg_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (sleep_no),
+    CONSTRAINT fk_baby_sleep_baby FOREIGN KEY (baby_no) REFERENCES tbl_baby_info (baby_no)
+);
+
+-- KYI - 가계부 내역
 CREATE TABLE IF NOT EXISTS tbl_ledger (
     lno      BIGINT AUTO_INCREMENT,
     email    VARCHAR(100) NOT NULL,
@@ -91,12 +190,185 @@ CREATE TABLE IF NOT EXISTS tbl_ledger (
     INDEX idx_ledger_email_date (email, tx_date)
 );
 
+-- KYI - 가계부 브리핑 설정
 CREATE TABLE IF NOT EXISTS tbl_ledger_setting (
     email                    VARCHAR(100) NOT NULL,
     briefing_day             INT,
     last_briefing_cycle_start DATE,
     PRIMARY KEY (email),
     CONSTRAINT fk_ledger_setting_email FOREIGN KEY (email) REFERENCES tbl_member (email)
+);
+
+-- KYI - 베이비시터 프로필
+CREATE TABLE IF NOT EXISTS tbl_babysitter_profile (
+    email          VARCHAR(100) NOT NULL,
+    name           VARCHAR(50)  NOT NULL,
+    career_years   INT          NOT NULL DEFAULT 0,
+    region         VARCHAR(100),
+    available_time VARCHAR(255),
+    hourly_rate    INT,
+    intro          VARCHAR(1000),
+    status         VARCHAR(20)  NOT NULL DEFAULT 'ACTIVE',
+    reg_time       DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    mod_time       DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (email),
+    CONSTRAINT fk_babysitter_profile_email FOREIGN KEY (email) REFERENCES tbl_member (email),
+    INDEX idx_babysitter_profile_region (region)
+);
+
+ALTER TABLE tbl_babysitter_profile ADD COLUMN IF NOT EXISTS profile_image_file_name VARCHAR(500) NULL;
+
+-- KYI - 베이비시터 가능 요일/시간대
+CREATE TABLE IF NOT EXISTS tbl_babysitter_availability (
+    email       VARCHAR(100) NOT NULL,
+    day_of_week VARCHAR(10)  NOT NULL,
+    time_slot   VARCHAR(10)  NOT NULL,
+    PRIMARY KEY (email, day_of_week, time_slot),
+    CONSTRAINT fk_babysitter_availability_email FOREIGN KEY (email) REFERENCES tbl_babysitter_profile (email)
+);
+
+-- KYI - 부모(사용자) 내 동네 설정
+CREATE TABLE IF NOT EXISTS tbl_babysitter_parent_location (
+    email  VARCHAR(100) NOT NULL,
+    region VARCHAR(100) NOT NULL,
+    PRIMARY KEY (email),
+    CONSTRAINT fk_babysitter_parent_location_email FOREIGN KEY (email) REFERENCES tbl_member (email)
+);
+
+-- KYI - 베이비시터 픽(찜)
+CREATE TABLE IF NOT EXISTS tbl_babysitter_pick (
+    pick_no      BIGINT AUTO_INCREMENT,
+    sitter_email VARCHAR(100) NOT NULL,
+    picker_email VARCHAR(100) NOT NULL,
+    reg_time     DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (pick_no),
+    CONSTRAINT fk_babysitter_pick_sitter FOREIGN KEY (sitter_email) REFERENCES tbl_babysitter_profile (email),
+    CONSTRAINT fk_babysitter_pick_picker FOREIGN KEY (picker_email) REFERENCES tbl_member (email),
+    CONSTRAINT uq_babysitter_pick UNIQUE (sitter_email, picker_email)
+);
+
+-- KYI - 베이비시터 요청(선정)
+CREATE TABLE IF NOT EXISTS tbl_babysitter_request (
+    request_no   BIGINT AUTO_INCREMENT,
+    sitter_email VARCHAR(100) NOT NULL,
+    parent_email VARCHAR(100) NOT NULL,
+    request_date DATE         NOT NULL,
+    time_slot    VARCHAR(10)  NOT NULL,
+    message      VARCHAR(500),
+    status       VARCHAR(20)  NOT NULL DEFAULT 'PENDING',
+    reg_time     DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    mod_time     DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (request_no),
+    CONSTRAINT fk_babysitter_request_sitter FOREIGN KEY (sitter_email) REFERENCES tbl_babysitter_profile (email),
+    CONSTRAINT fk_babysitter_request_parent FOREIGN KEY (parent_email) REFERENCES tbl_member (email),
+    INDEX idx_babysitter_request_sitter (sitter_email, status),
+    INDEX idx_babysitter_request_parent (parent_email, status)
+);
+
+-- KYI - 베이비시터 구인글 (부모가 올리는 요청, B안)
+CREATE TABLE IF NOT EXISTS tbl_babysitter_job_post (
+    job_no       BIGINT AUTO_INCREMENT,
+    parent_email VARCHAR(100) NOT NULL,
+    title        VARCHAR(200) NOT NULL,
+    region       VARCHAR(100),
+    desired_date DATE         NOT NULL,
+    time_slot    VARCHAR(10)  NOT NULL,
+    hourly_rate  INT,
+    message      VARCHAR(1000),
+    status       VARCHAR(20)  NOT NULL DEFAULT 'OPEN',
+    reg_time     DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    mod_time     DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (job_no),
+    CONSTRAINT fk_babysitter_job_post_parent FOREIGN KEY (parent_email) REFERENCES tbl_member (email),
+    INDEX idx_babysitter_job_post_region_date (region, desired_date),
+    INDEX idx_babysitter_job_post_status (status)
+);
+
+-- KYI - 베이비시터 구인글 지원
+CREATE TABLE IF NOT EXISTS tbl_babysitter_job_application (
+    application_no BIGINT AUTO_INCREMENT,
+    job_no         BIGINT       NOT NULL,
+    sitter_email   VARCHAR(100) NOT NULL,
+    message        VARCHAR(500),
+    status         VARCHAR(20)  NOT NULL DEFAULT 'PENDING',
+    reg_time       DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    mod_time       DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (application_no),
+    CONSTRAINT fk_babysitter_job_application_job FOREIGN KEY (job_no) REFERENCES tbl_babysitter_job_post (job_no),
+    CONSTRAINT fk_babysitter_job_application_sitter FOREIGN KEY (sitter_email) REFERENCES tbl_babysitter_profile (email),
+    CONSTRAINT uq_babysitter_job_application UNIQUE (job_no, sitter_email)
+);
+
+-- KYI - 베이비시터 후기 (요청 1건당 후기 1개)
+CREATE TABLE IF NOT EXISTS tbl_babysitter_review (
+    review_no    BIGINT AUTO_INCREMENT,
+    request_no   BIGINT       NOT NULL,
+    sitter_email VARCHAR(100) NOT NULL,
+    writer_email VARCHAR(100) NOT NULL,
+    rating       INT          NOT NULL,
+    content      VARCHAR(500),
+    reg_time     DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (review_no),
+    CONSTRAINT fk_babysitter_review_request FOREIGN KEY (request_no) REFERENCES tbl_babysitter_request (request_no),
+    CONSTRAINT fk_babysitter_review_sitter FOREIGN KEY (sitter_email) REFERENCES tbl_babysitter_profile (email),
+    CONSTRAINT fk_babysitter_review_writer FOREIGN KEY (writer_email) REFERENCES tbl_member (email),
+    UNIQUE KEY uq_babysitter_review_request (request_no)
+);
+
+-- KYI - 커뮤니티 게시글
+CREATE TABLE IF NOT EXISTS tbl_community_post (
+    post_no       BIGINT AUTO_INCREMENT,
+    writer_email  VARCHAR(100)  NOT NULL,
+    nickname      VARCHAR(50)   NOT NULL,
+    title         VARCHAR(200)  NOT NULL,
+    content       TEXT          NOT NULL,
+    ai_summary    TEXT,
+    view_count    INT           NOT NULL DEFAULT 0,
+    comment_count INT           NOT NULL DEFAULT 0,
+    del_flag      BOOLEAN       NOT NULL DEFAULT FALSE,
+    reg_time      DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    mod_time      DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (post_no),
+    CONSTRAINT fk_community_post_email FOREIGN KEY (writer_email) REFERENCES tbl_member (email)
+);
+
+-- KYI - 커뮤니티 게시글 첨부파일
+CREATE TABLE IF NOT EXISTS tbl_community_post_image (
+    image_no  BIGINT AUTO_INCREMENT,
+    post_no   BIGINT       NOT NULL,
+    file_name VARCHAR(300) NOT NULL,
+    video     BOOLEAN      NOT NULL DEFAULT FALSE,
+    ord       INT          NOT NULL DEFAULT 0,
+    PRIMARY KEY (image_no),
+    CONSTRAINT fk_community_post_image_post FOREIGN KEY (post_no) REFERENCES tbl_community_post (post_no)
+);
+
+-- KYI - 커뮤니티 댓글/대댓글
+CREATE TABLE IF NOT EXISTS tbl_community_comment (
+    comment_no        BIGINT AUTO_INCREMENT,
+    post_no           BIGINT        NOT NULL,
+    writer_email      VARCHAR(100)  NOT NULL,
+    nickname          VARCHAR(50)   NOT NULL,
+    parent_comment_no BIGINT,
+    content           VARCHAR(1000) NOT NULL,
+    del_flag          BOOLEAN       NOT NULL DEFAULT FALSE,
+    reg_time          DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    mod_time          DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (comment_no),
+    CONSTRAINT fk_community_comment_post FOREIGN KEY (post_no) REFERENCES tbl_community_post (post_no),
+    CONSTRAINT fk_community_comment_email FOREIGN KEY (writer_email) REFERENCES tbl_member (email),
+    CONSTRAINT fk_community_comment_parent FOREIGN KEY (parent_comment_no) REFERENCES tbl_community_comment (comment_no)
+);
+
+-- KYI - 커뮤니티 댓글 첨부파일
+CREATE TABLE IF NOT EXISTS tbl_community_comment_image (
+    image_no   BIGINT AUTO_INCREMENT,
+    comment_no BIGINT       NOT NULL,
+    file_name  VARCHAR(300) NOT NULL,
+    video      BOOLEAN      NOT NULL DEFAULT FALSE,
+    ord        INT          NOT NULL DEFAULT 0,
+    PRIMARY KEY (image_no),
+    CONSTRAINT fk_community_comment_image_comment FOREIGN KEY (comment_no) REFERENCES tbl_community_comment (comment_no)
 );
 -- KYI 끝
 
@@ -159,32 +431,69 @@ INSERT INTO tbl_allergy_ingredient (ingredientName) VALUES
     ('조개류(굴, 전복, 홍합 포함)'),
     ('잣');
 
--- YSJ - 퀘스트 마스터 (풀 ~100개: DAILY/WEEKLY/EVENT/URGENT)
+-- =========================================================
+-- YSJ - 퀘스트 (DAILY / URGENT)
+-- =========================================================
+
 CREATE TABLE IF NOT EXISTS tbl_quest (
     quest_id     BIGINT AUTO_INCREMENT,
     title        VARCHAR(200) NOT NULL,
     description  TEXT,
-    type         VARCHAR(20)  NOT NULL, -- DAILY | WEEKLY | EVENT | URGENT
-    difficulty   VARCHAR(20)  NOT NULL DEFAULT 'MEDIUM', -- EASY | MEDIUM | HARD
-    theme        VARCHAR(50),                          -- CARE | ACTIVITY | EMOTION 등
+    type         VARCHAR(20)  NOT NULL,              -- DAILY | URGENT
+    difficulty   VARCHAR(20)  NOT NULL DEFAULT 'MEDIUM',
+    theme        VARCHAR(50)  NULL,
     reward       INT          NOT NULL DEFAULT 0,
-    urgency      INT          NOT NULL DEFAULT 1,      -- URGENT용 1~3
-    due_days     INT          NOT NULL DEFAULT 1,      -- WEEKLY=7, EVENT=기간
+    urgency      INT          NOT NULL DEFAULT 1,
+    due_days     INT          NOT NULL DEFAULT 1,
     active       BOOLEAN      NOT NULL DEFAULT TRUE,
     PRIMARY KEY (quest_id),
     INDEX idx_quest_type_active (type, active)
 );
 
--- YSJ - 회원 배정/수령
+-- 구DB 호환: 없는 컬럼만 추가
+ALTER TABLE tbl_quest ADD COLUMN IF NOT EXISTS difficulty  VARCHAR(20) NOT NULL DEFAULT 'MEDIUM';
+ALTER TABLE tbl_quest ADD COLUMN IF NOT EXISTS theme       VARCHAR(50) NULL;
+ALTER TABLE tbl_quest ADD COLUMN IF NOT EXISTS reward      INT NOT NULL DEFAULT 0;
+ALTER TABLE tbl_quest ADD COLUMN IF NOT EXISTS urgency     INT NOT NULL DEFAULT 1;
+ALTER TABLE tbl_quest ADD COLUMN IF NOT EXISTS due_days    INT NOT NULL DEFAULT 1;
+ALTER TABLE tbl_quest ADD COLUMN IF NOT EXISTS active      BOOLEAN NOT NULL DEFAULT TRUE;
+ALTER TABLE tbl_quest ADD COLUMN IF NOT EXISTS repeat_type VARCHAR(20) NULL DEFAULT 'DAILY';
+ALTER TABLE tbl_quest MODIFY COLUMN repeat_type VARCHAR(20) NULL DEFAULT 'DAILY';
+
+-- 일일 퀘스트 시드 (없을 때만)
+INSERT INTO tbl_quest
+    (title, description, type, repeat_type, difficulty, theme, reward, urgency, due_days, active)
+SELECT title, description, type, repeat_type, difficulty, theme, reward, urgency, due_days, active
+FROM (
+    SELECT '기저귀 교대' AS title, '오늘 기저귀 교대를 1회 이상 해주세요' AS description,
+           'DAILY' AS type, 'DAILY' AS repeat_type, 'EASY' AS difficulty, 'CARE' AS theme,
+           10 AS reward, 1 AS urgency, 1 AS due_days, TRUE AS active
+    UNION ALL SELECT '아이와 10분 놀아주기', '집중해서 아이와 10분 놀아주세요',
+           'DAILY', 'DAILY', 'EASY', 'ACTIVITY', 15, 1, 1, TRUE
+    UNION ALL SELECT '목욕 준비 돕기', '목욕 준비물을 챙겨 도와주세요',
+           'DAILY', 'DAILY', 'MEDIUM', 'CARE', 20, 1, 1, TRUE
+    UNION ALL SELECT '수유/이유식 챙기기', '수유 또는 이유식 한 끼를 담당해주세요',
+           'DAILY', 'DAILY', 'MEDIUM', 'CARE', 20, 1, 1, TRUE
+    UNION ALL SELECT '잠자리 루틴', '재우기 전 루틴을 함께 진행해주세요',
+           'DAILY', 'DAILY', 'EASY', 'CARE', 15, 1, 1, TRUE
+    UNION ALL SELECT '짧은 산책', '유모차 또는 아기띠로 짧게 산책하세요',
+           'DAILY', 'DAILY', 'EASY', 'ACTIVITY', 15, 1, 1, TRUE
+    UNION ALL SELECT '정리 정돈', '아이 용품을 정리해주세요',
+           'DAILY', 'DAILY', 'EASY', 'CARE', 10, 1, 1, TRUE
+    UNION ALL SELECT '칭찬 한마디', '배우자 또는 아이에게 칭찬을 전해주세요',
+           'DAILY', 'DAILY', 'EASY', 'EMOTION', 10, 1, 1, TRUE
+) AS seed
+WHERE (SELECT COUNT(*) FROM tbl_quest WHERE type = 'DAILY') = 0;
+
 CREATE TABLE IF NOT EXISTS tbl_member_quest (
     id              BIGINT AUTO_INCREMENT,
     member_email    VARCHAR(100) NOT NULL,
     quest_id        BIGINT       NOT NULL,
     status          VARCHAR(20)  NOT NULL DEFAULT 'TODO', -- TODO | DONE | FAILED | EXPIRED
     assigned_date   DATE         NOT NULL,
-    due_date        DATE         NOT NULL,
-    completed_at    DATETIME,
-    created_by      VARCHAR(100) NULL, -- URGENT 생성 배우자
+    due_date        DATE         NULL,
+    completed_at    DATETIME     NULL,
+    created_by      VARCHAR(100) NULL,                   -- URGENT 생성 배우자
     PRIMARY KEY (id),
     CONSTRAINT fk_mq_member FOREIGN KEY (member_email) REFERENCES tbl_member (email),
     CONSTRAINT fk_mq_quest  FOREIGN KEY (quest_id) REFERENCES tbl_quest (quest_id),
@@ -192,7 +501,10 @@ CREATE TABLE IF NOT EXISTS tbl_member_quest (
     INDEX idx_mq_member_status (member_email, status)
 );
 
--- YSJ - 배우자(부부) 연동
+ALTER TABLE tbl_member_quest ADD COLUMN IF NOT EXISTS due_date DATE NULL;
+ALTER TABLE tbl_member_quest ADD COLUMN IF NOT EXISTS completed_at DATETIME NULL;
+ALTER TABLE tbl_member_quest ADD COLUMN IF NOT EXISTS created_by VARCHAR(100) NULL;
+
 CREATE TABLE IF NOT EXISTS tbl_couple (
     couple_id BIGINT AUTO_INCREMENT,
     email1    VARCHAR(100) NOT NULL,

@@ -30,6 +30,12 @@ public class BabyInfo {
 
     private Integer birthWeekCount;
 
+    private Double birthWeight;
+
+    private Double birthHeight;
+
+    private Double headCircumference;
+
     private LocalDateTime regTime;
 
     private LocalDateTime modTime;
@@ -52,6 +58,18 @@ public class BabyInfo {
 
     public void changeBirthWeekCount(Integer birthWeekCount) {
         this.birthWeekCount = birthWeekCount;
+    }
+
+    public void changeBirthWeight(Double birthWeight) {
+        this.birthWeight = birthWeight;
+    }
+
+    public void changeBirthHeight(Double birthHeight) {
+        this.birthHeight = birthHeight;
+    }
+
+    public void changeHeadCircumference(Double headCircumference) {
+        this.headCircumference = headCircumference;
     }
 
     public void changeProfileImageFileName(String profileImageFileName) {

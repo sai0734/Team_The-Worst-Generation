@@ -27,7 +27,6 @@ public class BabyGrowInfoServiceTests {
                     .measuredDate(LocalDate.parse("2017-12-07"))
                     .weight(50.1 + i)
                     .height(170.1 + i)
-                    .head(15.1 + i)
                     .build();
 
             babyGrowInfoService.register(babyGrowInfoDTO, "user1@aaa.com");

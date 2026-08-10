@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
-import { completeQuest, getQuestHome } from "../../api/questApi";
-import type { MemberQuest, QuestHome, QuestType } from "../../types/quest";
+import {
+  questApi,
+  type MemberQuest,
+  type QuestHome,
+  type QuestType,
+} from "../../api/questApi";
 
 const emptyHome: QuestHome = {
   dailyQuests: [],
-  weeklyQuests: [],
-  eventQuests: [],
   urgentQuests: [],
   point: 0,
 };
@@ -26,18 +28,6 @@ const typeStyle: Record<
     border: "border-sky-200",
     btn: "bg-sky-500 hover:bg-sky-600",
   },
-  WEEKLY: {
-    badge: "bg-emerald-500",
-    badgeText: "주간",
-    border: "border-emerald-200",
-    btn: "bg-emerald-500 hover:bg-emerald-600",
-  },
-  EVENT: {
-    badge: "bg-amber-500",
-    badgeText: "이벤트",
-    border: "border-amber-200",
-    btn: "bg-amber-500 hover:bg-amber-600",
-  },
 };
 
 const QuestPanel = () => {
@@ -48,14 +38,18 @@ const QuestPanel = () => {
   const load = async () => {
     setLoading(true);
     try {
-      const data = await getQuestHome();
+      const data = await questApi.getHome();
       setHome({
         dailyQuests: data.dailyQuests ?? [],
-        weeklyQuests: data.weeklyQuests ?? [],
-        eventQuests: data.eventQuests ?? [],
         urgentQuests: data.urgentQuests ?? [],
         point: data.point ?? 0,
       });
+    } catch (e) {
+      console.error("quest home load failed", e);
+      setHome(emptyHome);
+      alert(
+        "퀘스트를 불러오지 못했습니다. 로그인 상태와 백엔드 실행 여부를 확인하세요.",
+      );
     } finally {
       setLoading(false);
     }
@@ -68,19 +62,14 @@ const QuestPanel = () => {
   const handleComplete = async (id: number) => {
     setCompletingId(id);
     try {
-      await completeQuest(id);
+      await questApi.complete(id);
       await load();
     } finally {
       setCompletingId(null);
     }
   };
 
-  const allQuests = [
-    ...home.urgentQuests,
-    ...home.dailyQuests,
-    ...home.weeklyQuests,
-    ...home.eventQuests,
-  ];
+  const allQuests = [...home.urgentQuests, ...home.dailyQuests];
   const doneCount = allQuests.filter((q) => q.status === "DONE").length;
   const totalCount = allQuests.length;
   const earnedPoint = allQuests
@@ -184,8 +173,6 @@ const QuestPanel = () => {
 
       {renderSection("긴급 퀘스트", home.urgentQuests)}
       {renderSection("일일 퀘스트", home.dailyQuests)}
-      {renderSection("주간 퀘스트", home.weeklyQuests)}
-      {renderSection("이벤트 퀘스트", home.eventQuests)}
     </div>
   );
 };

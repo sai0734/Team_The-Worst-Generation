@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.backend.babysitter.mapper.BabysitterJobPostMapper">
+
+    <select id="selectByJobNo" resultType="com.backend.babysitter.domain.BabysitterJobPost">
+        SELECT job_no, parent_email, title, region, desired_date, time_slot, hourly_rate, message,
+               status, reg_time, mod_time
+        FROM tbl_babysitter_job_post
+        WHERE job_no = #{jobNo}
+    </select>
+
+    <select id="selectListByParent" resultType="com.backend.babysitter.domain.BabysitterJobPost">
+        SELECT job_no, parent_email, title, region, desired_date, time_slot, hourly_rate, message,
+               status, reg_time, mod_time
+        FROM tbl_babysitter_job_post
+        WHERE parent_email = #{parentEmail}
+        ORDER BY reg_time DESC
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="jobNo" keyColumn="job_no">
+        INSERT INTO tbl_babysitter_job_post
+            (parent_email, title, region, desired_date, time_slot, hourly_rate, message, status)
+        VALUES
+            (#{parentEmail}, #{title}, #{region}, #{desiredDate}, #{timeSlot}, #{hourlyRate}, #{message}, #{status})
+    </insert>
+
+    <update id="updateStatus">
+        UPDATE tbl_babysitter_job_post
+        SET status   = #{status},
+            mod_time = CURRENT_TIMESTAMP
+        WHERE job_no = #{jobNo}
+    </update>
+
+    <select id="selectList" resultType="com.backend.babysitter.domain.BabysitterJobPost">
+        SELECT job_no, parent_email, title, region, desired_date, time_slot, hourly_rate, message,
+               status, reg_time, mod_time
+        FROM tbl_babysitter_job_post
+        <include refid="searchWhere"/>
+        ORDER BY reg_time DESC
+        LIMIT #{search.size} OFFSET #{skip}
+    </select>
+
+    <select id="selectListCount" resultType="long">
+        SELECT COUNT(*)
+        FROM tbl_babysitter_job_post
+        <include refid="searchWhere"/>
+    </select>
+
+    <sql id="searchWhere">
+        WHERE status = 'OPEN'
+        <if test="search.region != null and search.region != ''">
+            AND region = #{search.region}
+        </if>
+        <if test="search.desiredDate != null">
+            AND desired_date = #{search.desiredDate}
+        </if>
+        <if test="search.timeSlot != null">
+            AND time_slot = #{search.timeSlot}
+        </if>
+        <if test="search.keyword != null and search.keyword != ''">
+            AND (title LIKE CONCAT('%', #{search.keyword}, '%')
+                 OR message LIKE CONCAT('%', #{search.keyword}, '%'))
+        </if>
+    </sql>
+
+</mapper>

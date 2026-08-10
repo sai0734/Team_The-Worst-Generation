@@ -4,6 +4,8 @@ import com.backend.babyInfo.domain.BabyInfo;
 import com.backend.babyInfo.dto.BabyInfoDTO;
 import com.backend.babyInfo.mapper.BabyGrowInfoMapper;
 import com.backend.babyInfo.mapper.BabyInfoMapper;
+import com.backend.vaccination.mapper.BabyVaccinationMapper;
+import com.backend.sleep.mapper.BabySleepMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.modelmapper.ModelMapper;
@@ -22,6 +24,10 @@ public class BabyInfoServiceImpl implements BabyInfoService{
     private final BabyInfoMapper babyInfoMapper;
 
     private final BabyGrowInfoMapper babyGrowInfoMapper;
+
+    private final BabyVaccinationMapper babyVaccinationMapper;
+
+    private final BabySleepMapper babySleepMapper;
 
     private final ModelMapper modelMapper;
 
@@ -86,6 +92,9 @@ public class BabyInfoServiceImpl implements BabyInfoService{
         babyInfo.changeBirthDate(babyInfoDTO.getBirthDate());
         babyInfo.changeBloodType(babyInfoDTO.getBloodType());
         babyInfo.changeBirthWeekCount(babyInfoDTO.getBirthWeekCount());
+        babyInfo.changeBirthWeight(babyInfoDTO.getBirthWeight());
+        babyInfo.changeBirthHeight(babyInfoDTO.getBirthHeight());
+        babyInfo.changeHeadCircumference(babyInfoDTO.getHeadCircumference());
         babyInfo.changeProfileImageFileName(babyInfoDTO.getProfileImageFileName());
 
         babyInfoMapper.update(babyInfo, email);
@@ -98,6 +107,10 @@ public class BabyInfoServiceImpl implements BabyInfoService{
         log.info("babyInfo_Service_remove_실행~~~~~~~~~~~~");
 
         babyGrowInfoMapper.removeByBabyNo(babyNo, email);
+
+        babyVaccinationMapper.deleteByBabyNo(babyNo, email);
+
+        babySleepMapper.deleteByBabyNo(babyNo, email);
 
         babyInfoMapper.delete(babyNo, email);
 

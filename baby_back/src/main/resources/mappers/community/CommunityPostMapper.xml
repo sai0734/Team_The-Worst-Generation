@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.backend.community.mapper.CommunityPostMapper">
+
+    <resultMap id="postResultMap" type="com.backend.community.domain.CommunityPost">
+        <id property="postNo" column="post_no"/>
+        <result property="writerEmail" column="writer_email"/>
+        <result property="nickname" column="nickname"/>
+        <result property="title" column="title"/>
+        <result property="content" column="content"/>
+        <result property="aiSummary" column="ai_summary"/>
+        <result property="viewCount" column="view_count"/>
+        <result property="commentCount" column="comment_count"/>
+        <result property="delFlag" column="del_flag"/>
+        <result property="regTime" column="reg_time"/>
+        <result property="modTime" column="mod_time"/>
+        <collection property="imageList"
+                    column="post_no"
+                    javaType="java.util.ArrayList"
+                    ofType="com.backend.community.domain.CommunityPostImage"
+                    select="selectImages"/>
+    </resultMap>
+
+    <select id="selectByPostNo" resultMap="postResultMap">
+        SELECT post_no, writer_email, nickname, title, content, ai_summary, view_count, comment_count,
+               del_flag, reg_time, mod_time
+        FROM tbl_community_post
+        WHERE post_no = #{postNo}
+          AND del_flag = false
+    </select>
+
+    <select id="selectImages" resultType="com.backend.community.domain.CommunityPostImage">
+        SELECT image_no, post_no, file_name, video, ord
+        FROM tbl_community_post_image
+        WHERE post_no = #{postNo}
+        ORDER BY ord
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="postNo" keyColumn="post_no">
+        INSERT INTO tbl_community_post (writer_email, nickname, title, content)
+        VALUES (#{writerEmail}, #{nickname}, #{title}, #{content})
+    </insert>
+
+    <insert id="insertImage" useGeneratedKeys="true" keyProperty="imageNo" keyColumn="image_no">
+        INSERT INTO tbl_community_post_image (post_no, file_name, video, ord)
+        VALUES (#{postNo}, #{fileName}, #{video}, #{ord})
+    </insert>
+
+    <delete id="deleteImage">
+        DELETE FROM tbl_community_post_image WHERE post_no = #{postNo} AND file_name = #{fileName}
+    </delete>
+
+    <update id="update">
+        UPDATE tbl_community_post
+        SET title      = #{title},
+            content    = #{content},
+            ai_summary = #{aiSummary},
+            mod_time   = CURRENT_TIMESTAMP
+        WHERE post_no = #{postNo}
+    </update>
+
+    <update id="updateAiSummary">
+        UPDATE tbl_community_post
+        SET ai_summary = #{aiSummary}
+        WHERE post_no = #{postNo}
+    </update>
+
+    <update id="increaseViewCount">
+        UPDATE tbl_community_post
+        SET view_count = view_count + 1
+        WHERE post_no = #{postNo}
+    </update>
+
+    <update id="changeCommentCount">
+        UPDATE tbl_community_post
+        SET comment_count = comment_count + #{delta}
+        WHERE post_no = #{postNo}
+    </update>
+
+    <update id="updateToDelete">
+        UPDATE tbl_community_post
+        SET del_flag = true
+        WHERE post_no = #{postNo}
+    </update>
+
+    <select id="selectList" resultType="com.backend.community.domain.CommunityPost">
+        SELECT post_no, writer_email, nickname, title, content, ai_summary, view_count, comment_count,
+               del_flag, reg_time, mod_time
+        FROM tbl_community_post
+        <include refid="searchWhere"/>
+        ORDER BY post_no DESC
+        LIMIT #{search.size} OFFSET #{skip}
+    </select>
+
+    <select id="selectListCount" resultType="long">
+        SELECT COUNT(*)
+        FROM tbl_community_post
+        <include refid="searchWhere"/>
+    </select>
+
+    <sql id="searchWhere">
+        WHERE del_flag = false
+        <if test="search.keyword != null and search.keyword != ''">
+            AND (title LIKE CONCAT('%', #{search.keyword}, '%')
+                 OR content LIKE CONCAT('%', #{search.keyword}, '%'))
+        </if>
+    </sql>
+
+</mapper>

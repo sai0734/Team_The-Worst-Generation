@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.backend.babysitter.mapper.BabysitterProfileMapper">
+
+    <resultMap id="profileResultMap" type="com.backend.babysitter.domain.BabysitterProfile">
+        <id property="email" column="email"/>
+        <result property="name" column="name"/>
+        <result property="careerYears" column="career_years"/>
+        <result property="region" column="region"/>
+        <result property="availableTime" column="available_time"/>
+        <result property="hourlyRate" column="hourly_rate"/>
+        <result property="intro" column="intro"/>
+        <result property="profileImageFileName" column="profile_image_file_name"/>
+        <result property="status" column="status"/>
+        <result property="regTime" column="reg_time"/>
+        <result property="modTime" column="mod_time"/>
+        <collection property="availabilityList"
+                    column="email"
+                    javaType="java.util.ArrayList"
+                    ofType="com.backend.babysitter.domain.BabysitterAvailability"
+                    select="selectAvailability"/>
+    </resultMap>
+
+    <select id="selectByEmail" resultMap="profileResultMap">
+        SELECT email, name, career_years, region, available_time, hourly_rate, intro,
+               profile_image_file_name, status, reg_time, mod_time
+        FROM tbl_babysitter_profile
+        WHERE email = #{email}
+    </select>
+
+    <select id="selectAvailability" resultType="com.backend.babysitter.domain.BabysitterAvailability">
+        SELECT email, day_of_week, time_slot
+        FROM tbl_babysitter_availability
+        WHERE email = #{email}
+    </select>
+
+    <insert id="insertAvailability">
+        INSERT INTO tbl_babysitter_availability (email, day_of_week, time_slot)
+        VALUES (#{email}, #{dayOfWeek}, #{timeSlot})
+    </insert>
+
+    <delete id="deleteAvailability">
+        DELETE FROM tbl_babysitter_availability WHERE email = #{email}
+    </delete>
+
+    <insert id="insert">
+        INSERT INTO tbl_babysitter_profile
+            (email, name, career_years, region, available_time, hourly_rate, intro, status)
+        VALUES
+            (#{email}, #{name}, #{careerYears}, #{region}, #{availableTime}, #{hourlyRate}, #{intro}, #{status})
+    </insert>
+
+    <update id="update">
+        UPDATE tbl_babysitter_profile
+        SET name           = #{name},
+            career_years   = #{careerYears},
+            region         = #{region},
+            available_time = #{availableTime},
+            hourly_rate    = #{hourlyRate},
+            intro          = #{intro},
+            status         = #{status},
+            mod_time       = CURRENT_TIMESTAMP
+        WHERE email = #{email}
+    </update>
+
+    <update id="updateProfileImage">
+        UPDATE tbl_babysitter_profile
+        SET profile_image_file_name = #{profileImageFileName},
+            mod_time                = CURRENT_TIMESTAMP
+        WHERE email = #{email}
+    </update>
+
+    <delete id="delete">
+        DELETE FROM tbl_babysitter_profile WHERE email = #{email}
+    </delete>
+
+    <select id="selectList" resultType="com.backend.babysitter.domain.BabysitterProfile">
+        SELECT email, name, career_years, region, available_time, hourly_rate, intro,
+               profile_image_file_name, status, reg_time, mod_time
+        FROM tbl_babysitter_profile
+        <include refid="searchWhere"/>
+        <choose>
+            <when test="search.sort == 'pick'">
+                ORDER BY (SELECT COUNT(*) FROM tbl_babysitter_pick p
+                          WHERE p.sitter_email = tbl_babysitter_profile.email) DESC, reg_time DESC
+            </when>
+            <when test="search.sort == 'career'">
+                ORDER BY career_years DESC, reg_time DESC
+            </when>
+            <otherwise>
+                ORDER BY reg_time DESC
+            </otherwise>
+        </choose>
+        LIMIT #{search.size} OFFSET #{skip}
+    </select>
+
+    <select id="selectListCount" resultType="long">
+        SELECT COUNT(*)
+        FROM tbl_babysitter_profile
+        <include refid="searchWhere"/>
+    </select>
+
+    <sql id="searchWhere">
+        WHERE status = 'ACTIVE'
+        <if test="search.region != null and search.region != ''">
+            AND region = #{search.region}
+        </if>
+        <if test="search.minCareerYears != null">
+            AND career_years &gt;= #{search.minCareerYears}
+        </if>
+        <if test="search.keyword != null and search.keyword != ''">
+            AND (name LIKE CONCAT('%', #{search.keyword}, '%')
+                 OR intro LIKE CONCAT('%', #{search.keyword}, '%'))
+        </if>
+        <if test="search.dayOfWeek != null and search.timeSlot != null">
+            AND EXISTS (
+                SELECT 1 FROM tbl_babysitter_availability a
+                WHERE a.email = tbl_babysitter_profile.email
+                  AND a.day_of_week = #{search.dayOfWeek}
+                  AND a.time_slot = #{search.timeSlot}
+            )
+        </if>
+    </sql>
+
+</mapper>

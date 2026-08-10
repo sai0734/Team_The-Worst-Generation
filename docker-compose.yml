@@ -26,6 +26,7 @@ services:
       SPRING_DATASOURCE_PASSWORD: BABYDBUSER
       OLLAMA_BASE_URL: http://ollama:11434
       OLLAMA_MODEL: parenting-qwen:8b
+      GOOGLE_VISION_API_KEY: ${GOOGLE_VISION_API_KEY}
     depends_on:
       mariadb:
         condition: service_healthy
