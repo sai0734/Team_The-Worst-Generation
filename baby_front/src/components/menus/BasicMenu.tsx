@@ -4,46 +4,36 @@ import type { RootState } from "../../store";
 
 const BasicMenu = () => {
   const loginState = useSelector((state: RootState) => state.loginSlice);
-  return (
-    <nav id="navbar" className=" flex  bg-blue-300">
-      <div className="w-4/5 bg-gray-500">
-        <ul className="flex p-4 text-white font-bold">
-          <li className="pr-6 text-2xl">
-            <Link to={"/"}>Main</Link>
-          </li>
-          <li className="pr-6 text-2xl">
-            <Link to={"/about"}>About</Link>
-          </li>
-          <li className="pr-6 text-2xl">
-            <Link to={"/community"}>커뮤니티</Link>
-          </li>
-          <li className="pr-6 text-2xl">
-            <Link to={"/market"}>감자마켓</Link>
-          </li>
-          {loginState.email ? ( // 로그인한 사용자만 출력되는 메뉴
-            <>
-              <li className="pr-6 text-2xl">
-                <Link to={"/babyInfo"}>응애관리</Link>
-              </li>
-            </>
-          ) : (
-            <></>
-          )}
-        </ul>
-      </div>
 
-      <div className="w-1/5 flex justify-end bg-orange-300 p-4 font-medium">
-        {!loginState.email ? (
-          <div className="text-white text-sm m-1 rounded">
-            <Link to={"/member/login"}>Login</Link>
-          </div>
-        ) : (
-          <div className="text-white text-sm m-1 rounded">
-            <Link to={"/member/logout"}>Logout</Link>
-          </div>
-        )}
+  return (
+    <header className="top">
+      <Link className="logo" to="/">
+        <b>아이</b>봄
+      </Link>
+
+      <div className="top-right">
+        {/* TODO: 챗봇 담당자님이 ChatbotWidget open state랑 연결 예정 */}
+        <button type="button" className="tool">
+          <i>💬</i>
+          <span>AI 챗봇</span>
+        </button>
+        <button type="button" className="tool">
+          <i>📹</i>
+          <span>홈캠</span>
+          <b className="live"></b>
+        </button>
+
+        <div className="account">
+          <Link to="/mypage">마이페이지</Link>
+          {loginState.email ? (
+            <Link to="/member/logout">로그아웃</Link>
+          ) : (
+            <Link to="/member/login">로그인</Link>
+          )}
+        </div>
       </div>
-    </nav>
+    </header>
   );
 };
+
 export default BasicMenu;
