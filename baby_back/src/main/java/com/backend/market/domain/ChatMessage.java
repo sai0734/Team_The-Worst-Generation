@@ -22,13 +22,13 @@ public class ChatMessage {
     private String senderEmail;
 
     @Builder.Default
-    private String msgType = "TEXT"; // TEXT | OFFER | IMAGE
+    private String msgType = "TEXT";    // TEXT | OFFER | IMAGE
 
-    private String content; // TEXT: 메시지 내용, IMAGE: 업로드된 파일명
+    private String content;             // TEXT: 메시지 내용, IMAGE: 업로드된 파일명
 
     private Integer offerPrice;
 
-    private String offerStatus; // PENDING | ACCEPTED | DECLINED
+    private String offerStatus;         // PENDING | ACCEPTED | DECLINED
 
     private LocalDateTime regTime;
 

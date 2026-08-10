@@ -1,0 +1,450 @@
+* {
+  box-sizing: border-box;
+}
+.app {
+  --bg: #f1f4ed;
+  --ink: #203027;
+  --muted: #6d7b72;
+  --accent: #5e9270;
+  --line: #23402d22;
+  --glass: #ffffffd9;
+  --soft: #e4eee5;
+  --rail: #e7ede4e8;
+  --hover: #f9fff8;
+  --tool: #253e30;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--ink);
+  overflow: hidden;
+  position: relative;
+}
+.app a {
+  text-decoration: none;
+  color: inherit;
+}
+.app:before {
+  content: "";
+  position: absolute;
+  width: 520px;
+  height: 520px;
+  border-radius: 50%;
+  background: var(--decor, #dbe8d6);
+  left: -210px;
+  bottom: -300px;
+}
+.app .top {
+  height: 78px;
+  padding: 0 4vw;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--line);
+  background: var(--glass);
+  backdrop-filter: blur(16px);
+  position: relative;
+  z-index: 8;
+}
+.app .logo {
+  font-size: 23px;
+  font-weight: 900;
+}
+.app .logo b {
+  color: var(--accent);
+}
+.app .top-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.app .account {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 700;
+}
+.app .account a {
+  padding: 10px 13px;
+  border-radius: 99px;
+}
+.app .account a:last-child {
+  background: var(--ink);
+  color: var(--bg);
+}
+.app .stage {
+  height: calc(100vh - 78px);
+  min-height: 650px;
+  position: relative;
+  z-index: 2;
+}
+.app .main {
+  height: 100%;
+  padding: clamp(38px, 5vh, 68px) clamp(30px, 5vw, 80px);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  overflow-y: auto;
+}
+.app .eyebrow {
+  font-size: 11px;
+  letter-spacing: 2.5px;
+  font-weight: 900;
+  color: var(--accent);
+}
+.app h1 {
+  font-size: clamp(42px, 5vw, 75px);
+  line-height: 1.08;
+  letter-spacing: -4px;
+  margin: 14px 0;
+}
+.app .desc {
+  font-size: 15px;
+  line-height: 1.75;
+  color: var(--muted);
+}
+.app .summary {
+  display: flex;
+  gap: 9px;
+  margin-top: 20px;
+  flex-wrap: wrap;
+}
+.app .chip {
+  padding: 9px 13px;
+  border: 1px solid var(--line);
+  background: var(--glass);
+  border-radius: 99px;
+  font-size: 11px;
+  font-weight: 700;
+}
+.app .card {
+  background: var(--glass);
+  border: 1px solid var(--line);
+  border-radius: var(--radius, 24px);
+  padding: 20px;
+  backdrop-filter: blur(15px);
+  box-shadow: 0 18px 55px #233c2d14;
+}
+.app .head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.app .head h2 {
+  font-size: 16px;
+  margin: 0;
+}
+.app .head b {
+  font-size: 11px;
+  color: var(--accent);
+}
+.app .q {
+  display: grid;
+  grid-template-columns: 28px 1fr auto;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 0;
+  border-top: 1px solid var(--line);
+  font-size: 12px;
+}
+.app .q i {
+  width: 24px;
+  height: 24px;
+  border-radius: 8px;
+  background: var(--soft);
+  display: grid;
+  place-items: center;
+  font-style: normal;
+  color: var(--accent);
+}
+.app .q small {
+  color: var(--muted);
+}
+.app .urgent {
+  background: var(--urgent, #fff0ee);
+}
+.app .urgent strong {
+  display: block;
+  font-size: 20px;
+  line-height: 1.25;
+  margin: 12px 0 7px;
+}
+.app .urgent p {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+.app .alert {
+  display: inline-block;
+  padding: 5px 8px;
+  border-radius: 99px;
+  background: #ef6262;
+  color: #fff;
+  font-size: 9px;
+  font-weight: 900;
+}
+.app .tool {
+  height: 46px;
+  padding: 0 15px;
+  border: 0;
+  border-radius: 15px;
+  background: var(--tool);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-weight: 800;
+  font-size: 12px;
+  cursor: pointer;
+}
+.app .tool i {
+  font-style: normal;
+  font-size: 18px;
+}
+.app .live {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #4ce29b;
+  box-shadow: 0 0 0 5px #4ce29b22;
+}
+
+/* ===== 우측 접이식 레일 + 호버 플라이아웃 부메뉴 ===== */
+.app .rail-dock {
+  position: fixed;
+  top: 78px;
+  right: 0;
+  height: calc(100vh - 78px);
+  display: flex;
+  z-index: 16;
+}
+.app .rail-handle {
+  width: 16px;
+  border: 0;
+  padding: 0;
+  background: var(--tool);
+  cursor: pointer;
+  border-radius: 14px 0 0 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.18s;
+}
+.app .rail-handle span {
+  writing-mode: vertical-rl;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 3px;
+}
+.app .rail {
+  width: 0;
+  overflow: hidden;
+  display: grid;
+  grid-template-rows: repeat(5, 1fr);
+  border-left: 1px solid var(--line);
+  background: var(--rail);
+  transition: width 0.22s ease;
+}
+.app .rail-dock:hover .rail,
+.app .rail-dock.open .rail {
+  width: clamp(260px, 20vw, 340px);
+  overflow: visible;
+}
+.app .rail-dock.open .rail-handle {
+  background: var(--accent);
+}
+.app .rail-item {
+  position: relative;
+}
+.app .move {
+  padding: 18px clamp(23px, 2.7vw, 44px);
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: relative;
+  transition: 0.25s;
+  overflow: hidden;
+  height: 100%;
+}
+.app .move:hover {
+  background: var(--hover);
+  padding-left: calc(clamp(23px, 2.7vw, 44px) + 12px);
+}
+.app .move:before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 0;
+  background: var(--accent);
+  transition: 0.25s;
+}
+.app .move:hover:before {
+  width: 5px;
+}
+.app .move small {
+  display: block;
+  font-size: 10px;
+  letter-spacing: 1.4px;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.app .move strong {
+  font-size: clamp(18px, 1.5vw, 25px);
+  letter-spacing: -0.7px;
+}
+.app .move i {
+  font-style: normal;
+  font-size: 28px;
+}
+.app .move em {
+  font-style: normal;
+  font-size: 17px;
+  opacity: 0.35;
+  margin-left: 12px;
+}
+.app .flyout {
+  position: absolute;
+  top: 0;
+  right: 100%;
+  min-width: 210px;
+  background: var(--glass);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: 0 18px 44px #233c2d22;
+  padding: 10px;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateX(8px);
+  transition: 0.16s ease;
+  backdrop-filter: blur(16px);
+  z-index: 25;
+}
+.app .rail-item:hover .flyout {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(0);
+}
+.app .flyout a {
+  display: block;
+  padding: 10px 12px;
+  border-radius: 10px;
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.app .flyout a:hover {
+  background: var(--soft);
+  color: var(--accent);
+}
+.app .flyout .flyout-title {
+  padding: 6px 12px 8px;
+  font-size: 10px;
+  letter-spacing: 1px;
+  color: var(--muted);
+  font-weight: 900;
+}
+
+/* ===== 홈 화면 콘텐츠 (퀘스트 / 가계부 / 리콜 / 정부지원금) ===== */
+.app .content-stack {
+  width: min(820px, 100%);
+  display: grid;
+  gap: 13px;
+}
+.app .boards {
+  display: grid;
+  grid-template-columns: 1.35fr 0.65fr;
+  gap: 13px;
+  width: 100%;
+}
+.app .info-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 13px;
+}
+.app .info {
+  min-height: 135px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.app .info small {
+  font-size: 9px;
+  letter-spacing: 1.2px;
+  font-weight: 900;
+  color: var(--accent);
+}
+.app .info strong {
+  font-size: 19px;
+  line-height: 1.25;
+}
+.app .info p {
+  font-size: 10px;
+  color: var(--muted);
+  margin: 4px 0;
+}
+.app .info.moneybox {
+  background: var(--soft);
+}
+.app .info.recallbox {
+  background: var(--urgent);
+}
+.app .info.supportbox {
+  background: var(--glass);
+}
+
+@media (max-width: 900px) {
+  .app .top {
+    height: 66px;
+    padding: 0 20px;
+  }
+  .app .top-right {
+    gap: 8px;
+  }
+  .app .tool span {
+    display: none;
+  }
+  .app .tool {
+    width: 44px;
+    padding: 0;
+    justify-content: center;
+  }
+  .app .account a:first-child {
+    display: none;
+  }
+  .app .stage {
+    height: auto;
+    flex-direction: column;
+  }
+  .app .main {
+    min-height: 680px;
+    padding: 38px 22px 40px;
+  }
+  .app .rail-dock {
+    position: fixed;
+    right: 0;
+    top: 66px;
+    height: calc(100vh - 66px);
+  }
+  .app .move {
+    min-height: 105px;
+  }
+  .app .boards {
+    grid-template-columns: 1fr;
+  }
+  .app .info-grid {
+    grid-template-columns: 1fr;
+  }
+  .app h1 {
+    font-size: 46px;
+  }
+  .app .flyout {
+    right: auto;
+    left: 0;
+  }
+  .app .content-stack {
+    margin-top: 20px;
+  }
+}
