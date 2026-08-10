@@ -4,6 +4,7 @@ import com.backend.babyInfo.domain.BabyInfo;
 import com.backend.babyInfo.dto.BabyInfoDTO;
 import com.backend.babyInfo.mapper.BabyGrowInfoMapper;
 import com.backend.babyInfo.mapper.BabyInfoMapper;
+import com.backend.diary.mapper.BabyDiaryMapper;
 import com.backend.vaccination.mapper.BabyVaccinationMapper;
 import com.backend.sleep.mapper.BabySleepMapper;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +29,8 @@ public class BabyInfoServiceImpl implements BabyInfoService{
     private final BabyVaccinationMapper babyVaccinationMapper;
 
     private final BabySleepMapper babySleepMapper;
+
+    private final BabyDiaryMapper babyDiaryMapper;
 
     private final ModelMapper modelMapper;
 
@@ -111,6 +114,8 @@ public class BabyInfoServiceImpl implements BabyInfoService{
         babyVaccinationMapper.deleteByBabyNo(babyNo, email);
 
         babySleepMapper.deleteByBabyNo(babyNo, email);
+
+        babyDiaryMapper.deleteByBabyNo(babyNo, email);
 
         babyInfoMapper.delete(babyNo, email);
 
