@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.backend.album.mapper.BabyAlbumMapper">
+
+    <select id="selectList" resultType="com.backend.album.domain.BabyAlbum">
+        SELECT ba.album_no, ba.baby_no, ba.photo_file_name, ba.taken_date,
+        ba.latitude, ba.longitude, ba.reg_time
+        FROM tbl_baby_album ba
+        JOIN tbl_baby_info bi ON ba.baby_no = bi.baby_no
+        WHERE ba.baby_no = #{babyNo} AND bi.email = #{email}
+        <choose>
+            <when test="sort == 'oldest'">
+                ORDER BY ba.taken_date ASC, ba.album_no ASC
+            </when>
+            <otherwise>
+                ORDER BY ba.taken_date DESC, ba.album_no DESC
+            </otherwise>
+        </choose>
+        LIMIT #{size} OFFSET #{skip}
+    </select>
+
+    <select id="selectListCount" resultType="long">
+        SELECT COUNT(*)
+        FROM tbl_baby_album ba
+        JOIN tbl_baby_info bi ON ba.baby_no = bi.baby_no
+        WHERE ba.baby_no = #{babyNo} AND bi.email = #{email}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="albumNo" keyColumn="album_no">
+        INSERT INTO tbl_baby_album (baby_no, photo_file_name, taken_date, latitude, longitude)
+        VALUES (#{babyNo}, #{photoFileName}, #{takenDate}, #{latitude}, #{longitude})
+    </insert>
+
+    <delete id="delete">
+        DELETE FROM tbl_baby_album
+        WHERE album_no = #{albumNo}
+        AND baby_no IN (SELECT baby_no FROM tbl_baby_info WHERE email = #{email})
+    </delete>
+
+    <delete id="deleteByBabyNo">
+        DELETE FROM tbl_baby_album
+        WHERE baby_no = #{babyNo}
+        AND baby_no IN (SELECT baby_no FROM tbl_baby_info WHERE email = #{email})
+    </delete>
+
+</mapper>

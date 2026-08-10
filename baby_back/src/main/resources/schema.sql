@@ -212,6 +212,18 @@ CREATE TABLE IF NOT EXISTS tbl_baby_diary (
     CONSTRAINT fk_baby_diary FOREIGN KEY (baby_no) REFERENCES tbl_baby_info (baby_no)
 );
 
+CREATE TABLE IF NOT EXISTS tbl_baby_album (
+    album_no BIGINT AUTO_INCREMENT,
+    baby_no BIGINT NOT NULL,
+    photo_file_name VARCHAR(500) NOT NULL,
+    taken_date DATE NOT NULL,
+    latitude DECIMAL(10,7),
+    longitude DECIMAL(10,7),
+    reg_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (album_no),
+    CONSTRAINT fk_baby_album FOREIGN KEY (baby_no) REFERENCES tbl_baby_info (baby_no)
+    );
+
 -- KYI - 가계부 내역
 CREATE TABLE IF NOT EXISTS tbl_ledger (
     lno      BIGINT AUTO_INCREMENT,

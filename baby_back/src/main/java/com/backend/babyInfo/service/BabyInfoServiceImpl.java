@@ -1,5 +1,6 @@
 package com.backend.babyInfo.service;
 
+import com.backend.album.mapper.BabyAlbumMapper;
 import com.backend.babyInfo.domain.BabyInfo;
 import com.backend.babyInfo.dto.BabyInfoDTO;
 import com.backend.babyInfo.mapper.BabyGrowInfoMapper;
@@ -31,6 +32,8 @@ public class BabyInfoServiceImpl implements BabyInfoService{
     private final BabySleepMapper babySleepMapper;
 
     private final BabyDiaryMapper babyDiaryMapper;
+
+    private final BabyAlbumMapper babyAlbumMapper;
 
     private final ModelMapper modelMapper;
 
@@ -116,6 +119,8 @@ public class BabyInfoServiceImpl implements BabyInfoService{
         babySleepMapper.deleteByBabyNo(babyNo, email);
 
         babyDiaryMapper.deleteByBabyNo(babyNo, email);
+
+        babyAlbumMapper.deleteByBabyNo(babyNo, email);
 
         babyInfoMapper.delete(babyNo, email);
 
