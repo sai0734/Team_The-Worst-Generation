@@ -4,6 +4,7 @@ import memberRouter from "./memberRouter";
 import babyInfoRouter from "./babyInfoRouter";
 import communityRouter from "./communityRouter";
 import marketRouter from "./marketRouter";
+import recallRouter from "./recallRouter";
 
 const Loading = <div>Loading....</div>;
 const Main = lazy(() => import("../pages/MainPage"));
@@ -55,6 +56,10 @@ const root = createBrowserRouter([
   {
     path: "market",
     children: marketRouter(),
+  },
+  {
+    path: "recall",
+    children: recallRouter(),
   },
 ]);
 
