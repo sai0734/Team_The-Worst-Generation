@@ -10,6 +10,6 @@ import java.util.List;
 @Mapper
 public interface AllergyIngredientMapper {
 
-    @Select("SELECT ingredient_no, ingredient_name FROM tbl_allergy_ingredient")
+    @Select("SELECT ingredientNo, ingredientName FROM tbl_allergy_ingredient")
     List<AllergyIngredient> selectAll();
 }

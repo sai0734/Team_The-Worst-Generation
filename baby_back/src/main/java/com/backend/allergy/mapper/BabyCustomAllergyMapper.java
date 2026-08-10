@@ -8,15 +8,14 @@ import java.util.List;
 
 @Mapper
 public interface BabyCustomAllergyMapper {
-    @Select("SELECT custom_allergy_no, baby_no, ingredient_name, reg_time "
-    + "FROM tbl_baby_custom_allergy WHERE baby_no = #{babyNo}")
+    @Select("SELECT customAllergyNo, babyNo, ingredientName, regTime "
+            + "FROM tbl_baby_custom_allergy WHERE babyNo = #{babyNo}")
     List<BabyCustomAllergy> selectByBabyNo(@Param("babyNo") Long babyNo);
 
-    @Insert("INSERT INTO tbl_baby_custom_allergy (baby_no, ingredient_name) "
-    + "VALUES (#{babyNo}, #{ingredientName})")
+    @Insert("INSERT INTO tbl_baby_custom_allergy (babyNo, ingredientName) "
+            + "VALUES (#{babyNo}, #{ingredientName})")
     void insert(BabyCustomAllergy babyCustomAllergy);
 
-    @Delete("DELETE FROM tbl_baby_custom_allergy WHERE custom_allergy_no= #{customAllergyNo}")
+    @Delete("DELETE FROM tbl_baby_custom_allergy WHERE customAllergyNo = #{customAllergyNo}")
     void remove(@Param("customAllergyNo") Long customAllergyNo);
 }
-

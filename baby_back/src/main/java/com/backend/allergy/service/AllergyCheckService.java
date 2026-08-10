@@ -11,6 +11,8 @@ import com.backend.allergy.mapper.BabyCustomAllergyMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 
 import java.io.IOException;
@@ -59,7 +61,7 @@ public class AllergyCheckService implements AllergyCheckServiceImpl {
     private String matchOfficialAllergens(String ocrText) {
 
         List<AllergyIngredient> allIngredients = allergyIngredientMapper.selectAll();
-        List<String> matched = new ArrayList<>();
+        Set<String> matched = new LinkedHashSet<>();
 
         for (AllergyIngredient ingredient : allIngredients) {
             if (ocrText.contains(ingredient.getIngredientName())) {
