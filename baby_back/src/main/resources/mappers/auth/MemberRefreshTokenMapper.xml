@@ -51,6 +51,8 @@
         UPDATE tbl_member_refresh_token
         SET used_at = CURRENT_TIMESTAMP
         WHERE id = #{id}
+          AND used_at IS NULL
+          AND revoked = FALSE
     </update>
 
     <update id="revokeByTokenHash">

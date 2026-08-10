@@ -46,6 +46,31 @@ CREATE TABLE IF NOT EXISTS tbl_member_refresh_token (
     INDEX idx_member_refresh_token_member_email (member_email),
     CONSTRAINT fk_member_refresh_token_member FOREIGN KEY (member_email) REFERENCES tbl_member (email)
     );
+
+CREATE TABLE IF NOT EXISTS tbl_family (
+                                          family_id BIGINT AUTO_INCREMENT,
+    family_name VARCHAR(100) NOT NULL,
+    invite_code VARCHAR(20) NOT NULL,
+    created_by VARCHAR(100) NOT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (family_id),
+    UNIQUE KEY uk_family_invite_code (invite_code),
+    CONSTRAINT fk_family_created_by FOREIGN KEY (created_by) REFERENCES tbl_member (email)
+    );
+
+CREATE TABLE IF NOT EXISTS tbl_family_member (
+                                                 id BIGINT AUTO_INCREMENT,
+                                                 family_id BIGINT NOT NULL,
+                                                 member_email VARCHAR(100) NOT NULL,
+    family_role VARCHAR(20) NOT NULL DEFAULT 'MEMBER',
+    parent_type VARCHAR(20) NOT NULL,
+    joined_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_family_member_email (member_email),
+    UNIQUE KEY uk_family_member_pair (family_id, member_email),
+    CONSTRAINT fk_family_member_family FOREIGN KEY (family_id) REFERENCES tbl_family (family_id),
+    CONSTRAINT fk_family_member_member FOREIGN KEY (member_email) REFERENCES tbl_member (email)
+    );
 -- LDH 끝
 
 -- HYH
