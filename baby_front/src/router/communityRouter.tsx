@@ -24,6 +24,21 @@ const BabysitterRequestsReceived = lazy(
 const BabysitterRequestsSent = lazy(
   () => import("../pages/babysitter/BabysitterRequestsSentPage"),
 );
+const BabysitterJobList = lazy(
+  () => import("../pages/babysitter/BabysitterJobListPage"),
+);
+const BabysitterJobForm = lazy(
+  () => import("../pages/babysitter/BabysitterJobFormPage"),
+);
+const BabysitterJobDetail = lazy(
+  () => import("../pages/babysitter/BabysitterJobDetailPage"),
+);
+const BabysitterMyJobPosts = lazy(
+  () => import("../pages/babysitter/BabysitterMyJobPostsPage"),
+);
+const BabysitterMyApplications = lazy(
+  () => import("../pages/babysitter/BabysitterMyApplicationsPage"),
+);
 
 const communityRouter = (): RouteObject[] => {
   return [
@@ -101,6 +116,51 @@ const communityRouter = (): RouteObject[] => {
               <BabysitterRequestsSent />
             </Suspense>
           ),
+        },
+        {
+          path: "jobs",
+          children: [
+            {
+              index: true,
+              element: (
+                <Suspense fallback={Loading}>
+                  <BabysitterJobList />
+                </Suspense>
+              ),
+            },
+            {
+              path: "write",
+              element: (
+                <Suspense fallback={Loading}>
+                  <BabysitterJobForm />
+                </Suspense>
+              ),
+            },
+            {
+              path: "mine",
+              element: (
+                <Suspense fallback={Loading}>
+                  <BabysitterMyJobPosts />
+                </Suspense>
+              ),
+            },
+            {
+              path: "applications/mine",
+              element: (
+                <Suspense fallback={Loading}>
+                  <BabysitterMyApplications />
+                </Suspense>
+              ),
+            },
+            {
+              path: ":jobNo",
+              element: (
+                <Suspense fallback={Loading}>
+                  <BabysitterJobDetail />
+                </Suspense>
+              ),
+            },
+          ],
         },
         {
           path: ":email",

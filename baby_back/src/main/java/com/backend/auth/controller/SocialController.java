@@ -3,6 +3,9 @@ package com.backend.auth.controller;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.backend.auth.service.AuthTokenService;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -20,7 +23,6 @@ import com.backend.auth.service.MemberService;
 import com.backend.auth.dto.MemberDTO;
 import com.backend.auth.dto.MemberModifyDTO;
 import com.backend.global.util.CustomJWTException;
-import com.backend.global.util.JWTUtil;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -31,9 +33,13 @@ import lombok.extern.log4j.Log4j2;
 public class SocialController {
 
   private final MemberService memberService;
+  private final AuthTokenService authTokenService;
 
   @GetMapping("/api/member/kakao")
-  public ResponseEntity<Map<String, Object>> getMemberFromKakao(@RequestParam("accessToken") String accessToken) {
+  public ResponseEntity<Map<String, Object>> getMemberFromKakao(
+          @RequestParam("accessToken") String accessToken,
+          HttpServletRequest request,
+          HttpServletResponse response) {
 
     KakaoLoginResultDTO loginResult;
 
@@ -51,16 +57,18 @@ public class SocialController {
       return ResponseEntity.ok(resultMap);
     }
 
-    return ResponseEntity.ok(createLoginResponse(loginResult.getMemberDTO()));
+    return ResponseEntity.ok(createLoginResponse(loginResult.getMemberDTO(), request, response));
   }
 
   @PostMapping("/api/member/social/signup")
   public ResponseEntity<Map<String, Object>> signupAndLinkSocial(
-      @RequestBody SocialSignupRequestDTO socialSignupRequestDTO) {
+          @RequestBody SocialSignupRequestDTO socialSignupRequestDTO,
+          HttpServletRequest request,
+          HttpServletResponse response) {
 
     try {
       MemberDTO memberDTO = memberService.signupAndLinkSocialMember(socialSignupRequestDTO);
-      return ResponseEntity.ok(createLoginResponse(memberDTO));
+      return ResponseEntity.ok(createLoginResponse(memberDTO, request, response));
     } catch (CustomJWTException e) {
       return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("error", e.getMessage()));
     } catch (IllegalStateException e) {
@@ -68,17 +76,13 @@ public class SocialController {
     }
   }
 
-  private Map<String, Object> createLoginResponse(MemberDTO memberDTO) {
+  private Map<String, Object> createLoginResponse(
+          MemberDTO memberDTO,
+          HttpServletRequest request,
+          HttpServletResponse response) {
 
-    Map<String, Object> claims = new HashMap<>(memberDTO.getClaims());
-    claims.remove("pw");
-
-    String jwtAccessToken = JWTUtil.generateToken(claims, 10);
-    String jwtRefreshToken = JWTUtil.generateToken(claims, 60 * 24);
-
+    Map<String, Object> claims = authTokenService.issueLoginTokens(memberDTO, request, response);
     claims.put("status", "LOGIN");
-    claims.put("accessToken", jwtAccessToken);
-    claims.put("refreshToken", jwtRefreshToken);
 
     return claims;
   }

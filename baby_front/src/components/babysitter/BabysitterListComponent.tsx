@@ -93,6 +93,9 @@ const BabysitterListComponent = () => {
         <h2 className="text-xl font-bold">베이비시터 찾기</h2>
         {isLogin && (
           <div className="flex gap-2">
+            <button onClick={() => navigate("/community/babysitter/jobs")}>
+              돌봄 구인글 게시판
+            </button>
             <button onClick={() => navigate("/community/babysitter/my-picks")}>
               내가 찜한 시터
             </button>

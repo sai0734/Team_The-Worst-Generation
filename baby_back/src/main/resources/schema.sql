@@ -46,6 +46,31 @@ CREATE TABLE IF NOT EXISTS tbl_member_refresh_token (
     INDEX idx_member_refresh_token_member_email (member_email),
     CONSTRAINT fk_member_refresh_token_member FOREIGN KEY (member_email) REFERENCES tbl_member (email)
     );
+
+CREATE TABLE IF NOT EXISTS tbl_family (
+                                          family_id BIGINT AUTO_INCREMENT,
+    family_name VARCHAR(100) NOT NULL,
+    invite_code VARCHAR(20) NOT NULL,
+    created_by VARCHAR(100) NOT NULL,
+    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (family_id),
+    UNIQUE KEY uk_family_invite_code (invite_code),
+    CONSTRAINT fk_family_created_by FOREIGN KEY (created_by) REFERENCES tbl_member (email)
+    );
+
+CREATE TABLE IF NOT EXISTS tbl_family_member (
+                                                 id BIGINT AUTO_INCREMENT,
+                                                 family_id BIGINT NOT NULL,
+                                                 member_email VARCHAR(100) NOT NULL,
+    family_role VARCHAR(20) NOT NULL DEFAULT 'MEMBER',
+    parent_type VARCHAR(20) NOT NULL,
+    joined_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (id),
+    UNIQUE KEY uk_family_member_email (member_email),
+    UNIQUE KEY uk_family_member_pair (family_id, member_email),
+    CONSTRAINT fk_family_member_family FOREIGN KEY (family_id) REFERENCES tbl_family (family_id),
+    CONSTRAINT fk_family_member_member FOREIGN KEY (member_email) REFERENCES tbl_member (email)
+    );
 -- LDH 끝
 
 -- HYH
@@ -277,6 +302,40 @@ CREATE TABLE IF NOT EXISTS tbl_babysitter_request (
     INDEX idx_babysitter_request_parent (parent_email, status)
 );
 
+-- KYI - 베이비시터 구인글 (부모가 올리는 요청, B안)
+CREATE TABLE IF NOT EXISTS tbl_babysitter_job_post (
+    job_no       BIGINT AUTO_INCREMENT,
+    parent_email VARCHAR(100) NOT NULL,
+    title        VARCHAR(200) NOT NULL,
+    region       VARCHAR(100),
+    desired_date DATE         NOT NULL,
+    time_slot    VARCHAR(10)  NOT NULL,
+    hourly_rate  INT,
+    message      VARCHAR(1000),
+    status       VARCHAR(20)  NOT NULL DEFAULT 'OPEN',
+    reg_time     DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    mod_time     DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (job_no),
+    CONSTRAINT fk_babysitter_job_post_parent FOREIGN KEY (parent_email) REFERENCES tbl_member (email),
+    INDEX idx_babysitter_job_post_region_date (region, desired_date),
+    INDEX idx_babysitter_job_post_status (status)
+);
+
+-- KYI - 베이비시터 구인글 지원
+CREATE TABLE IF NOT EXISTS tbl_babysitter_job_application (
+    application_no BIGINT AUTO_INCREMENT,
+    job_no         BIGINT       NOT NULL,
+    sitter_email   VARCHAR(100) NOT NULL,
+    message        VARCHAR(500),
+    status         VARCHAR(20)  NOT NULL DEFAULT 'PENDING',
+    reg_time       DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    mod_time       DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (application_no),
+    CONSTRAINT fk_babysitter_job_application_job FOREIGN KEY (job_no) REFERENCES tbl_babysitter_job_post (job_no),
+    CONSTRAINT fk_babysitter_job_application_sitter FOREIGN KEY (sitter_email) REFERENCES tbl_babysitter_profile (email),
+    CONSTRAINT uq_babysitter_job_application UNIQUE (job_no, sitter_email)
+);
+
 -- KYI - 베이비시터 후기 (요청 1건당 후기 1개)
 CREATE TABLE IF NOT EXISTS tbl_babysitter_review (
     review_no    BIGINT AUTO_INCREMENT,
@@ -350,13 +409,15 @@ CREATE TABLE IF NOT EXISTS tbl_community_comment_image (
 );
 -- KYI 끝
 
--- LMJ
+-- LMJ - 알레르기 성분 목록
 CREATE TABLE IF NOT EXISTS tbl_allergy_ingredient (
     ingredientNo BIGINT AUTO_INCREMENT,
     ingredientName VARCHAR(100) NOT NULL,
-    PRIMARY KEY (ingredientNo)
+    PRIMARY KEY (ingredientNo),
+    UNIQUE KEY uq_ingredient_name (ingredientName)
 );
 
+-- LMJ - 아기별 알레르기 성분
 CREATE TABLE IF NOT EXISTS tbl_baby_custom_allergy (
     customAllergyNo BIGINT AUTO_INCREMENT,
     babyNo BIGINT NOT NULL,
@@ -366,6 +427,7 @@ CREATE TABLE IF NOT EXISTS tbl_baby_custom_allergy (
     CONSTRAINT fk_custom_allergy_baby FOREIGN KEY (babyNo) REFERENCES tbl_baby_info (baby_no)
 );
 
+-- LMJ - 성분표 사진 기반 알레르기 체크 (OCR 텍스트 + 검출 결과)
 CREATE TABLE IF NOT EXISTS tbl_baby_allergy_check (
     checkNo BIGINT AUTO_INCREMENT,
     babyNo BIGINT NOT NULL,
@@ -378,6 +440,7 @@ CREATE TABLE IF NOT EXISTS tbl_baby_allergy_check (
     CONSTRAINT fk_allergy_check_baby FOREIGN KEY (babyNo) REFERENCES tbl_baby_info (baby_no)
 );
 
+-- LMJ - 알레르기 체크 결과 기반 AI 레시치 추천 기록
 CREATE TABLE IF NOT EXISTS tbl_recipe_recommend (
     recommendNo BIGINT AUTO_INCREMENT,
     checkNo BIGINT NOT NULL,
@@ -388,7 +451,7 @@ CREATE TABLE IF NOT EXISTS tbl_recipe_recommend (
     CONSTRAINT fk_recipe_recommend_check FOREIGN KEY (checkNo) REFERENCES tbl_baby_allergy_check (checkNo)
 );
 
-INSERT INTO tbl_allergy_ingredient (ingredientName) VALUES
+INSERT IGNORE INTO tbl_allergy_ingredient (ingredientName) VALUES
     ('알류(가금류)'),
     ('우유'),
     ('메밀'),
@@ -408,6 +471,28 @@ INSERT INTO tbl_allergy_ingredient (ingredientName) VALUES
     ('오징어'),
     ('조개류(굴, 전복, 홍합 포함)'),
     ('잣');
+
+-- LMJ - 대변 사진 기반 AI 상태 분석 기록
+CREATE TABLE IF NOT EXISTS tbl_baby_stool_check (
+    checkNo BIGINT AUTO_INCREMENT,
+    babyNo BIGINT NOT NULL,
+    imageFileName VARCHAR(500),
+    aiResult VARCHAR(2000),
+    regTime DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (checkNo),
+    CONSTRAINT fk_stool_check_baby FOREIGN KEY (babyNo) REFERENCES tbl_baby_info (baby_no)
+);
+
+-- LMJ - 피부 사진 기반 AI 상태 분석 기록
+CREATE TABLE IF NOT EXISTS tbl_baby_skin_check (
+    checkNo BIGINT AUTO_INCREMENT,
+    babyNo BIGINT NOT NULL,
+    imageFileName VARCHAR(500),
+    aiResult VARCHAR(2000),
+    regTime DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY(checkNo),
+    CONSTRAINT fk_skin_check_baby FOREIGN KEY (babyNo) REFERENCES tbl_baby_info (baby_no)
+    );
 
 -- =========================================================
 -- YSJ - 퀘스트 (DAILY / URGENT)
