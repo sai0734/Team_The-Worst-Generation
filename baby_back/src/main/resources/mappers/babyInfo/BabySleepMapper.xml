@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.backend.sleep.mapper.BabySleepMapper">
+
+    <select id="selectList" resultType="com.backend.sleep.domain.BabySleep">
+        SELECT bs.sleep_no, bs.baby_no, bs.sleep_type, bs.start_time, bs.end_time, bs.reg_time
+        FROM tbl_baby_sleep bs
+        JOIN tbl_baby_info bi ON bs.baby_no = bi.baby_no
+        WHERE bs.baby_no = #{babyNo} AND bi.email = #{email}
+    </select>
+
+    <select id="selectBySleepNo" resultType="com.backend.sleep.domain.BabySleep">
+        SELECT bs.sleep_no, bs.baby_no, bs.sleep_type, bs.start_time, bs.end_time, bs.reg_time
+        FROM tbl_baby_sleep bs
+        JOIN tbl_baby_info bi ON bs.baby_no = bi.baby_no
+        WHERE bs.sleep_no = #{sleepNo} AND bi.email = #{email}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="sleepNo" keyColumn="sleep_no">
+        INSERT INTO tbl_baby_sleep (baby_no, sleep_type, start_time, end_time)
+        VALUES (#{babyNo}, #{sleepType}, #{startTime}, #{endTime})
+    </insert>
+
+    <update id="update">
+        UPDATE tbl_baby_sleep
+        SET sleep_type = #{sleep.sleepType},
+        start_time = #{sleep.startTime},
+        end_time = #{sleep.endTime}
+        WHERE sleep_no = #{sleep.sleepNo}
+        AND baby_no IN (SELECT baby_no FROM tbl_baby_info WHERE email = #{email})
+    </update>
+
+    <delete id="delete">
+        DELETE FROM tbl_baby_sleep
+        WHERE sleep_no = #{sleepNo}
+        AND baby_no IN (SELECT baby_no FROM tbl_baby_info WHERE email = #{email})
+    </delete>
+
+    <delete id="deleteByBabyNo">
+        DELETE FROM tbl_baby_sleep
+        WHERE baby_no = #{babyNo}
+        AND baby_no IN (SELECT baby_no FROM tbl_baby_info WHERE email = #{email})
+    </delete>
+
+</mapper>

@@ -9,8 +9,12 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import com.backend.auth.domain.Member;
 import com.backend.auth.domain.MemberRole;
 import com.backend.auth.mapper.MemberMapper;
+import org.springframework.test.context.TestPropertySource;
 
 @SpringBootTest
+@TestPropertySource(properties = {
+        "google.vision.api-key=dummy_test_key"
+})
 @Log4j2
 public class MemberMapperTests {
 

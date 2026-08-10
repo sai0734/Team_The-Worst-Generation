@@ -78,6 +78,48 @@ CREATE TABLE IF NOT EXISTS tbl_baby_grow_info (
     CONSTRAINT fk_baby_grow_info FOREIGN KEY (baby_no) REFERENCES tbl_baby_info (baby_no)
     );
 
+CREATE TABLE IF NOT EXISTS tbl_growth_percentile (
+    percentile_no BIGINT AUTO_INCREMENT,
+    age_month INT NOT NULL,
+    gender VARCHAR(10) NOT NULL,
+    avg_weight_kg DECIMAL(5,2) NOT NULL,
+    avg_height_cm DECIMAL(5,2) NOT NULL,
+    PRIMARY KEY (percentile_no),
+    CONSTRAINT uq_growth_percentile UNIQUE (age_month, gender)
+    );
+
+INSERT INTO tbl_growth_percentile (age_month, gender, avg_weight_kg, avg_height_cm)
+SELECT t.age_month, t.gender, t.avg_weight_kg, t.avg_height_cm
+FROM (
+         SELECT 0 AS age_month, '남자' AS gender, 3.3 AS avg_weight_kg, 49.9 AS avg_height_cm
+         UNION ALL SELECT 3, '남자', 6.4, 61.4
+         UNION ALL SELECT 6, '남자', 7.9, 67.6
+         UNION ALL SELECT 9, '남자', 8.9, 72.0
+         UNION ALL SELECT 12, '남자', 9.6, 75.7
+         UNION ALL SELECT 15, '남자', 10.3, 79.1
+         UNION ALL SELECT 18, '남자', 10.9, 82.3
+         UNION ALL SELECT 21, '남자', 11.5, 85.1
+         UNION ALL SELECT 24, '남자', 12.2, 87.8
+         UNION ALL SELECT 27, '남자', 12.7, 89.6
+         UNION ALL SELECT 30, '남자', 13.3, 91.9
+         UNION ALL SELECT 33, '남자', 13.8, 94.1
+         UNION ALL SELECT 36, '남자', 14.3, 96.1
+         UNION ALL SELECT 0, '여자', 3.2, 49.1
+         UNION ALL SELECT 3, '여자', 5.8, 59.8
+         UNION ALL SELECT 6, '여자', 7.3, 65.7
+         UNION ALL SELECT 9, '여자', 8.2, 70.1
+         UNION ALL SELECT 12, '여자', 8.9, 74.0
+         UNION ALL SELECT 15, '여자', 9.6, 77.5
+         UNION ALL SELECT 18, '여자', 10.2, 80.7
+         UNION ALL SELECT 21, '여자', 10.9, 83.7
+         UNION ALL SELECT 24, '여자', 11.5, 86.4
+         UNION ALL SELECT 27, '여자', 12.1, 88.3
+         UNION ALL SELECT 30, '여자', 12.7, 90.7
+         UNION ALL SELECT 33, '여자', 13.3, 92.9
+         UNION ALL SELECT 36, '여자', 13.9, 95.1
+     ) t
+WHERE (SELECT COUNT(*) FROM tbl_growth_percentile) = 0;
+
 CREATE TABLE IF NOT EXISTS tbl_vaccine_schedule (
     schedule_no BIGINT AUTO_INCREMENT,
     vaccine_name VARCHAR(100) NOT NULL,
@@ -122,9 +164,16 @@ CREATE TABLE IF NOT EXISTS tbl_baby_vaccination (
     CONSTRAINT fk_baby_vaccination_schedule FOREIGN KEY (schedule_no) REFERENCES tbl_vaccine_schedule (schedule_no)
     );
 
-
-
-
+CREATE TABLE IF NOT EXISTS tbl_baby_sleep (
+    sleep_no BIGINT AUTO_INCREMENT,
+    baby_no BIGINT NOT NULL,
+    sleep_type VARCHAR(10) NOT NULL,
+    start_time DATETIME NOT NULL,
+    end_time DATETIME,
+    reg_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (sleep_no),
+    CONSTRAINT fk_baby_sleep_baby FOREIGN KEY (baby_no) REFERENCES tbl_baby_info (baby_no)
+);
 
 -- KYI - 가계부 내역
 CREATE TABLE IF NOT EXISTS tbl_ledger (

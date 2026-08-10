@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.backend.vaccination.mapper.BabyVaccinationMapper">
+
+    <select id="selectList" resultType="com.backend.vaccination.domain.BabyVaccination">
+        SELECT bv.vaccination_no, bv.baby_no, bv.schedule_no, bv.vaccine_name, bv.dose_label,
+        bv.recommended_month, bv.completed, bv.completed_date, bv.hospital_name, bv.is_custom, bv.reg_time
+        FROM tbl_baby_vaccination bv
+        JOIN tbl_baby_info bi ON bv.baby_no = bi.baby_no
+        WHERE bv.baby_no = #{babyNo} AND bi.email = #{email}
+    </select>
+
+    <select id="selectByVaccinationNo" resultType="com.backend.vaccination.domain.BabyVaccination">
+        SELECT bv.vaccination_no, bv.baby_no, bv.schedule_no, bv.vaccine_name, bv.dose_label,
+        bv.recommended_month, bv.completed, bv.completed_date, bv.hospital_name, bv.is_custom, bv.reg_time
+        FROM tbl_baby_vaccination bv
+        JOIN tbl_baby_info bi ON bv.baby_no = bi.baby_no
+        WHERE bv.vaccination_no = #{vaccinationNo} AND bi.email = #{email}
+    </select>
+
+    <insert id="insertScheduleList">
+        INSERT INTO tbl_baby_vaccination (baby_no, schedule_no, vaccine_name, dose_label, recommended_month, completed, is_custom)
+        SELECT #{babyNo}, schedule_no, vaccine_name, dose_label, recommended_month, false, false
+        FROM tbl_vaccine_schedule
+    </insert>
+
+    <insert id="insertCustom" useGeneratedKeys="true" keyProperty="vaccinationNo" keyColumn="vaccination_no">
+        INSERT INTO tbl_baby_vaccination (baby_no, vaccine_name, completed, completed_date, hospital_name, is_custom)
+        VALUES (#{babyNo}, #{vaccineName}, #{completed}, #{completedDate}, #{hospitalName}, true)
+    </insert>
+
+    <update id="updateComplete">
+        UPDATE tbl_baby_vaccination
+        SET completed = #{vaccination.completed},
+        completed_date = #{vaccination.completedDate},
+        hospital_name = #{vaccination.hospitalName}
+        WHERE vaccination_no = #{vaccination.vaccinationNo}
+        AND baby_no IN (SELECT baby_no FROM tbl_baby_info WHERE email = #{email})
+    </update>
+
+    <delete id="delete">
+        DELETE FROM tbl_baby_vaccination
+        WHERE vaccination_no = #{vaccinationNo}
+        AND baby_no IN (SELECT baby_no FROM tbl_baby_info WHERE email = #{email})
+    </delete>
+
+    <delete id="deleteByBabyNo">
+        DELETE FROM tbl_baby_vaccination
+        WHERE baby_no = #{babyNo}
+        AND baby_no IN (SELECT baby_no FROM tbl_baby_info WHERE email = #{email})
+    </delete>
+
+</mapper>
