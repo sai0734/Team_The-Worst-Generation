@@ -5,6 +5,7 @@ import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
+import java.util.Base64;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -15,10 +16,6 @@ import com.google.gson.JsonParser;
 
 import lombok.extern.log4j.Log4j2;
 
-/**
- * 로컬 Ollama(/api/chat)에 단발성 프롬프트를 보내고 답변 텍스트만 돌려주는 클라이언트.
- * think/history 없이 단순 요청-응답 용도로만 사용한다 (ai/openclaw/README.md 참고).
- */
 @Component
 @Log4j2
 public class OllamaClient {
@@ -29,9 +26,12 @@ public class OllamaClient {
     @Value("${ollama.model}")
     private String model;
 
+    @Value("${ollama.vision-model}")
+    private String visionModel;
+
     private final HttpClient httpClient = HttpClient.newBuilder()
-        .connectTimeout(Duration.ofSeconds(5))
-        .build();
+            .connectTimeout(Duration.ofSeconds(5))
+            .build();
 
     public String chat(String userMessage) {
 
@@ -48,12 +48,41 @@ public class OllamaClient {
         body.addProperty("think", false);
         body.addProperty("stream", false);
 
+        return send(body, 60);
+    }
+
+    public String chatWithImage(String userMessage, byte[] imageBytes) {
+
+        String base64Image = Base64.getEncoder().encodeToString(imageBytes);
+
+        JsonArray images = new JsonArray();
+        images.add(base64Image);
+
+        JsonObject message = new JsonObject();
+        message.addProperty("role", "user");
+        message.addProperty("content", userMessage);
+        message.add("images", images);
+
+        JsonArray messages = new JsonArray();
+        messages.add(message);
+
+        JsonObject body = new JsonObject();
+        body.addProperty("model", visionModel);
+        body.add("messages", messages);
+        body.addProperty("think", false);
+        body.addProperty("stream", false);
+
+        return send(body, 120);
+    }
+
+    private String send(JsonObject body, int timeoutSeconds) {
+
         HttpRequest request = HttpRequest.newBuilder()
-            .uri(URI.create(baseUrl + "/api/chat"))
-            .header("Content-Type", "application/json")
-            .timeout(Duration.ofSeconds(60))
-            .POST(HttpRequest.BodyPublishers.ofString(body.toString()))
-            .build();
+                .uri(URI.create(baseUrl + "/api/chat"))
+                .header("Content-Type", "application/json")
+                .timeout(Duration.ofSeconds(timeoutSeconds))
+                .POST(HttpRequest.BodyPublishers.ofString(body.toString()))
+                .build();
 
         try {
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
@@ -65,9 +94,9 @@ public class OllamaClient {
             JsonObject responseBody = JsonParser.parseString(response.body()).getAsJsonObject();
 
             return responseBody
-                .getAsJsonObject("message")
-                .get("content")
-                .getAsString();
+                    .getAsJsonObject("message")
+                    .get("content")
+                    .getAsString();
 
         } catch (java.io.IOException | InterruptedException e) {
             log.error("Ollama 호출 실패: " + e.getMessage());
