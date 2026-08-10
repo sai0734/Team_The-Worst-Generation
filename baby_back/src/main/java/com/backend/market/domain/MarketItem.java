@@ -26,17 +26,17 @@ public class MarketItem {
 
     private String description;
 
-    private String tradeType; // SALE | RENTAL
+    private String tradeType;   // SALE | RENTAL
 
-    private String category; // 유모차/카시트/아기띠/장난감/수유용품/의류
+    private String category;    // 유모차/카시트/아기띠/장난감/수유용품/의류
 
-    private String ageRange; // 예: "0~6개월"
+    private String ageRange;    // 예: "0~6개월"
 
-    private String condition; // 새상품급/사용감적음/사용감있음/하자있음
+    private String condition;   // 새상품급/사용감적음/사용감있음/하자있음
 
     private boolean allowOffer;
 
-    private String status; // 거래가능 | 거래완료 (매매/대여 공통, 중간상태 없음 - 판매자/대여자가 알아서 판단해서 거래완료로만 전환)
+    private String status;      // 거래가능 | 거래완료 (매매/대여 공통, 중간상태 없음 - 판매자/대여자가 알아서 판단해서 거래완료로만 전환)
 
     private String locationName;
 
