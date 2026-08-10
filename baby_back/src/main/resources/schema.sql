@@ -419,6 +419,26 @@ CREATE TABLE IF NOT EXISTS tbl_community_comment_image (
     PRIMARY KEY (image_no),
     CONSTRAINT fk_community_comment_image_comment FOREIGN KEY (comment_no) REFERENCES tbl_community_comment (comment_no)
 );
+
+-- KYI - 리콜 알림 - 내가 등록한 제품
+CREATE TABLE IF NOT EXISTS tbl_my_product (
+    product_no     BIGINT AUTO_INCREMENT,
+    member_email   VARCHAR(100)  NOT NULL,
+    product_name   VARCHAR(200)  NOT NULL,
+    brand_name     VARCHAR(100),
+    model_name     VARCHAR(100),
+    cert_num       VARCHAR(50),
+    recall_matched BOOLEAN       NOT NULL DEFAULT FALSE,
+    recall_type    VARCHAR(20),
+    recall_uid     VARCHAR(50),
+    recall_title   VARCHAR(300),
+    checked_time   DATETIME,
+    reg_time       DATETIME      NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    del_flag       BOOLEAN       NOT NULL DEFAULT FALSE,
+    PRIMARY KEY (product_no),
+    CONSTRAINT fk_my_product_member FOREIGN KEY (member_email) REFERENCES tbl_member (email),
+    INDEX idx_my_product_member (member_email, del_flag)
+);
 -- KYI 끝
 
 -- LMJ - 알레르기 성분 목록
@@ -816,4 +836,18 @@ CREATE TABLE IF NOT EXISTS tbl_review (
     CONSTRAINT fk_review_writer FOREIGN KEY (writer_email) REFERENCES tbl_member (email),
     CONSTRAINT fk_review_target FOREIGN KEY (target_email) REFERENCES tbl_member (email)
     );
+
+CREATE TABLE IF NOT EXISTS tbl_cry_check (
+                                             cry_check_no BIGINT AUTO_INCREMENT,
+                                             baby_no BIGINT NOT NULL,
+                                             avg_pitch DOUBLE,
+                                             avg_volume DOUBLE,
+                                             duration_seconds DOUBLE,
+                                             pattern VARCHAR(50),
+    ai_result_json VARCHAR(3000),
+    reg_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (cry_check_no),
+    CONSTRAINT fk_cry_check_baby FOREIGN KEY (baby_no) REFERENCES tbl_baby_info (baby_no)
+    );
+
 -- LJW 끝
