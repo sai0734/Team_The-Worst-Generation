@@ -804,4 +804,18 @@ CREATE TABLE IF NOT EXISTS tbl_review (
     CONSTRAINT fk_review_writer FOREIGN KEY (writer_email) REFERENCES tbl_member (email),
     CONSTRAINT fk_review_target FOREIGN KEY (target_email) REFERENCES tbl_member (email)
     );
+
+CREATE TABLE IF NOT EXISTS tbl_cry_check (
+                                             cry_check_no BIGINT AUTO_INCREMENT,
+                                             baby_no BIGINT NOT NULL,
+                                             avg_pitch DOUBLE,
+                                             avg_volume DOUBLE,
+                                             duration_seconds DOUBLE,
+                                             pattern VARCHAR(50),
+    ai_result_json VARCHAR(3000),
+    reg_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (cry_check_no),
+    CONSTRAINT fk_cry_check_baby FOREIGN KEY (baby_no) REFERENCES tbl_baby_info (baby_no)
+    );
+
 -- LJW 끝
