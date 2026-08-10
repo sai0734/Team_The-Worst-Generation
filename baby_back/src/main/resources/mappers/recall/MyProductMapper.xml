@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.backend.recall.mapper.MyProductMapper">
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="productNo" keyColumn="product_no">
+        INSERT INTO tbl_my_product (member_email, product_name, brand_name, model_name, cert_num)
+        VALUES (#{memberEmail}, #{productName}, #{brandName}, #{modelName}, #{certNum})
+    </insert>
+
+    <select id="selectOne" resultType="com.backend.recall.domain.MyProduct">
+        SELECT product_no, member_email, product_name, brand_name, model_name, cert_num,
+               recall_matched, recall_type, recall_uid, recall_title, checked_time, reg_time, del_flag
+        FROM tbl_my_product
+        WHERE product_no = #{productNo} AND del_flag = FALSE
+    </select>
+
+    <select id="selectByMember" resultType="com.backend.recall.domain.MyProduct">
+        SELECT product_no, member_email, product_name, brand_name, model_name, cert_num,
+               recall_matched, recall_type, recall_uid, recall_title, checked_time, reg_time, del_flag
+        FROM tbl_my_product
+        WHERE member_email = #{memberEmail} AND del_flag = FALSE
+        ORDER BY recall_matched DESC, reg_time DESC
+    </select>
+
+    <select id="selectUnmatched" resultType="com.backend.recall.domain.MyProduct">
+        SELECT product_no, member_email, product_name, brand_name, model_name, cert_num,
+               recall_matched, recall_type, recall_uid, recall_title, checked_time, reg_time, del_flag
+        FROM tbl_my_product
+        WHERE recall_matched = FALSE AND del_flag = FALSE
+    </select>
+
+    <update id="updateRecallMatch">
+        UPDATE tbl_my_product
+        SET recall_matched = #{recallMatched},
+            recall_type    = #{recallType},
+            recall_uid     = #{recallUid},
+            recall_title   = #{recallTitle},
+            checked_time   = #{checkedTime}
+        WHERE product_no = #{productNo}
+    </update>
+
+    <update id="delete">
+        UPDATE tbl_my_product SET del_flag = TRUE WHERE product_no = #{productNo}
+    </update>
+
+</mapper>
