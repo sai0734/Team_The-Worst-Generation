@@ -9,12 +9,12 @@ import java.util.List;
 @Mapper
 public interface RecipeRecommendMapper {
 
-    @Insert("INSERT INTO tbl_recipe_recommend (check_no, product_type, recommended_recipe) "
-            + "VALUES (#{checkNo}, #{productType}, #{recommendedRecipe})")
+    @Insert("INSERT INTO tbl_recipe_recommend (checkNo, productType, recommendedRecipe) "
+            + "VALUES (#{checkNo}, #{productType}, #{recommendRecipe})")
     @Options(useGeneratedKeys = true, keyProperty = "recommendNo")
     void insert(RecipeRecommend recipeRecommend);
 
-    @Select("SELECT recommend_no, check_no, product_type, recommended_recipe, reg_time "
-            + "FROM tbl_recipe_recommend WHERE check_no = #{checkNo}")
+    @Select("SELECT recommendNo, checkNo, productType, recommendedRecipe AS recommendRecipe, regTime "
+            + "FROM tbl_recipe_recommend WHERE checkNo = #{checkNo}")
     List<RecipeRecommend> selectByCheckNo(@Param("checkNo") Long checkNo);
 }

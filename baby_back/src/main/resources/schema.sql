@@ -397,13 +397,15 @@ CREATE TABLE IF NOT EXISTS tbl_community_comment_image (
 );
 -- KYI 끝
 
--- LMJ
+-- LMJ - 알레르기 성분 목록
 CREATE TABLE IF NOT EXISTS tbl_allergy_ingredient (
     ingredientNo BIGINT AUTO_INCREMENT,
     ingredientName VARCHAR(100) NOT NULL,
-    PRIMARY KEY (ingredientNo)
+    PRIMARY KEY (ingredientNo),
+    UNIQUE KEY uq_ingredient_name (ingredientName)
 );
 
+-- LMJ - 아기별 알레르기 성분
 CREATE TABLE IF NOT EXISTS tbl_baby_custom_allergy (
     customAllergyNo BIGINT AUTO_INCREMENT,
     babyNo BIGINT NOT NULL,
@@ -413,6 +415,7 @@ CREATE TABLE IF NOT EXISTS tbl_baby_custom_allergy (
     CONSTRAINT fk_custom_allergy_baby FOREIGN KEY (babyNo) REFERENCES tbl_baby_info (baby_no)
 );
 
+-- LMJ - 성분표 사진 기반 알레르기 체크 (OCR 텍스트 + 검출 결과)
 CREATE TABLE IF NOT EXISTS tbl_baby_allergy_check (
     checkNo BIGINT AUTO_INCREMENT,
     babyNo BIGINT NOT NULL,
@@ -425,6 +428,7 @@ CREATE TABLE IF NOT EXISTS tbl_baby_allergy_check (
     CONSTRAINT fk_allergy_check_baby FOREIGN KEY (babyNo) REFERENCES tbl_baby_info (baby_no)
 );
 
+-- LMJ - 알레르기 체크 결과 기반 AI 레시치 추천 기록
 CREATE TABLE IF NOT EXISTS tbl_recipe_recommend (
     recommendNo BIGINT AUTO_INCREMENT,
     checkNo BIGINT NOT NULL,
@@ -435,7 +439,7 @@ CREATE TABLE IF NOT EXISTS tbl_recipe_recommend (
     CONSTRAINT fk_recipe_recommend_check FOREIGN KEY (checkNo) REFERENCES tbl_baby_allergy_check (checkNo)
 );
 
-INSERT INTO tbl_allergy_ingredient (ingredientName) VALUES
+INSERT IGNORE INTO tbl_allergy_ingredient (ingredientName) VALUES
     ('알류(가금류)'),
     ('우유'),
     ('메밀'),
@@ -455,6 +459,28 @@ INSERT INTO tbl_allergy_ingredient (ingredientName) VALUES
     ('오징어'),
     ('조개류(굴, 전복, 홍합 포함)'),
     ('잣');
+
+-- LMJ - 대변 사진 기반 AI 상태 분석 기록
+CREATE TABLE IF NOT EXISTS tbl_baby_stool_check (
+    checkNo BIGINT AUTO_INCREMENT,
+    babyNo BIGINT NOT NULL,
+    imageFileName VARCHAR(500),
+    aiResult VARCHAR(2000),
+    regTime DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (checkNo),
+    CONSTRAINT fk_stool_check_baby FOREIGN KEY (babyNo) REFERENCES tbl_baby_info (baby_no)
+);
+
+-- LMJ - 피부 사진 기반 AI 상태 분석 기록
+CREATE TABLE IF NOT EXISTS tbl_baby_skin_check (
+    checkNo BIGINT AUTO_INCREMENT,
+    babyNo BIGINT NOT NULL,
+    imageFileName VARCHAR(500),
+    aiResult VARCHAR(2000),
+    regTime DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY(checkNo),
+    CONSTRAINT fk_skin_check_baby FOREIGN KEY (babyNo) REFERENCES tbl_baby_info (baby_no)
+    );
 
 -- =========================================================
 -- YSJ - 퀘스트 (DAILY / URGENT)
