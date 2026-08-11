@@ -36,7 +36,7 @@ const MarketDetailComponent = () => {
   }, [itemNo]);
 
   if (!item || !itemNo) {
-    return <div>불러오는 중...</div>;
+    return <div className="card">불러오는 중...</div>;
   }
 
   const isMine = loginState.email === item.sellerEmail;
@@ -67,67 +67,82 @@ const MarketDetailComponent = () => {
   };
 
   return (
-    <div>
+    <div className="card" style={{ maxWidth: 640 }}>
       {item.uploadFileNames && item.uploadFileNames.length > 0 && (
-        <div>
+        <div className="detail-gallery">
           {item.uploadFileNames.map((fileName) => (
-            <img
-              key={fileName}
-              src={marketApi.getFileUrl(fileName)}
-              style={{ maxHeight: 240 }}
-            />
+            <img key={fileName} src={marketApi.getFileUrl(fileName)} />
           ))}
         </div>
       )}
 
-      <h2>{item.title}</h2>
-      <div>
-        {item.tradeType === "RENTAL" ? "대여" : "판매"} · {item.category}
-      </div>
-      <div>{item.price.toLocaleString()}원</div>
-      <div>상태: {item.status}</div>
-      <div>판매자: {item.sellerEmail}</div>
-      <div>
-        조회 {item.viewCount} · 찜 {wishCount}
+      <span
+        className={`status-badge ${item.status === "거래완료" ? "done" : "available"}`}
+      >
+        {item.status}
+      </span>
+
+      <h2 className="detail-title">{item.title}</h2>
+      <div className="detail-price">{item.price.toLocaleString()}원</div>
+
+      <div className="detail-meta">
+        {item.tradeType === "RENTAL" ? "대여" : "판매"} · {item.category} ·
+        판매자 {item.sellerEmail} · 조회 {item.viewCount} · 찜 {wishCount}
       </div>
 
       {item.tradeType === "RENTAL" && (
-        <div>
+        <div className="detail-meta">
           보증금 {item.deposit?.toLocaleString() ?? "-"}원 · 최소{" "}
           {item.minDays ?? "-"}일 · 최대 {item.maxDays ?? "-"}일
         </div>
       )}
 
-      <p>{item.description}</p>
+      <p style={{ lineHeight: 1.7 }}>{item.description}</p>
 
-      {item.locationName && <div>거래 장소: {item.locationName}</div>}
-
-      {isLogin && !isMine && (
-        <div>
-          <button onClick={handleToggleWish}>
-            {wished ? "찜 해제" : "찜하기"}
-          </button>
-          <button onClick={handleChat}>채팅으로 문의하기</button>
-        </div>
+      {item.locationName && (
+        <div className="detail-meta">거래 장소: {item.locationName}</div>
       )}
 
-      {isMine && (
-        <div>
-          <button onClick={() => navigate(`/market/${itemNo}/edit`)}>
-            수정
-          </button>
-          <button onClick={handleBump}>끌어올리기</button>
-          <button onClick={handleRemove}>삭제</button>
-        </div>
-      )}
+      <div className="detail-actions">
+        {isLogin && !isMine && (
+          <>
+            <button className="btn ghost" onClick={handleToggleWish}>
+              {wished ? "찜 해제" : "찜하기"}
+            </button>
+            <button className="btn" onClick={handleChat}>
+              채팅으로 문의하기
+            </button>
+          </>
+        )}
 
-      <div>
-        <button onClick={() => navigate(`/market/profile/${item.sellerEmail}`)}>
+        {isMine && (
+          <>
+            <button
+              className="btn ghost"
+              onClick={() => navigate(`/market/${itemNo}/edit`)}
+            >
+              수정
+            </button>
+            <button className="btn ghost" onClick={handleBump}>
+              끌어올리기
+            </button>
+            <button className="btn ghost" onClick={handleRemove}>
+              삭제
+            </button>
+          </>
+        )}
+
+        <button
+          className="btn ghost"
+          onClick={() => navigate(`/market/profile/${item.sellerEmail}`)}
+        >
           판매자 프로필 보기
         </button>
-      </div>
 
-      <button onClick={() => navigate("/market")}>목록으로</button>
+        <button className="btn ghost" onClick={() => navigate("/market")}>
+          목록으로
+        </button>
+      </div>
     </div>
   );
 };
