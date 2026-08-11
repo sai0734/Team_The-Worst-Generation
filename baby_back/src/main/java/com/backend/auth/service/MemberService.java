@@ -19,7 +19,7 @@ public interface MemberService {
 
   MemberDTO signupAndLinkSocialMember(SocialSignupRequestDTO socialSignupRequestDTO);
 
-  void modifyMember(MemberModifyDTO memberModifyDTO);
+  void modifyMember(String memberEmail, MemberModifyDTO memberModifyDTO);
 
   default MemberDTO entityToDTO(Member member) {
 

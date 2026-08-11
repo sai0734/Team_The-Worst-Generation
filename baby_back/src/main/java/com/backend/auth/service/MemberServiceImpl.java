@@ -250,10 +250,10 @@ public class MemberServiceImpl implements MemberService {
 
   // 기존 회원 정보 수정 로직이며 카카오 소셜 연동 분기와는 별개다.
   @Override
-  public void modifyMember(MemberModifyDTO memberModifyDTO) {
+  public void modifyMember(String memberEmail, MemberModifyDTO memberModifyDTO) {
 
-    Member member = Optional.ofNullable(memberMapper.selectByEmail(memberModifyDTO.getEmail()))
-        .orElseThrow();
+    Member member = Optional.ofNullable(memberMapper.selectByEmail(memberEmail))
+            .orElseThrow();
 
     member.changePw(passwordEncoder.encode(memberModifyDTO.getPw()));
     member.changeSocial(false);

@@ -9,7 +9,8 @@ const requestPrefix = `${API_SERVER_HOST}/api/babysitter/requests`;
 const reviewPrefix = `${API_SERVER_HOST}/api/babysitter/reviews`;
 const jobPrefix = `${API_SERVER_HOST}/api/babysitter/jobs`;
 
-export const getFileUrl = (fileName: string): string => `${prefix}/files/${fileName}`;
+export const getFileUrl = (fileName: string): string =>
+  `${prefix}/files/${fileName}`;
 
 export type BabysitterGrade = "NEW" | "POPULAR" | "VETERAN" | "TOP";
 
@@ -124,7 +125,9 @@ export const getMyPicks = async (): Promise<BabysitterProfile[]> => {
   return res.data;
 };
 
-export const uploadPhoto = async (file: File): Promise<{ fileName: string }> => {
+export const uploadPhoto = async (
+  file: File,
+): Promise<{ fileName: string }> => {
   const formData = new FormData();
   formData.append("file", file);
 
@@ -149,7 +152,9 @@ export const saveMyLocation = async (
   return res.data;
 };
 
-export const togglePick = async (email: string): Promise<{ picked: boolean }> => {
+export const togglePick = async (
+  email: string,
+): Promise<{ picked: boolean }> => {
   const res = await jwtAxios.post(`${pickPrefix}/${email}`);
 
   return res.data;
@@ -284,7 +289,10 @@ export const JOB_STATUS_LABELS: Record<JobStatus, string> = {
 
 export type JobApplicationStatus = "PENDING" | "ACCEPTED" | "REJECTED";
 
-export const JOB_APPLICATION_STATUS_LABELS: Record<JobApplicationStatus, string> = {
+export const JOB_APPLICATION_STATUS_LABELS: Record<
+  JobApplicationStatus,
+  string
+> = {
   PENDING: "대기중",
   ACCEPTED: "수락됨",
   REJECTED: "거절됨",
@@ -374,7 +382,9 @@ export const applyToJob = async (
   jobNo: number,
   message?: string,
 ): Promise<{ applicationNo: number }> => {
-  const res = await jwtAxios.post(`${jobPrefix}/${jobNo}/applications`, { message });
+  const res = await jwtAxios.post(`${jobPrefix}/${jobNo}/applications`, {
+    message,
+  });
 
   return res.data;
 };
@@ -387,7 +397,9 @@ export const getJobApplications = async (
   return res.data;
 };
 
-export const getMyApplications = async (): Promise<BabysitterJobApplication[]> => {
+export const getMyApplications = async (): Promise<
+  BabysitterJobApplication[]
+> => {
   const res = await jwtAxios.get(`${jobPrefix}/applications/mine`);
 
   return res.data;
@@ -397,7 +409,9 @@ export const acceptJobApplication = async (
   jobNo: number,
   applicationNo: number,
 ): Promise<{ RESULT: string }> => {
-  const res = await jwtAxios.put(`${jobPrefix}/${jobNo}/applications/${applicationNo}/accept`);
+  const res = await jwtAxios.put(
+    `${jobPrefix}/${jobNo}/applications/${applicationNo}/accept`,
+  );
 
   return res.data;
 };
@@ -406,7 +420,9 @@ export const rejectJobApplication = async (
   jobNo: number,
   applicationNo: number,
 ): Promise<{ RESULT: string }> => {
-  const res = await jwtAxios.put(`${jobPrefix}/${jobNo}/applications/${applicationNo}/reject`);
+  const res = await jwtAxios.put(
+    `${jobPrefix}/${jobNo}/applications/${applicationNo}/reject`,
+  );
 
   return res.data;
 };
