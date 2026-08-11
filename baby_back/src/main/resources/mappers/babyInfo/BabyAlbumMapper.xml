@@ -45,4 +45,11 @@
         AND baby_no IN (SELECT baby_no FROM tbl_baby_info WHERE email = #{email})
     </delete>
 
+    <select id="selectPhotoFileNamesByBabyNo" resultType="string">
+        SELECT ba.photo_file_name
+        FROM tbl_baby_album ba
+        JOIN tbl_baby_info bi ON ba.baby_no = bi.baby_no
+        WHERE ba.baby_no = #{babyNo} AND bi.email = #{email} AND ba.photo_file_name IS NOT NULL
+    </select>
+
 </mapper>

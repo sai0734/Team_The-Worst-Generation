@@ -8,12 +8,14 @@ import com.backend.babyInfo.mapper.BabyInfoMapper;
 import com.backend.diary.mapper.BabyDiaryMapper;
 import com.backend.vaccination.mapper.BabyVaccinationMapper;
 import com.backend.sleep.mapper.BabySleepMapper;
+import com.backend.global.util.CustomFileUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -36,6 +38,8 @@ public class BabyInfoServiceImpl implements BabyInfoService{
     private final BabyAlbumMapper babyAlbumMapper;
 
     private final ModelMapper modelMapper;
+
+    private final CustomFileUtil customFileUtil;
 
     @Override
     public List<BabyInfoDTO> getList(String email) {
@@ -112,6 +116,17 @@ public class BabyInfoServiceImpl implements BabyInfoService{
 
         log.info("babyInfo_Service_remove_실행~~~~~~~~~~~~");
 
+        BabyInfo babyInfo = babyInfoMapper.selectByBabyNo(babyNo, email);
+
+        List<String> photoFileNames = new ArrayList<>();
+
+        if (babyInfo != null && babyInfo.getProfileImageFileName() != null) {
+            photoFileNames.add(babyInfo.getProfileImageFileName());
+        }
+
+        photoFileNames.addAll(babyDiaryMapper.selectPhotoFileNamesByBabyNo(babyNo, email));
+        photoFileNames.addAll(babyAlbumMapper.selectPhotoFileNamesByBabyNo(babyNo, email));
+
         babyGrowInfoMapper.removeByBabyNo(babyNo, email);
 
         babyVaccinationMapper.deleteByBabyNo(babyNo, email);
@@ -121,6 +136,8 @@ public class BabyInfoServiceImpl implements BabyInfoService{
         babyDiaryMapper.deleteByBabyNo(babyNo, email);
 
         babyAlbumMapper.deleteByBabyNo(babyNo, email);
+
+        customFileUtil.deleteFiles(photoFileNames);
 
         babyInfoMapper.delete(babyNo, email);
 

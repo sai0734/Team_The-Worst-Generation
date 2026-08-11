@@ -20,4 +20,6 @@ public interface BabyAlbumMapper {
 
     void deleteByBabyNo(@Param("babyNo") Long babyNo, @Param("email") String email);
 
+    List<String> selectPhotoFileNamesByBabyNo(@Param("babyNo") Long babyNo, @Param("email") String email);
+
 }
