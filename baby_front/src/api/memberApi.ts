@@ -8,11 +8,16 @@ const host = `${API_SERVER_HOST}/api/member`;
 export const loginPost = async (
   loginParam: LoginParam,
 ): Promise<LoginState> => {
-  const form = new FormData();
-  form.append("username", loginParam.email);
-  form.append("password", loginParam.pw);
-
-  const res = await axios.post(`${host}/login`, form);
+  const res = await axios.post(
+    `${host}/login`,
+    {
+      email: loginParam.email,
+      pw: loginParam.pw,
+    },
+    {
+      withCredentials: true,
+    },
+  );
 
   return res.data;
 };
