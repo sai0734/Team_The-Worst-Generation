@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
+import { Link } from "react-router-dom";
 import {
   questApi,
   type MemberQuest,
   type QuestHome,
   type QuestType,
 } from "../../api/questApi";
+import type { RootState } from "../../store";
 
 const emptyHome: QuestHome = {
   dailyQuests: [],
@@ -31,6 +34,9 @@ const typeStyle: Record<
 };
 
 const QuestPanel = () => {
+  const loginState = useSelector((state: RootState) => state.loginSlice);
+  const isLogin = Boolean(loginState.email);
+
   const [home, setHome] = useState<QuestHome>(emptyHome);
   const [loading, setLoading] = useState(true);
   const [completingId, setCompletingId] = useState<number | null>(null);
@@ -47,17 +53,19 @@ const QuestPanel = () => {
     } catch (e) {
       console.error("quest home load failed", e);
       setHome(emptyHome);
-      // alert(
-      //   "퀘스트를 불러오지 못했습니다. 로그인 상태와 백엔드 실행 여부를 확인하세요.",  // 로그인이나 새로고침시 나오는 팝업창
-      // );
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
+    if (!isLogin) {
+      setHome(emptyHome);
+      setLoading(false);
+      return;
+    }
     load();
-  }, []);
+  }, [isLogin]);
 
   const handleComplete = async (id: number) => {
     setCompletingId(id);
@@ -137,11 +145,20 @@ const QuestPanel = () => {
       <div className="mb-3 flex items-end justify-between">
         <h2 className="text-xl font-bold text-gray-900">{title}</h2>
         <span className="text-sm text-gray-600">
-          {list.filter((q) => q.status === "DONE").length}/{list.length}
+          {isLogin
+            ? `${list.filter((q) => q.status === "DONE").length}/${list.length}`
+            : "-"}
         </span>
       </div>
 
-      {list.length === 0 ? (
+      {!isLogin ? (
+        <div className="rounded-xl border border-dashed border-gray-300 bg-white/70 p-6 text-center text-sm text-gray-500">
+          로그인하면 퀘스트를 볼 수 있어요.{" "}
+          <Link className="font-semibold text-sky-600 underline" to="/member/login">
+            로그인
+          </Link>
+        </div>
+      ) : list.length === 0 ? (
         <div className="rounded-xl border border-dashed border-gray-300 bg-white/70 p-6 text-center text-sm text-gray-500">
           배정된 퀘스트가 없습니다.
         </div>
@@ -153,21 +170,32 @@ const QuestPanel = () => {
     </section>
   );
 
-  if (loading) {
+  if (isLogin && loading) {
     return <div className="p-4 text-gray-700">로딩 중...</div>;
   }
 
   return (
     <div className="w-full space-y-6">
       <div className="rounded-xl border border-white/60 bg-white px-4 py-3 text-sm text-gray-700 shadow-md">
-        오늘 진행{" "}
-        <span className="font-bold">
-          {doneCount}/{totalCount}
-        </span>
-        {" · "}
-        획득 포인트 <span className="font-bold">{earnedPoint}P</span>
-        {" · "}
-        보유 <span className="font-bold">{home.point}P</span>
+        {isLogin ? (
+          <>
+            오늘 진행{" "}
+            <span className="font-bold">
+              {doneCount}/{totalCount}
+            </span>
+            {" · "}
+            획득 포인트 <span className="font-bold">{earnedPoint}P</span>
+            {" · "}
+            보유 <span className="font-bold">{home.point}P</span>
+          </>
+        ) : (
+          <>
+            로그인하면 퀘스트와 포인트를 확인할 수 있어요.{" "}
+            <Link className="font-semibold text-sky-600 underline" to="/member/login">
+              로그인
+            </Link>
+          </>
+        )}
       </div>
 
       {renderSection("긴급 퀘스트", home.urgentQuests)}

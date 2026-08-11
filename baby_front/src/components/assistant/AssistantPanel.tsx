@@ -14,14 +14,15 @@ const CATEGORIES: { key: AssistCategory; label: string }[] = [
   { key: "FACILITY", label: "육아시설" },
 ];
 
+/** AI 정부지원금 — 기존 AI 육아 비서 기능을 이 패널로 이전 */
 const AssistantPanel = () => {
   const [query, setQuery] = useState("");
   const [months, setMonths] = useState("");
   const [sido, setSido] = useState("서울");
   const [sigungu, setSigungu] = useState("");
   const [selected, setSelected] = useState<AssistCategory[]>([
-    "CHILDCARE",
     "SUBSIDY",
+    "WELFARE",
   ]);
   const [answer, setAnswer] = useState("");
   const [items, setItems] = useState<AssistItem[]>([]);
@@ -33,7 +34,7 @@ const AssistantPanel = () => {
     );
   };
 
-  const run = async () => {                     // 사용자가 고른 조건을 요청 한번으로 묶음 
+  const run = async () => {
     if (!query.trim() || selected.length === 0 || loading) return;
     setLoading(true);
     try {
@@ -46,50 +47,52 @@ const AssistantPanel = () => {
           regionSigungu: sigungu || undefined,
         },
       });
-      setAnswer(res.answer);        // 응답의 요약
-      setItems(res.items ?? []);    // 응답의 목록
+      setAnswer(res.answer);
+      setItems(res.items ?? []);
     } catch (e) {
       console.error(e);
-      alert("육아 비서 요청에 실패했습니다. (API는 추후 연결)");
+      alert("정부지원금 조회에 실패했습니다. 로그인·서버 상태를 확인하세요.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <section className="w-full rounded-xl border bg-white p-4 shadow-md">
-      <h2 className="mb-1 text-xl font-bold text-gray-900">AI 육아 비서</h2>
-      <p className="mb-4 text-sm text-gray-600">
-        아이 정보.지역 기준으로 어린이집, 지원금, 복지, 돌봄을 묶어 추천합니다
+    <article id="ai-subsidy-panel" className="card info supportbox support-panel">
+      <small>AI 정부지원금</small>
+      <strong style={{ marginBottom: 8 }}>맞춤 육아·복지 혜택 찾기</strong>
+      <p style={{ marginBottom: 10 }}>
+        아이 개월수·지역을 넣고 질문하면 지원금·복지·돌봄 정보를 모아 드립니다.
       </p>
-      <div className="mb-3 grid-cols-1 gap-2  sm:grid-cols-3">
+
+      <div className="mb-2 grid grid-cols-1 gap-1.5 sm:grid-cols-3">
         <input
-          className="rounded border px-3 py-2"
+          className="rounded border px-2 py-1.5 text-sm"
           placeholder="개월수"
           value={months}
           onChange={(e) => setMonths(e.target.value)}
         />
         <input
-          className="rounded border px-3 py-2"
+          className="rounded border px-2 py-1.5 text-sm"
           placeholder="시/도"
           value={sido}
           onChange={(e) => setSido(e.target.value)}
         />
         <input
-          className="rounded border px-3 py-2"
+          className="rounded border px-2 py-1.5 text-sm"
           placeholder="시/군/구"
           value={sigungu}
           onChange={(e) => setSigungu(e.target.value)}
         />
       </div>
 
-      <div className="mb-3 flex flex-wrap gap-2">
+      <div className="mb-2 flex flex-wrap gap-1.5">
         {CATEGORIES.map((c) => (
           <button
             key={c.key}
             type="button"
-            onClick={() => toggle(c.key)}       // 카테고리칩 on/off 담당
-            className={`rounded-full px-3 py-1 text-sm font-semibold ${
+            onClick={() => toggle(c.key)}
+            className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${
               selected.includes(c.key)
                 ? "bg-sky-500 text-white"
                 : "bg-gray-100 text-gray-700"
@@ -99,10 +102,11 @@ const AssistantPanel = () => {
           </button>
         ))}
       </div>
-      <div className="mb-3 flex gap-2">
+
+      <div className="mb-2 flex gap-2">
         <input
-          className="min-w-0 flex-1 rounded border px-3 py-2"
-          placeholder="예: 강남구 18개월 어린이집이랑 지원금 알려줘"
+          className="min-w-0 flex-1 rounded border px-2 py-1.5 text-sm"
+          placeholder="예: 18개월, 강남구 육아 지원금 알려줘"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && run()}
@@ -111,26 +115,27 @@ const AssistantPanel = () => {
           type="button"
           onClick={run}
           disabled={loading}
-          className="rounded bg-sky-500 px-4 py-2 font-semibold text-white disabled:opacity-60"
+          className="rounded bg-sky-500 px-3 py-1.5 text-sm font-semibold text-white disabled:opacity-60"
         >
-          {loading ? "찾는중... " : "추천받기"}
+          {loading ? "찾는중..." : "조회하기"}
         </button>
       </div>
+
       {answer && (
-        <div className="mb-3 rounded-lg bg-sky-50 p-3 text-sm text-gray-800">
+        <div className="mb-2 max-h-28 overflow-y-auto rounded-lg bg-sky-50 p-2 text-xs text-gray-800">
           {answer}
         </div>
       )}
-      <ul className="space-y-2">
+      <ul className="max-h-48 space-y-1.5 overflow-y-auto">
         {items.map((it) => (
-          <li key={it.id} className="rounded-lg border p-3">
-            <p className="text-xs font-semibold text-sky-600">{it.category}</p>
-            <p className="font-bold text-gray-900">{it.title}</p>
-            <p className="text-sm text-gray-600">{it.summary}</p>
+          <li key={it.id} className="rounded-lg border bg-white/70 p-2">
+            <p className="text-[11px] font-semibold text-sky-600">{it.category}</p>
+            <p className="text-sm font-bold text-gray-900">{it.title}</p>
+            <p className="text-xs text-gray-600">{it.summary}</p>
           </li>
         ))}
       </ul>
-    </section>
+    </article>
   );
 };
 

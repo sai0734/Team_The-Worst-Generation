@@ -1,9 +1,11 @@
 import BasicLayout from "../../layouts/BasicLayout";
-import ChatRoomComponent from "../../components/market/ChatRoomComponent.tsx";
+import MarketSubNav from "../../components/market/MarketSubNav";
+import ChatRoomComponent from "../../components/market/ChatRoomComponent";
 
 const ChatRoomPage = () => {
   return (
     <BasicLayout>
+      <MarketSubNav />
       <ChatRoomComponent />
     </BasicLayout>
   );

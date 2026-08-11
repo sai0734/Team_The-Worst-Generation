@@ -1,6 +1,63 @@
+import { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
+import { Link } from "react-router-dom";
 import BasicLayout from "../layouts/BasicLayout";
+import { questApi, type QuestHome } from "../api/questApi";
+import AssistantPanel from "../components/assistant/AssistantPanel";
+import type { RootState } from "../store";
+
+const emptyHome: QuestHome = {
+  dailyQuests: [],
+  urgentQuests: [],
+  point: 0,
+};
 
 const MainPage = () => {
+  const loginState = useSelector((state: RootState) => state.loginSlice);
+  const isLogin = Boolean(loginState.email);
+
+  const [home, setHome] = useState<QuestHome>(emptyHome);
+  const [completingId, setCompletingId] = useState<number | null>(null);
+
+  const load = async () => {
+    try {
+      const data = await questApi.getHome();
+      setHome({
+        dailyQuests: data.dailyQuests ?? [],
+        urgentQuests: data.urgentQuests ?? [],
+        point: data.point ?? 0,
+      });
+    } catch {
+      setHome(emptyHome);
+    }
+  };
+
+  useEffect(() => {
+    if (!isLogin) {
+      setHome(emptyHome);
+      return;
+    }
+    load();
+  }, [isLogin]);
+
+  const handleToggle = async (id: number, done: boolean) => {
+    setCompletingId(id);
+    try {
+      if (done) {
+        await questApi.uncomplete(id);
+      } else {
+        await questApi.complete(id);
+      }
+      await load();
+    } finally {
+      setCompletingId(null);
+    }
+  };
+
+  const daily = home.dailyQuests;
+  const urgent = home.urgentQuests[0];
+  const done = daily.filter((q) => q.status === "DONE").length;
+
   return (
     <BasicLayout>
       <section>
@@ -14,11 +71,7 @@ const MainPage = () => {
           <br />
           놓치기 쉬운 안전 정보와 혜택까지 AI가 챙겨드려요.
         </p>
-        <div className="summary">
-          <span className="chip">🍼 마지막 수유 1시간 전</span>
-          <span className="chip">🌙 수면 10시간 42분</span>
-          <span className="chip">🔥 연속 기록 12일</span>
-        </div>
+        <div className="summary"></div>
       </section>
 
       <div className="content-stack">
@@ -26,32 +79,88 @@ const MainPage = () => {
           <article className="card">
             <div className="head">
               <h2>오늘의 일일퀘스트</h2>
-              <b>3 / 5 완료</b>
+              <b>{isLogin ? `${done} / ${daily.length} 완료` : "-"}</b>
             </div>
-            <div className="q">
-              <i>✓</i>
-              <span>아침 수유 180ml</span>
-              <small>엄마</small>
-            </div>
-            <div className="q">
-              <i>○</i>
-              <span>오후 산책 30분</span>
-              <small>함께</small>
-            </div>
-            <div className="q">
-              <i>○</i>
-              <span>저녁 목욕과 피부 확인</span>
-              <small>아빠</small>
-            </div>
+
+            {!isLogin ? (
+              <p>
+                로그인하면 일일 퀘스트를 볼 수 있어요.{" "}
+                <Link to="/member/login">로그인</Link>
+              </p>
+            ) : daily.length === 0 ? (
+              <p>배정된 일일 퀘스트가 없습니다.</p>
+            ) : (
+              daily.map((mq) => {
+                const isDone = mq.status === "DONE";
+                return (
+                  <div
+                    className="q"
+                    key={mq.id}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => {
+                      if (completingId === mq.id) return;
+                      handleToggle(mq.id, isDone);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        if (completingId === mq.id) return;
+                        handleToggle(mq.id, isDone);
+                      }
+                    }}
+                    style={{
+                      cursor: completingId === mq.id ? "wait" : "pointer",
+                      opacity: completingId === mq.id ? 0.6 : 1,
+                    }}
+                  >
+                    <i>{isDone ? "✓" : "○"}</i>
+                    <span>{mq.quest?.title ?? "제목 없음"}</span>
+                    <small>{mq.quest?.reward ?? 0}P</small>
+                  </div>
+                );
+              })
+            )}
           </article>
+
           <article className="card urgent">
             <span className="alert">긴급퀘스트</span>
-            <strong>
-              예방접종
-              <br />
-              D-2
-            </strong>
-            <p>오늘 병원 예약이 필요해요.</p>
+
+            {!isLogin ? (
+              <>
+                <strong>로그인이 필요해요</strong>
+                <p>
+                  로그인하면 긴급 퀘스트를 볼 수 있어요.{" "}
+                  <Link to="/member/login">로그인</Link>
+                </p>
+              </>
+            ) : urgent ? (
+              <>
+                <strong>{urgent.quest?.title ?? "긴급 퀘스트"}</strong>
+                <p>
+                  {urgent.quest?.description?.trim()
+                    ? urgent.quest.description
+                    : urgent.status === "DONE"
+                      ? "완료된 긴급 퀘스트입니다."
+                      : "확인이 필요한 긴급 할 일이에요."}
+                </p>
+                {urgent.status !== "DONE" && (
+                  <button
+                    type="button"
+                    disabled={completingId === urgent.id}
+                    onClick={() => handleToggle(urgent.id, false)}
+                    style={{ marginTop: 8 }}
+                  >
+                    {completingId === urgent.id ? "처리 중..." : "완료하기"}
+                  </button>
+                )}
+              </>
+            ) : (
+              <>
+                <strong>긴급 퀘스트 없음</strong>
+                <p>지금은 배정된 긴급 퀘스트가 없어요.</p>
+              </>
+            )}
           </article>
         </section>
 
@@ -74,16 +183,10 @@ const MainPage = () => {
             </strong>
             <p>등록 제품과 최신 공고를 대조했어요.</p>
           </article>
-          <article className="card info supportbox">
-            <small>AI 정부지원금</small>
-            <strong>
-              신청 가능한
-              <br />
-              맞춤 혜택 3건
-            </strong>
-            <p>예상 혜택 최대 월 35만원</p>
-          </article>
         </section>
+
+        {/* 기존 AI 육아 비서 기능 → AI 정부지원금 슬롯으로 이전 */}
+        <AssistantPanel />
       </div>
     </BasicLayout>
   );

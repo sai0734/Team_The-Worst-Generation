@@ -13,7 +13,7 @@ public class MarketItemImage {
 
     private int ord;
 
-    public void setOrd(int ord) {
+    public void changeOrd(int ord) {
         this.ord = ord;
     }
 }

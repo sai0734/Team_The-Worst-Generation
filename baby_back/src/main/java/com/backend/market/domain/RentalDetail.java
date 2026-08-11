@@ -13,7 +13,7 @@ public class RentalDetail {
     // PK / FK (tbl_market_item.itemNo)
     private Long itemNo;
 
-    private int deposit;
+    private int deposit;        // 보증금
 
     private Integer minDays;
 
