@@ -5,8 +5,14 @@ import {
 } from "@reduxjs/toolkit";
 import { loginPost } from "../api/memberApi";
 import { getCookie, removeCookie, setCookie } from "../util/cookieUtil";
-import type { LoginParam, LoginState } from "../types/member";
+import type {
+  AuthError,
+  LoginParam,
+  LoginResponse,
+  LoginState,
+} from "../types/member";
 import axios from "axios";
+import { clearAccessToken, setAccessToken } from "../util/accessTokenStore";
 
 const initState: LoginState = {
   email: "",
@@ -23,9 +29,9 @@ const loadMemberCookie = (): LoginState | undefined => {
   return memberInfo;
 };
 export const loginPostAsync = createAsyncThunk<
-  LoginState,
+  LoginResponse,
   LoginParam,
-  { rejectValue: { error: string } }
+  { rejectValue: AuthError }
 >("loginPostAsync", async (param, { rejectWithValue }) => {
   try {
     return await loginPost(param);
@@ -40,41 +46,45 @@ export const loginPostAsync = createAsyncThunk<
   }
 });
 
+const applyLoginResponse = (payload: LoginResponse): LoginState => {
+  const { accessToken, email, nickname, social, roleNames } = payload;
+  const memberInfo: LoginState = {
+    email,
+    nickname,
+    social,
+    roleNames,
+  };
+
+  setAccessToken(accessToken);
+  setCookie("member", JSON.stringify(memberInfo), 1);
+
+  return memberInfo;
+};
+
 const loginSlice = createSlice({
   name: "LoginSlice",
   initialState: loadMemberCookie() || initState, // 쿠키가 없다면 초깃값 사용
   reducers: {
-    login: (_state, action: PayloadAction<LoginState>) => {
+    login: (_state, action: PayloadAction<LoginResponse>) => {
       console.log("login....");
-      // 소셜 로그인 회원이 사용
-      const payload = action.payload;
-      setCookie("member", JSON.stringify(payload), 1); // 1일
-
-      return payload;
+      // 소셜 로그인이 사용
+      return applyLoginResponse(action.payload);
     },
     logout: () => {
       console.log("logout....");
+
+      clearAccessToken();
       removeCookie("member");
+
       return { ...initState };
     },
   },
   extraReducers: (builder) => {
     builder
-      .addCase(
-        loginPostAsync.fulfilled,
-        (_state, action: PayloadAction<LoginState>) => {
-          console.log("fulfilled");
-          const payload = action.payload;
-
-          // 정상적인 로그인시에만 저장
-          if (!payload.error) {
-            setCookie("member", JSON.stringify(payload), 1); //1일
-            // setCookie("member", JSON.stringify(payload),1/24)
-          }
-
-          return payload;
-        },
-      )
+      .addCase(loginPostAsync.fulfilled, (_state, action) => {
+        console.log("fulfilled");
+        return applyLoginResponse(action.payload);
+      })
       .addCase(loginPostAsync.pending, () => {
         console.log("pending");
       })

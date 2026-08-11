@@ -61,6 +61,7 @@ public class AuthTokenServiceImpl implements AuthTokenService {
     }
 
     @Override
+    @Transactional(noRollbackFor = CustomJWTException.class)
     public Map<String, Object> refreshAccessToken(
             String refreshToken,
             HttpServletRequest request,
