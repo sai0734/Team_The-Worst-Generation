@@ -29,7 +29,7 @@ const MarketProfileComponent = () => {
   }, [email]);
 
   if (!profile || !email) {
-    return <div>불러오는 중...</div>;
+    return <div className="card">불러오는 중...</div>;
   }
 
   const isMine = loginState.email === email;
@@ -46,39 +46,50 @@ const MarketProfileComponent = () => {
   };
 
   return (
-    <div>
-      <h2>{email}</h2>
-      <div>매너온도: {profile.mannerTemp}°C</div>
-      <div>동네: {profile.locationName ?? "미인증"}</div>
+    <div className="card" style={{ maxWidth: 560 }}>
+      <h2 style={{ marginTop: 0 }}>{email}</h2>
+      <div className="detail-meta">매너온도: {profile.mannerTemp}°C</div>
+      <div className="detail-meta">
+        동네: {profile.locationName ?? "미인증"}
+      </div>
 
       <h3>받은 후기 {reviews.length}</h3>
-      <ul>
-        {reviews.map((review) => (
-          <li key={review.reviewNo}>
-            <div>{"★".repeat(review.rating)}</div>
-            <div>{review.content}</div>
-          </li>
-        ))}
-      </ul>
+      {reviews.map((review) => (
+        <div
+          className="list-row"
+          key={review.reviewNo}
+          style={{ display: "block" }}
+        >
+          <div>{"★".repeat(review.rating)}</div>
+          <div>{review.content}</div>
+        </div>
+      ))}
 
       {isLogin && !isMine && (
-        <form onSubmit={handleSubmitReview}>
-          <p>후기 작성</p>
-          <select
-            value={rating}
-            onChange={(e) => setRating(Number(e.target.value))}
-          >
-            {[5, 4, 3, 2, 1].map((n) => (
-              <option key={n} value={n}>
-                {n}점
-              </option>
-            ))}
-          </select>
-          <textarea
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-          />
-          <button type="submit">등록</button>
+        <form onSubmit={handleSubmitReview} style={{ marginTop: 16 }}>
+          <div className="form-field">
+            <label>후기 작성</label>
+            <select
+              value={rating}
+              onChange={(e) => setRating(Number(e.target.value))}
+            >
+              {[5, 4, 3, 2, 1].map((n) => (
+                <option key={n} value={n}>
+                  {n}점
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="form-field">
+            <textarea
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              rows={3}
+            />
+          </div>
+          <button type="submit" className="btn">
+            등록
+          </button>
         </form>
       )}
     </div>

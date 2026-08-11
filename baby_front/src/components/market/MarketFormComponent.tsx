@@ -92,135 +92,164 @@ const MarketFormComponent = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <h2>{isEdit ? "매물 수정" : "매물 등록"}</h2>
+    <form className="card" onSubmit={handleSubmit} style={{ maxWidth: 560 }}>
+      <h2 style={{ marginTop: 0 }}>{isEdit ? "매물 수정" : "매물 등록"}</h2>
 
-      <p>거래 방식</p>
-      <select
-        value={tradeType}
-        onChange={(e) => setTradeType(e.target.value as "SALE" | "RENTAL")}
-      >
-        <option value="SALE">판매</option>
-        <option value="RENTAL">대여</option>
-      </select>
+      <div className="form-field">
+        <label>거래 방식</label>
+        <select
+          value={tradeType}
+          onChange={(e) => setTradeType(e.target.value as "SALE" | "RENTAL")}
+        >
+          <option value="SALE">판매</option>
+          <option value="RENTAL">대여</option>
+        </select>
+      </div>
 
-      <p>제목</p>
-      <input
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        required
-      />
+      <div className="form-field">
+        <label>제목</label>
+        <input
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          required
+        />
+      </div>
 
-      <p>가격</p>
-      <input
-        type="number"
-        min={0}
-        value={price}
-        onChange={(e) => setPrice(e.target.value)}
-        required
-      />
+      <div className="form-field">
+        <label>가격</label>
+        <input
+          type="number"
+          min={0}
+          value={price}
+          onChange={(e) => setPrice(e.target.value)}
+          required
+        />
+      </div>
 
-      <p>설명</p>
-      <textarea
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-        rows={6}
-        required
-      />
+      <div className="form-field">
+        <label>설명</label>
+        <textarea
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          rows={6}
+          required
+        />
+      </div>
 
-      <p>카테고리</p>
-      <input
-        value={category}
-        onChange={(e) => setCategory(e.target.value)}
-        required
-      />
+      <div className="form-field">
+        <label>카테고리</label>
+        <input
+          value={category}
+          onChange={(e) => setCategory(e.target.value)}
+          required
+        />
+      </div>
 
-      <p>사용 연령대</p>
-      <input value={ageRange} onChange={(e) => setAgeRange(e.target.value)} />
-
-      <p>상태</p>
-      <input
-        value={condition}
-        onChange={(e) => setCondition(e.target.value)}
-        placeholder="새상품/거의새것/사용감있음 등"
-      />
-
-      <p>
-        <label>
+      <div className="form-row">
+        <div className="form-field">
+          <label>사용 연령대</label>
           <input
-            type="checkbox"
-            checked={allowOffer}
-            onChange={(e) => setAllowOffer(e.target.checked)}
+            value={ageRange}
+            onChange={(e) => setAgeRange(e.target.value)}
           />
+        </div>
+
+        <div className="form-field">
+          <label>상태</label>
+          <input
+            value={condition}
+            onChange={(e) => setCondition(e.target.value)}
+            placeholder="새상품/거의새것/사용감있음 등"
+          />
+        </div>
+
+        <div className="form-field">
+          <label>거래 희망 장소</label>
+          <input
+            value={locationName}
+            onChange={(e) => setLocationName(e.target.value)}
+          />
+        </div>
+      </div>
+
+      <div className="form-field checkbox-field">
+        <input
+          type="checkbox"
+          id="allowOffer"
+          checked={allowOffer}
+          onChange={(e) => setAllowOffer(e.target.checked)}
+        />
+        <label htmlFor="allowOffer" style={{ margin: 0 }}>
           가격 제안 받기
         </label>
-      </p>
-
-      <p>거래 희망 장소</p>
-      <input
-        value={locationName}
-        onChange={(e) => setLocationName(e.target.value)}
-      />
+      </div>
 
       {tradeType === "RENTAL" && (
-        <>
-          <p>보증금</p>
-          <input
-            type="number"
-            min={0}
-            value={deposit}
-            onChange={(e) => setDeposit(e.target.value)}
-          />
+        <div className="form-row">
+          <div className="form-field">
+            <label>보증금</label>
+            <input
+              type="number"
+              min={0}
+              value={deposit}
+              onChange={(e) => setDeposit(e.target.value)}
+            />
+          </div>
 
-          <p>최소 대여일</p>
-          <input
-            type="number"
-            min={0}
-            value={minDays}
-            onChange={(e) => setMinDays(e.target.value)}
-          />
+          <div className="form-field">
+            <label>최소 대여일</label>
+            <input
+              type="number"
+              min={0}
+              value={minDays}
+              onChange={(e) => setMinDays(e.target.value)}
+            />
+          </div>
 
-          <p>최대 대여일</p>
-          <input
-            type="number"
-            min={0}
-            value={maxDays}
-            onChange={(e) => setMaxDays(e.target.value)}
-          />
-        </>
-      )}
-
-      {existingFileNames.length > 0 && (
-        <div>
-          <p>기존 사진</p>
-          {existingFileNames.map((fileName) => (
-            <div key={fileName}>
-              <img
-                src={marketApi.getFileUrl(fileName)}
-                style={{ height: 80 }}
-              />
-              <button
-                type="button"
-                onClick={() => removeExistingFile(fileName)}
-              >
-                삭제
-              </button>
-            </div>
-          ))}
+          <div className="form-field">
+            <label>최대 대여일</label>
+            <input
+              type="number"
+              min={0}
+              value={maxDays}
+              onChange={(e) => setMaxDays(e.target.value)}
+            />
+          </div>
         </div>
       )}
 
-      <p>사진 첨부</p>
-      <input
-        type="file"
-        accept="image/*"
-        multiple
-        onChange={handleFileChange}
-      />
+      {existingFileNames.length > 0 && (
+        <div className="form-field">
+          <label>기존 사진</label>
+          <div className="thumb-list">
+            {existingFileNames.map((fileName) => (
+              <div className="thumb-remove" key={fileName}>
+                <img src={marketApi.getFileUrl(fileName)} />
+                <button
+                  type="button"
+                  onClick={() => removeExistingFile(fileName)}
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
-      <div>
-        <button type="submit">저장</button>
+      <div className="form-field">
+        <label>사진 첨부</label>
+        <input
+          type="file"
+          accept="image/*"
+          multiple
+          onChange={handleFileChange}
+        />
       </div>
+
+      <button type="submit" className="btn">
+        저장
+      </button>
     </form>
   );
 };

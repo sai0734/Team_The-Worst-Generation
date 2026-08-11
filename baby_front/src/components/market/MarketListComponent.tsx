@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type MouseEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import * as marketApi from "../../api/marketApi";
 import type { MarketItem } from "../../api/marketApi";
+import * as wishApi from "../../api/wishApi";
 import type { PageResponse } from "../../types/page";
 import type { MovePageParam } from "../../hooks/useCustomMove";
 import PageComponent from "../common/PageComponent";
@@ -13,14 +14,24 @@ const MarketListComponent = () => {
 
   const [pageResponse, setPageResponse] =
     useState<PageResponse<MarketItem> | null>(null);
+  const [wishedSet, setWishedSet] = useState<Set<number>>(new Set());
 
   const loadList = async (pageNum: number) => {
     const res = await marketApi.getItemList({ page: pageNum, size: 10 });
     setPageResponse(res);
   };
 
+  const loadWishSet = async () => {
+    if (!isLogin) {
+      return;
+    }
+    const list = await wishApi.getMyWishList();
+    setWishedSet(new Set(list.map((w) => w.itemNo)));
+  };
+
   useEffect(() => {
     loadList(1);
+    loadWishSet();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -28,40 +39,73 @@ const MarketListComponent = () => {
     loadList(pageParam?.page ?? 1);
   };
 
+  const handleToggleWish = async (e: MouseEvent, itemNo: number) => {
+    e.stopPropagation();
+    const wished = await wishApi.toggleWish(itemNo);
+    setWishedSet((prev) => {
+      const next = new Set(prev);
+      if (wished) {
+        next.add(itemNo);
+      } else {
+        next.delete(itemNo);
+      }
+      return next;
+    });
+  };
+
   return (
     <div>
-      <div>
-        <h2>감자마켓</h2>
-        {isLogin && (
-          <>
-            <button onClick={() => navigate("/market/write")}>매물 등록</button>
-            <button onClick={() => navigate("/market/wish")}>내 찜</button>
-            <button onClick={() => navigate("/market/chat")}>채팅</button>
-            <button onClick={() => navigate("/market/mypage")}>
-              내 감자밭
-            </button>
-          </>
-        )}
-      </div>
-
       {pageResponse && pageResponse.dtoList.length === 0 && (
-        <div>등록된 매물이 없습니다.</div>
+        <div className="card">등록된 매물이 없습니다.</div>
       )}
 
-      <ul>
+      <div className="market-grid">
         {pageResponse?.dtoList.map((item) => (
-          <li
+          <article
+            className="card market-card"
             key={item.itemNo}
             onClick={() => navigate(`/market/${item.itemNo}`)}
           >
-            <div>{item.title}</div>
-            <div>
-              {item.tradeType === "RENTAL" ? "대여" : "판매"} ·{" "}
-              {item.price.toLocaleString()}원 · {item.status}
+            <div className="thumb-wrap">
+              {item.uploadFileNames && item.uploadFileNames.length > 0 ? (
+                <img
+                  className="thumb"
+                  src={marketApi.getFileUrl(item.uploadFileNames[0])}
+                />
+              ) : (
+                <div className="thumb-empty">사진 없음</div>
+              )}
+
+              <span className="card-tag">
+                {item.tradeType === "RENTAL" ? "대여" : "판매"}
+              </span>
+
+              {isLogin && item.itemNo !== undefined && (
+                <button
+                  type="button"
+                  className={`wish-btn${wishedSet.has(item.itemNo) ? " active" : ""}`}
+                  onClick={(e) => handleToggleWish(e, item.itemNo as number)}
+                >
+                  {wishedSet.has(item.itemNo) ? "♥" : "♡"}
+                </button>
+              )}
             </div>
-          </li>
+
+            <div className="body">
+              <p className="brand">{item.category}</p>
+              <p className="title">{item.title}</p>
+              <div className="price-row">
+                <span className="price">{item.price.toLocaleString()}원</span>
+                <span
+                  className={`status-badge ${item.status === "거래완료" ? "done" : "available"}`}
+                >
+                  {item.status}
+                </span>
+              </div>
+            </div>
+          </article>
         ))}
-      </ul>
+      </div>
 
       {pageResponse && (
         <PageComponent serverData={pageResponse} movePage={movePage} />
