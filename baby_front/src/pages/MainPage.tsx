@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import BasicLayout from "../layouts/BasicLayout";
 
 const MainPage = () => {
@@ -65,7 +66,7 @@ const MainPage = () => {
             </strong>
             <p>월 예산 700,000원의 61%</p>
           </article>
-          <article className="card info recallbox">
+          <Link to="/recall" className="card info recallbox">
             <small>AI 육아용품 리콜</small>
             <strong>
               안전 확인이 필요한
@@ -73,7 +74,7 @@ const MainPage = () => {
               제품 1건
             </strong>
             <p>등록 제품과 최신 공고를 대조했어요.</p>
-          </article>
+          </Link>
           <article className="card info supportbox">
             <small>AI 정부지원금</small>
             <strong>
