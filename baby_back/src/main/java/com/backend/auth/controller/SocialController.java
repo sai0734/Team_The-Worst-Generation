@@ -114,13 +114,19 @@ public class SocialController {
   }
 
   @PutMapping("/api/member/modify")
-  public Map<String, String> modify(@RequestBody MemberModifyDTO memberModifyDTO) {
+  public ResponseEntity<Map<String, String>> modify(
+          @AuthenticationPrincipal MemberDTO memberDTO,
+          @RequestBody MemberModifyDTO memberModifyDTO) {
+
+    if (memberDTO == null) {
+      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", "LOGIN_REQUIRED"));
+    }
 
     log.info("member modify: " + memberModifyDTO);
 
-    memberService.modifyMember(memberModifyDTO);
+    memberService.modifyMember(memberDTO.getEmail(), memberModifyDTO);
 
-    return Map.of("result", "modified");
+    return ResponseEntity.ok(Map.of("result", "modified"));
   }
 }
 
