@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 import com.backend.ledger.dto.LedgerBriefingDTO;
+import com.backend.ledger.dto.LedgerBulkClassifyRequestDTO;
 import com.backend.ledger.dto.LedgerClassifyRequestDTO;
 import com.backend.ledger.dto.LedgerClassifyResponseDTO;
 import com.backend.ledger.dto.LedgerDTO;
@@ -29,6 +30,8 @@ public interface LedgerService {
     void updateBriefingDay(String email, Integer briefingDay);
 
     LedgerClassifyResponseDTO classify(LedgerClassifyRequestDTO requestDTO);
+
+    List<LedgerClassifyResponseDTO> classifyBulk(LedgerBulkClassifyRequestDTO requestDTO);
 
     LedgerBriefingDTO generateBriefing(String email);
 }

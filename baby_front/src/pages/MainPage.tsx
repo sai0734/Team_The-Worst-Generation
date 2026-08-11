@@ -1,7 +1,45 @@
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import BasicLayout from "../layouts/BasicLayout";
+import useCustomLogin from "../hooks/useCustomLogin";
+import * as ledgerApi from "../api/ledgerApi";
+import type { LedgerSummary } from "../api/ledgerApi";
+import * as recallApi from "../api/recallApi";
+import type { MyProduct } from "../api/recallApi";
+
+const formatWon = (n: number) => `${n.toLocaleString()}원`;
 
 const MainPage = () => {
+  const { isLogin } = useCustomLogin();
+
+  const [ledgerSummary, setLedgerSummary] = useState<LedgerSummary | null>(null);
+  const [recallProducts, setRecallProducts] = useState<MyProduct[] | null>(null);
+
+  useEffect(() => {
+    if (!isLogin) {
+      setLedgerSummary(null);
+      setRecallProducts(null);
+      return;
+    }
+
+    ledgerApi
+      .getSummary()
+      .then(setLedgerSummary)
+      .catch(() => setLedgerSummary(null));
+
+    recallApi
+      .getMyProductList()
+      .then(setRecallProducts)
+      .catch(() => setRecallProducts(null));
+  }, [isLogin]);
+
+  const expenseDelta = ledgerSummary
+    ? ledgerSummary.totalExpense - ledgerSummary.prevTotalExpense
+    : 0;
+
+  const matchedCount =
+    recallProducts?.filter((product) => product.recallMatched).length ?? 0;
+
   return (
     <BasicLayout>
       <section>
@@ -57,23 +95,73 @@ const MainPage = () => {
         </section>
 
         <section className="info-grid">
-          <article className="card info moneybox">
+          <Link to="/ledger" className="card info moneybox">
             <small>우리집 가계부</small>
-            <strong>
-              8월 육아 지출
-              <br />
-              428,500원
-            </strong>
-            <p>월 예산 700,000원의 61%</p>
-          </article>
+            {ledgerSummary ? (
+              <>
+                <strong>
+                  이번 달 지출
+                  <br />
+                  {formatWon(ledgerSummary.totalExpense)}
+                </strong>
+                <p>
+                  {expenseDelta === 0
+                    ? "지난달과 지출이 같아요"
+                    : expenseDelta > 0
+                      ? `지난달보다 ${formatWon(expenseDelta)} 더 썼어요`
+                      : `지난달보다 ${formatWon(-expenseDelta)} 아꼈어요`}
+                </p>
+              </>
+            ) : (
+              <>
+                <strong>
+                  우리집 가계부
+                  <br />
+                  기록해보기
+                </strong>
+                <p>
+                  {isLogin
+                    ? "아직 이번 달 기록이 없어요."
+                    : "로그인하면 이번 달 지출을 볼 수 있어요."}
+                </p>
+              </>
+            )}
+          </Link>
           <Link to="/recall" className="card info recallbox">
             <small>AI 육아용품 리콜</small>
-            <strong>
-              안전 확인이 필요한
-              <br />
-              제품 1건
-            </strong>
-            <p>등록 제품과 최신 공고를 대조했어요.</p>
+            {recallProducts && recallProducts.length > 0 ? (
+              <>
+                <strong>
+                  {matchedCount > 0 ? (
+                    <>
+                      안전 확인이 필요한
+                      <br />
+                      제품 {matchedCount}건
+                    </>
+                  ) : (
+                    <>
+                      등록 제품
+                      <br />
+                      모두 안전해요
+                    </>
+                  )}
+                </strong>
+                <p>등록한 제품 {recallProducts.length}건과 최신 공고를 대조했어요.</p>
+              </>
+            ) : (
+              <>
+                <strong>
+                  내 제품
+                  <br />
+                  등록해보기
+                </strong>
+                <p>
+                  {isLogin
+                    ? "등록된 제품이 없어요."
+                    : "로그인하면 등록 제품의 리콜 여부를 확인할 수 있어요."}
+                </p>
+              </>
+            )}
           </Link>
           <article className="card info supportbox">
             <small>AI 정부지원금</small>
