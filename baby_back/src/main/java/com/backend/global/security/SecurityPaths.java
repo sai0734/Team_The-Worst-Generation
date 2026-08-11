@@ -7,6 +7,7 @@ public final class SecurityPaths {
   // Public endpoints that do not require JWT validation.
   public static final String[] PUBLIC_URLS = {
       "/api/member/login",
+      "/api/member/signup",
       "/api/member/kakao",
       "/api/member/social/signup",
       "/api/member/refresh",

@@ -18,6 +18,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 import com.backend.auth.domain.MemberSocial;
 import com.backend.auth.domain.MemberRole;
 import com.backend.auth.dto.KakaoLoginResultDTO;
+import com.backend.auth.dto.MemberSignupRequestDTO;
 import com.backend.auth.dto.SocialSignupRequestDTO;
 import com.backend.auth.mapper.MemberSocialMapper;
 import com.backend.auth.domain.Member;
@@ -82,6 +83,23 @@ public class MemberServiceImpl implements MemberService {
     linkMemberSocial(memberEmail, socialLinkInfo);
   }
 
+  @Override
+  public MemberDTO signupMember(MemberSignupRequestDTO memberSignupRequestDTO) {
+
+    validateMemberSignupRequest(memberSignupRequestDTO);
+
+    if (memberMapper.selectByEmail(memberSignupRequestDTO.getEmail()) != null) {
+      throw new IllegalStateException("MEMBER_ALREADY_EXISTS");
+    }
+
+    Member member = createMember(
+        memberSignupRequestDTO.getEmail(),
+        memberSignupRequestDTO.getPw(),
+        memberSignupRequestDTO.getNickname());
+
+    return entityToDTO(member);
+  }
+
   // 기존에 회원이 아닌 3번의 상황의 사용자. 기존 회원가입을 먼저 하게 한 후 소셜을 연결 한다.
   @Override
   public MemberDTO signupAndLinkSocialMember(SocialSignupRequestDTO socialSignupRequestDTO) {
@@ -100,10 +118,22 @@ public class MemberServiceImpl implements MemberService {
       throw new IllegalStateException("MEMBER_ALREADY_EXISTS");
     }
 
+    Member member = createMember(
+        socialSignupRequestDTO.getEmail(),
+        socialSignupRequestDTO.getPw(),
+        socialSignupRequestDTO.getNickname());
+
+    linkMemberSocial(member.getEmail(), socialLinkInfo);
+
+    return entityToDTO(member);
+  }
+
+  private Member createMember(String email, String pw, String nickname) {
+
     Member member = Member.builder()
-        .email(socialSignupRequestDTO.getEmail())
-        .pw(passwordEncoder.encode(socialSignupRequestDTO.getPw()))
-        .nickname(socialSignupRequestDTO.getNickname())
+        .email(email)
+        .pw(passwordEncoder.encode(pw))
+        .nickname(nickname)
         .social(false)
         .build();
 
@@ -113,9 +143,7 @@ public class MemberServiceImpl implements MemberService {
     member.getMemberRoleList()
         .forEach(role -> memberMapper.insertRole(member.getEmail(), role.name()));
 
-    linkMemberSocial(member.getEmail(), socialLinkInfo);
-
-    return entityToDTO(member);
+    return member;
   }
 
   // 하나의 카카오 계정이 여러 회원에게 연결되지 않도록 막고 저장한다.
@@ -244,6 +272,19 @@ public class MemberServiceImpl implements MemberService {
         || socialSignupRequestDTO.getNickname().isBlank()
         || socialSignupRequestDTO.getSocialLinkToken() == null
         || socialSignupRequestDTO.getSocialLinkToken().isBlank()) {
+      throw new IllegalStateException("INVALID_SIGNUP_REQUEST");
+    }
+  }
+
+  private void validateMemberSignupRequest(MemberSignupRequestDTO memberSignupRequestDTO) {
+
+    if (memberSignupRequestDTO == null
+        || memberSignupRequestDTO.getEmail() == null
+        || memberSignupRequestDTO.getEmail().isBlank()
+        || memberSignupRequestDTO.getPw() == null
+        || memberSignupRequestDTO.getPw().isBlank()
+        || memberSignupRequestDTO.getNickname() == null
+        || memberSignupRequestDTO.getNickname().isBlank()) {
       throw new IllegalStateException("INVALID_SIGNUP_REQUEST");
     }
   }

@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 
 public class AuthTokenUtil {
 
+    public static final String ACCESS_TOKEN_TYPE = "ACCESS";
     public static final String REFRESH_TOKEN_TYPE = "REFRESH";
 
     private AuthTokenUtil(){
@@ -18,7 +19,10 @@ public class AuthTokenUtil {
 
     // accessToken 생성
     public static String generateAccessToken(Map<String,Object> claims, int minutes){
-        return JWTUtil.generateToken(claims, minutes);
+        Map<String, Object> accessClaims = new HashMap<>(claims);
+        accessClaims.put("tokenType", ACCESS_TOKEN_TYPE);
+
+        return JWTUtil.generateToken(accessClaims, minutes);
     }
 
     // refreshToken 생성
