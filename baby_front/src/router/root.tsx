@@ -5,6 +5,7 @@ import babyInfoRouter from "./babyInfoRouter";
 import communityRouter from "./communityRouter";
 import marketRouter from "./marketRouter";
 import recallRouter from "./recallRouter";
+import ledgerRouter from "./ledgerRouter";
 
 const Loading = <div>Loading....</div>;
 const Main = lazy(() => import("../pages/MainPage"));
@@ -60,6 +61,10 @@ const root = createBrowserRouter([
   {
     path: "recall",
     children: recallRouter(),
+  },
+  {
+    path: "ledger",
+    children: ledgerRouter(),
   },
 ]);
 
