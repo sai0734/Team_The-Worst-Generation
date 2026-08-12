@@ -2,7 +2,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { createSearchParams, Navigate, useNavigate } from "react-router-dom";
 import { loginPostAsync, logout } from "../slices/loginSlice";
 import type { AppDispatch, RootState } from "../store";
-import type { LoginParam, LoginState } from "../types/member";
+import type { LoginParam, LoginResponse } from "../types/member";
 
 const useCustomLogin = () => {
   const navigate = useNavigate();
@@ -13,12 +13,10 @@ const useCustomLogin = () => {
 
   const isLogin = loginState.email ? true : false; //----------로그인 여부
 
-  const doLogin = async (loginParam: LoginParam): Promise<LoginState> => {
+  const doLogin = async (loginParam: LoginParam): Promise<LoginResponse> => {
     //----------로그인 함수
 
-    const action = await dispatch(loginPostAsync(loginParam));
-
-    return action.payload as LoginState;
+    return dispatch(loginPostAsync(loginParam)).unwrap();
   };
 
   const doLogout = () => {

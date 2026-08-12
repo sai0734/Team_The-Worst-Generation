@@ -34,7 +34,7 @@ public class MarketItem {
 
     private String condition;   // 새상품급/사용감적음/사용감있음/하자있음
 
-    private boolean allowOffer;
+    private boolean allowOffer; // 네고 여부
 
     private String status;      // 거래가능 | 거래완료 (매매/대여 공통, 중간상태 없음 - 판매자/대여자가 알아서 판단해서 거래완료로만 전환)
 
@@ -100,7 +100,7 @@ public class MarketItem {
     }
 
     public void addImage(MarketItemImage image) {
-        image.setOrd(this.imageList.size());
+        image.changeOrd(this.imageList.size());
         imageList.add(image);
     }
 

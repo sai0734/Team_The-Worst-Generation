@@ -14,24 +14,26 @@ const ChatRoomListComponent = () => {
   }, []);
 
   return (
-    <div>
-      <h2>채팅</h2>
+    <div className="card">
+      <h2 style={{ marginTop: 0 }}>채팅</h2>
 
-      {rooms.length === 0 && <div>채팅방이 없습니다.</div>}
+      {rooms.length === 0 && <p>채팅방이 없습니다.</p>}
 
-      <ul>
-        {rooms.map((room) => (
-          <li
-            key={room.roomNo}
-            onClick={() => navigate(`/market/chat/${room.roomNo}`)}
-          >
-            매물 #{room.itemNo} ·{" "}
+      {rooms.map((room) => (
+        <div
+          className="list-row"
+          key={room.roomNo}
+          style={{ cursor: "pointer" }}
+          onClick={() => navigate(`/market/chat/${room.roomNo}`)}
+        >
+          <span>매물 #{room.itemNo}</span>
+          <span>
             {loginState.email === room.buyerEmail
               ? room.sellerEmail
               : room.buyerEmail}
-          </li>
-        ))}
-      </ul>
+          </span>
+        </div>
+      ))}
     </div>
   );
 };

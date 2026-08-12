@@ -12,8 +12,11 @@ const BasicMenu = () => {
       </Link>
 
       <div className="top-right">
-        {/* TODO: 챗봇 담당자님이 ChatbotWidget open state랑 연결 예정 */}
-        <button type="button" className="tool">
+        <button
+          type="button"
+          className="tool"
+          onClick={() => window.dispatchEvent(new Event("open-chatbot"))}
+        >
           <i>💬</i>
           <span>AI 챗봇</span>
         </button>

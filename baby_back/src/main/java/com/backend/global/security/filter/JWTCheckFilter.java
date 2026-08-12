@@ -12,6 +12,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import com.backend.auth.dto.MemberDTO;
+import com.backend.auth.util.AuthTokenUtil;
 import com.backend.global.security.SecurityPaths;
 import com.backend.global.util.CustomJWTException;
 import com.backend.global.util.JWTUtil;
@@ -46,6 +47,10 @@ public class JWTCheckFilter extends OncePerRequestFilter {
       }
 
       Map<String, Object> claims = JWTUtil.validateToken(accessToken);
+
+      if (!AuthTokenUtil.ACCESS_TOKEN_TYPE.equals(String.valueOf(claims.get("tokenType")))) {
+        throw new CustomJWTException("INVALID_ACCESS_TOKEN");
+      }
 
       log.info("JWT claims: " + claims);
 

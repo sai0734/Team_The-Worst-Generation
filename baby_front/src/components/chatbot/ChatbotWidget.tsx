@@ -1,20 +1,19 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ChatbotPanel from "./ChatbotPanel";
+
+const OPEN_CHATBOT_EVENT = "open-chatbot";
 
 const ChatbotWidget = () => {
   const [open, setOpen] = useState(false);
 
+  useEffect(() => {
+    const openHandler = () => setOpen(true);
+    window.addEventListener(OPEN_CHATBOT_EVENT, openHandler);
+    return () => window.removeEventListener(OPEN_CHATBOT_EVENT, openHandler);
+  }, []);
+
   return (
     <>
-      {/* 우하단 플로팅 버튼 */}
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className="fixed bottom-5 right-5 z-50 rounded-full bg-sky-500 px-4 py-3 font-bold text-white shadow-lg"
-      >
-        챗봇
-      </button>
-
       {/* 가운데 모달 */}
       {open && (
         <div

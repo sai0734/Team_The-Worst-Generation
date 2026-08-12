@@ -1,8 +1,15 @@
+/// <reference types="vite/client" />
+
 import axios from "axios";
 const API_SERVER_HOST = "http://localhost:8080";
-import type { LoginState } from "../types/member";
+import type {
+  KakaoLoginResponse,
+  KakaoLoginSuccess,
+  SocialSignupParam,
+} from "../types/member";
+import jwtAxios from "../util/jwtUtil";
 
-const rest_api_key = ``; // rest키값
+const rest_api_key = import.meta.env.VITE_KAKAO_REST_API_KEY ?? "";
 const redirect_uri = `http://localhost:3000/member/kakao`;
 
 const auth_code_path = `https://kauth.kakao.com/oauth/authorize`;
@@ -21,12 +28,12 @@ export const getAccessToken = async (authCode: string): Promise<string> => {
       "Content-Type": "application/x-www-form-urlencoded",
     },
   };
-  const params = {
+  const params = new URLSearchParams({
     grant_type: "authorization_code",
     client_id: rest_api_key,
     redirect_uri: redirect_uri,
     code: authCode,
-  };
+  });
 
   const res = await axios.post(access_token_url, params, header);
 
@@ -37,10 +44,34 @@ export const getAccessToken = async (authCode: string): Promise<string> => {
 
 export const getMemberWithAccessToken = async (
   accessToken: string,
-): Promise<LoginState> => {
+): Promise<KakaoLoginResponse> => {
   const res = await axios.get(
-    `${API_SERVER_HOST}/api/member/kakao?accessToken=${accessToken}`,
+    `${API_SERVER_HOST}/api/member/kakao`,
+    {
+      params: { accessToken },
+      withCredentials: true,
+    },
   );
 
   return res.data;
+};
+
+export const signupAndLinkSocial = async (
+  signupParam: SocialSignupParam,
+): Promise<KakaoLoginSuccess> => {
+  const res = await axios.post(
+    `${API_SERVER_HOST}/api/member/social/signup`,
+    signupParam,
+    { withCredentials: true },
+  );
+
+  return res.data;
+};
+
+export const linkKakaoMember = async (
+  socialLinkToken: string,
+): Promise<void> => {
+  await jwtAxios.post(`${API_SERVER_HOST}/api/member/social/kakao/link`, {
+    socialLinkToken,
+  });
 };

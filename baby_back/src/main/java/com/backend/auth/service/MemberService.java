@@ -9,6 +9,7 @@ import com.backend.auth.domain.Member;
 import com.backend.auth.dto.SocialSignupRequestDTO;
 import com.backend.auth.dto.MemberDTO;
 import com.backend.auth.dto.MemberModifyDTO;
+import com.backend.auth.dto.MemberSignupRequestDTO;
 
 @Transactional
 public interface MemberService {
@@ -16,6 +17,8 @@ public interface MemberService {
   KakaoLoginResultDTO getKakaoLoginResult(String accessToken);
 
   void linkKakaoMember(String memberEmail, String socialLinkToken);
+
+  MemberDTO signupMember(MemberSignupRequestDTO memberSignupRequestDTO);
 
   MemberDTO signupAndLinkSocialMember(SocialSignupRequestDTO socialSignupRequestDTO);
 
