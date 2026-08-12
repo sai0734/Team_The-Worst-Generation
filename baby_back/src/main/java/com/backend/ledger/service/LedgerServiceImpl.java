@@ -18,6 +18,7 @@ import com.backend.ledger.domain.LedgerCategory;
 import com.backend.ledger.domain.LedgerSetting;
 import com.backend.ledger.domain.LedgerType;
 import com.backend.ledger.dto.LedgerBriefingDTO;
+import com.backend.ledger.dto.LedgerBulkClassifyRequestDTO;
 import com.backend.ledger.dto.LedgerClassifyRequestDTO;
 import com.backend.ledger.dto.LedgerClassifyResponseDTO;
 import com.backend.ledger.dto.LedgerDTO;
@@ -25,6 +26,8 @@ import com.backend.ledger.dto.LedgerSettingDTO;
 import com.backend.ledger.dto.LedgerSummaryDTO;
 import com.backend.ledger.mapper.LedgerMapper;
 import com.backend.ledger.mapper.LedgerSettingMapper;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
@@ -173,11 +176,12 @@ public class LedgerServiceImpl implements LedgerService {
             java.util.Arrays.stream(LedgerCategory.values()).map(Enum::name).toArray(String[]::new));
 
         String prompt = """
-            아래 가계부 입력 문장에서 금액, 수입/지출 여부, 카테고리를 추출해줘.
+            아래 가계부 입력 문장에서 금액, 수입/지출 여부, 카테고리, 항목명을 추출해줘.
             카테고리는 반드시 다음 목록 중 하나로만 골라줘: %s
             type은 INCOME 또는 EXPENSE 중 하나로만 답해줘.
+            description은 금액과 통화 단위(원, 만원 등)를 뺀 순수한 항목 이름이야.
             설명 없이 아래 형식의 JSON 객체만 출력해줘.
-            {"type": "EXPENSE", "category": "FOOD", "amount": 23000}
+            {"type": "EXPENSE", "category": "FOOD", "amount": 23000, "description": "치킨"}
             amount를 문장에서 찾을 수 없으면 null로 해줘.
 
             입력 문장: %s
@@ -186,16 +190,88 @@ public class LedgerServiceImpl implements LedgerService {
         String raw = ollamaClient.chat(prompt);
         JsonObject json = parseJsonObject(raw);
 
+        return toClassifyResponse(json);
+    }
+
+    @Override
+    public List<LedgerClassifyResponseDTO> classifyBulk(LedgerBulkClassifyRequestDTO requestDTO) {
+
+        List<String> memos = requestDTO.getMemos();
+
+        if (memos == null || memos.isEmpty()) {
+            return List.of();
+        }
+
+        String categoryList = String.join(", ",
+            java.util.Arrays.stream(LedgerCategory.values()).map(Enum::name).toArray(String[]::new));
+
+        StringBuilder numberedLines = new StringBuilder();
+        for (int i = 0; i < memos.size(); i++) {
+            numberedLines.append(i + 1).append(". ").append(memos.get(i)).append("\n");
+        }
+
+        String prompt = """
+            아래는 사용자가 한 번에 입력한 여러 개의 가계부 기록 문장이야. 줄마다 금액, 수입/지출 여부, 카테고리, 항목명을 추출해줘.
+            카테고리는 반드시 다음 목록 중 하나로만 골라줘: %s
+            type은 INCOME 또는 EXPENSE 중 하나로만 답해줘.
+            description은 금액과 통화 단위(원, 만원 등)를 뺀 순수한 항목 이름이야.
+            설명 없이, 입력된 줄과 같은 개수·순서로 JSON 배열만 출력해줘.
+            각 원소는 {"type": "EXPENSE", "category": "FOOD", "amount": 23000, "description": "치킨"} 형식이야.
+            amount를 문장에서 찾을 수 없으면 null로 해줘.
+
+            입력 (%d줄):
+            %s
+            """.formatted(categoryList, memos.size(), numberedLines);
+
+        String raw = ollamaClient.chat(prompt);
+        JsonArray jsonArray = parseJsonArray(raw);
+
+        List<LedgerClassifyResponseDTO> results = new java.util.ArrayList<>();
+
+        for (int i = 0; i < memos.size(); i++) {
+            if (i >= jsonArray.size()) {
+                results.add(fallbackClassifyResponse(memos.get(i)));
+                continue;
+            }
+
+            try {
+                JsonObject item = jsonArray.get(i).getAsJsonObject();
+                results.add(toClassifyResponse(item));
+            } catch (Exception e) {
+                log.warn("가계부 일괄 분류 중 항목 파싱 실패 (index={}): {}", i, e.getMessage());
+                results.add(fallbackClassifyResponse(memos.get(i)));
+            }
+        }
+
+        return results;
+    }
+
+    private LedgerClassifyResponseDTO toClassifyResponse(JsonObject json) {
+
         LedgerType type = LedgerType.valueOf(json.get("type").getAsString());
         LedgerCategory category = LedgerCategory.valueOf(json.get("category").getAsString());
         Integer amount = (json.has("amount") && !json.get("amount").isJsonNull())
             ? json.get("amount").getAsInt()
+            : null;
+        String description = (json.has("description") && !json.get("description").isJsonNull())
+            ? json.get("description").getAsString()
             : null;
 
         return LedgerClassifyResponseDTO.builder()
             .type(type)
             .category(category)
             .amount(amount)
+            .description(description)
+            .build();
+    }
+
+    private LedgerClassifyResponseDTO fallbackClassifyResponse(String memo) {
+
+        return LedgerClassifyResponseDTO.builder()
+            .type(LedgerType.EXPENSE)
+            .category(LedgerCategory.ETC)
+            .amount(null)
+            .description(memo)
             .build();
     }
 
@@ -295,6 +371,21 @@ public class LedgerServiceImpl implements LedgerService {
         }
 
         return JsonParser.parseString(trimmed.substring(start, end + 1)).getAsJsonObject();
+    }
+
+    private JsonArray parseJsonArray(String raw) {
+
+        String trimmed = raw.trim();
+        int start = trimmed.indexOf('[');
+        int end = trimmed.lastIndexOf(']');
+
+        if (start == -1 || end == -1 || end < start) {
+            throw new IllegalStateException("AI 응답에서 JSON 배열을 찾을 수 없습니다: " + raw);
+        }
+
+        JsonElement parsed = JsonParser.parseString(trimmed.substring(start, end + 1));
+
+        return parsed.getAsJsonArray();
     }
 
     private Cycle computeCycle(LocalDate reference, Integer briefingDay) {
