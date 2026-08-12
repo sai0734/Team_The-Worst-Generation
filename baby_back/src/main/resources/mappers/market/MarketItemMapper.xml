@@ -88,6 +88,36 @@
         ORDER BY ord
     </select>
 
+    <!-- 지도(내 주변): 좌표가 있고 거래가능한 매물만. 대표 이미지(ord=0) 하나만 같이 조인 -->
+    <resultMap id="marketItemNearbyResultMap" type="com.backend.market.domain.MarketItem">
+        <id property="itemNo" column="item_no"/>
+        <result property="sellerEmail" column="seller_email"/>
+        <result property="title" column="title"/>
+        <result property="price" column="price"/>
+        <result property="tradeType" column="trade_type"/>
+        <result property="category" column="category"/>
+        <result property="status" column="status"/>
+        <result property="locationName" column="location_name"/>
+        <result property="latitude" column="latitude"/>
+        <result property="longitude" column="longitude"/>
+        <collection property="imageList" ofType="com.backend.market.domain.MarketItemImage">
+            <result property="fileName" column="file_name"/>
+            <result property="ord" column="img_ord"/>
+        </collection>
+    </resultMap>
+
+    <select id="selectNearbyCandidates" resultMap="marketItemNearbyResultMap">
+        SELECT i.item_no, i.seller_email, i.title, i.price, i.trade_type, i.category,
+        i.status, i.location_name, i.latitude, i.longitude,
+        img.file_name, img.ord AS img_ord
+        FROM tbl_market_item i
+        LEFT JOIN tbl_market_item_image img ON i.item_no = img.item_no AND img.ord = 0
+        WHERE i.del_flag = false
+        AND i.status = '거래가능'
+        AND i.latitude IS NOT NULL
+        AND i.longitude IS NOT NULL
+    </select>
+
     <insert id="insert" useGeneratedKeys="true" keyProperty="itemNo" keyColumn="item_no">
         INSERT INTO tbl_market_item
         (seller_email, title, price, description, trade_type, category, age_range, `condition`,
@@ -115,7 +145,10 @@
         age_range = #{ageRange},
         `condition` = #{condition},
         allow_offer = #{allowOffer},
-        status = #{status}
+        status = #{status},
+        location_name = #{locationName},
+        latitude = #{latitude},
+        longitude = #{longitude}
         WHERE item_no = #{itemNo}
     </update>
 

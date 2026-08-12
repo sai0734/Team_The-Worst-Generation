@@ -5,8 +5,10 @@ import ChatRoomListComponent from "../../components/market/ChatRoomListComponent
 const ChatRoomListPage = () => {
   return (
     <BasicLayout>
-      <MarketSubNav />
-      <ChatRoomListComponent />
+      <div>
+        <MarketSubNav />
+        <ChatRoomListComponent />
+      </div>
     </BasicLayout>
   );
 };

@@ -18,6 +18,9 @@ public interface MarketItemMapper {
     // 단건 조회: 이미지 목록 포함
     MarketItem selectOne(@Param("itemNo") Long itemNo);
 
+    // 지도 (내 주변) 후보군: 좌표가 있고 거래 가능 상태인 매물 전체. 거레 계산/반경 필터는 서비스단에서 처리
+    List<MarketItem> selectNearbyCandidates();
+
     void insert(MarketItem item);
 
     void insertImage(@Param("itemNo") Long itemNo, @Param("image") MarketItemImage image);

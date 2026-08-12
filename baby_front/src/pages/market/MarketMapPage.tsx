@@ -1,17 +1,16 @@
 import BasicLayout from "../../layouts/BasicLayout";
 import MarketSubNav from "../../components/market/MarketSubNav";
-import MarketProfileComponent from "../../components/market/MarketProfileComponent";
+import MarketMapComponent from "../../components/market/MarketMapComponent";
 
-// 다른 판매자 프로필 보기
-const MarketProfilePage = () => {
+const MarketMapPage = () => {
   return (
     <BasicLayout>
       <div>
         <MarketSubNav />
-        <MarketProfileComponent />
+        <MarketMapComponent />
       </div>
     </BasicLayout>
   );
 };
 
-export default MarketProfilePage;
+export default MarketMapPage;

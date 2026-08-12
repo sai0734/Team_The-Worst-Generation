@@ -57,6 +57,16 @@ public class MarketItemController {
         return marketItemService.getList(pageRequestDTO);
     }
 
+    // 내 위치(lat, lng) 기준 반경 radiusKm(기본 5km) 안의 거래가능 매물, 가까운 순
+    @GetMapping("/nearby")
+    public List<MarketItemDTO> nearby(
+            @RequestParam double lat,
+            @RequestParam double lng,
+            @RequestParam(defaultValue = "5") double radiusKm
+    ) {
+        return marketItemService.getNearby(lat, lng, radiusKm);
+    }
+
     @PreAuthorize("hasAnyRole('ROLE_USER')")
     @PutMapping("/{itemNo}")
     public Map<String, String> modify(@PathVariable Long itemNo, MarketItemDTO marketItemDTO, Principal principal) {

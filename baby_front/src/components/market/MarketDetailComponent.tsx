@@ -25,15 +25,30 @@ const MarketDetailComponent = () => {
   };
 
   useEffect(() => {
+    if (!isLogin) {
+      return;
+    }
+
     loadItem();
 
-    if (isLogin && itemNo) {
+    if (itemNo) {
       wishApi.getMyWishList().then((list) => {
         setWished(list.some((w) => w.itemNo === Number(itemNo)));
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [itemNo]);
+  }, [itemNo, isLogin]);
+
+  if (!isLogin) {
+    return (
+      <div className="card">
+        <p>로그인이 필요한 페이지입니다.</p>
+        <button className="btn" onClick={() => navigate("/member/login")}>
+          로그인하러 가기
+        </button>
+      </div>
+    );
+  }
 
   if (!item || !itemNo) {
     return <div className="card">불러오는 중...</div>;

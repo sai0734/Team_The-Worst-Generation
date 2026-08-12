@@ -5,8 +5,10 @@ import MarketDetailComponent from "../../components/market/MarketDetailComponent
 const MarketDetailPage = () => {
   return (
     <BasicLayout>
-      <MarketSubNav />
-      <MarketDetailComponent />
+      <div>
+        <MarketSubNav />
+        <MarketDetailComponent />
+      </div>
     </BasicLayout>
   );
 };

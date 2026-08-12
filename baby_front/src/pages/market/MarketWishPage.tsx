@@ -5,8 +5,10 @@ import MarketWishComponent from "../../components/market/MarketWishComponent";
 const MarketWishPage = () => {
   return (
     <BasicLayout>
-      <MarketSubNav />
-      <MarketWishComponent />
+      <div>
+        <MarketSubNav />
+        <MarketWishComponent />
+      </div>
     </BasicLayout>
   );
 };
