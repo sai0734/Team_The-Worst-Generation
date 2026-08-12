@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-<<<<<<< HEAD
 import { Link } from "react-router-dom";
 import BasicLayout from "../layouts/BasicLayout";
 import useCustomLogin from "../hooks/useCustomLogin";
@@ -7,6 +6,14 @@ import * as ledgerApi from "../api/ledgerApi";
 import type { LedgerSummary } from "../api/ledgerApi";
 import * as recallApi from "../api/recallApi";
 import type { MyProduct } from "../api/recallApi";
+import { questApi, type QuestHome } from "../api/questApi";
+import AssistantPanel from "../components/assistant/AssistantPanel";
+
+const emptyHome: QuestHome = {
+  dailyQuests: [],
+  urgentQuests: [],
+  point: 0,
+};
 
 const formatWon = (n: number) => `${n.toLocaleString()}원`;
 
@@ -16,52 +23,10 @@ const MainPage = () => {
   const [ledgerSummary, setLedgerSummary] = useState<LedgerSummary | null>(null);
   const [recallProducts, setRecallProducts] = useState<MyProduct[] | null>(null);
 
-  useEffect(() => {
-    if (!isLogin) {
-      setLedgerSummary(null);
-      setRecallProducts(null);
-      return;
-    }
-
-    ledgerApi
-      .getSummary()
-      .then(setLedgerSummary)
-      .catch(() => setLedgerSummary(null));
-
-    recallApi
-      .getMyProductList()
-      .then(setRecallProducts)
-      .catch(() => setRecallProducts(null));
-  }, [isLogin]);
-
-  const expenseDelta = ledgerSummary
-    ? ledgerSummary.totalExpense - ledgerSummary.prevTotalExpense
-    : 0;
-
-  const matchedCount =
-    recallProducts?.filter((product) => product.recallMatched).length ?? 0;
-=======
-import { useSelector } from "react-redux";
-import { Link } from "react-router-dom";
-import BasicLayout from "../layouts/BasicLayout";
-import { questApi, type QuestHome } from "../api/questApi";
-import AssistantPanel from "../components/assistant/AssistantPanel";
-import type { RootState } from "../store";
-
-const emptyHome: QuestHome = {
-  dailyQuests: [],
-  urgentQuests: [],
-  point: 0,
-};
-
-const MainPage = () => {
-  const loginState = useSelector((state: RootState) => state.loginSlice);
-  const isLogin = Boolean(loginState.email);
-
   const [home, setHome] = useState<QuestHome>(emptyHome);
   const [completingId, setCompletingId] = useState<number | null>(null);
 
-  const load = async () => {
+  const loadQuests = async () => {
     try {
       const data = await questApi.getHome();
       setHome({
@@ -76,10 +41,24 @@ const MainPage = () => {
 
   useEffect(() => {
     if (!isLogin) {
+      setLedgerSummary(null);
+      setRecallProducts(null);
       setHome(emptyHome);
       return;
     }
-    load();
+
+    ledgerApi
+      .getSummary()
+      .then(setLedgerSummary)
+      .catch(() => setLedgerSummary(null));
+
+    recallApi
+      .getMyProductList()
+      .then(setRecallProducts)
+      .catch(() => setRecallProducts(null));
+
+    loadQuests();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLogin]);
 
   const handleToggle = async (id: number, done: boolean) => {
@@ -90,16 +69,22 @@ const MainPage = () => {
       } else {
         await questApi.complete(id);
       }
-      await load();
+      await loadQuests();
     } finally {
       setCompletingId(null);
     }
   };
 
+  const expenseDelta = ledgerSummary
+    ? ledgerSummary.totalExpense - ledgerSummary.prevTotalExpense
+    : 0;
+
+  const matchedCount =
+    recallProducts?.filter((product) => product.recallMatched).length ?? 0;
+
   const daily = home.dailyQuests;
   const urgent = home.urgentQuests[0];
   const done = daily.filter((q) => q.status === "DONE").length;
->>>>>>> d7205b66a508d5635b31f4585635004de3007bef
 
   return (
     <BasicLayout>
@@ -242,7 +227,6 @@ const MainPage = () => {
           </Link>
           <Link to="/recall" className="card info recallbox">
             <small>AI 육아용품 리콜</small>
-<<<<<<< HEAD
             {recallProducts && recallProducts.length > 0 ? (
               <>
                 <strong>
@@ -277,23 +261,6 @@ const MainPage = () => {
               </>
             )}
           </Link>
-          <article className="card info supportbox">
-            <small>AI 정부지원금</small>
-            <strong>
-              신청 가능한
-              <br />
-              맞춤 혜택 3건
-            </strong>
-            <p>예상 혜택 최대 월 35만원</p>
-=======
-            <strong>
-              안전 확인이 필요한
-              <br />
-              제품 1건
-            </strong>
-            <p>등록 제품과 최신 공고를 대조했어요.</p>
->>>>>>> d7205b66a508d5635b31f4585635004de3007bef
-          </article>
         </section>
 
         {/* 기존 AI 육아 비서 기능 → AI 정부지원금 슬롯으로 이전 */}
