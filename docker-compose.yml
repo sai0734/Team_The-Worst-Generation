@@ -27,12 +27,20 @@ services:
       OLLAMA_BASE_URL: http://ollama:11434
       OLLAMA_MODEL: parenting-qwen:8b
       GOOGLE_VISION_API_KEY: ${GOOGLE_VISION_API_KEY}
+      JWT_SECRET: ${JWT_SECRET}
+      SAFETYKOREA_API_KEY: ${SAFETYKOREA_API_KEY}
+      HOSPITAL_ER_API_KEY: ${HOSPITAL_ER_API_KEY}
+      HOSPITAL_ER_BASE_URL: ${HOSPITAL_ER_BASE_URL}
     depends_on:
       mariadb:
         condition: service_healthy
 
   frontend:
-    build: ./baby_front
+    build:
+      context: ./baby_front
+      args:
+        VITE_KAKAO_REST_API_KEY: ${VITE_KAKAO_REST_API_KEY}
+        VITE_KAKAO_MAP_API_KEY: ${VITE_KAKAO_MAP_API_KEY}
     ports:
       - "3000:80"
     depends_on:

@@ -3,7 +3,6 @@ import * as babyGrowInfoApi from "../../api/babyGrowInfoApi";
 import { BabyGrowInfo } from "../../api/babyGrowInfoApi";
 import * as growthPercentileApi from "../../api/growthPercentileApi";
 import { GrowthPercentile } from "../../api/growthPercentileApi";
-import BabyGrowInfoModal from "./BabyGrowInfoModalComponent";
 
 interface BabyGrowthCardProps {
   babyNo: number;
@@ -11,11 +10,21 @@ interface BabyGrowthCardProps {
 
 const PAGE_SIZE = 5;
 
+const getTodayStr = () => {
+  const date = new Date();
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
 const BabyGrowthCardComponent = ({ babyNo }: BabyGrowthCardProps) => {
   const [growList, setGrowList] = useState<BabyGrowInfo[]>([]);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
-  const [showModal, setShowModal] = useState(false);
   const [percentile, setPercentile] = useState<GrowthPercentile | null>(null);
+  const [measuredDate, setMeasuredDate] = useState(getTodayStr());
+  const [weight, setWeight] = useState("");
+  const [height, setHeight] = useState("");
 
   const loadGrowList = async () => {
     const list: BabyGrowInfo[] = await babyGrowInfoApi.getList(babyNo);
@@ -34,6 +43,24 @@ const BabyGrowthCardComponent = ({ babyNo }: BabyGrowthCardProps) => {
       .getOne(babyNo)
       .then((data: GrowthPercentile) => setPercentile(data));
   }, [babyNo]);
+
+  const handleRegister = async () => {
+    try {
+      await babyGrowInfoApi.register({
+        babyNo,
+        measuredDate,
+        weight: weight ? Number(weight) : undefined,
+        height: height ? Number(height) : undefined,
+      });
+      setWeight("");
+      setHeight("");
+      setMeasuredDate(getTodayStr());
+      await loadGrowList();
+    } catch (err) {
+      alert("기록 추가에 실패했습니다.");
+      console.error(err);
+    }
+  };
 
   const handleClickRemoveGrow = async (babyGrowNo?: number) => {
     if (!babyGrowNo) return;
@@ -61,9 +88,6 @@ const BabyGrowthCardComponent = ({ babyNo }: BabyGrowthCardProps) => {
     <div>
       <div>
         <span>성장그래프</span>
-        <button type="button" onClick={() => setShowModal(true)}>
-          기록 추가
-        </button>
       </div>
 
       {percentile && latestGrow && (
@@ -147,13 +171,26 @@ const BabyGrowthCardComponent = ({ babyNo }: BabyGrowthCardProps) => {
         </button>
       )}
 
-      {showModal && (
-        <BabyGrowInfoModal
-          babyNo={babyNo}
-          onClose={() => setShowModal(false)}
-          onRegistered={loadGrowList}
+      <div>
+        <input
+          type="date"
+          value={measuredDate}
+          onChange={(e) => setMeasuredDate(e.target.value)}
         />
-      )}
+        <input
+          value={weight}
+          onChange={(e) => setWeight(e.target.value)}
+          placeholder="체중(kg)"
+        />
+        <input
+          value={height}
+          onChange={(e) => setHeight(e.target.value)}
+          placeholder="키(cm)"
+        />
+        <button type="button" onClick={handleRegister}>
+          기록 추가
+        </button>
+      </div>
     </div>
   );
 };
