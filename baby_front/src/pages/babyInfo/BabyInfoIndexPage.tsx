@@ -1,34 +1,36 @@
-import { Outlet, useNavigate } from "react-router-dom";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import BasicLayout from "../../layouts/BasicLayout";
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import * as babyInfoApi from "../../api/babyInfoApi";
 import { BabyInfo } from "../../api/babyInfoApi";
 
 const BabyInfoIndexPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
 
-  const handleClickDashboard = useCallback(async () => {
+  const goToDashboard = useCallback(async () => {
     const list: BabyInfo[] = await babyInfoApi.getList();
-
-    console.log("babyInfo list:", list);
 
     if (list.length === 0) {
       alert("등록된 아이가 없습니다. 먼저 아이를 등록해주세요.");
-      navigate({ pathname: "input" });
+      navigate("input", { replace: true });
       return;
     }
 
-    navigate({ pathname: `dashboard/${list[0].babyNo}` });
+    navigate(`dashboard/${list[0].babyNo}`, { replace: true });
   }, [navigate]);
 
-  const handleClickInput = useCallback(() => {
-    navigate({ pathname: "input" });
-  }, [navigate]);
+  useEffect(() => {
+    if (
+      location.pathname === "/babyInfo" ||
+      location.pathname === "/babyInfo/"
+    ) {
+      goToDashboard();
+    }
+  }, [location.pathname, goToDashboard]);
 
   return (
     <BasicLayout>
-      <div onClick={handleClickDashboard}>대시보드</div>
-      <div onClick={handleClickInput}>아이등록</div>
       <Outlet />
     </BasicLayout>
   );

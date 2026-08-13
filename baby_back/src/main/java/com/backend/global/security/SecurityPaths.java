@@ -17,6 +17,8 @@ public final class SecurityPaths {
       "/api/babysitter/profiles/files/**",
       "/api/openclaw/**",
           "/api/baby-info/view/**",
+          "/api/diary/view/**",
+          "/api/baby-album/view/**",
   };
 
   private static final AntPathMatcher PATH_MATCHER = new AntPathMatcher();

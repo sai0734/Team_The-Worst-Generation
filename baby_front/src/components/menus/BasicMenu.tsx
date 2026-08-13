@@ -20,7 +20,12 @@ const NAV_ITEMS: NavItem[] = [
     code: "baby",
     label: "응애관리",
     to: "/babyInfo",
-    subItems: [{ label: "대시보드", to: "/babyInfo" }],
+    subItems: [
+      { label: "아이등록", to: "/babyInfo/input" },
+      { label: "대시보드", to: "/babyInfo" },
+      { label: "육아일기", to: "/diary" },
+      { label: "성장앨범", to: "/album" },
+    ],
   },
   {
     code: "ledger",
