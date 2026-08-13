@@ -69,49 +69,66 @@ const RecallFormComponent = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <h2>내 제품 등록</h2>
+    <section>
+      <p className="eyebrow">NEW PRODUCT</p>
+      <h2 className="page-title">내 제품 등록</h2>
 
-      <div className="my-4 p-4 border rounded-lg bg-gray-50">
-        <p className="font-bold mb-2">제품 박스 라벨 사진으로 자동 입력</p>
-        <input
-          type="file"
-          accept="image/*"
-          capture="environment"
-          onChange={handlePhotoChange}
-          disabled={ocrLoading}
-        />
-        {ocrLoading && (
-          <p className="text-sm text-gray-500 mt-2">
-            사진에서 정보를 읽는 중입니다...
+      <form className="recall-form" onSubmit={handleSubmit}>
+        <div className="photo-upload">
+          <p>📷 제품 박스 라벨 사진으로 자동 입력</p>
+          <input
+            type="file"
+            accept="image/*"
+            capture="environment"
+            onChange={handlePhotoChange}
+            disabled={ocrLoading}
+          />
+          <p className="photo-hint">
+            {ocrLoading
+              ? "사진에서 정보를 읽는 중입니다..."
+              : "촬영하면 제품명·브랜드·모델명·인증번호를 자동으로 채워드려요"}
           </p>
-        )}
-      </div>
+        </div>
 
-      <p>제품명</p>
-      <input
-        value={productName}
-        onChange={(e) => setProductName(e.target.value)}
-        required
-      />
+        <div className="field">
+          <label>제품명</label>
+          <input
+            value={productName}
+            onChange={(e) => setProductName(e.target.value)}
+            required
+          />
+        </div>
 
-      <p>브랜드명</p>
-      <input value={brandName} onChange={(e) => setBrandName(e.target.value)} />
+        <div className="field">
+          <label>브랜드명</label>
+          <input
+            value={brandName}
+            onChange={(e) => setBrandName(e.target.value)}
+          />
+        </div>
 
-      <p>모델명</p>
-      <input value={modelName} onChange={(e) => setModelName(e.target.value)} />
+        <div className="field">
+          <label>모델명</label>
+          <input
+            value={modelName}
+            onChange={(e) => setModelName(e.target.value)}
+          />
+        </div>
 
-      <p>인증번호</p>
-      <input
-        value={certNum}
-        onChange={(e) => setCertNum(e.target.value)}
-        placeholder="제품 KC 인증번호가 있다면 입력하세요"
-      />
+        <div className="field">
+          <label>인증번호</label>
+          <input
+            value={certNum}
+            onChange={(e) => setCertNum(e.target.value)}
+            placeholder="제품 KC 인증번호가 있다면 입력하세요"
+          />
+        </div>
 
-      <div>
-        <button type="submit">등록</button>
-      </div>
-    </form>
+        <button type="submit" className="submit-btn">
+          등록하기
+        </button>
+      </form>
+    </section>
   );
 };
 

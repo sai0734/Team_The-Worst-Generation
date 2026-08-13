@@ -6,15 +6,19 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.backend.ledger.dto.LedgerBriefingDTO;
+import com.backend.ledger.dto.LedgerBulkClassifyRequestDTO;
 import com.backend.ledger.dto.LedgerClassifyRequestDTO;
 import com.backend.ledger.dto.LedgerClassifyResponseDTO;
 import com.backend.ledger.dto.LedgerDTO;
 import com.backend.ledger.dto.LedgerSettingDTO;
 import com.backend.ledger.dto.LedgerSummaryDTO;
+import com.backend.ledger.service.LedgerOcrService;
 import com.backend.ledger.service.LedgerService;
 
 import lombok.RequiredArgsConstructor;
@@ -28,6 +32,8 @@ import lombok.extern.log4j.Log4j2;
 public class LedgerController {
 
     private final LedgerService ledgerService;
+
+    private final LedgerOcrService ledgerOcrService;
 
     @PostMapping("/")
     public Map<String, Long> register(@RequestBody LedgerDTO ledgerDTO, Principal principal) {
@@ -104,6 +110,18 @@ public class LedgerController {
     public LedgerClassifyResponseDTO classify(@RequestBody LedgerClassifyRequestDTO requestDTO) {
 
         return ledgerService.classify(requestDTO);
+    }
+
+    @PostMapping("/classify-bulk")
+    public List<LedgerClassifyResponseDTO> classifyBulk(@RequestBody LedgerBulkClassifyRequestDTO requestDTO) {
+
+        return ledgerService.classifyBulk(requestDTO);
+    }
+
+    @PostMapping(value = "/classify-receipt", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public List<LedgerClassifyResponseDTO> classifyReceipt(@RequestParam("image") MultipartFile image) {
+
+        return ledgerOcrService.extractFromReceipt(image);
     }
 
     @PostMapping("/briefing")

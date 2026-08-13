@@ -19,4 +19,7 @@ public class LedgerClassifyResponseDTO {
 
     // 금액이 텍스트에서 같이 추출된 경우 (없으면 null)
     private Integer amount;
+
+    // 금액/통화 단위를 뺀 순수 항목명 (예: "기저귀 32000원" -> "기저귀")
+    private String description;
 }

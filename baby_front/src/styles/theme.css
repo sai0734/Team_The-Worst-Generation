@@ -395,6 +395,511 @@
   background: var(--glass);
 }
 
+<<<<<<< HEAD
+/* ===== 리콜 (내 제품 등록/목록) ===== */
+.app .page-title {
+  font-size: 26px;
+  letter-spacing: -0.5px;
+  margin: 10px 0 22px;
+}
+.app .recall-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+.app .recall-header h2 {
+  font-size: 22px;
+  letter-spacing: -0.5px;
+  margin: 10px 0 0;
+}
+.app .recall-empty {
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+.app .recall-list {
+  display: grid;
+  gap: 12px;
+}
+.app .recall-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+.app .recall-item .name {
+  font-size: 16px;
+  font-weight: 800;
+}
+.app .recall-item .meta {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 3px;
+}
+.app .recall-item .title {
+  font-size: 12px;
+  color: #ef6262;
+  margin-top: 4px;
+  font-weight: 700;
+}
+.app .recall-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.app .badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 99px;
+  font-size: 11px;
+  font-weight: 900;
+  white-space: nowrap;
+}
+.app .badge.safe {
+  background: var(--soft);
+  color: var(--accent);
+}
+.app .badge.danger {
+  background: #ffe1de;
+  color: #ef6262;
+}
+.app .icon-btn-ghost {
+  border: 1px solid var(--line);
+  background: var(--glass);
+  color: var(--muted);
+  border-radius: 99px;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+.app .icon-btn-ghost:hover {
+  color: #ef6262;
+  border-color: #ef6262;
+}
+.app .recall-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  max-width: 560px;
+}
+.app .photo-upload {
+  border: 1.5px dashed var(--line);
+  border-radius: var(--radius, 24px);
+  padding: 22px;
+  text-align: center;
+  background: var(--soft);
+}
+.app .photo-upload p {
+  font-weight: 800;
+  font-size: 13px;
+  margin: 0 0 10px;
+}
+.app .photo-upload input[type="file"] {
+  font-size: 12px;
+  max-width: 100%;
+}
+.app .photo-hint {
+  font-size: 11px;
+  color: var(--muted);
+  margin: 10px 0 0;
+  font-weight: 400;
+}
+.app .field label {
+  display: block;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.app .field input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--glass);
+  font-size: 14px;
+  color: var(--ink);
+  font-family: inherit;
+}
+.app .field input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.app .submit-btn {
+  height: 50px;
+  border: 0;
+  border-radius: 15px;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 900;
+  font-size: 14px;
+  cursor: pointer;
+}
+.app .submit-btn:hover {
+  opacity: 0.9;
+}
+.app .empty-hint {
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* ===== 가계부 ===== */
+.app .ledger-page {
+  width: min(760px, 100%);
+}
+.app .ledger-stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 13px;
+  margin-bottom: 13px;
+}
+.app .stat-card small {
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  color: var(--muted);
+}
+.app .stat-card strong {
+  display: block;
+  font-size: 22px;
+  margin-top: 8px;
+  letter-spacing: -0.5px;
+}
+.app .stat-card.income strong {
+  color: var(--accent);
+}
+.app .stat-card.expense strong {
+  color: #ef6262;
+}
+.app .stat-card .delta {
+  font-size: 11px;
+  margin-top: 6px;
+  color: var(--muted);
+  font-weight: 700;
+}
+.app .donut-card {
+  margin-bottom: 20px;
+}
+.app .donut-layout {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  flex-wrap: wrap;
+}
+.app .donut-chart {
+  width: 150px;
+  height: 150px;
+  flex-shrink: 0;
+}
+.app .donut-slice {
+  cursor: pointer;
+  transition:
+    opacity 0.15s,
+    stroke-width 0.15s;
+}
+.app .donut-center-label {
+  font-size: 7px;
+  font-weight: 800;
+  fill: var(--muted);
+}
+.app .donut-center-value {
+  font-size: 11px;
+  font-weight: 900;
+  fill: var(--ink);
+}
+.app .donut-legend {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  flex: 1;
+  min-width: 180px;
+}
+.app .donut-legend li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 10px;
+  cursor: pointer;
+}
+.app .donut-legend li:hover,
+.app .donut-legend li.active {
+  background: var(--hover);
+}
+.app .donut-swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.app .donut-legend-label {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--ink);
+  flex: 1;
+}
+.app .donut-legend-value {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
+  white-space: nowrap;
+}
+.app .briefing-box {
+  background: var(--soft);
+  margin-bottom: 20px;
+}
+.app .briefing-box p {
+  font-size: 13px;
+  line-height: 1.7;
+  margin: 0;
+  color: var(--ink);
+}
+.app .quick-add-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 20px 0 24px;
+}
+.app .quick-add-form.has-pending {
+  display: grid;
+  grid-template-columns: 1fr 1.3fr;
+  gap: 16px;
+  align-items: start;
+}
+.app .quick-add-input-col {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.app .bulk-input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--glass);
+  font-size: 14px;
+  color: var(--ink);
+  font-family: inherit;
+  resize: vertical;
+  min-height: 220px;
+}
+.app .bulk-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.app .quick-add-row {
+  display: flex;
+  gap: 8px;
+}
+.app .ghost-btn {
+  display: inline-flex;
+  align-items: center;
+  height: 46px;
+  border: 1px dashed var(--line);
+  background: transparent;
+  color: var(--muted);
+  border-radius: 12px;
+  padding: 0 16px;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  font-family: inherit;
+}
+.app .ghost-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.app .receipt-upload-btn input[type="file"] {
+  display: none;
+}
+.app .receipt-upload-btn.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.app .pending-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 16px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--hover);
+  max-height: 360px;
+}
+.app .pending-scroll {
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-right: 4px;
+}
+.app .pending-date-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--muted);
+}
+.app .pending-date-row input {
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--glass);
+  font-family: inherit;
+  color: var(--ink);
+}
+.app .pending-item {
+  display: grid;
+  grid-template-columns: 1.4fr 0.8fr 1fr 0.8fr auto;
+  gap: 8px;
+}
+.app .pending-item input,
+.app .pending-item select {
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--glass);
+  font-size: 13px;
+  font-family: inherit;
+  color: var(--ink);
+  width: 100%;
+}
+.app .pending-item select.unselected {
+  border-color: #ef6262;
+  color: #ef6262;
+  font-weight: 800;
+}
+.app .pending-item input:focus,
+.app .pending-item select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.app .ledger-entries {
+  display: grid;
+  gap: 10px;
+}
+.app .ledger-entry .memo {
+  font-size: 14px;
+  font-weight: 800;
+}
+.app .ledger-entry .meta {
+  font-size: 11px;
+  color: var(--muted);
+  margin-top: 3px;
+}
+.app .ledger-entry .amount {
+  font-size: 17px;
+  font-weight: 900;
+  white-space: nowrap;
+  margin-top: 4px;
+}
+.app .ledger-entry .amount.income {
+  color: var(--accent);
+}
+.app .ledger-entry .amount.expense {
+  color: #ef6262;
+}
+.app .ledger-entry {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.app .entry-actions {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+}
+.app .entry-action-btn {
+  border: none;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 800;
+  font-family: inherit;
+  cursor: pointer;
+  padding: 6px 10px;
+  border-radius: 8px;
+  color: var(--muted);
+}
+.app .entry-action-btn:hover {
+  background: var(--hover);
+  color: var(--accent);
+}
+.app .entry-action-btn.danger:hover {
+  color: #ef6262;
+}
+.app .entry-action-btn.save {
+  color: var(--accent);
+}
+.app .entry-edit-row {
+  display: grid;
+  grid-template-columns: 1.3fr 0.7fr 0.9fr 0.7fr 0.9fr auto;
+  gap: 8px;
+  align-items: center;
+}
+.app .entry-edit-row input,
+.app .entry-edit-row select {
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--glass);
+  font-size: 12px;
+  font-family: inherit;
+  color: var(--ink);
+  width: 100%;
+}
+.app .entry-edit-row input:focus,
+.app .entry-edit-row select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.app .entry-edit-actions {
+  display: flex;
+  gap: 4px;
+}
+.app .category-tabs {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.app .category-tab {
+  border: 1px solid var(--line);
+  background: var(--glass);
+  color: var(--muted);
+  border-radius: 99px;
+  padding: 8px 16px;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  font-family: inherit;
+}
+.app .category-tab:hover:not(.active) {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.app .category-tab.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+=======
 /* ===== 감자마켓 전용 ===== */
 .app .market-toolbar {
   display: flex;
@@ -716,7 +1221,46 @@
 }
 /* ===== 감자마켓 끝 ===== */
 
+>>>>>>> d7205b66a508d5635b31f4585635004de3007bef
 @media (max-width: 900px) {
+  .app .ledger-stats {
+    grid-template-columns: 1fr;
+  }
+  .app .donut-layout {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .app .donut-chart {
+    align-self: center;
+  }
+  .app .quick-add-form.has-pending {
+    grid-template-columns: 1fr;
+  }
+  .app .bulk-input {
+    min-height: 120px;
+  }
+  .app .pending-panel {
+    max-height: 280px;
+  }
+  .app .pending-item {
+    grid-template-columns: 1fr 1fr;
+  }
+  .app .pending-item input[type="text"] {
+    grid-column: 1 / -1;
+  }
+  .app .entry-edit-row {
+    grid-template-columns: 1fr 1fr;
+  }
+  .app .entry-edit-row input[type="text"] {
+    grid-column: 1 / -1;
+  }
+  .app .entry-edit-actions {
+    grid-column: 1 / -1;
+    justify-content: flex-end;
+  }
+  .app .ledger-entry {
+    flex-wrap: wrap;
+  }
   .app .top {
     height: 66px;
     padding: 0 20px;
