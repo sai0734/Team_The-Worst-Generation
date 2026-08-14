@@ -1,82 +1,107 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { chatbotApi } from "../../api/chatbotApi";
+
+type Role = "bot" | "user";
+type ChatMessage = { role: Role; text: string };
+
+const GREETING =
+  "안녕하세요. 아이봄 육아 상담이에요. 수면, 수유, 발달 등 궁금한 점을 편하게 말씀해 주세요.";
 
 const ChatbotPanel = () => {
   const [input, setInput] = useState("");
-  const [history, setHistory] = useState<string[]>([]);
-  const [reply, setReply] = useState("아이의 나이(개월)부터 알려주세요.");
-  const [summary, setSummary] = useState("");
+  const [messages, setMessages] = useState<ChatMessage[]>([
+    { role: "bot", text: GREETING },
+  ]);
   const [loading, setLoading] = useState(false);
+  const threadRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = threadRef.current;
+    if (!el) return;
+    el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
+  }, [messages, loading]);
+
+  const historyForApi = () =>
+    messages
+      .slice(1)
+      .map((m) => `${m.role === "user" ? "보호자" : "봇"}: ${m.text}`);
 
   const send = async () => {
-    if (!input.trim() || loading) return;
+    const text = input.trim();
+    if (!text || loading) return;
+
+    setInput("");
+    setMessages((prev) => [...prev, { role: "user", text }]);
     setLoading(true);
+
     try {
       const res = await chatbotApi.chat({
-        message: input.trim(),
-        history,
+        message: text,
+        history: historyForApi(),
       });
-      setHistory((h) => [
-        ...h,
-        `보호자: ${input.trim()}`,
-        `봇: ${res.reply}`,
+      setMessages((prev) => [
+        ...prev,
+        { role: "bot", text: res.reply || "답변을 가져오지 못했어요." },
       ]);
-      setReply(res.reply);
-      if (res.ready) setSummary(res.summary);
-      setInput("");
     } catch (e) {
       console.error(e);
-      alert("챗봇 요청에 실패했습니다.");
+      setMessages((prev) => [
+        ...prev,
+        { role: "bot", text: "잠시 연결이 불안정해요. 다시 한번 보내 주세요." },
+      ]);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="flex w-full flex-col space-y-4">
-      <h2 className="text-xl font-bold text-gray-900">
-        소아과 방문 전 증상 요약
-      </h2>
-
-      <div className="max-h-72 space-y-2 overflow-y-auto rounded-lg border bg-gray-50 p-3 text-sm">
-        {history.length === 0 ? (
-          <p className="text-gray-500">{reply}</p>
-        ) : (
-          history.map((line, i) => (
-            <p key={i} className="whitespace-pre-wrap text-gray-800">
-              {line}
-            </p>
-          ))
-        )}
-        {loading && <p className="text-gray-400">...</p>}
+    <div className="chatbot-panel">
+      <div className="chatbot-panel-head">
+        <p className="eyebrow">AI CONSULT</p>
+        <h3>육아 AI 상담</h3>
       </div>
 
-      {summary && (
-        <div className="rounded-lg border border-sky-200 bg-sky-50 p-3">
-          <p className="mb-1 text-sm font-bold text-sky-800">
-            의사에게 보여줄 요약
-          </p>
-          <pre className="whitespace-pre-wrap text-sm text-gray-800">
-            {summary}
-          </pre>
-        </div>
-      )}
+      <div className="chatbot-thread" ref={threadRef}>
+        {messages.map((msg, i) => (
+          <div key={`${msg.role}-${i}`} className={`chatbot-row ${msg.role}`}>
+            {msg.role === "bot" && (
+              <span className="chatbot-avatar" aria-hidden>
+                봄
+              </span>
+            )}
+            <div className={`chatbot-bubble ${msg.role}`}>{msg.text}</div>
+          </div>
+        ))}
+        {loading && (
+          <div className="chatbot-row bot">
+            <span className="chatbot-avatar" aria-hidden>
+              봄
+            </span>
+            <div className="chatbot-bubble bot typing" aria-label="작성 중">
+              <i />
+              <i />
+              <i />
+            </div>
+          </div>
+        )}
+      </div>
 
-      <div className="flex gap-2">
+      <div className="chatbot-compose">
         <input
-          className="min-w-0 flex-1 rounded border px-3 py-2"
+          type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && send()}
-          placeholder="증상을 입력하세요"
+          placeholder="육아 고민을 입력하세요"
+          aria-label="메시지 입력"
         />
         <button
           type="button"
+          className="primary-button small"
           onClick={send}
-          disabled={loading}
-          className="shrink-0 rounded bg-sky-500 px-4 py-2 font-semibold text-white disabled:opacity-60"
+          disabled={loading || !input.trim()}
         >
-          {loading ? "..." : "전송"}
+          전송
         </button>
       </div>
     </div>

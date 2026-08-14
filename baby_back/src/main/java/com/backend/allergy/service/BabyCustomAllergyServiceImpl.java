@@ -11,4 +11,6 @@ public interface BabyCustomAllergyServiceImpl {
     void addCustomAllergy(Long babyNo, String ingredientName);
 
     void removeCustomAllergy(Long customAllergyNo);
+
+    void updateCustomAllergy(Long customAllergyNo, String ingredientName);
 }
