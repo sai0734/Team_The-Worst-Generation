@@ -1,5 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import useCustomLogin from "../../hooks/useCustomLogin";
+import "../../styles/market.css";
 
 const LINKS = [
   { label: "홈", to: "/market" },
