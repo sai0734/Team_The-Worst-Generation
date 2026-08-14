@@ -9,7 +9,7 @@ import java.util.List;
 public class AssistRecommendRequest {
 
     private String query;
-    private List<String> Categories;
+    private List<String> categories;
     private ChildContext child;
 
     @Data

@@ -1,66 +1,104 @@
-import { useState, type CSSProperties } from "react";
-import {
-  assistantApi,
-  type AssistCategory,
-  type AssistItem,
-} from "../../api/assistantApi";
+import { useEffect, useMemo, useState, type CSSProperties } from "react";
+import * as babyInfoApi from "../../api/babyInfoApi";
+import { assistantApi, type AssistItem } from "../../api/assistantApi";
+import useCustomLogin from "../../hooks/useCustomLogin";
 
-const CATEGORIES: { key: AssistCategory; label: string }[] = [
-  { key: "CHILDCARE", label: "어린이집" },
-  { key: "SUBSIDY", label: "정부지원금" },
-  { key: "WELFARE", label: "지역복지" },
-  { key: "CARE", label: "아이돌봄" },
-  { key: "VACCINATION", label: "예방접종" },
-  { key: "FACILITY", label: "육아시설" },
-];
+const monthsFromBirth = (birthDate?: string) => {
+  if (!birthDate) return 6;
+  const birth = new Date(birthDate);
+  if (Number.isNaN(birth.getTime())) return 6;
+  const now = new Date();
+  return Math.max(
+    0,
+    (now.getFullYear() - birth.getFullYear()) * 12 +
+      (now.getMonth() - birth.getMonth()),
+  );
+};
 
 interface AssistantPanelProps {
   className?: string;
   style?: CSSProperties;
 }
 
-/** AI 정부지원금 — 기존 AI 육아 비서 기능을 이 패널로 이전 */
 const AssistantPanel = ({ className, style }: AssistantPanelProps) => {
-  const [query, setQuery] = useState("");
-  const [months, setMonths] = useState("");
+  const { isLogin } = useCustomLogin();
+  const [months, setMonths] = useState(6);
   const [sido, setSido] = useState("서울");
-  const [sigungu, setSigungu] = useState("");
-  const [selected, setSelected] = useState<AssistCategory[]>([
-    "SUBSIDY",
-    "WELFARE",
-  ]);
-  const [answer, setAnswer] = useState("");
+  const [sigungu, setSigungu] = useState("강남구");
+  const [babyName, setBabyName] = useState("");
   const [items, setItems] = useState<AssistItem[]>([]);
+  const [answer, setAnswer] = useState("");
   const [loading, setLoading] = useState(false);
+  const [editing, setEditing] = useState(false);
 
-  const toggle = (key: AssistCategory) => {
-    setSelected((prev) =>
-      prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key],
-    );
-  };
+  useEffect(() => {
+    if (!isLogin) return;
 
-  const run = async () => {
-    if (!query.trim() || selected.length === 0 || loading) return;
-    setLoading(true);
-    try {
-      const res = await assistantApi.recommend({
-        query: query.trim(),
-        categories: selected,
-        child: {
-          babyMonths: months ? Number(months) : undefined,
-          regionSido: sido || undefined,
-          regionSigungu: sigungu || undefined,
-        },
-      });
-      setAnswer(res.answer);
-      setItems(res.items ?? []);
-    } catch (e) {
-      console.error(e);
-      alert("정부지원금 조회에 실패했습니다. 로그인·서버 상태를 확인하세요.");
-    } finally {
+    const loadBaby = () => {
+      babyInfoApi
+        .getList()
+        .then((list) => {
+          const baby = list?.[0];
+          if (!baby) return;
+          setBabyName(baby.babyName ?? "");
+          setMonths(monthsFromBirth(baby.birthDate));
+        })
+        .catch(() => undefined);
+    };
+
+    loadBaby();
+    window.addEventListener("focus", loadBaby);
+    return () => window.removeEventListener("focus", loadBaby);
+  }, [isLogin]);
+
+  useEffect(() => {
+    if (!isLogin) {
+      setAnswer("");
+      setItems([]);
       setLoading(false);
+      return;
     }
-  };
+
+    let cancelled = false;
+    const load = async () => {
+      setLoading(true);
+      try {
+        const res = await assistantApi.recommend({
+          categories: ["SUBSIDY", "CARE"],
+          child: {
+            babyMonths: months,
+            regionSido: sido,
+            regionSigungu: sigungu,
+          },
+        });
+        if (cancelled) return;
+        setAnswer(res.answer);
+        setItems(res.items ?? []);
+      } catch (e) {
+        console.error(e);
+        if (!cancelled) {
+          setAnswer("지원금 정보를 불러오지 못했어요.");
+          setItems([]);
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [isLogin, months, sido, sigungu]);
+
+  const contextLine = useMemo(() => {
+    const regionLabel =
+      sido === "서울" ? `서울시 ${sigungu}` : `${sido} ${sigungu}`.trim();
+    const who = babyName ? `${babyName} ` : "";
+    return (
+      answer ||
+      `현재 거주지(${regionLabel}) 및 자녀 월령(${who}${months}개월) 기준 신청 가능한 지원금입니다.`
+    );
+  }, [answer, babyName, months, sido, sigungu]);
 
   return (
     <article
@@ -68,82 +106,87 @@ const AssistantPanel = ({ className, style }: AssistantPanelProps) => {
       className={`card info supportbox support-panel${className ? ` ${className}` : ""}`}
       style={style}
     >
-      <small>AI 정부지원금</small>
-      <strong style={{ marginBottom: 1 }}>맞춤 육아·복지 혜택 찾기</strong>
-      <p style={{ marginBottom: 2, fontSize: 10.5 }}>
-        아이 개월수·지역을 넣고 질문하면 지원금·복지·돌봄 정보를 모아 드립니다.
-      </p>
-
-      <div className="mb-0.5 grid grid-cols-1 gap-1 sm:grid-cols-3">
-        <input
-          className="rounded border px-2 py-0.5 text-xs"
-          placeholder="개월수"
-          value={months}
-          onChange={(e) => setMonths(e.target.value)}
-        />
-        <input
-          className="rounded border px-2 py-0.5 text-xs"
-          placeholder="시/도"
-          value={sido}
-          onChange={(e) => setSido(e.target.value)}
-        />
-        <input
-          className="rounded border px-2 py-0.5 text-xs"
-          placeholder="시/군/구"
-          value={sigungu}
-          onChange={(e) => setSigungu(e.target.value)}
-        />
-      </div>
-
-      <div className="mb-0.5 flex flex-wrap gap-1">
-        {CATEGORIES.map((c) => (
-          <button
-            key={c.key}
-            type="button"
-            onClick={() => toggle(c.key)}
-            className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${
-              selected.includes(c.key)
-                ? "bg-sky-500 text-white"
-                : "bg-gray-100 text-gray-700"
-            }`}
-          >
-            {c.label}
-          </button>
-        ))}
-      </div>
-
-      <div className="mb-0.5 flex gap-2">
-        <input
-          className="min-w-0 flex-1 rounded border px-2 py-0.5 text-xs"
-          placeholder="예: 18개월, 강남구 육아 지원금 알려줘"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && run()}
-        />
+      <div className="assist-panel-head">
+        <h3>
+          <span className="assist-ai-mark" aria-hidden>
+            ✦
+          </span>
+          AI 정부지원금
+        </h3>
+        <p>{contextLine}</p>
         <button
           type="button"
-          onClick={run}
-          disabled={loading}
-          className="rounded bg-sky-500 px-3 py-1 text-xs font-semibold text-white disabled:opacity-60"
+          className="assist-edit"
+          onClick={() => setEditing((v) => !v)}
         >
-          {loading ? "찾는중..." : "조회하기"}
+          {editing ? "닫기" : "거주지·월령 수정"}
         </button>
       </div>
 
-      {answer && (
-        <div className="mb-1.5 max-h-28 overflow-y-auto rounded-lg bg-sky-50 p-2 text-xs text-gray-800">
-          {answer}
+      {editing && (
+        <div className="assist-fields">
+          <input
+            type="number"
+            min={0}
+            placeholder="개월수"
+            value={months}
+            onChange={(e) => setMonths(Number(e.target.value) || 0)}
+            aria-label="개월수"
+          />
+          <input
+            type="text"
+            placeholder="시/도"
+            value={sido}
+            onChange={(e) => setSido(e.target.value)}
+            aria-label="시/도"
+          />
+          <input
+            type="text"
+            placeholder="시/군/구"
+            value={sigungu}
+            onChange={(e) => setSigungu(e.target.value)}
+            aria-label="시/군/구"
+          />
         </div>
       )}
-      <ul className="max-h-48 space-y-1.5 overflow-y-auto">
-        {items.map((it) => (
-          <li key={it.id} className="rounded-lg border bg-white/70 p-2">
-            <p className="text-[11px] font-semibold text-sky-600">{it.category}</p>
-            <p className="text-sm font-bold text-gray-900">{it.title}</p>
-            <p className="text-xs text-gray-600">{it.summary}</p>
-          </li>
-        ))}
-      </ul>
+
+      {!isLogin ? (
+        <p className="assist-empty">
+          로그인하고 아이를 등록하면, 월령에 맞는 지원금·시설을 보여 드려요.
+        </p>
+      ) : loading && items.length === 0 ? (
+        <p className="assist-empty">신청 가능한 지원금을 찾고 있어요…</p>
+      ) : items.length === 0 ? (
+        <p className="assist-empty">
+          지금 조건에서 바로 신청할 지원금이 없어요.
+        </p>
+      ) : (
+        <ul className="assist-cards">
+          {items.map((it) => {
+            const done = it.status === "DONE";
+            return (
+              <li key={it.id}>
+                <div>
+                  <h4>{it.title}</h4>
+                  <p>{it.summary}</p>
+                </div>
+                {done ? (
+                  <span className="assist-status done">지급완료</span>
+                ) : (
+                  <a
+                    className="assist-status apply"
+                    href={it.link || "https://www.bokjiro.go.kr"}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    신청하기
+                  </a>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      )}
     </article>
   );
 };
