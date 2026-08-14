@@ -4,9 +4,11 @@ import * as wishApi from "../../api/wishApi";
 import type { Wish } from "../../api/wishApi";
 import * as marketApi from "../../api/marketApi";
 import type { MarketItem } from "../../api/marketApi";
+import useCustomLogin from "../../hooks/useCustomLogin";
 
 const MarketWishComponent = () => {
   const navigate = useNavigate();
+  const { isLogin } = useCustomLogin();
   const [wishList, setWishList] = useState<Wish[]>([]);
   const [items, setItems] = useState<Record<number, MarketItem>>({});
 
@@ -24,8 +26,22 @@ const MarketWishComponent = () => {
   };
 
   useEffect(() => {
+    if (!isLogin) {
+      return;
+    }
     loadWishList();
-  }, []);
+  }, [isLogin]);
+
+  if (!isLogin) {
+    return (
+      <div className="card">
+        <p>로그인이 필요한 페이지입니다.</p>
+        <button className="btn" onClick={() => navigate("/member/login")}>
+          로그인하러 가기
+        </button>
+      </div>
+    );
+  }
 
   const handleUnwish = async (itemNo: number) => {
     await wishApi.toggleWish(itemNo);

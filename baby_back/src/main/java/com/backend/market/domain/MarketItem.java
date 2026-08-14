@@ -82,6 +82,12 @@ public class MarketItem {
         this.allowOffer = allowOffer;
     }
 
+    public void changeLocation(String locationName, BigDecimal latitude, BigDecimal longitude) {
+        this.locationName = locationName;
+        this.latitude = latitude;
+        this.longitude = longitude;
+    }
+
     public void changeDel(boolean delFlag) {
         this.delFlag = delFlag;
     }

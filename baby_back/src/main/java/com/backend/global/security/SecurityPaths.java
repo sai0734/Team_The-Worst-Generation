@@ -17,6 +17,9 @@ public final class SecurityPaths {
       "/api/babysitter/profiles/files/**",
       "/api/openclaw/**",
           "/api/baby-info/view/**",
+      "/api/market/items/list",
+      "/api/market/items/nearby",
+      "/api/market/items/files/**",
           "/api/diary/view/**",
           "/api/baby-album/view/**",
   };

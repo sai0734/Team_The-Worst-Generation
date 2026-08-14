@@ -21,6 +21,8 @@ export interface MarketItem {
   locationName?: string;
   latitude?: number;
   longitude?: number;
+  // /nearby 조회 시에만 채워짐 - 기준 좌표로부터의 거리 (km)
+  distanceKm?: number;
   viewCount?: number;
   recallChecked?: boolean;
   recallFlag?: boolean;
@@ -81,7 +83,7 @@ export const registerItem = async (
 };
 
 export const getItem = async (itemNo: number): Promise<MarketItem> => {
-  const res = await axios.get(`${prefix}/${itemNo}`);
+  const res = await jwtAxios.get(`${prefix}/${itemNo}`);
   return res.data;
 };
 
@@ -89,6 +91,18 @@ export const getItemList = async (
   param: MarketItemListParam,
 ): Promise<PageResponse<MarketItem>> => {
   const res = await axios.get(`${prefix}/list`, { params: param });
+  return res.data;
+};
+
+// 내 위치(lat, lng) 기준 반경 radiusKm(기본 5km) 안의 거래가능 매물, 가까운 순
+export const getNearbyItems = async (
+  lat: number,
+  lng: number,
+  radiusKm = 5,
+): Promise<MarketItem[]> => {
+  const res = await axios.get(`${prefix}/nearby`, {
+    params: { lat, lng, radiusKm },
+  });
   return res.data;
 };
 

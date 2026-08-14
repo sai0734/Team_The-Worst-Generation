@@ -6,8 +6,10 @@ import MarketMyComponent from "../../components/market/MarketMyComponent";
 const MarketMyPage = () => {
   return (
     <BasicLayout>
-      <MarketSubNav />
-      <MarketMyComponent />
+      <div>
+        <MarketSubNav />
+        <MarketMyComponent />
+      </div>
     </BasicLayout>
   );
 };

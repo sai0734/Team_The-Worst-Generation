@@ -5,8 +5,10 @@ import MarketFormComponent from "../../components/market/MarketFormComponent";
 const MarketFormPage = () => {
   return (
     <BasicLayout>
-      <MarketSubNav />
-      <MarketFormComponent />
+      <div>
+        <MarketSubNav />
+        <MarketFormComponent />
+      </div>
     </BasicLayout>
   );
 };

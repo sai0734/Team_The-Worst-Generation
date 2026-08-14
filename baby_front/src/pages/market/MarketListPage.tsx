@@ -5,8 +5,10 @@ import MarketListComponent from "../../components/market/MarketListComponent";
 const MarketListPage = () => {
   return (
     <BasicLayout>
-      <MarketSubNav />
-      <MarketListComponent />
+      <div>
+        <MarketSubNav />
+        <MarketListComponent />
+      </div>
     </BasicLayout>
   );
 };
