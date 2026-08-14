@@ -15,6 +15,7 @@
   min-height: 100vh;
   background: var(--bg);
   color: var(--ink);
+  font-family: "Noto Sans KR", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
   overflow: hidden;
   position: relative;
 }
@@ -374,17 +375,17 @@
   }
 }
 
-/* 카드/타이틀 등장: 마운트 후 살짝 떠오르며 페이드인 (순차 딜레이) */
+/* 카드/타이틀 등장: 마운트 후 떠오르며 살짝 커지는 페이드인 (순차 딜레이) */
 .app .home-rise-up {
   opacity: 0;
-  transform: translateY(28px);
+  transform: translateY(36px) scale(0.94);
   transition:
-    opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
-    transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    opacity 0.65s cubic-bezier(0.34, 1.4, 0.4, 1),
+    transform 0.65s cubic-bezier(0.34, 1.4, 0.4, 1);
 }
 .app .home-rise-up.in-view {
   opacity: 1;
-  transform: translateY(0);
+  transform: translateY(0) scale(1);
 }
 .app .home-grid.stagger > * {
   transition-delay: calc(var(--i) * 80ms);
@@ -425,6 +426,7 @@
   filter: blur(40px);
   pointer-events: none;
   z-index: 0;
+  animation: home-blob-float 13s ease-in-out infinite;
 }
 .app .home-hero-blob.a {
   width: 180px;
@@ -439,11 +441,45 @@
   background: rgba(0, 63, 125, 0.1);
   bottom: -40px;
   left: 10%;
+  animation-duration: 16s;
+  animation-delay: -4s;
 }
-.app .home-hero-text,
+@keyframes home-blob-float {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(14px, -16px) scale(1.06);
+  }
+  66% {
+    transform: translate(-10px, 10px) scale(0.97);
+  }
+}
+.app .home-hero-text {
+  position: relative;
+  z-index: 1;
+}
 .app .home-hero-art {
   position: relative;
   z-index: 1;
+  opacity: 0;
+  transform: translateY(16px) scale(0.94);
+  transition:
+    opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.5s,
+    transform 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.5s;
+}
+.app .home-hero-art.in-view {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  animation: home-art-bob 5s ease-in-out 1.4s infinite;
+}
+@keyframes home-art-bob {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
 }
 .app .home-hero--guest {
   margin-top: 4vh;

@@ -194,7 +194,11 @@ const DashboardPage = () => {
             우리 아이 등록하기
           </Link>
         </div>
-        <img src={heroBaby} alt="" className="home-hero-art" />
+        <img
+          src={heroBaby}
+          alt=""
+          className={`home-hero-art${heroPlay ? " in-view" : ""}`}
+        />
       </section>
 
       <div className="home-marquee">
