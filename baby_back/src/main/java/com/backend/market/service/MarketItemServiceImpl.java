@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -23,6 +24,9 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Transactional
 public class MarketItemServiceImpl implements MarketItemService{
+
+    // 하버사인 공식에서 각도 비율을 실제 km 거리로 환산할 때 곱하는 지구 반지름
+    private static final int EARTH_RADIUS_KM = 6371;
 
     private final MarketItemMapper marketItemMapper;
 
@@ -69,6 +73,42 @@ public class MarketItemServiceImpl implements MarketItemService{
     }
 
     @Override
+    public List<MarketItemDTO> getNearby(double lat, double lng, double radiusKm) {
+
+        List<MarketItem> candidates = marketItemMapper.selectNearbyCandidates();
+
+        return candidates.stream()
+                .filter(item -> item.getLatitude() != null && item.getLongitude() != null)
+                .map(item -> {
+                    double distanceKm = haversineKm(
+                            lat, lng,
+                            item.getLatitude().doubleValue(),
+                            item.getLongitude().doubleValue()
+                    );
+                    MarketItemDTO dto = entityToDTO(item);
+                    dto.setDistanceKm(distanceKm);
+                    return dto;
+                })
+                .filter(dto -> dto.getDistanceKm() <= radiusKm)
+                .sorted(Comparator.comparingDouble(MarketItemDTO::getDistanceKm))
+                .collect(Collectors.toList());
+    }
+
+    private double haversineKm(double lat1, double lon1, double lat2, double lon2) {
+
+        double dLat = Math.toRadians(lat2 - lat1);
+        double dLon = Math.toRadians(lon2 - lon1);
+
+        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2)
+                + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
+                * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+        return EARTH_RADIUS_KM * c;
+    }
+
+    @Override
     public Long register(MarketItemDTO dto) {
 
         MarketItem item = dtoToEntity(dto);
@@ -105,6 +145,7 @@ public class MarketItemServiceImpl implements MarketItemService{
         item.changeDescription(dto.getDescription());
         item.changePrice(dto.getPrice());
         item.changeAllowOffer(dto.isAllowOffer());
+        item.changeLocation(dto.getLocationName(), dto.getLatitude(), dto.getLongitude());
 
         item.clearImageList();
         List<String> uploadFileNames = dto.getUploadFileNames();

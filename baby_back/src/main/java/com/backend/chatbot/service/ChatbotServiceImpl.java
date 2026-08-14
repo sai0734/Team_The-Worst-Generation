@@ -26,30 +26,24 @@ public class ChatbotServiceImpl implements ChatbotService{
         String historyText = request.getHistory() == null
                 ? ""
            : String .join("\n", request.getHistory());
-   String prompt = """
-                # 역할 및 페르소나
-               당신은 소아과 방문 전 증상을 수집하는 AI 도우미입니다.
-               - 절대 진단이나 처방을 하지 마세요.
-               - 호흡곤란, 경련, 의식저하 등 위험 증상이 보이면 즉시 "응급실이나 병원으로 가셔야 합니다"라는 안내만 수행하세요.
-           
-               # 질문 규칙 (반드시 준수)
-               - 한 번에 딱 '1개'의 질문만 던져야 합니다. 여러 개를 동시에 묻지 마세요.
-               - 다음 7가지 항목 중 보호자가 아직 말하지 않은 가장 첫 번째 항목을 찾아서 질문하세요.
-                 1) 아이 개월수/나이 -> 2) 주요 증상 -> 3) 시작 시점 -> 4) 열 여부/최고체온 -> 5) 식사/수분/소변 -> 6) 발진/기침/구토/설사 -> 7) 이미 준 약
-           
-               # 출력 규칙 (치명적)
-               - 응답은 반드시 순수한 JSON 객체 1개여야 합니다.
-               - 마크다운 코드 펜스(```json ```)를 절대 사용하지 마세요. 앞뒤 설명도 절대 금지합니다.
-               - 정보가 부족하여 질문을 이어가야 하면: {"reply": "질문 문장 1개", "summary": "", "ready": false}
-               - 7가지 정보가 모두 채워져 충분하다면: {"reply": "정보가 모두 수집되었습니다. 소아과 진료 시 아래 요약을 의사에게 보여주세요.", "summary": "수집된 정보를 바탕으로 의사 전달용 요약을 1문장으로 간결하게 작성", "ready": true}
-           
-               # 데이터 입력 방식
-               이전대화:
-               %s
-               보호자메시지:
-               %s
-           
-              """.formatted(historyText, request.getMessage());
+        String message = request.getMessage() == null ? "" : request.getMessage();
+        String prompt = """
+                당신은 아이봄 육아 상담 AI입니다.
+                수면, 수유/이유식, 발달, 예방접종, 놀이, 훈육, 일상 돌봄 등 육아 전반에 답합니다.
+                진단이나 처방은 하지 마세요.
+                호흡곤란, 경련, 의식저하 등 위험 증상이면 병원/응급실 안내만 하세요.
+                보호자 질문에 바로 답하고, 필요하면 아이 개월수만 가볍게 물어보세요.
+                육아와 무관한 질문은 짧게 거절하고 육아로 유도하세요.
+
+                응답은 반드시 순수한 JSON 객체 1개여야 합니다.
+                마크다운 코드 펜스를 쓰지 마세요. 앞뒤 설명도 금지합니다.
+                {"reply": "답변 문장", "summary": "", "ready": false}
+
+                이전대화:
+                %s
+                보호자메시지:
+                %s
+                """.formatted(historyText, message);
 
 
         String raw = ollamaClient.chat(prompt).trim();

@@ -6,8 +6,10 @@ import MarketProfileComponent from "../../components/market/MarketProfileCompone
 const MarketProfilePage = () => {
   return (
     <BasicLayout>
-      <MarketSubNav />
-      <MarketProfileComponent />
+      <div>
+        <MarketSubNav />
+        <MarketProfileComponent />
+      </div>
     </BasicLayout>
   );
 };

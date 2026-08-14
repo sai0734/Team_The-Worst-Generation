@@ -42,6 +42,9 @@ public class MarketItemDTO {
 
     private BigDecimal longitude;
 
+    // 지도 (내 주변) 조회 시에만 채워짐 - 기준 좌표로부터 거리(km)
+    private Double distanceKm;
+
     private int viewCount;
 
     private boolean recallChecked;

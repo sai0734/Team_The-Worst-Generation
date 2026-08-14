@@ -10,7 +10,7 @@ const Recipe = lazy(() => import("../pages/allergy/AllergyRecipePage"));
 const allergyRouter = (): RouteObject[] => {
   return [
     {
-      path: "allergy/check/:babyNo",
+      path: "check/:babyNo",
       element: (
         <Suspense fallback={Loading}>
           <Check />
@@ -18,7 +18,7 @@ const allergyRouter = (): RouteObject[] => {
       ),
     },
     {
-      path: "allergy/custom/:babyNo",
+      path: "custom/:babyNo",
       element: (
         <Suspense fallback={Loading}>
           <Custom />
@@ -26,7 +26,7 @@ const allergyRouter = (): RouteObject[] => {
       ),
     },
     {
-      path: "allergy/ingredient",
+      path: "ingredient",
       element: (
         <Suspense fallback={Loading}>
           <Ingredient />
@@ -34,7 +34,7 @@ const allergyRouter = (): RouteObject[] => {
       ),
     },
     {
-      path: "allergy/recipe/:checkNo",
+      path: "recipe/:checkNo",
       element: (
         <Suspense fallback={Loading}>
           <Recipe />

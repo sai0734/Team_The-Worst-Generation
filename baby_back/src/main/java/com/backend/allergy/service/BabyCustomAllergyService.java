@@ -33,4 +33,9 @@ public class BabyCustomAllergyService implements BabyCustomAllergyServiceImpl{
     public void removeCustomAllergy(Long customAllergyNo){
         babyCustomAllergyMapper.remove(customAllergyNo);
     }
+
+    @Override
+    public void updateCustomAllergy(Long customAllergyNo, String ingredientName){
+        babyCustomAllergyMapper.update(customAllergyNo, ingredientName);
+    }
 }

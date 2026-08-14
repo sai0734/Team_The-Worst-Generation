@@ -6,12 +6,26 @@ import useCustomLogin from "../../hooks/useCustomLogin";
 
 const ChatRoomListComponent = () => {
   const navigate = useNavigate();
-  const { loginState } = useCustomLogin();
+  const { isLogin, loginState } = useCustomLogin();
   const [rooms, setRooms] = useState<ChatRoom[]>([]);
 
   useEffect(() => {
+    if (!isLogin) {
+      return;
+    }
     chatApi.getMyRoomList().then(setRooms);
-  }, []);
+  }, [isLogin]);
+
+  if (!isLogin) {
+    return (
+      <div className="card">
+        <p>로그인이 필요한 페이지입니다.</p>
+        <button className="btn" onClick={() => navigate("/member/login")}>
+          로그인하러 가기
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="card">

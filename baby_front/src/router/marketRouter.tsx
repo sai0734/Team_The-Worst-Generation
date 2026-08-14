@@ -3,6 +3,7 @@ import type { RouteObject } from "react-router-dom";
 
 const Loading = <div>Loading....</div>;
 const List = lazy(() => import("../pages/market/MarketListPage"));
+const Map = lazy(() => import("../pages/market/MarketMapPage"));
 const Form = lazy(() => import("../pages/market/MarketFormPage"));
 const Detail = lazy(() => import("../pages/market/MarketDetailPage"));
 const Wish = lazy(() => import("../pages/market/MarketWishPage"));
@@ -18,6 +19,14 @@ const marketRouter = (): RouteObject[] => {
       element: (
         <Suspense fallback={Loading}>
           <List />
+        </Suspense>
+      ),
+    },
+    {
+      path: "map",
+      element: (
+        <Suspense fallback={Loading}>
+          <Map />
         </Suspense>
       ),
     },

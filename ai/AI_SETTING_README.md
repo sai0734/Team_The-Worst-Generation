@@ -131,3 +131,36 @@ tool이라면 도구 실행 결과
 → 프론트엔드에 답변 반환
 
 위와 같은 방식으로 진행해야 합니다.
+
+## 이미지 분석용 모델 (llava)
+
+피부 검사, 대변 검사처럼 사진을 업로드해서 AI가 분석하는 기능은
+텍스트 모델(`parenting-qwen:8b`)이 아니라 별도 비전 모델 `llava`를 사용합니다.
+
+`setup-ollama.cmd`를 실행하면 `qwen3:8b`와 함께 자동으로 받아집니다.
+이미 스크립트를 실행한 적이 있다면 아래 명령만 따로 실행하세요.
+
+\`\`\`bat
+ollama pull llava
+\`\`\`
+
+설치 확인:
+
+\`\`\`bat
+ollama list
+\`\`\`
+
+목록에 `llava`가 보이면 완료입니다. `parenting-qwen:8b`처럼 커스텀 Modelfile을
+적용하지 않고 원본 그대로 사용합니다 (백엔드에서 `OLLAMA_VISION_MODEL` 값으로 지정).
+
+이미지 분석 API는 텍스트 챗과 별도 엔드포인트가 아니라 동일한
+`POST /api/chat`에 `messages[].images`(base64) 필드를 추가해서 보내는 방식입니다.
+직접 테스트해보고 싶다면:
+
+\`\`\`bash
+curl http://127.0.0.1:11434/api/chat -d '{
+"model": "llava",
+"messages": [{"role": "user", "content": "이 사진 설명해줘", "images": ["<base64 이미지>"]}],
+"stream": false
+}'
+\`\`\`

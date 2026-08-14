@@ -3,6 +3,7 @@ import useCustomLogin from "../../hooks/useCustomLogin";
 
 const LINKS = [
   { label: "홈", to: "/market" },
+  { label: "지도", to: "/market/map" },
   { label: "매물 등록", to: "/market/write" },
   { label: "내 찜", to: "/market/wish" },
   { label: "채팅", to: "/market/chat" },
