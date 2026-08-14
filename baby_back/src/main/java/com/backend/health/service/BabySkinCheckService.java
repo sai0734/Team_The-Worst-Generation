@@ -1,0 +1,60 @@
+package com.backend.health.service;
+
+import com.backend.global.ai.OllamaClient;
+import com.backend.health.domain.BabySkinCheck;
+import com.backend.health.mapper.BabySkinCheckMapper;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.util.List;
+
+@Service
+@RequiredArgsConstructor
+public class BabySkinCheckService implements BabySkinCheckServiceImpl {
+
+    private final OllamaClient ollamaClient;
+    private final BabySkinCheckMapper babySkinCheckMapper;
+
+    private static final String PROMPT =
+            "너는 아기 피부 사진을 보고 상태를 짧게 알려주는 역할이야. "
+                    + "발진, 건조함, 붉은 기, 트러블 여부를 보고 판단해줘. "
+                    + "형식은 반드시 다음 세 줄만 지켜:\n"
+                    + "상태: (관찰된 내용 한 문장)\n"
+                    + "판정: 정상 / 주의 필요\n"
+                    + "대처법: (판정이 정상이면 \"특별한 조치 필요 없음\", "
+                    + "주의 필요면 보습·자극 요인 제거 등 가정에서 바로 해볼 수 있는 대처 1~2가지를 간단히 적고, "
+                    + "증상이 심하거나 지속되면 소아과 진료를 권장한다는 말을 짧게 덧붙여)\n"
+                    + "다른 설명, 배경 이야기, 의학적 진단 단정은 절대 하지 마.";
+
+    @Override
+    public BabySkinCheck checkSkin(Long babyNo, MultipartFile image) {
+
+        byte[] imageBytes = readImageBytes(image);
+
+        String aiResult = ollamaClient.chatWithImage(PROMPT, imageBytes);
+
+        BabySkinCheck babySkinCheck = new BabySkinCheck();
+        babySkinCheck.setBabyNo(babyNo);
+        babySkinCheck.setImageFileName(image.getOriginalFilename());
+        babySkinCheck.setAiResult(aiResult);
+
+        babySkinCheckMapper.insertCheck(babySkinCheck);
+
+        return babySkinCheck;
+    }
+
+    @Override
+    public List<BabySkinCheck> getHistory(Long babyNo) {
+        return babySkinCheckMapper.selectByBabyNo(babyNo);
+    }
+
+    private byte[] readImageBytes(MultipartFile image) {
+        try {
+            return image.getBytes();
+        } catch (IOException e) {
+            throw new RuntimeException("이미지 파일을 읽는 중 오류가 발생했습니다.", e);
+        }
+    }
+}
