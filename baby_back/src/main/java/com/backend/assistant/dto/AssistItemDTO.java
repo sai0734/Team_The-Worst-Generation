@@ -13,5 +13,7 @@ public class AssistItemDTO {
     private String summary;
     private String source;
     private String link;
+    /** APPLY | DONE */
+    private String status;
 
 }
