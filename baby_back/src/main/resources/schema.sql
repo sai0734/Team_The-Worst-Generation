@@ -875,3 +875,25 @@ CREATE TABLE IF NOT EXISTS tbl_cry_check (
     );
 
 -- LJW 끝
+-- YSJ 추가 정부지원금 3시 배치
+CREATE TABLE IF NOT EXISTS tbl_assist_snapshot (
+    snapshot_no BIGINT AUTO_INCREMENT,
+    email VARCHAR(100) NOT NULL,
+    baby_no BIGINT NOT NULL,
+    item_id VARCHAR(200) NOT NULL,
+    category VARCHAR(50),
+    title VARCHAR(500),
+    summary VARCHAR(1000),
+    link VARCHAR(1000),
+    status VARCHAR(20),
+    source VARCHAR(200),
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (snapshot_no)
+);
+-- 사용자 거주지
+CREATE TABLE IF NOT EXISTS tbl_assist_region (
+    email VARCHAR(100) NOT NULL,
+    region_sido VARCHAR(50),
+    region_sigungu VARCHAR(50),
+    PRIMARY KEY (email)
+);
