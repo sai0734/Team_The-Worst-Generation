@@ -69,7 +69,7 @@ const RecallFormComponent = () => {
   };
 
   return (
-    <section>
+    <section className="recall-page">
       <p className="eyebrow">NEW PRODUCT</p>
       <h2 className="page-title">내 제품 등록</h2>
 
