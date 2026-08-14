@@ -93,6 +93,7 @@ export interface LedgerClassifyResult {
   category: LedgerCategory;
   amount: number | null;
   description: string | null;
+  txDate: string | null;
 }
 
 export const registerLedger = async (ledger: Ledger): Promise<number> => {

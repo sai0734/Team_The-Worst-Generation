@@ -2,6 +2,8 @@ import { Suspense, lazy } from "react";
 import { createBrowserRouter } from "react-router-dom";
 import memberRouter from "./memberRouter";
 import babyInfoRouter from "./babyInfoRouter";
+import diaryRouter from "./diaryRouter";
+import albumRouter from "./albumRouter";
 import communityRouter from "./communityRouter";
 import marketRouter from "./marketRouter";
 import recallRouter from "./recallRouter";
@@ -45,6 +47,14 @@ const root = createBrowserRouter([
       </Suspense>
     ),
     children: babyInfoRouter(),
+  },
+  {
+    path: "diary",
+    children: diaryRouter(),
+  },
+  {
+    path: "album",
+    children: albumRouter(),
   },
   {
     path: "community",

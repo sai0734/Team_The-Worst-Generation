@@ -17,6 +17,7 @@ interface PendingItem {
   type: LedgerType;
   category: LedgerCategory | "";
   amount: string;
+  txDate: string;
 }
 
 interface EditDraft {
@@ -29,7 +30,49 @@ interface EditDraft {
 
 const formatWon = (n: number) => `${n.toLocaleString()}원`;
 
+const splitMemo = (memo: string): { title: string; detail: string | null } => {
+  const match = memo.match(/^(.+?)(\(.+\))$/);
+  if (match) {
+    return { title: match[1].trim(), detail: match[2] };
+  }
+  return { title: memo, detail: null };
+};
+const PAGE_SIZE = 5;
+const MONTH_COUNT = 6;
+
 const todayStr = () => new Date().toISOString().slice(0, 10);
+
+interface MonthOption {
+  offset: number;
+  label: string;
+  start: string;
+  end: string;
+}
+
+const buildMonthOptions = (): MonthOption[] => {
+  const now = new Date();
+  const fmt = (d: Date) => d.toISOString().slice(0, 10);
+  const options: MonthOption[] = [];
+
+  for (let i = 0; i < MONTH_COUNT; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const start = new Date(d.getFullYear(), d.getMonth(), 1);
+    const end = new Date(d.getFullYear(), d.getMonth() + 1, 0);
+    options.push({
+      offset: i,
+      label: i === 0 ? "이번 달" : `${d.getMonth() + 1}월`,
+      start: fmt(start),
+      end: fmt(end),
+    });
+  }
+
+  return options;
+};
+
+const MONTH_OPTIONS = buildMonthOptions();
+
+const sumByType = (list: Ledger[], type: LedgerType) =>
+  list.filter((entry) => entry.type === type).reduce((sum, entry) => sum + entry.amount, 0);
 
 const LedgerComponent = () => {
   const { exceptionHandle } = useCustomLogin();
@@ -48,6 +91,10 @@ const LedgerComponent = () => {
   const [receiptLoading, setReceiptLoading] = useState(false);
   const [savingAll, setSavingAll] = useState(false);
   const [activeCategoryTab, setActiveCategoryTab] = useState<LedgerCategory | "ALL">("ALL");
+  const [page, setPage] = useState(1);
+  const [monthOffset, setMonthOffset] = useState(0);
+  const [monthEntries, setMonthEntries] = useState<Ledger[] | null>(null);
+  const [monthLoading, setMonthLoading] = useState(false);
 
   const [editingLno, setEditingLno] = useState<number | null>(null);
   const [editDraft, setEditDraft] = useState<EditDraft | null>(null);
@@ -75,6 +122,28 @@ const LedgerComponent = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const handleMonthClick = async (offset: number) => {
+    setMonthOffset(offset);
+    setActiveCategoryTab("ALL");
+    setPage(1);
+
+    if (offset === 0) {
+      setMonthEntries(null);
+      return;
+    }
+
+    const option = MONTH_OPTIONS[offset];
+    setMonthLoading(true);
+    try {
+      const list = await ledgerApi.getLedgerList(option.start, option.end);
+      setMonthEntries(list);
+    } catch (err) {
+      exceptionHandle(err);
+    } finally {
+      setMonthLoading(false);
+    }
+  };
+
   const addBlankItem = () => {
     setPendingItems((prev) => [
       ...prev,
@@ -84,6 +153,7 @@ const LedgerComponent = () => {
         type: "EXPENSE",
         category: "",
         amount: "",
+        txDate: batchDate,
       },
     ]);
   };
@@ -116,6 +186,7 @@ const LedgerComponent = () => {
           type: result?.type ?? "EXPENSE",
           category: "",
           amount: result?.amount != null ? String(result.amount) : "",
+          txDate: batchDate,
         };
       });
 
@@ -155,6 +226,7 @@ const LedgerComponent = () => {
               type: result.type,
               category: "",
               amount: result.amount != null ? String(result.amount) : "",
+              txDate: result.txDate || batchDate,
             });
           });
         } catch (err) {
@@ -198,7 +270,7 @@ const LedgerComponent = () => {
           category: item.category as LedgerCategory,
           amount: Number(item.amount),
           memo: item.memo || undefined,
-          txDate: batchDate,
+          txDate: item.txDate,
         });
       }
 
@@ -289,55 +361,97 @@ const LedgerComponent = () => {
 
   const expenseDelta = summary ? summary.totalExpense - summary.prevTotalExpense : 0;
 
+  const displayEntries = monthOffset === 0 ? entries : (monthEntries ?? []);
+
+  const monthIncome =
+    monthOffset === 0 && summary ? summary.totalIncome : sumByType(displayEntries, "INCOME");
+  const monthExpense =
+    monthOffset === 0 && summary ? summary.totalExpense : sumByType(displayEntries, "EXPENSE");
+  const monthCategoryBreakdown: Partial<Record<LedgerCategory, number>> =
+    monthOffset === 0 && summary
+      ? summary.categoryBreakdown
+      : displayEntries.reduce<Partial<Record<LedgerCategory, number>>>((acc, entry) => {
+          acc[entry.category] = (acc[entry.category] ?? 0) + entry.amount;
+          return acc;
+        }, {});
+
   const presentCategories = CATEGORY_ORDER.filter((cat) =>
-    entries.some((entry) => entry.category === cat),
+    displayEntries.some((entry) => entry.category === cat),
   );
 
   const filteredEntries =
     activeCategoryTab === "ALL"
-      ? entries
-      : entries.filter((entry) => entry.category === activeCategoryTab);
+      ? displayEntries
+      : displayEntries.filter((entry) => entry.category === activeCategoryTab);
+
+  const totalPages = Math.max(1, Math.ceil(filteredEntries.length / PAGE_SIZE));
+  const currentPage = Math.min(page, totalPages);
+  const pagedEntries = filteredEntries.slice(
+    (currentPage - 1) * PAGE_SIZE,
+    currentPage * PAGE_SIZE,
+  );
+
+  const handleCategoryTabClick = (tab: LedgerCategory | "ALL") => {
+    setActiveCategoryTab(tab);
+    setPage(1);
+  };
 
   return (
     <section className="ledger-page">
       <p className="eyebrow">THIS MONTH</p>
       <h2 className="page-title">우리집 가계부</h2>
 
+      <div className="month-tabs">
+        {MONTH_OPTIONS.map((opt) => (
+          <button
+            key={opt.offset}
+            type="button"
+            className={`category-tab${monthOffset === opt.offset ? " active" : ""}`}
+            onClick={() => handleMonthClick(opt.offset)}
+            disabled={monthLoading}
+          >
+            {opt.label}
+          </button>
+        ))}
+      </div>
+
       {summary && (
         <>
-          <div className="ledger-stats">
-            <div className="card stat-card income">
-              <small>이번 달 수입</small>
-              <strong>{formatWon(summary.totalIncome)}</strong>
-            </div>
-            <div className="card stat-card expense">
-              <small>이번 달 지출</small>
-              <strong>{formatWon(summary.totalExpense)}</strong>
-              <div className="delta">
-                {expenseDelta === 0
-                  ? "지난 달과 동일해요"
-                  : expenseDelta > 0
-                    ? `지난 달보다 ${formatWon(expenseDelta)} 더 썼어요`
-                    : `지난 달보다 ${formatWon(-expenseDelta)} 아꼈어요`}
+          <div className="ledger-top-grid">
+            <div className="card donut-card area-donut">
+              <div className="head">
+                <h2>카테고리별 지출</h2>
               </div>
+              <CategoryDonutChart categoryBreakdown={monthCategoryBreakdown} />
+            </div>
+
+            <div className="card stat-card income area-income">
+              <small>{MONTH_OPTIONS[monthOffset].label} 수입</small>
+              <strong>{formatWon(monthIncome)}</strong>
+            </div>
+            <div className="card stat-card expense area-expense">
+              <small>{MONTH_OPTIONS[monthOffset].label} 지출</small>
+              <strong>{formatWon(monthExpense)}</strong>
+              {monthOffset === 0 && (
+                <div className="delta">
+                  {expenseDelta === 0
+                    ? "지난 달과 동일해요"
+                    : expenseDelta > 0
+                      ? `지난 달보다 ${formatWon(expenseDelta)} 더 썼어요`
+                      : `지난 달보다 ${formatWon(-expenseDelta)} 아꼈어요`}
+                </div>
+              )}
             </div>
           </div>
 
-          <div className="card donut-card">
-            <div className="head">
-              <h2>카테고리별 지출</h2>
-            </div>
-            <CategoryDonutChart categoryBreakdown={summary.categoryBreakdown} />
-          </div>
-
-          {briefingAvailable && !briefingText && (
+          {monthOffset === 0 && briefingAvailable && !briefingText && (
             <button type="button" className="tool" onClick={handleBriefing} disabled={briefingLoading}>
               <i>✦</i>
               <span>{briefingLoading ? "브리핑 생성 중..." : "AI 브리핑 받기"}</span>
             </button>
           )}
 
-          {briefingText && (
+          {monthOffset === 0 && briefingText && (
             <div className="card briefing-box" style={{ marginTop: briefingAvailable ? 12 : 0 }}>
               <p>{briefingText}</p>
             </div>
@@ -349,7 +463,7 @@ const LedgerComponent = () => {
         <div className="quick-add-input-col">
           <textarea
             className="bulk-input"
-            rows={8}
+            rows={4}
             placeholder={"예:\n기저귀 32000원\n분유 45000원\n택시 12000원\n\n(한 줄에 한 항목씩, 여러 개 한번에 입력 가능해요)"}
             value={bulkText}
             onChange={(e) => setBulkText(e.target.value)}
@@ -425,6 +539,11 @@ const LedgerComponent = () => {
                     value={item.amount}
                     onChange={(e) => updateItem(item.id, { amount: e.target.value })}
                   />
+                  <input
+                    type="date"
+                    value={item.txDate}
+                    onChange={(e) => updateItem(item.id, { txDate: e.target.value })}
+                  />
                   <button
                     type="button"
                     className="icon-btn-ghost"
@@ -444,12 +563,12 @@ const LedgerComponent = () => {
         )}
       </div>
 
-      {entries.length > 0 && (
+      {displayEntries.length > 0 && (
         <div className="category-tabs">
           <button
             type="button"
             className={`category-tab${activeCategoryTab === "ALL" ? " active" : ""}`}
-            onClick={() => setActiveCategoryTab("ALL")}
+            onClick={() => handleCategoryTabClick("ALL")}
           >
             전체
           </button>
@@ -458,7 +577,7 @@ const LedgerComponent = () => {
               key={cat}
               type="button"
               className={`category-tab${activeCategoryTab === cat ? " active" : ""}`}
-              onClick={() => setActiveCategoryTab(cat)}
+              onClick={() => handleCategoryTabClick(cat)}
             >
               {CATEGORY_LABELS[cat]}
             </button>
@@ -466,14 +585,19 @@ const LedgerComponent = () => {
         </div>
       )}
 
-      {entries.length === 0 && <div className="card empty-hint">이번 달 기록이 없어요.</div>}
-      {entries.length > 0 && filteredEntries.length === 0 && (
+      {displayEntries.length === 0 && (
+        <div className="card empty-hint">
+          {MONTH_OPTIONS[monthOffset].label} 기록이 없어요.
+        </div>
+      )}
+      {displayEntries.length > 0 && filteredEntries.length === 0 && (
         <div className="card empty-hint">해당 카테고리 기록이 없어요.</div>
       )}
 
       <div className="ledger-entries">
-        {filteredEntries.map((entry) =>
-          editingLno === entry.lno && editDraft ? (
+        {pagedEntries.map((entry) => {
+          if (editingLno === entry.lno && editDraft) {
+            return (
             <div className="card entry-edit-row" key={entry.lno}>
               <input
                 type="text"
@@ -526,10 +650,18 @@ const LedgerComponent = () => {
                 </button>
               </div>
             </div>
-          ) : (
+            );
+          }
+
+          const { title, detail } = splitMemo(entry.memo || CATEGORY_LABELS[entry.category]);
+
+          return (
             <div className="card ledger-entry" key={entry.lno}>
               <div>
-                <div className="memo">{entry.memo || CATEGORY_LABELS[entry.category]}</div>
+                <div className="memo">
+                  {title}
+                  {detail && <span className="memo-detail">{detail}</span>}
+                </div>
                 <div className={`amount ${entry.type === "INCOME" ? "income" : "expense"}`}>
                   {entry.type === "INCOME" ? "+" : "-"}
                   {formatWon(entry.amount)}
@@ -555,9 +687,33 @@ const LedgerComponent = () => {
                 </button>
               </div>
             </div>
-          ),
-        )}
+          );
+        })}
       </div>
+
+      {totalPages > 1 && (
+        <div className="ledger-pagination">
+          <button
+            type="button"
+            className="entry-action-btn"
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            disabled={currentPage === 1}
+          >
+            이전
+          </button>
+          <span className="ledger-pagination-status">
+            {currentPage} / {totalPages}
+          </span>
+          <button
+            type="button"
+            className="entry-action-btn"
+            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            disabled={currentPage === totalPages}
+          >
+            다음
+          </button>
+        </div>
+      )}
     </section>
   );
 };

@@ -50,9 +50,10 @@ public class LedgerOcrServiceImpl implements LedgerOcrService {
             - total: "합계" 또는 "결제금액"이라고 적힌 숫자 그대로 (없으면 null). "과세물품가액"/"면세물품가액"/"부가세"/"공급가액"은 total이 아니니까 여기 쓰지 마.
             - discount: "할인금액"이라고 적힌 숫자 그대로 (없으면 0).
             - category: 다음 목록 중 하나: %s
+            - txDate: 영수증에 적힌 결제일자(구매일시)를 "yyyy-MM-dd" 형식으로. 연도가 2자리면 20YY로 바꿔줘. 날짜를 전혀 찾을 수 없으면 null.
 
             설명 없이 아래 형식의 JSON 객체 하나만 출력해줘.
-            {"storeName": "남도연프리미엄", "items": ["간장꼬막정식", "콜라"], "total": 36000, "discount": 2000, "category": "FOOD"}
+            {"storeName": "남도연프리미엄", "items": ["간장꼬막정식", "콜라"], "total": 36000, "discount": 2000, "category": "FOOD", "txDate": "2026-08-11"}
             영수증에서 total을 전혀 찾을 수 없으면 total을 null로 해줘.
 
             영수증 텍스트:
@@ -113,11 +114,19 @@ public class LedgerOcrServiceImpl implements LedgerOcrService {
             description = storeName + "(" + String.join(", ", items) + ")";
         }
 
+        String txDate = (json.has("txDate") && !json.get("txDate").isJsonNull())
+            ? json.get("txDate").getAsString()
+            : null;
+        if (txDate != null && !txDate.matches("\\d{4}-\\d{2}-\\d{2}")) {
+            txDate = null;
+        }
+
         return LedgerClassifyResponseDTO.builder()
             .type(LedgerType.EXPENSE)
             .category(category)
             .amount(amount)
             .description(description)
+            .txDate(txDate)
             .build();
     }
 

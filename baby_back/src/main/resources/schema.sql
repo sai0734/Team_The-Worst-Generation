@@ -71,6 +71,28 @@ CREATE TABLE IF NOT EXISTS tbl_family_member (
     CONSTRAINT fk_family_member_family FOREIGN KEY (family_id) REFERENCES tbl_family (family_id),
     CONSTRAINT fk_family_member_member FOREIGN KEY (member_email) REFERENCES tbl_member (email)
     );
+
+CREATE TABLE IF NOT EXISTS tbl_hospital_reservation (
+    reservation_no BIGINT AUTO_INCREMENT,
+    member_email VARCHAR(100) NOT NULL,
+    hospital_id VARCHAR(100) NOT NULL,
+    hospital_name VARCHAR(100) NOT NULL,
+    hospital_type VARCHAR(100),
+    hospital_address VARCHAR(300),
+    hospital_phone VARCHAR(50),
+    reservation_date DATE NOT NULL,
+    reservation_time VARCHAR(10) NOT NULL,
+    patient_name VARCHAR(50),
+    message VARCHAR(500),
+    status VARCHAR(20) NOT NULL DEFAULT 'REQUESTED',
+    reg_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    mod_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (reservation_no),
+    CONSTRAINT fk_hospital_reservation_member FOREIGN KEY (member_email) REFERENCES tbl_member (email),
+    INDEX idx_hospital_reservation_member (member_email, status),
+    INDEX idx_hospital_reservation_hospital (hospital_id, reservation_date)
+);
+
 -- LDH 끝
 
 -- HYH
@@ -211,6 +233,18 @@ CREATE TABLE IF NOT EXISTS tbl_baby_diary (
     PRIMARY KEY (diary_no),
     CONSTRAINT fk_baby_diary FOREIGN KEY (baby_no) REFERENCES tbl_baby_info (baby_no)
 );
+
+CREATE TABLE IF NOT EXISTS tbl_baby_album (
+    album_no BIGINT AUTO_INCREMENT,
+    baby_no BIGINT NOT NULL,
+    photo_file_name VARCHAR(500) NOT NULL,
+    taken_date DATE NOT NULL,
+    latitude DECIMAL(10,7),
+    longitude DECIMAL(10,7),
+    reg_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (album_no),
+    CONSTRAINT fk_baby_album FOREIGN KEY (baby_no) REFERENCES tbl_baby_info (baby_no)
+    );
 
 -- KYI - 가계부 내역
 CREATE TABLE IF NOT EXISTS tbl_ledger (
