@@ -93,6 +93,20 @@ CREATE TABLE IF NOT EXISTS tbl_hospital_reservation (
     INDEX idx_hospital_reservation_hospital (hospital_id, reservation_date)
 );
 
+CREATE TABLE IF NOT EXISTS tbl_member_profile (
+                                                  profile_id BIGINT AUTO_INCREMENT,
+                                                  member_email VARCHAR(100) NOT NULL,
+    profile_name VARCHAR(50) NOT NULL,
+    parent_type VARCHAR(20) NOT NULL,
+    profile_image_file_name VARCHAR(500),
+    active BOOLEAN NOT NULL DEFAULT TRUE,
+    reg_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    mod_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (profile_id),
+    CONSTRAINT fk_member_profile_member FOREIGN KEY (member_email) REFERENCES tbl_member (email),
+    INDEX idx_member_profile_member (member_email, active)
+    );
+
 -- LDH 끝
 
 -- HYH
