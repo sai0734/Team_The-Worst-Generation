@@ -1,11 +1,12 @@
-package com.backend.emergency.dto;
+package com.backend.hospital.general.dto;
 
 import lombok.Builder;
 import lombok.Getter;
 
 @Getter
 @Builder
-public class EmergencyRoomSOSResponseDTO {
+public class GeneralHospitalResponseDTO {
+
     private String hospitalId;
     private String hospitalName;
     private String address;
@@ -31,6 +32,10 @@ public class EmergencyRoomSOSResponseDTO {
     private Boolean ventilatorAvailable;
 
     private String updatedAt;
+
+    private Integer waitingPatientCount;
+    private Integer waitingChange;
+
     private KakaoMapTargetDTO kakaoMapTarget;
 
     @Getter

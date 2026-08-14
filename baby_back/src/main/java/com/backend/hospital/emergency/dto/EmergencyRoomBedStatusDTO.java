@@ -1,4 +1,4 @@
-package com.backend.emergency.dto;
+package com.backend.hospital.emergency.dto;
 
 import lombok.Builder;
 import lombok.Getter;

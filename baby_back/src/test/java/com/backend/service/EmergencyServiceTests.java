@@ -1,11 +1,11 @@
 package com.backend.service;
 
-import com.backend.emergency.client.EmergencyApiClient;
-import com.backend.emergency.dto.EmergencyRoomBedStatusDTO;
-import com.backend.emergency.dto.EmergencyRoomLocationDTO;
-import com.backend.emergency.dto.EmergencyRoomSOSResponseDTO;
-import com.backend.emergency.service.EmergencyRoomSOSService;
-import com.backend.emergency.service.EmergencyRoomSOSServiceImpl;
+import com.backend.hospital.emergency.client.EmergencyApiClient;
+import com.backend.hospital.emergency.dto.EmergencyRoomBedStatusDTO;
+import com.backend.hospital.emergency.dto.EmergencyRoomLocationDTO;
+import com.backend.hospital.emergency.dto.EmergencyRoomSOSResponseDTO;
+import com.backend.hospital.emergency.service.EmergencyRoomSOSService;
+import com.backend.hospital.emergency.service.EmergencyRoomSOSServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

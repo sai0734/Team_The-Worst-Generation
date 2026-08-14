@@ -1,4 +1,4 @@
-package com.backend.emergency.client;
+package com.backend.hospital.emergency.client;
 
 import static com.backend.global.util.ValueParseUtils.toBooleanYn;
 import static com.backend.global.util.ValueParseUtils.toDouble;
@@ -8,8 +8,8 @@ import static com.backend.global.util.XmlUtils.firstText;
 import static com.backend.global.util.XmlUtils.parse;
 import static com.backend.global.util.XmlUtils.text;
 
-import com.backend.emergency.dto.EmergencyRoomBedStatusDTO;
-import com.backend.emergency.dto.EmergencyRoomLocationDTO;
+import com.backend.hospital.emergency.dto.EmergencyRoomBedStatusDTO;
+import com.backend.hospital.emergency.dto.EmergencyRoomLocationDTO;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
