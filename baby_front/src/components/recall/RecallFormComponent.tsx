@@ -1,17 +1,52 @@
-import { ChangeEvent, FormEvent, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { ChangeEvent, FormEvent, useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import * as recallApi from "../../api/recallApi";
 import type { MyProduct } from "../../api/recallApi";
 
 const RecallFormComponent = () => {
   const navigate = useNavigate();
+  const { productNo } = useParams();
+  const isEdit = Boolean(productNo);
 
   const [productName, setProductName] = useState("");
   const [brandName, setBrandName] = useState("");
   const [modelName, setModelName] = useState("");
   const [certNum, setCertNum] = useState("");
+  const [imageName, setImageName] = useState("");
 
   const [ocrLoading, setOcrLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [loadingProduct, setLoadingProduct] = useState(isEdit);
+
+  useEffect(() => {
+    if (!isEdit) return;
+
+    (async () => {
+      try {
+        const list = await recallApi.getMyProductList();
+        const found = list.find((p) => String(p.productNo) === productNo);
+
+        if (!found) {
+          alert("제품을 찾을 수 없습니다.");
+          navigate("/recall");
+          return;
+        }
+
+        setProductName(found.productName);
+        setBrandName(found.brandName || "");
+        setModelName(found.modelName || "");
+        setCertNum(found.certNum || "");
+        setImageName(found.imageName || "");
+      } catch (err) {
+        alert("제품 정보를 불러오지 못했습니다.");
+        console.error(err);
+        navigate("/recall");
+      } finally {
+        setLoadingProduct(false);
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [productNo]);
 
   const handlePhotoChange = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -26,6 +61,7 @@ const RecallFormComponent = () => {
       if (result.brandName) setBrandName(result.brandName);
       if (result.modelName) setModelName(result.modelName);
       if (result.certNum) setCertNum(result.certNum);
+      if (result.imageName) setImageName(result.imageName);
 
       if (
         !result.productName &&
@@ -51,31 +87,58 @@ const RecallFormComponent = () => {
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (submitting) return;
 
     const product: MyProduct = {
       productName,
       brandName: brandName || undefined,
       modelName: modelName || undefined,
       certNum: certNum || undefined,
+      imageName: imageName || undefined,
     };
 
+    setSubmitting(true);
     try {
-      await recallApi.registerMyProduct(product);
+      if (isEdit && productNo) {
+        await recallApi.updateMyProduct(Number(productNo), product);
+      } else {
+        await recallApi.registerMyProduct(product);
+      }
       navigate("/recall");
-    } catch (err) {
-      alert("제품 등록에 실패했습니다.");
+    } catch (err: any) {
+      alert(
+        err?.response?.data?.msg ||
+          (isEdit ? "제품 수정에 실패했습니다." : "제품 등록에 실패했습니다."),
+      );
       console.error(err);
+    } finally {
+      setSubmitting(false);
     }
   };
 
+  if (loadingProduct) {
+    return (
+      <section className="recall-page">
+        <div className="card recall-empty">불러오는 중...</div>
+      </section>
+    );
+  }
+
   return (
     <section className="recall-page">
-      <p className="eyebrow">NEW PRODUCT</p>
-      <h2 className="page-title">내 제품 등록</h2>
+      <p className="eyebrow">{isEdit ? "EDIT PRODUCT" : "NEW PRODUCT"}</p>
+      <h2 className="page-title">{isEdit ? "내 제품 수정" : "내 제품 등록"}</h2>
 
       <form className="recall-form" onSubmit={handleSubmit}>
         <div className="photo-upload">
           <p>📷 제품 박스 라벨 사진으로 자동 입력</p>
+          {imageName && (
+            <img
+              src={recallApi.getMyProductThumbnailUrl(imageName)}
+              alt="등록한 제품 사진"
+              className="photo-preview"
+            />
+          )}
           <input
             type="file"
             accept="image/*"
@@ -95,6 +158,7 @@ const RecallFormComponent = () => {
           <input
             value={productName}
             onChange={(e) => setProductName(e.target.value)}
+            placeholder="예: 유모차, 카시트, 완구, 젖병소독기"
             required
           />
         </div>
@@ -104,6 +168,7 @@ const RecallFormComponent = () => {
           <input
             value={brandName}
             onChange={(e) => setBrandName(e.target.value)}
+            placeholder="예: 맘마카트, 스토케, 페도라"
           />
         </div>
 
@@ -112,6 +177,7 @@ const RecallFormComponent = () => {
           <input
             value={modelName}
             onChange={(e) => setModelName(e.target.value)}
+            placeholder="예: 데일리, 익스플로러"
           />
         </div>
 
@@ -124,8 +190,18 @@ const RecallFormComponent = () => {
           />
         </div>
 
-        <button type="submit" className="submit-btn">
-          등록하기
+        <p className="field-hint">
+          정확한 리콜 확인을 위해 브랜드명·모델명·인증번호 중 최소 하나는 입력해주세요.
+        </p>
+
+        <button type="submit" className="submit-btn" disabled={submitting}>
+          {submitting
+            ? isEdit
+              ? "수정 중..."
+              : "등록 중..."
+            : isEdit
+              ? "수정하기"
+              : "등록하기"}
         </button>
       </form>
     </section>

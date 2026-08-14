@@ -30,13 +30,14 @@ public class OpenClawClient {
             .build();
     private final Gson gson = new Gson();
 
-    /** 실패하거나 파싱이 안 되면 null → 호출 쪽에서 공공 API 원본을 사용 */
-    public List<AssistItemDTO> pick(int months, String region, List<AssistItemDTO> candidates) {
+    /** 실패하면 null. OpenClaw가 [] 를 주면 빈 목록. 공공 API 원본은 호출 쪽에서 쓰지 않는다. */
+    public List<AssistItemDTO> pick(int months, String region, String babyName, String gender,
+                                   List<AssistItemDTO> candidates) {
         if (candidates == null || candidates.isEmpty()) {
-            return null;
+            return List.of();
         }
 
-        String message = buildPrompt(months, region, candidates);
+        String message = buildPrompt(months, region, babyName, gender, candidates);
 
         JsonObject body = new JsonObject();
         body.addProperty("agent", "main");
@@ -56,20 +57,25 @@ public class OpenClawClient {
             }
             return parseItems(res.body());
         } catch (Exception e) {
-            log.warn("OpenClaw 연결 실패, 공공 API 목록을 그대로 사용: {}", e.getMessage());
+            log.warn("OpenClaw 연결 실패: {}", e.getMessage());
             return null;
         }
     }
 
-    static String buildPrompt(int months, String region, List<AssistItemDTO> candidates) {
+    static String buildPrompt(int months, String region, String babyName, String gender,
+                              List<AssistItemDTO> candidates) {
         String safeRegion = (region == null || region.isBlank()) ? "미입력" : region.trim();
+        String safeName = (babyName == null || babyName.isBlank()) ? "미입력" : babyName.trim();
+        String safeGender = (gender == null || gender.isBlank()) ? "미입력" : gender.trim();
         String candidatesJson = new Gson().toJson(candidates);
 
         return """
                 너는 육아 지원 목록을 거르는 필터다. 상담사처럼 설명하지 마라.
 
                 [프로필]
+                - 아이 이름: %s
                 - 아이 월령: %d
+                - 성별: %s
                 - 거주지: %s
 
                 [할 일]
@@ -91,7 +97,7 @@ public class OpenClawClient {
                 [{"id":"","title":"","summary":"","status":"APPLY","link":"","category":"","source":""}]
 
                 [CANDIDATES]
-                """.formatted(months, safeRegion)
+                """.formatted(safeName, months, safeGender, safeRegion)
                 + candidatesJson;
     }
 
@@ -123,7 +129,7 @@ public class OpenClawClient {
                         .source(str(o, "source"))
                         .build());
             }
-            return out.isEmpty() ? null : out;
+            return out;
         } catch (Exception e) {
             log.warn("OpenClaw 응답 파싱 실패", e);
             return null;

@@ -23,6 +23,8 @@ public class MyProduct {
 
     private String certNum;
 
+    private String imageName;
+
     private boolean recallMatched;
 
     private RecallMatchType recallType;
@@ -47,5 +49,21 @@ public class MyProduct {
 
     public void markChecked() {
         this.checkedTime = LocalDateTime.now();
+    }
+
+    public void updateFields(String productName, String brandName, String modelName, String certNum, String imageName) {
+        this.productName = productName;
+        this.brandName = brandName;
+        this.modelName = modelName;
+        this.certNum = certNum;
+        this.imageName = imageName;
+    }
+
+    /** 정보 수정 시 이전 매칭 결과를 지우고 새 정보로 재판정할 수 있도록 초기화한다. */
+    public void resetMatch() {
+        this.recallMatched = false;
+        this.recallType = null;
+        this.recallUid = null;
+        this.recallTitle = null;
     }
 }
