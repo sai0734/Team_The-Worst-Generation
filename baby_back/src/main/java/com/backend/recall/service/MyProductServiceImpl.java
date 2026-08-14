@@ -115,10 +115,12 @@ public class MyProductServiceImpl implements MyProductService {
     }
 
     private boolean isDuplicate(String memberEmail, String productName, String modelName, Long excludeProductNo) {
+        String normalizedProductName = normalize(productName);
+        String normalizedModelName = normalize(modelName);
         return myProductMapper.selectByMember(memberEmail).stream()
             .filter(p -> excludeProductNo == null || !p.getProductNo().equals(excludeProductNo))
-            .anyMatch(p -> productName.equals(p.getProductName())
-                && java.util.Objects.equals(modelName, p.getModelName()));
+            .anyMatch(p -> java.util.Objects.equals(normalizedProductName, normalize(p.getProductName()))
+                && java.util.Objects.equals(normalizedModelName, normalize(p.getModelName())));
     }
 
     private String trimToNull(String s) {

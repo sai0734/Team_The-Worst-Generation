@@ -111,6 +111,20 @@ public class MyProductServiceTests {
     }
 
     @Test
+    public void 띄어쓰기만_다른_모델명도_중복으로_판단한다() {
+
+        myProductService.register(EMAIL,
+            MyProductDTO.builder().productName("유모차").modelName("맘마카트데일리").build());
+
+        MyProductDTO duplicate = MyProductDTO.builder()
+            .productName("유모차")
+            .modelName("맘마카트 데일리")
+            .build();
+
+        assertThrows(IllegalArgumentException.class, () -> myProductService.register(EMAIL, duplicate));
+    }
+
+    @Test
     public void 제품명이_비어있으면_예외가_발생한다() {
 
         MyProductDTO dto = MyProductDTO.builder()
