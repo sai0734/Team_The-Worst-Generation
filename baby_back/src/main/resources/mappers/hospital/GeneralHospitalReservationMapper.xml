@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.backend.hospital.general.mapper.GeneralHospitalReservationMapper">
+
+    <select id="selectByReservationNo" resultType="com.backend.hospital.general.domain.GeneralHospitalReservation">
+        SELECT reservation_no, member_email, hospital_id, hospital_name, hospital_type,
+               hospital_address, hospital_phone, reservation_date, reservation_time,
+               patient_name, message, status, reg_time, mod_time
+        FROM tbl_hospital_reservation
+        WHERE reservation_no = #{reservationNo}
+    </select>
+
+    <select id="selectListByMember" resultType="com.backend.hospital.general.domain.GeneralHospitalReservation">
+        SELECT reservation_no, member_email, hospital_id, hospital_name, hospital_type,
+               hospital_address, hospital_phone, reservation_date, reservation_time,
+               patient_name, message, status, reg_time, mod_time
+        FROM tbl_hospital_reservation
+        WHERE member_email = #{memberEmail}
+        ORDER BY reservation_date DESC, reservation_time DESC, reg_time DESC
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="reservationNo" keyColumn="reservation_no">
+        INSERT INTO tbl_hospital_reservation (
+            member_email, hospital_id, hospital_name, hospital_type, hospital_address,
+            hospital_phone, reservation_date, reservation_time, patient_name, message, status
+        )
+        VALUES (
+            #{memberEmail}, #{hospitalId}, #{hospitalName}, #{hospitalType}, #{hospitalAddress},
+            #{hospitalPhone}, #{reservationDate}, #{reservationTime}, #{patientName}, #{message}, #{status}
+        )
+    </insert>
+
+    <update id="updateStatus">
+        UPDATE tbl_hospital_reservation
+        SET status = #{status},
+            mod_time = CURRENT_TIMESTAMP
+        WHERE reservation_no = #{reservationNo}
+    </update>
+
+</mapper>
