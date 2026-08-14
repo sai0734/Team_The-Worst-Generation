@@ -47,6 +47,15 @@ export const removeCustomAllergy = async (
   await jwtAxios.delete(`${host}/custom/${customAllergyNo}`);
 };
 
+export const updateCustomAllergy = async (
+  customAllergyNo: number,
+  ingredientName: string,
+): Promise<void> => {
+  await jwtAxios.put(`${host}/custom/${customAllergyNo}`, null, {
+    params: { ingredientName },
+  });
+};
+
 export const getAllIngredients = async (): Promise<AllergyIngredient[]> => {
   const res = await jwtAxios.get(`${host}/ingredient`);
 

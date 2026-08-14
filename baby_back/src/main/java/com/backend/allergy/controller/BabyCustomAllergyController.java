@@ -45,4 +45,14 @@ public class BabyCustomAllergyController {
         return ResponseEntity.ok().build();
     }
 
+    @PutMapping("/{customAllergyNo}")
+    public ResponseEntity<Void> updateCustomAllergy(
+            @PathVariable("customAllergyNo") Long customAllergyNo,
+            @RequestParam("ingredientName") String ingredientName){
+
+        babyCustomAllergyServiceImpl.updateCustomAllergy(customAllergyNo, ingredientName);
+
+        return ResponseEntity.ok().build();
+    }
+
 }

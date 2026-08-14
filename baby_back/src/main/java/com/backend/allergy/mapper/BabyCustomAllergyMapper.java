@@ -18,4 +18,9 @@ public interface BabyCustomAllergyMapper {
 
     @Delete("DELETE FROM tbl_baby_custom_allergy WHERE customAllergyNo = #{customAllergyNo}")
     void remove(@Param("customAllergyNo") Long customAllergyNo);
+
+    @Update("UPDATE tbl_baby_custom_allergy SET ingredientName = #{ingredientName} "
+            + "WHERE customAllergyNo = #{customAllergyNo}")
+    void update(@Param("customAllergyNo") Long customAllergyNo,
+                @Param("ingredientName") String ingredientName);
 }
