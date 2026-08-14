@@ -57,7 +57,7 @@ const RecallListComponent = () => {
   };
 
   return (
-    <section>
+    <section className="recall-page">
       <p className="eyebrow">MY PRODUCTS</p>
       <div className="recall-header">
         <h2>내 육아용품 리콜 현황</h2>

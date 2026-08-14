@@ -22,4 +22,7 @@ public class LedgerClassifyResponseDTO {
 
     // 금액/통화 단위를 뺀 순수 항목명 (예: "기저귀 32000원" -> "기저귀")
     private String description;
+
+    // 영수증에서 추출한 결제일자 (yyyy-MM-dd), 없으면 null
+    private String txDate;
 }
