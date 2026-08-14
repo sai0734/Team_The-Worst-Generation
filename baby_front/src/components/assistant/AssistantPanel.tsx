@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type CSSProperties } from "react";
 import {
   assistantApi,
   type AssistCategory,
@@ -16,10 +16,11 @@ const CATEGORIES: { key: AssistCategory; label: string }[] = [
 
 interface AssistantPanelProps {
   className?: string;
+  style?: CSSProperties;
 }
 
 /** AI 정부지원금 — 기존 AI 육아 비서 기능을 이 패널로 이전 */
-const AssistantPanel = ({ className }: AssistantPanelProps) => {
+const AssistantPanel = ({ className, style }: AssistantPanelProps) => {
   const [query, setQuery] = useState("");
   const [months, setMonths] = useState("");
   const [sido, setSido] = useState("서울");
@@ -65,6 +66,7 @@ const AssistantPanel = ({ className }: AssistantPanelProps) => {
     <article
       id="ai-subsidy-panel"
       className={`card info supportbox support-panel${className ? ` ${className}` : ""}`}
+      style={style}
     >
       <small>AI 정부지원금</small>
       <strong style={{ marginBottom: 1 }}>맞춤 육아·복지 혜택 찾기</strong>

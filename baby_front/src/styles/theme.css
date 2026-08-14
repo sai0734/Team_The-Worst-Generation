@@ -32,6 +32,60 @@
   left: -210px;
   bottom: -300px;
 }
+
+/* ===== 페이지 전환 와이프 ===== */
+.app .page-wipe {
+  position: fixed;
+  inset: 0;
+  background: var(--accent);
+  z-index: 200;
+  transform: translateY(101%);
+  pointer-events: none;
+}
+.app .page-wipe.run {
+  animation: page-wipe-in-out 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes page-wipe-in-out {
+  0% {
+    transform: translateY(101%);
+  }
+  45% {
+    transform: translateY(0%);
+  }
+  55% {
+    transform: translateY(0%);
+  }
+  100% {
+    transform: translateY(-101%);
+  }
+}
+.app .page-wipe-label {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: #fff;
+  font-weight: 900;
+  font-size: 14px;
+  letter-spacing: 2px;
+  opacity: 0;
+}
+.app .page-wipe.run .page-wipe-label {
+  animation: page-wipe-label-fade 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes page-wipe-label-fade {
+  0%,
+  40% {
+    opacity: 0;
+  }
+  50%,
+  60% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
 .app .top-wrap {
   position: relative;
   z-index: 8;
@@ -299,7 +353,60 @@
 }
 
 /* ===== 홈 대시보드 (로그인 메인) ===== */
+
+/* 텍스트 리빌: 로딩 시 밑에서 위로 올라오며 나타남 */
+.app .reveal-line {
+  overflow: hidden;
+  display: block;
+}
+.app .reveal-line .reveal-inner {
+  display: inline-block;
+  transform: translateY(115%);
+  opacity: 0;
+}
+.app .reveal-line.play .reveal-inner {
+  animation: home-rise 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes home-rise {
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* 카드/타이틀 등장: 마운트 후 살짝 떠오르며 페이드인 (순차 딜레이) */
+.app .home-rise-up {
+  opacity: 0;
+  transform: translateY(28px);
+  transition:
+    opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.app .home-rise-up.in-view {
+  opacity: 1;
+  transform: translateY(0);
+}
+.app .home-grid.stagger > * {
+  transition-delay: calc(var(--i) * 80ms);
+}
+
+/* 글자 단위 분해 애니메이션 */
+.app .split-heading .char {
+  display: inline-block;
+  transform: translateY(50%) rotate(5deg);
+  opacity: 0;
+  transition:
+    transform 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.app .split-heading.in-view .char {
+  transform: translateY(0) rotate(0deg);
+  opacity: 1;
+}
+
 .app .home-hero {
+  position: relative;
+  overflow: visible;
   width: min(1040px, 100%);
   margin: 0 auto;
   display: flex;
@@ -311,6 +418,32 @@
   background: linear-gradient(172deg, #ebf4ff 0%, #fff9f5 100%);
   border: 1px solid var(--line);
   box-shadow: 0 4px 20px rgba(0, 91, 178, 0.05);
+}
+.app .home-hero-blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(40px);
+  pointer-events: none;
+  z-index: 0;
+}
+.app .home-hero-blob.a {
+  width: 180px;
+  height: 180px;
+  background: rgba(0, 91, 178, 0.12);
+  top: -50px;
+  right: 30%;
+}
+.app .home-hero-blob.b {
+  width: 140px;
+  height: 140px;
+  background: rgba(0, 63, 125, 0.1);
+  bottom: -40px;
+  left: 10%;
+}
+.app .home-hero-text,
+.app .home-hero-art {
+  position: relative;
+  z-index: 1;
 }
 .app .home-hero--guest {
   margin-top: 4vh;
@@ -357,16 +490,47 @@
   flex-shrink: 0;
 }
 
+/* 마러크 텔리커 */
+.app .home-marquee {
+  width: min(1040px, 100%);
+  margin: 2px auto;
+  overflow: hidden;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  background: var(--soft);
+  padding: 3px 0;
+  white-space: nowrap;
+}
+.app .home-marquee-track {
+  display: inline-flex;
+  gap: 28px;
+  animation: home-marquee 16s linear infinite;
+}
+.app .home-marquee-track span {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--accent);
+  letter-spacing: 0.4px;
+}
+@keyframes home-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
 .app .home-grid {
   width: min(1040px, 100%);
-  margin: 2px auto 0;
+  margin: 0 auto;
   display: grid;
   grid-template-columns: 1.7fr 1fr;
   grid-template-areas:
     "tip    tip"
     "quest  ledger"
     "assist recall";
-  gap: 6px;
+  gap: 4px;
 }
 .app .area-tip {
   grid-area: tip;
@@ -387,7 +551,16 @@
 }
 
 .app .home-grid .card {
-  padding: 6px 10px;
+  padding: 5px 10px;
+  transition:
+    transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.app .home-grid .card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 40px rgba(0, 45, 90, 0.14);
+  border-color: rgba(0, 91, 178, 0.3);
 }
 .app .home-grid .head {
   margin-bottom: 3px;

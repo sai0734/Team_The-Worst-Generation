@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, type MouseEvent } from "react";
 import { useSelector } from "react-redux";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import type { RootState } from "../../store";
+import { triggerWipe } from "../../utils/pageTransition";
 
 interface SubItem {
   label: string;
@@ -74,14 +75,21 @@ const NAV_ITEMS: NavItem[] = [
 const BasicMenu = () => {
   const loginState = useSelector((state: RootState) => state.loginSlice);
   const [hovered, setHovered] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   const activeItem = NAV_ITEMS.find((item) => item.code === hovered);
+
+  const wipeTo = (to: string) => (e: MouseEvent) => {
+    e.preventDefault();
+    setHovered(null);
+    triggerWipe(() => navigate(to));
+  };
 
   return (
     <>
       <header className="top-wrap" onMouseLeave={() => setHovered(null)}>
         <div className="top">
-          <Link className="logo" to="/">
+          <Link className="logo" to="/" onClick={wipeTo("/")}>
             <b>아이봄</b>
           </Link>
 
@@ -92,6 +100,7 @@ const BasicMenu = () => {
                 to={item.to}
                 className="nav-tab"
                 onMouseEnter={() => setHovered(item.code)}
+                onClick={wipeTo(item.to)}
               >
                 {item.label}
               </Link>
@@ -114,7 +123,9 @@ const BasicMenu = () => {
           {activeItem?.subItems.map((sub, idx) => (
             <span className="subnav-item" key={sub.to}>
               {idx > 0 && <i className="subnav-divider" />}
-              <Link to={sub.to}>{sub.label}</Link>
+              <Link to={sub.to} onClick={wipeTo(sub.to)}>
+                {sub.label}
+              </Link>
             </span>
           ))}
         </div>

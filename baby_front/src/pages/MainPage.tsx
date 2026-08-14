@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import BasicLayout from "../layouts/BasicLayout";
 import useCustomLogin from "../hooks/useCustomLogin";
 import * as ledgerApi from "../api/ledgerApi";
@@ -10,6 +10,34 @@ import type { MyProduct } from "../api/recallApi";
 import { questApi, type QuestHome } from "../api/questApi";
 import AssistantPanel from "../components/assistant/AssistantPanel";
 import heroBaby from "../assets/hero-baby.png";
+import { triggerWipe } from "../utils/pageTransition";
+
+const MARQUEE_TEXT =
+  "오늘도 함께, 잘 키워가요 ✦ 육아 기록 · 가계부 · AI 정부지원금 · 리콜 알림 ✦ ";
+
+const SplitHeading = ({
+  text,
+  inView,
+  className,
+}: {
+  text: string;
+  inView: boolean;
+  className?: string;
+}) => (
+  <h2 className={`split-heading${inView ? " in-view" : ""}${className ? ` ${className}` : ""}`}>
+    {[...text].map((ch, i) => (
+      <span key={i} className="char" style={{ transitionDelay: `${i * 30}ms` }}>
+        {ch === " " ? " " : ch}
+      </span>
+    ))}
+  </h2>
+);
+
+const RevealLine = ({ play, children }: { play: boolean; children: ReactNode }) => (
+  <span className={`reveal-line${play ? " play" : ""}`}>
+    <span className="reveal-inner">{children}</span>
+  </span>
+);
 
 const emptyHome: QuestHome = {
   dailyQuests: [],
@@ -39,12 +67,25 @@ const getTodayTip = () => {
 
 const MainPage = () => {
   const { isLogin } = useCustomLogin();
+  const navigate = useNavigate();
 
   const [ledgerSummary, setLedgerSummary] = useState<LedgerSummary | null>(null);
   const [recallProducts, setRecallProducts] = useState<MyProduct[] | null>(null);
 
   const [home, setHome] = useState<QuestHome>(emptyHome);
   const [completingId, setCompletingId] = useState<number | null>(null);
+
+  const [heroPlay, setHeroPlay] = useState(false);
+  const [cardsIn, setCardsIn] = useState(false);
+
+  useEffect(() => {
+    const t1 = setTimeout(() => setHeroPlay(true), 80);
+    const t2 = setTimeout(() => setCardsIn(true), 420);
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+    };
+  }, []);
 
   const loadQuests = async () => {
     try {
@@ -99,19 +140,31 @@ const MainPage = () => {
     return (
       <BasicLayout>
         <section className="home-hero home-hero--guest">
+          <div className="home-hero-blob a" />
+          <div className="home-hero-blob b" />
           <div className="home-hero-text">
-            <span className="chip home-hero-chip">아이봄에 오신 것을 환영해요</span>
+            <RevealLine play={heroPlay}>
+              <span className="chip home-hero-chip">아이봄에 오신 것을 환영해요</span>
+            </RevealLine>
             <h1>
-              오늘도 함께,
-              <br />
-              <b>잘 키워가요.</b>
+              <RevealLine play={heroPlay}>오늘도 함께,</RevealLine>
+              <RevealLine play={heroPlay}>
+                <b>잘 키워가요.</b>
+              </RevealLine>
             </h1>
             <p className="desc">
               아이봄과 함께하는 똑똑하고 편안한 육아 일기.
               <br />
               로그인하면 오늘의 할 일, 가계부, 리콜 알림을 한눈에 볼 수 있어요.
             </p>
-            <Link to="/member/login" className="submit-btn home-hero-cta">
+            <Link
+              to="/member/login"
+              className="submit-btn home-hero-cta"
+              onClick={(e) => {
+                e.preventDefault();
+                triggerWipe(() => navigate("/member/login"));
+              }}
+            >
               로그인하고 시작하기
             </Link>
           </div>
@@ -155,30 +208,54 @@ const MainPage = () => {
   return (
     <BasicLayout>
       <section className="home-hero">
+        <div className="home-hero-blob a" />
+        <div className="home-hero-blob b" />
         <div className="home-hero-text">
-          <span className="chip home-hero-chip">환영합니다!</span>
+          <RevealLine play={heroPlay}>
+            <span className="chip home-hero-chip">환영합니다!</span>
+          </RevealLine>
           <h1>
-            오늘도 함께,
-            <br />
-            <b>잘 키워가요.</b>
+            <RevealLine play={heroPlay}>오늘도 함께,</RevealLine>
+            <RevealLine play={heroPlay}>
+              <b>잘 키워가요.</b>
+            </RevealLine>
           </h1>
           <p className="desc">아이봄과 함께하는 똑똑하고 편안한 육아 일기.</p>
-          <Link to="/babyInfo/input" className="submit-btn home-hero-cta">
+          <Link
+            to="/babyInfo/input"
+            className="submit-btn home-hero-cta"
+            onClick={(e) => {
+              e.preventDefault();
+              triggerWipe(() => navigate("/babyInfo/input"));
+            }}
+          >
             우리 아이 등록하기
           </Link>
         </div>
         <img src={heroBaby} alt="" className="home-hero-art" />
       </section>
 
-      <div className="home-grid">
-        <article className="card home-tip-card area-tip">
+      <div className="home-marquee">
+        <div className="home-marquee-track">
+          <span>{MARQUEE_TEXT.repeat(2)}</span>
+        </div>
+      </div>
+
+      <div className="home-grid stagger">
+        <article
+          className={`card home-tip-card area-tip home-rise-up${cardsIn ? " in-view" : ""}`}
+          style={{ "--i": 0 } as CSSProperties}
+        >
           <p className="home-tip-label">💡 오늘의 꿀팁</p>
           <p className="home-tip-text">{getTodayTip()}</p>
         </article>
 
-        <article className="card area-quest">
+        <article
+          className={`card area-quest home-rise-up${cardsIn ? " in-view" : ""}`}
+          style={{ "--i": 1 } as CSSProperties}
+        >
           <div className="head">
-            <h2>오늘의 할 일</h2>
+            <SplitHeading text="오늘의 할 일" inView={cardsIn} />
             <b>
               {done} / {daily.length} 완료
             </b>
@@ -252,7 +329,15 @@ const MainPage = () => {
           )}
         </article>
 
-        <Link to="/ledger" className="card home-side-card area-ledger">
+        <Link
+          to="/ledger"
+          className={`card home-side-card area-ledger home-rise-up${cardsIn ? " in-view" : ""}`}
+          style={{ "--i": 2 } as CSSProperties}
+          onClick={(e) => {
+            e.preventDefault();
+            triggerWipe(() => navigate("/ledger"));
+          }}
+        >
           <small className="eyebrow">우리집 가계부</small>
           <strong className="home-side-amount">
             {ledgerSummary
@@ -293,9 +378,20 @@ const MainPage = () => {
           <span className="home-side-btn">가계부 상세 보기</span>
         </Link>
 
-        <AssistantPanel className="area-assist" />
+        <AssistantPanel
+          className={`area-assist home-rise-up${cardsIn ? " in-view" : ""}`}
+          style={{ "--i": 3 } as CSSProperties}
+        />
 
-        <Link to="/recall" className="card home-side-card area-recall">
+        <Link
+          to="/recall"
+          className={`card home-side-card area-recall home-rise-up${cardsIn ? " in-view" : ""}`}
+          style={{ "--i": 4 } as CSSProperties}
+          onClick={(e) => {
+            e.preventDefault();
+            triggerWipe(() => navigate("/recall"));
+          }}
+        >
           <small className="eyebrow">AI 육아용품 리콜</small>
           {recallProducts && recallProducts.length > 0 ? (
             <>
