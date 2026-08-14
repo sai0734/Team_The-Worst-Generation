@@ -245,6 +245,7 @@ CREATE TABLE IF NOT EXISTS tbl_baby_album (
     PRIMARY KEY (album_no),
     CONSTRAINT fk_baby_album FOREIGN KEY (baby_no) REFERENCES tbl_baby_info (baby_no)
     );
+-- HWH 끝
 
 -- KYI - 가계부 내역
 CREATE TABLE IF NOT EXISTS tbl_ledger (
