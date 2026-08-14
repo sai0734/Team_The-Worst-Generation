@@ -1,8 +1,7 @@
-import { useState, type MouseEvent } from "react";
+import { useRef, useState } from "react";
 import { useSelector } from "react-redux";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import type { RootState } from "../../store";
-import { triggerWipe } from "../../utils/pageTransition";
 
 interface SubItem {
   label: string;
@@ -17,6 +16,15 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
+  {
+    code: "home",
+    label: "홈",
+    to: "/main",
+    subItems: [
+      { label: "메인", to: "/main" },
+      { label: "대시보드", to: "/dashboard" },
+    ],
+  },
   {
     code: "baby",
     label: "응애관리",
@@ -75,21 +83,29 @@ const NAV_ITEMS: NavItem[] = [
 const BasicMenu = () => {
   const loginState = useSelector((state: RootState) => state.loginSlice);
   const [hovered, setHovered] = useState<string | null>(null);
-  const navigate = useNavigate();
+  const [subnavLeft, setSubnavLeft] = useState<number | undefined>(undefined);
+  const topWrapRef = useRef<HTMLElement | null>(null);
+  const tabRefs = useRef<Record<string, HTMLAnchorElement | null>>({});
 
   const activeItem = NAV_ITEMS.find((item) => item.code === hovered);
+  const closeSubnav = () => setHovered(null);
 
-  const wipeTo = (to: string) => (e: MouseEvent) => {
-    e.preventDefault();
-    setHovered(null);
-    triggerWipe(() => navigate(to));
+  const handleTabEnter = (code: string) => {
+    setHovered(code);
+    const tabEl = tabRefs.current[code];
+    const wrapEl = topWrapRef.current;
+    if (tabEl && wrapEl) {
+      const tabRect = tabEl.getBoundingClientRect();
+      const wrapRect = wrapEl.getBoundingClientRect();
+      setSubnavLeft(tabRect.left - wrapRect.left);
+    }
   };
 
   return (
     <>
-      <header className="top-wrap" onMouseLeave={() => setHovered(null)}>
+      <header className="top-wrap" ref={topWrapRef} onMouseLeave={() => setHovered(null)}>
         <div className="top">
-          <Link className="logo" to="/" onClick={wipeTo("/")}>
+          <Link className="logo" to="/main" onClick={closeSubnav}>
             <b>아이봄</b>
           </Link>
 
@@ -99,8 +115,11 @@ const BasicMenu = () => {
                 key={item.code}
                 to={item.to}
                 className="nav-tab"
-                onMouseEnter={() => setHovered(item.code)}
-                onClick={wipeTo(item.to)}
+                ref={(el) => {
+                  tabRefs.current[item.code] = el;
+                }}
+                onMouseEnter={() => handleTabEnter(item.code)}
+                onClick={closeSubnav}
               >
                 {item.label}
               </Link>
@@ -119,11 +138,14 @@ const BasicMenu = () => {
           </div>
         </div>
 
-        <div className={`subnav${activeItem ? " open" : ""}`}>
+        <div
+          className={`subnav${activeItem ? " open" : ""}`}
+          style={{ paddingLeft: subnavLeft }}
+        >
           {activeItem?.subItems.map((sub, idx) => (
             <span className="subnav-item" key={sub.to}>
               {idx > 0 && <i className="subnav-divider" />}
-              <Link to={sub.to} onClick={wipeTo(sub.to)}>
+              <Link to={sub.to} onClick={closeSubnav}>
                 {sub.label}
               </Link>
             </span>
