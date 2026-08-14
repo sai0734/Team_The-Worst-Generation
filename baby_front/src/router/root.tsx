@@ -12,6 +12,8 @@ import allergyRouter from "./allergyRouter";
 
 const Loading = <div>Loading....</div>;
 const Main = lazy(() => import("../pages/MainPage"));
+const Dashboard = lazy(() => import("../pages/DashboardPage"));
+const MainOnly = lazy(() => import("../pages/landing/MainOnlyPage"));
 const About = lazy(() => import("../pages/AboutPage"));
 const BabyInfoIndex = lazy(() => import("../pages/babyInfo/BabyInfoIndexPage"));
 const CommunityIndex = lazy(
@@ -24,6 +26,22 @@ const root = createBrowserRouter([
     element: (
       <Suspense fallback={Loading}>
         <Main />
+      </Suspense>
+    ),
+  },
+  {
+    path: "/main",
+    element: (
+      <Suspense fallback={Loading}>
+        <MainOnly />
+      </Suspense>
+    ),
+  },
+  {
+    path: "/dashboard",
+    element: (
+      <Suspense fallback={Loading}>
+        <Dashboard />
       </Suspense>
     ),
   },
