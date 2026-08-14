@@ -3,11 +3,9 @@ import type { RouteObject } from "react-router-dom";
 
 const Loading = <div>Loading....</div>;
 const List = lazy(() => import("../pages/market/MarketListPage"));
-const Map = lazy(() => import("../pages/market/MarketMapPage"));
+const MyItems = lazy(() => import("../pages/market/MarketMyItemsPage"));
 const Form = lazy(() => import("../pages/market/MarketFormPage"));
 const Detail = lazy(() => import("../pages/market/MarketDetailPage"));
-const Wish = lazy(() => import("../pages/market/MarketWishPage"));
-const MyPage = lazy(() => import("../pages/market/MarketMyPage"));
 const Profile = lazy(() => import("../pages/market/MarketProfilePage"));
 const ChatRoomList = lazy(() => import("../pages/market/ChatRoomListPage"));
 const ChatRoom = lazy(() => import("../pages/market/ChatRoomPage"));
@@ -23,14 +21,6 @@ const marketRouter = (): RouteObject[] => {
       ),
     },
     {
-      path: "map",
-      element: (
-        <Suspense fallback={Loading}>
-          <Map />
-        </Suspense>
-      ),
-    },
-    {
       path: "write",
       element: (
         <Suspense fallback={Loading}>
@@ -39,26 +29,18 @@ const marketRouter = (): RouteObject[] => {
       ),
     },
     {
+      path: "my-items",
+      element: (
+        <Suspense fallback={Loading}>
+          <MyItems />
+        </Suspense>
+      ),
+    },
+    {
       path: ":itemNo/edit",
       element: (
         <Suspense fallback={Loading}>
           <Form />
-        </Suspense>
-      ),
-    },
-    {
-      path: "wish",
-      element: (
-        <Suspense fallback={Loading}>
-          <Wish />
-        </Suspense>
-      ),
-    },
-    {
-      path: "mypage",
-      element: (
-        <Suspense fallback={Loading}>
-          <MyPage />
         </Suspense>
       ),
     },

@@ -49,9 +49,8 @@ const NAV_ITEMS: NavItem[] = [
     subItems: [
       { label: "홈", to: "/market" },
       { label: "매물 등록", to: "/market/write" },
-      { label: "내 찜", to: "/market/wish" },
+      { label: "내 매물", to: "/market/my-items" },
       { label: "채팅목록", to: "/market/chat" },
-      { label: "마이페이지", to: "/market/mypage" },
     ],
   },
   {

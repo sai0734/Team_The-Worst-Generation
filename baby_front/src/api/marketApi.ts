@@ -5,6 +5,14 @@ import type { PageRequestParam, PageResponse } from "../types/page";
 const API_SERVER_HOST = "http://localhost:8080";
 const prefix = `${API_SERVER_HOST}/api/market/items`;
 
+export const MARKET_CATEGORIES = [
+  "유모차",
+  "카시트",
+  "아기띠",
+  "장난감",
+  "수유용품",
+];
+
 // MarketItemDTO
 export interface MarketItem {
   itemNo?: number;
@@ -127,6 +135,15 @@ export const removeItem = async (itemNo: number): Promise<void> => {
 
 export const bumpItem = async (itemNo: number): Promise<void> => {
   await jwtAxios.put(`${prefix}/${itemNo}/bump`);
+};
+
+export const getMyItems = async (): Promise<MarketItem[]> => {
+  const res = await jwtAxios.get(`${prefix}/mine`);
+  return res.data;
+};
+
+export const completeItem = async (itemNo: number): Promise<void> => {
+  await jwtAxios.put(`${prefix}/${itemNo}/complete`);
 };
 
 export const getFileUrl = (fileName: string): string =>

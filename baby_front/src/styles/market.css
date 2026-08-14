@@ -1,0 +1,437 @@
+/* ===== 감자마켓 전용 (theme.css에서 이동, 다른 기능 페이지와 파일 충돌 방지) ===== */
+.app .market-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.app .market-toolbar h2 {
+  font-size: 20px;
+  margin: 0;
+}
+.app .market-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+.app .market-card {
+  cursor: pointer;
+  overflow: hidden;
+  padding: 0;
+  position: relative;
+  border: 1px solid transparent;
+  transition:
+    transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.app .market-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 20px 40px rgba(0, 45, 90, 0.14);
+  border-color: rgba(0, 91, 178, 0.3);
+}
+.app .market-card .thumb-wrap {
+  position: relative;
+}
+.app .market-card .thumb {
+  width: 100%;
+  height: 170px;
+  background: var(--soft);
+  object-fit: cover;
+  display: block;
+}
+.app .market-card .thumb-empty {
+  width: 100%;
+  height: 170px;
+  background: var(--soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--muted);
+  font-size: 12px;
+}
+.app .market-card .card-tag {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  padding: 5px 10px;
+  background: var(--ink);
+  color: var(--bg);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.3px;
+}
+.app .market-card .wish-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 0;
+  background: var(--glass);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  cursor: pointer;
+  box-shadow: 0 4px 10px #0002;
+  color: var(--muted);
+}
+.app .market-card .wish-btn.active {
+  color: var(--warn);
+}
+.app .market-card .body {
+  padding: 14px;
+}
+.app .market-card .brand {
+  font-size: 10px;
+  letter-spacing: 0.6px;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin: 0 0 4px;
+}
+.app .market-card .title {
+  font-size: 14px;
+  font-weight: 700;
+  margin: 0 0 8px;
+  line-height: 1.4;
+}
+.app .market-card .price-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.app .market-card .price {
+  font-size: 17px;
+  font-weight: 900;
+}
+
+.app .status-badge {
+  display: inline-block;
+  padding: 4px 9px;
+  border-radius: 99px;
+  font-size: 10px;
+  font-weight: 900;
+}
+.app .status-badge.available {
+  background: var(--soft);
+  color: var(--accent);
+}
+.app .status-badge.done {
+  background: #eee;
+  color: #888;
+}
+
+.app .form-field {
+  margin-bottom: 16px;
+}
+.app .form-field label {
+  display: block;
+  font-size: 12px;
+  font-weight: 800;
+  margin-bottom: 6px;
+  color: var(--muted);
+}
+.app .form-field input,
+.app .form-field select,
+.app .form-field textarea {
+  width: 100%;
+  padding: 11px 13px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--glass);
+  font-size: 13px;
+  font-family: inherit;
+  color: var(--ink);
+}
+.app .form-field textarea {
+  resize: vertical;
+}
+.app .form-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+.app .checkbox-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+.app .thumb-list {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+.app .thumb-list img {
+  width: 72px;
+  height: 72px;
+  object-fit: cover;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+}
+.app .thumb-remove {
+  position: relative;
+}
+.app .thumb-remove button {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 0;
+  background: var(--warn, #e2604a);
+  color: #fff;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.app .detail-gallery {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  margin-bottom: 16px;
+}
+.app .detail-gallery img {
+  height: 260px;
+  border-radius: var(--radius, 24px);
+  flex: none;
+}
+.app .detail-title {
+  font-size: 24px;
+  font-weight: 900;
+  margin: 8px 0;
+}
+.app .detail-price {
+  font-size: 22px;
+  font-weight: 900;
+  color: var(--accent);
+}
+.app .detail-meta {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 10px 0;
+}
+.app .detail-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+
+.app .list-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 0;
+  border-top: 1px solid var(--line);
+  font-size: 13px;
+}
+.app .list-row:first-child {
+  border-top: 0;
+}
+
+.app .chat-window {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 420px;
+  overflow-y: auto;
+  padding: 10px 0;
+}
+.app .chat-bubble {
+  max-width: 70%;
+  padding: 10px 13px;
+  border-radius: 16px;
+  background: var(--soft);
+  font-size: 13px;
+}
+.app .chat-bubble.mine {
+  background: var(--accent);
+  color: #fff;
+}
+.app .chat-bubble img {
+  max-width: 160px;
+  border-radius: 10px;
+  display: block;
+}
+.app .chat-sender {
+  font-size: 10px;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+.app .chat-input-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+.app .chat-input-row input[type="text"] {
+  flex: 1;
+  padding: 11px 13px;
+  border: 1px solid var(--line);
+  border-radius: 99px;
+  background: var(--glass);
+}
+
+.app .market-subnav {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+.app .market-subnav a {
+  padding: 9px 14px;
+  border-radius: 99px;
+  font-size: 12px;
+  font-weight: 800;
+  background: var(--glass);
+  border: 1px solid var(--line);
+  color: var(--ink);
+  text-decoration: none;
+}
+.app .market-subnav a.active {
+  background: var(--tool);
+  color: #fff;
+  border-color: var(--tool);
+}
+
+@media (max-width: 900px) {
+  .app .market-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ---- 감자마켓 홈(좌측 리스트+우측 지도) : 대시보드 톤(블롭 그라데이션 히어로) 재사용 ---- */
+.app .market-category-bar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+
+.app .market-home-split {
+  display: grid;
+  grid-template-columns: minmax(320px, 420px) 1fr;
+  gap: 20px;
+  align-items: start;
+}
+@media (max-width: 980px) {
+  .app .market-home-split {
+    grid-template-columns: 1fr;
+  }
+}
+
+.app .market-home-list-pane {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* 매너온도 위젯 — 대시보드 .home-hero와 동일한 블롭+그라데이션 톤 */
+.app .market-profile-widget {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(172deg, #ebf4ff 0%, #fff9f5 100%);
+  border: 1px solid var(--line);
+  box-shadow: 0 4px 20px rgba(0, 91, 178, 0.05);
+}
+.app .market-profile-widget::before,
+.app .market-profile-widget::after {
+  content: "";
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(36px);
+  pointer-events: none;
+  z-index: 0;
+}
+.app .market-profile-widget::before {
+  width: 130px;
+  height: 130px;
+  background: rgba(0, 91, 178, 0.12);
+  top: -40px;
+  right: -20px;
+}
+.app .market-profile-widget::after {
+  width: 100px;
+  height: 100px;
+  background: rgba(0, 63, 125, 0.1);
+  bottom: -30px;
+  left: -10px;
+}
+.app .market-profile-widget .head,
+.app .market-profile-widget .temp-bar {
+  position: relative;
+  z-index: 1;
+}
+.app .market-profile-widget .head b {
+  color: var(--accent);
+  font-size: 17px;
+}
+.app .market-profile-widget .temp-bar {
+  height: 6px;
+  border-radius: 99px;
+  background: var(--soft);
+  overflow: hidden;
+  margin-top: 10px;
+}
+.app .market-profile-widget .temp-fill {
+  height: 100%;
+  border-radius: 99px;
+  background: var(--accent);
+  transition: width 0.3s ease;
+}
+
+.app .market-home-filter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.app .market-home-location {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.app .market-map-sub {
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.app .market-home-map-pane {
+  position: sticky;
+  top: 0;
+  align-self: start;
+  border-radius: var(--radius, 24px);
+  overflow: hidden;
+  border: 1px solid var(--line);
+  box-shadow: 0 18px 55px rgba(0, 45, 90, 0.08);
+}
+@media (max-width: 980px) {
+  .app .market-home-map-pane {
+    position: static;
+  }
+}
+
+/* 내 매물 카드의 수정/거래완료/삭제 버튼 줄 */
+.app .market-my-item-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+.app .market-my-item-actions .btn {
+  height: 32px;
+  padding: 0 12px;
+  font-size: 11px;
+}
+/* ===== 감자마켓 끝 ===== */
