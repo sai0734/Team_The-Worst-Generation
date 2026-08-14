@@ -10,6 +10,7 @@ docker-compose.override.yml
 .idea
 *.iml
 .vscode
+.claude/launch.json
 
 # OS
 .DS_Store

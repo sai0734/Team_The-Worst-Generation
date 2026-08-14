@@ -1,12 +1,14 @@
 package com.backend.recall.service;
 
 import java.io.IOException;
+import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.backend.allergy.client.VisionApiClient;
 import com.backend.global.ai.OllamaClient;
+import com.backend.global.util.CustomFileUtil;
 import com.backend.recall.dto.RecallOcrResultDTO;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -23,15 +25,18 @@ public class RecallOcrServiceImpl implements RecallOcrService {
 
     private final OllamaClient ollamaClient;
 
+    private final CustomFileUtil customFileUtil;
+
     @Override
     public RecallOcrResultDTO extract(MultipartFile image) {
 
         byte[] imageBytes = readImageBytes(image);
+        String imageName = saveImage(image);
 
         String rawText = visionApiClient.extractText(imageBytes);
 
         if (rawText == null || rawText.isBlank()) {
-            return RecallOcrResultDTO.builder().rawText("").build();
+            return RecallOcrResultDTO.builder().rawText("").imageName(imageName).build();
         }
 
         String prompt = """
@@ -55,11 +60,22 @@ public class RecallOcrServiceImpl implements RecallOcrService {
                 .modelName(nullableString(json, "modelName"))
                 .certNum(nullableString(json, "certNum"))
                 .rawText(rawText)
+                .imageName(imageName)
                 .build();
 
         } catch (Exception e) {
             log.warn("리콜 OCR 필드 추출 실패: {}", e.getMessage());
-            return RecallOcrResultDTO.builder().rawText(rawText).build();
+            return RecallOcrResultDTO.builder().rawText(rawText).imageName(imageName).build();
+        }
+    }
+
+    private String saveImage(MultipartFile image) {
+        try {
+            List<String> saved = customFileUtil.saveFiles(List.of(image));
+            return saved == null ? null : saved.get(0);
+        } catch (RuntimeException e) {
+            log.warn("리콜 OCR 이미지 저장 실패: {}", e.getMessage());
+            return null;
         }
     }
 

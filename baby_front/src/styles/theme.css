@@ -811,6 +811,50 @@
   color: #ef6262;
   border-color: #ef6262;
 }
+.app .recall-actions .ghost-btn {
+  height: 34px;
+  padding: 0 14px;
+  border-style: solid;
+}
+.app .modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 20, 35, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 1200;
+}
+.app .modal-content {
+  width: 100%;
+  max-width: 480px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+.app .modal-content .recall-header {
+  margin-bottom: 14px;
+}
+.app .modal-content .recall-header h3 {
+  font-size: 18px;
+  letter-spacing: -0.4px;
+  margin: 0;
+}
+.app .detail-list {
+  display: grid;
+  grid-template-columns: 84px 1fr;
+  gap: 10px 12px;
+  font-size: 13px;
+}
+.app .detail-list dt {
+  color: var(--muted);
+  font-weight: 700;
+}
+.app .detail-list dd {
+  margin: 0;
+  line-height: 1.5;
+  word-break: break-word;
+}
 .app .recall-form {
   display: flex;
   flex-direction: column;
@@ -833,6 +877,22 @@
 .app .photo-upload input[type="file"] {
   font-size: 12px;
   max-width: 100%;
+}
+.app .photo-preview {
+  width: 96px;
+  height: 96px;
+  object-fit: cover;
+  border-radius: 14px;
+  margin: 0 0 12px;
+  border: 1px solid var(--line);
+}
+.app .recall-item-thumb {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  flex-shrink: 0;
 }
 .app .photo-hint {
   font-size: 11px;
@@ -861,6 +921,13 @@
 .app .field input:focus {
   outline: none;
   border-color: var(--accent);
+}
+.app .field-hint {
+  font-size: 11px;
+  color: var(--muted);
+  margin: -6px 0 0;
+  font-weight: 400;
+  line-height: 1.5;
 }
 .app .submit-btn {
   height: 50px;
