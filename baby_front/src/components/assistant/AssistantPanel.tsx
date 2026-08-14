@@ -1,6 +1,10 @@
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import * as babyInfoApi from "../../api/babyInfoApi";
-import { assistantApi, type AssistItem } from "../../api/assistantApi";
+import {
+  ASSIST_CATEGORIES,
+  assistantApi,
+  type AssistItem,
+} from "../../api/assistantApi";
 import useCustomLogin from "../../hooks/useCustomLogin";
 
 const monthsFromBirth = (birthDate?: string) => {
@@ -15,6 +19,12 @@ const monthsFromBirth = (birthDate?: string) => {
   );
 };
 
+const categoryLabel = (category?: string) => {
+  if (category === "CARE") return "아이돌봄";
+  if (category === "VACCINATION") return "예방접종";
+  return "지원금";
+};
+
 interface AssistantPanelProps {
   className?: string;
   style?: CSSProperties;
@@ -23,13 +33,15 @@ interface AssistantPanelProps {
 const AssistantPanel = ({ className, style }: AssistantPanelProps) => {
   const { isLogin } = useCustomLogin();
   const [months, setMonths] = useState(6);
-  const [sido, setSido] = useState("서울");
-  const [sigungu, setSigungu] = useState("강남구");
+  const [sido, setSido] = useState("");
+  const [sigungu, setSigungu] = useState("");
   const [babyName, setBabyName] = useState("");
+  const [gender, setGender] = useState("");
   const [items, setItems] = useState<AssistItem[]>([]);
   const [answer, setAnswer] = useState("");
   const [loading, setLoading] = useState(false);
   const [editing, setEditing] = useState(false);
+  const [live, setLive] = useState(false);
 
   useEffect(() => {
     if (!isLogin) return;
@@ -41,6 +53,7 @@ const AssistantPanel = ({ className, style }: AssistantPanelProps) => {
           const baby = list?.[0];
           if (!baby) return;
           setBabyName(baby.babyName ?? "");
+          setGender(baby.gender ?? "");
           setMonths(monthsFromBirth(baby.birthDate));
         })
         .catch(() => undefined);
@@ -53,9 +66,25 @@ const AssistantPanel = ({ className, style }: AssistantPanelProps) => {
 
   useEffect(() => {
     if (!isLogin) {
+      setSido("");
+      setSigungu("");
+      return;
+    }
+    assistantApi
+      .getRegion()
+      .then((region) => {
+        setSido(region.regionSido ?? "");
+        setSigungu(region.regionSigungu ?? "");
+      })
+      .catch(() => undefined);
+  }, [isLogin]);
+
+  useEffect(() => {
+    if (!isLogin) {
       setAnswer("");
       setItems([]);
       setLoading(false);
+      setLive(false);
       return;
     }
 
@@ -63,12 +92,39 @@ const AssistantPanel = ({ className, style }: AssistantPanelProps) => {
     const load = async () => {
       setLoading(true);
       try {
+        if (live && (sido.trim() || sigungu.trim())) {
+          try {
+            await assistantApi.saveRegion({
+              regionSido: sido.trim(),
+              regionSigungu: sigungu.trim(),
+            });
+          } catch {
+            // 거주지 저장 API가 아직 없으면 조회만 진행
+          }
+        }
+
+        if (!live) {
+          try {
+            const snap = await assistantApi.snapshot();
+            if (cancelled) return;
+            if (snap.items?.length) {
+              setAnswer(snap.answer);
+              setItems(snap.items);
+              return;
+            }
+          } catch {
+            // 스냅샷이 없거나 실패하면 실시간 조회로 넘어감
+          }
+        }
+
         const res = await assistantApi.recommend({
-          categories: ["SUBSIDY", "CARE"],
+          categories: ASSIST_CATEGORIES,
           child: {
             babyMonths: months,
-            regionSido: sido,
-            regionSigungu: sigungu,
+            babyName: babyName || undefined,
+            gender: gender || undefined,
+            regionSido: sido.trim() || undefined,
+            regionSigungu: sigungu.trim() || undefined,
           },
         });
         if (cancelled) return;
@@ -88,16 +144,16 @@ const AssistantPanel = ({ className, style }: AssistantPanelProps) => {
     return () => {
       cancelled = true;
     };
-  }, [isLogin, months, sido, sigungu]);
+  }, [isLogin, live, months, sido, sigungu, babyName, gender]);
 
   const contextLine = useMemo(() => {
-    const regionLabel =
-      sido === "서울" ? `서울시 ${sigungu}` : `${sido} ${sigungu}`.trim();
+    const regionLabel = [sido, sigungu].filter(Boolean).join(" ");
     const who = babyName ? `${babyName} ` : "";
-    return (
-      answer ||
-      `현재 거주지(${regionLabel}) 및 자녀 월령(${who}${months}개월) 기준 신청 가능한 지원금입니다.`
-    );
+    if (answer) return answer;
+    if (regionLabel) {
+      return `현재 거주지(${regionLabel}) 및 자녀 월령(${who}${months}개월) 기준 신청 가능한 지원입니다.`;
+    }
+    return `자녀 월령(${who}${months}개월) 기준 신청 가능한 지원입니다. 거주지를 입력하면 지역 맞춤으로 보여 드려요.`;
   }, [answer, babyName, months, sido, sigungu]);
 
   return (
@@ -130,21 +186,30 @@ const AssistantPanel = ({ className, style }: AssistantPanelProps) => {
             min={0}
             placeholder="개월수"
             value={months}
-            onChange={(e) => setMonths(Number(e.target.value) || 0)}
+            onChange={(e) => {
+              setLive(true);
+              setMonths(Number(e.target.value) || 0);
+            }}
             aria-label="개월수"
           />
           <input
             type="text"
-            placeholder="시/도"
+            placeholder="시/도 (예: 서울)"
             value={sido}
-            onChange={(e) => setSido(e.target.value)}
+            onChange={(e) => {
+              setLive(true);
+              setSido(e.target.value);
+            }}
             aria-label="시/도"
           />
           <input
             type="text"
-            placeholder="시/군/구"
+            placeholder="시/군/구 (예: 강남구)"
             value={sigungu}
-            onChange={(e) => setSigungu(e.target.value)}
+            onChange={(e) => {
+              setLive(true);
+              setSigungu(e.target.value);
+            }}
             aria-label="시/군/구"
           />
         </div>
@@ -155,19 +220,22 @@ const AssistantPanel = ({ className, style }: AssistantPanelProps) => {
           로그인하고 아이를 등록하면, 월령에 맞는 지원금·시설을 보여 드려요.
         </p>
       ) : loading && items.length === 0 ? (
-        <p className="assist-empty">신청 가능한 지원금을 찾고 있어요…</p>
+        <p className="assist-empty">신청 가능한 지원을 찾고 있어요…</p>
       ) : items.length === 0 ? (
         <p className="assist-empty">
-          지금 조건에서 바로 신청할 지원금이 없어요.
+          {answer ||
+            "지금 조건에서 바로 신청할 지원이 없어요. 거주지와 아이 정보를 확인해 보세요."}
         </p>
       ) : (
         <ul className="assist-cards">
-          {items.map((it) => {
+          {items.map((it, idx) => {
             const done = it.status === "DONE";
             return (
-              <li key={it.id}>
+              <li key={it.id || `${it.title}-${idx}`}>
                 <div>
-                  <h4>{it.title}</h4>
+                  <h4>
+                    [{categoryLabel(it.category)}] {it.title}
+                  </h4>
                   <p>{it.summary}</p>
                 </div>
                 {done ? (
