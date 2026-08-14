@@ -1,16 +1,16 @@
 import BasicLayout from "../../layouts/BasicLayout";
 import MarketSubNav from "../../components/market/MarketSubNav";
-import MarketWishComponent from "../../components/market/MarketWishComponent";
+import MarketMyItemsComponent from "../../components/market/MarketMyItemsComponent";
 
-const MarketWishPage = () => {
+const MarketMyItemsPage = () => {
   return (
     <BasicLayout>
       <div>
         <MarketSubNav />
-        <MarketWishComponent />
+        <MarketMyItemsComponent />
       </div>
     </BasicLayout>
   );
 };
 
-export default MarketWishPage;
+export default MarketMyItemsPage;

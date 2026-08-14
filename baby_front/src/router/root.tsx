@@ -9,6 +9,7 @@ import marketRouter from "./marketRouter";
 import recallRouter from "./recallRouter";
 import ledgerRouter from "./ledgerRouter";
 import allergyRouter from "./allergyRouter";
+import cryCheckRouter from "./cryCheckRouter";
 
 const Loading = <div>Loading....</div>;
 const Main = lazy(() => import("../pages/MainPage"));
@@ -98,6 +99,10 @@ const root = createBrowserRouter([
   {
     path: "allergy",
     children: allergyRouter(),
+  },
+  {
+    path: "ai",
+    children: cryCheckRouter(),
   },
 ]);
 

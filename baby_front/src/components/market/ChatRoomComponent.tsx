@@ -1,17 +1,24 @@
-import { ChangeEvent, useEffect, useState } from "react";
+import { ChangeEvent, useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
+import { Client, IMessage } from "@stomp/stompjs";
+import SockJS from "sockjs-client";
 import * as chatApi from "../../api/chatApi";
 import type { ChatMessage } from "../../api/chatApi";
 import * as marketApi from "../../api/marketApi";
 import useCustomLogin from "../../hooks/useCustomLogin";
+import { getAccessToken } from "../../util/accessTokenStore";
 
-// 실시간 전송(WebSocket/STOMP)은 아직 미연결 상태.
-// package.json에 @stomp/stompjs, sockjs-client 설치 후 연결 예정.
+const API_SERVER_HOST = "http://localhost:8080";
+
 const ChatRoomComponent = () => {
   const { roomNo } = useParams();
   const { loginState } = useCustomLogin();
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [input, setInput] = useState("");
+  const [connected, setConnected] = useState(false);
+
+  const clientRef = useRef<Client | null>(null);
 
   const loadMessages = async () => {
     if (!roomNo) {
@@ -25,9 +32,56 @@ const ChatRoomComponent = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roomNo]);
 
+  // 실시간 전송(WebSocket/STOMP) 연결: 방에 입장하면 붙고, 나가면 해제
+  useEffect(() => {
+    if (!roomNo) return;
+
+    const client = new Client({
+      webSocketFactory: () => new SockJS(`${API_SERVER_HOST}/ws-chat`),
+      connectHeaders: {
+        Authorization: `Bearer ${getAccessToken() ?? ""}`,
+      },
+      reconnectDelay: 3000,
+      onConnect: () => {
+        setConnected(true);
+        client.subscribe(`/topic/chat/${roomNo}`, (message: IMessage) => {
+          const received: ChatMessage = JSON.parse(message.body);
+          setMessages((prev) => [...prev, received]);
+        });
+      },
+      onDisconnect: () => setConnected(false),
+      onStompError: () => setConnected(false),
+      onWebSocketClose: () => setConnected(false),
+    });
+
+    client.activate();
+    clientRef.current = client;
+
+    return () => {
+      client.deactivate();
+      clientRef.current = null;
+      setConnected(false);
+    };
+  }, [roomNo]);
+
   if (!roomNo) {
     return <div className="card">잘못된 접근입니다.</div>;
   }
+
+  const sendMessage = (payload: Partial<ChatMessage>) => {
+    if (!clientRef.current || !connected) return;
+
+    clientRef.current.publish({
+      destination: `/app/chat/${roomNo}/send`,
+      body: JSON.stringify({ roomNo: Number(roomNo), ...payload }),
+    });
+  };
+
+  const handleSend = () => {
+    if (!input.trim()) return;
+    sendMessage({ msgType: "TEXT", content: input.trim() });
+    setInput("");
+  };
 
   const handleImageUpload = async (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -36,11 +90,7 @@ const ChatRoomComponent = () => {
     }
 
     const fileName = await chatApi.uploadChatImage(file);
-    // TODO: 실시간 전송 연결되면 이 fileName을 IMAGE 메시지로 전송해야 함
-    console.log("업로드된 파일명:", fileName);
-    alert(
-      "이미지는 업로드됐지만, 실시간 전송(STOMP)이 아직 연결 안 돼서 상대에게 보내지진 않아요.",
-    );
+    sendMessage({ msgType: "IMAGE", content: fileName });
   };
 
   const handleOfferResponse = async (
@@ -55,17 +105,17 @@ const ChatRoomComponent = () => {
     <div className="card" style={{ maxWidth: 480 }}>
       <div className="market-toolbar">
         <h2 style={{ margin: 0 }}>채팅방 #{roomNo}</h2>
-        <button className="btn ghost" onClick={loadMessages}>
-          새로고침
-        </button>
+        <span style={{ fontSize: 12, color: connected ? "green" : "gray" }}>
+          {connected ? "연결됨" : "연결 중..."}
+        </span>
       </div>
 
       <div className="chat-window">
-        {messages.map((msg) => {
+        {messages.map((msg, idx) => {
           const mine = msg.senderEmail === loginState.email;
           return (
             <div
-              key={msg.msgNo}
+              key={msg.msgNo ?? `pending-${idx}`}
               style={{
                 display: "flex",
                 flexDirection: "column",
@@ -120,10 +170,15 @@ const ChatRoomComponent = () => {
       <div className="chat-input-row">
         <input
           type="text"
-          placeholder="메시지 입력 (실시간 전송 미연결)"
-          disabled
+          placeholder="메시지 입력"
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") handleSend();
+          }}
+          disabled={!connected}
         />
-        <button className="btn" disabled>
+        <button className="btn" onClick={handleSend} disabled={!connected}>
           전송
         </button>
       </div>

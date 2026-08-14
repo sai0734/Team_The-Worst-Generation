@@ -200,6 +200,30 @@ public class MarketItemServiceImpl implements MarketItemService{
         marketItemMapper.bump(itemNo);
     }
 
+    @Override
+    public List<MarketItemDTO> getMine(String sellerEmail) {
+
+        List<MarketItem> result = marketItemMapper.selectListBySeller(sellerEmail);
+
+        return result.stream()
+                .map(this::entityToDTO)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public void markAsCompleted(Long itemNo, String requesterEmail) {
+
+        MarketItem item = Optional.ofNullable(marketItemMapper.selectOne(itemNo))
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 매물입니다: " + itemNo));
+
+        if (!item.getSellerEmail().equals(requesterEmail)) {
+            throw new AccessDeniedException("본인이 등록한 매물만 거래완료로 변경할 수 있습니다.");
+        }
+
+        item.changeStatus("거래완료");
+        marketItemMapper.update(item);
+    }
+
     private MarketItem dtoToEntity(MarketItemDTO dto) {
 
         MarketItem item = MarketItem.builder()

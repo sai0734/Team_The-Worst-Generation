@@ -37,6 +37,18 @@
         LIMIT #{size} OFFSET #{skip}
     </select>
 
+    <!-- 내 매물: 판매자 본인이 등록한 매물 전체 (거래완료 포함, 삭제 제외), 최신순 -->
+    <select id="selectListBySeller" resultMap="marketItemListResultMap">
+        SELECT i.item_no, i.seller_email, i.title, i.price, i.trade_type, i.category, i.age_range,
+        i.`condition`, i.allow_offer, i.status, i.location_name, i.view_count, i.recall_flag,
+        i.reg_time, img.file_name, img.ord AS img_ord
+        FROM tbl_market_item i
+        LEFT JOIN tbl_market_item_image img ON i.item_no = img.item_no AND img.ord = 0
+        WHERE i.del_flag = false
+        AND i.seller_email = #{sellerEmail}
+        ORDER BY i.item_no DESC
+    </select>
+
     <select id="selectListCount" resultType="long">
         SELECT COUNT(*)
         FROM tbl_market_item
