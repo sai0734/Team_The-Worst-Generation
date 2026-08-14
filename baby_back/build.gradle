@@ -19,7 +19,7 @@ repositories {
 
 dependencies {
 	implementation platform('me.paulschwarz:spring-dotenv-bom:5.1.0')
-	developmentOnly 'me.paulschwarz:springboot3-dotenv'
+	developmentOnly 'me.paulschwarz:springboot3-dotenv:5.1.0'
 
 	implementation 'org.springframework.boot:spring-boot-starter-jdbc'
 	implementation 'org.mybatis.spring.boot:mybatis-spring-boot-starter:3.0.4'

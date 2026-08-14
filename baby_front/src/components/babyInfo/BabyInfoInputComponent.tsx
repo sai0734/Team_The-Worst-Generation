@@ -105,6 +105,11 @@ const BabyInfoInputComponent = () => {
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
+    if (!babyName || !birthDate || !gender) {
+      alert("이름, 생년월일, 성별은 필수 입력 항목입니다.");
+      return;
+    }
+
     const formData = new FormData();
     formData.append("babyName", babyName);
     formData.append("birthDate", birthDate);
@@ -142,12 +147,14 @@ const BabyInfoInputComponent = () => {
       const result = await babyInfoApi.register(formData);
       const babyNo = result.babyNo;
 
-      await babyGrowInfoApi.register({
-        babyNo,
-        measuredDate: getTodayStr(),
-        weight: weight ? Number(weight) : undefined,
-        height: height ? Number(height) : undefined,
-      });
+      if (weight || height) {
+        await babyGrowInfoApi.register({
+          babyNo,
+          measuredDate: getTodayStr(),
+          weight: weight ? Number(weight) : undefined,
+          height: height ? Number(height) : undefined,
+        });
+      }
       await loadRegisteredList();
       alert(`등록이 완료되었습니다. (babyNo: ${result.babyNo})`);
     } catch (err) {
