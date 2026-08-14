@@ -1,7 +1,5 @@
 import jwtAxios from "../util/jwtUtil";
 
-//서버호출
-
 export type AssistCategory =
   | "CHILDCARE"
   | "SUBSIDY"
@@ -10,10 +8,12 @@ export type AssistCategory =
   | "VACCINATION"
   | "FACILITY";
 
+export type AssistStatus = "APPLY" | "DONE";
+
 export interface ChildContext {
   babyMonths?: number;
-  regionSido?: string; //ex) 서울
-  regionSigungu?: string; //ex) 강남구
+  regionSido?: string;
+  regionSigungu?: string;
 }
 
 export interface AssistItem {
@@ -23,11 +23,12 @@ export interface AssistItem {
   summary: string;
   source?: string;
   link?: string;
+  status?: AssistStatus;
 }
 
 export interface AssistRecommendRequest {
-  query: string;
-  categories: AssistCategory[];
+  query?: string;
+  categories?: AssistCategory[];
   child: ChildContext;
 }
 
@@ -39,11 +40,10 @@ export interface AssistRecommendResponse {
 const prefix = "http://localhost:8080/api/assistant";
 
 export const assistantApi = {
-  //실제 API/오픈클로 교체
   recommend: async (
     payload: AssistRecommendRequest,
   ): Promise<AssistRecommendResponse> => {
-    const res = await jwtAxios.post(`${prefix}/recommend`, payload);    //서버URL로 보냄, 로그인 필수
+    const res = await jwtAxios.post(`${prefix}/recommend`, payload);
     return res.data;
   },
 };
