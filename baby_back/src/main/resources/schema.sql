@@ -461,6 +461,7 @@ CREATE TABLE IF NOT EXISTS tbl_my_product (
     CONSTRAINT fk_my_product_member FOREIGN KEY (member_email) REFERENCES tbl_member (email),
     INDEX idx_my_product_member (member_email, del_flag)
 );
+ALTER TABLE tbl_my_product ADD COLUMN IF NOT EXISTS image_name VARCHAR(300) NULL;
 -- KYI 끝
 
 -- LMJ - 알레르기 성분 목록
