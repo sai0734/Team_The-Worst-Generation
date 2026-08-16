@@ -30,10 +30,8 @@ const NAV_ITEMS: NavItem[] = [
     label: "응애관리",
     to: "/babyInfo",
     subItems: [
-      { label: "아이등록", to: "/babyInfo/input" },
-      { label: "대시보드", to: "/babyInfo" },
+      { label: "우리아이", to: "/babyInfo" },
       { label: "육아일기", to: "/diary" },
-      { label: "성장앨범", to: "/album" },
     ],
   },
   {
@@ -103,7 +101,11 @@ const BasicMenu = () => {
 
   return (
     <>
-      <header className="top-wrap" ref={topWrapRef} onMouseLeave={() => setHovered(null)}>
+      <header
+        className="top-wrap"
+        ref={topWrapRef}
+        onMouseLeave={() => setHovered(null)}
+      >
         <div className="top">
           <Link className="logo" to="/main" onClick={closeSubnav}>
             <b>아이봄</b>

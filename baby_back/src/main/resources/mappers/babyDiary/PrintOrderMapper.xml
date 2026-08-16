@@ -26,10 +26,11 @@
         WHERE order_id = #{orderId}
     </select>
 
-    <select id="selectItemsByOrderNo" resultType="com.backend.printorder.domain.PrintOrderItem">
-        SELECT item_no, order_no, album_no, quantity, unit_price
-        FROM tbl_print_order_item
-        WHERE order_no = #{orderNo}
+    <select id="selectItemsByOrderNo" resultType="com.backend.printorder.dto.PrintOrderItemDTO">
+        SELECT pi.item_no, pi.album_no, pi.quantity, pi.unit_price, ba.photo_file_name
+        FROM tbl_print_order_item pi
+        JOIN tbl_baby_album ba ON pi.album_no = ba.album_no
+        WHERE pi.order_no = #{orderNo}
     </select>
 
     <select id="selectListByEmail" resultType="com.backend.printorder.domain.PrintOrder">
@@ -39,6 +40,13 @@
         FROM tbl_print_order
         WHERE email = #{email}
         ORDER BY reg_time DESC
+        LIMIT #{size} OFFSET #{skip}
+    </select>
+
+    <select id="selectListCountByEmail" resultType="long">
+        SELECT COUNT(*)
+        FROM tbl_print_order
+        WHERE email = #{email}
     </select>
 
     <update id="updateStatus">

@@ -1,5 +1,7 @@
 package com.backend.printorder.controller;
 
+import com.backend.global.dto.PageRequestDTO;
+import com.backend.global.dto.PageResponseDTO;
 import com.backend.printorder.dto.PrintOrderConfirmRequestDTO;
 import com.backend.printorder.dto.PrintOrderCreateRequestDTO;
 import com.backend.printorder.dto.PrintOrderDTO;
@@ -10,7 +12,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
-import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -49,15 +50,13 @@ public class PrintOrderController {
 
     @PreAuthorize("hasAnyRole('ROLE_USER')")
     @GetMapping("/list")
-    public List<PrintOrderDTO> list(Principal principal) {
+    public PageResponseDTO<PrintOrderDTO> list(PageRequestDTO pageRequestDTO, Principal principal) {
 
         log.info("printOrder_Controller_list_실행~~~~~~~~~~~~");
 
         String email = principal.getName();
 
-        List<PrintOrderDTO> printOrderDTOList = printOrderService.getList(email);
-
-        return printOrderDTOList;
+        return printOrderService.getList(email, pageRequestDTO);
 
     }
 

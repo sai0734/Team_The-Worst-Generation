@@ -35,7 +35,7 @@ export const getList = async (
 
 export const register = async (
   formData: FormData,
-): Promise<{ albumNo: number }> => {
+): Promise<{ albumNoList: number[] }> => {
   const res = await jwtAxios.post(`${prefix}/`, formData, {
     headers: { "Content-Type": "multipart/form-data" },
   });

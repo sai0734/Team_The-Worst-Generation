@@ -242,6 +242,48 @@
   position: relative;
   overflow-y: auto;
 }
+.app input[type="date"]::-webkit-calendar-picker-indicator,
+.app input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  border-radius: 6px;
+  padding: 3px;
+  margin-right: -2px;
+  transition: background-color 0.15s ease;
+}
+.app input[type="date"]::-webkit-calendar-picker-indicator:hover,
+.app input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
+  background-color: rgba(90, 178, 255, 0.15);
+}
+.app .side-menu-layout {
+  display: flex;
+  gap: 32px;
+}
+.app .side-menu {
+  flex-shrink: 0;
+  width: 180px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.app .side-menu-item {
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--muted);
+}
+.app .side-menu-item:hover {
+  background: var(--hover);
+  color: var(--ink);
+}
+.app .side-menu-item.active {
+  background: var(--soft);
+  color: var(--accent);
+}
+.app .side-menu-content {
+  flex: 1;
+  min-width: 0;
+}
 .app .eyebrow {
   font-size: 11px;
   letter-spacing: 2.5px;
@@ -324,7 +366,6 @@
   background: #4ce29b;
   box-shadow: 0 0 0 5px #4ce29b22;
 }
-
 
 /* ===== 홈 화면 카드 공통 (정부지원금 패널 등) ===== */
 .app .info {

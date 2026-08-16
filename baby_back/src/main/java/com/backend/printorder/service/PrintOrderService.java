@@ -1,9 +1,9 @@
 package com.backend.printorder.service;
 
+import com.backend.global.dto.PageRequestDTO;
+import com.backend.global.dto.PageResponseDTO;
 import com.backend.printorder.dto.PrintOrderCreateRequestDTO;
 import com.backend.printorder.dto.PrintOrderDTO;
-
-import java.util.List;
 
 public interface PrintOrderService {
 
@@ -11,7 +11,7 @@ public interface PrintOrderService {
 
     PrintOrderDTO confirmPayment(String orderId, String paymentKey, Integer amount, String email);
 
-    List<PrintOrderDTO> getList(String email);
+    PageResponseDTO<PrintOrderDTO> getList(String email, PageRequestDTO pageRequestDTO);
 
     PrintOrderDTO getDetail(String orderId, String email);
 

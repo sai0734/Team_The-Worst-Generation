@@ -1,5 +1,7 @@
 package com.backend.printorder.service;
 
+import com.backend.global.dto.PageRequestDTO;
+import com.backend.global.dto.PageResponseDTO;
 import com.backend.printorder.domain.PrintOrder;
 import com.backend.printorder.domain.PrintOrderItem;
 import com.backend.printorder.dto.PrintOrderCreateRequestDTO;
@@ -126,15 +128,25 @@ public class PrintOrderServiceImpl implements PrintOrderService{
     }
 
     @Override
-    public List<PrintOrderDTO> getList(String email) {
+    public PageResponseDTO<PrintOrderDTO> getList(String email, PageRequestDTO pageRequestDTO) {
 
         log.info("printOrder_Service_getList_실행~~~~~~~~~~~~");
 
-        List<PrintOrder> orders = printOrderMapper.selectListByEmail(email);
+        int skip = (pageRequestDTO.getPage() - 1) * pageRequestDTO.getSize();
 
-        return orders.stream()
+        List<PrintOrder> orders = printOrderMapper.selectListByEmail(email, skip, pageRequestDTO.getSize());
+
+        List<PrintOrderDTO> printOrderDTOList = orders.stream()
                 .map(order -> modelMapper.map(order, PrintOrderDTO.class))
                 .collect(Collectors.toList());
+
+        long totalCount = printOrderMapper.selectListCountByEmail(email);
+
+        return PageResponseDTO.<PrintOrderDTO>withAll()
+                .dtoList(printOrderDTOList)
+                .totalCount(totalCount)
+                .pageRequestDTO(pageRequestDTO)
+                .build();
 
     }
 
@@ -149,10 +161,7 @@ public class PrintOrderServiceImpl implements PrintOrderService{
             throw new IllegalArgumentException("존재하지 않는 주문입니다: " + orderId);
         }
 
-        List<PrintOrderItem> items = printOrderMapper.selectItemsByOrderNo(printOrder.getOrderNo());
-        List<PrintOrderItemDTO> itemDTOs = items.stream()
-                .map(item -> modelMapper.map(item, PrintOrderItemDTO.class))
-                .collect(Collectors.toList());
+        List<PrintOrderItemDTO> itemDTOs = printOrderMapper.selectItemsByOrderNo(printOrder.getOrderNo());
 
         PrintOrderDTO printOrderDTO = modelMapper.map(printOrder, PrintOrderDTO.class);
         printOrderDTO.setItems(itemDTOs);

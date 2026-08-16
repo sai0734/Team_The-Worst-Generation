@@ -2,6 +2,7 @@ package com.backend.printorder.mapper;
 
 import com.backend.printorder.domain.PrintOrder;
 import com.backend.printorder.domain.PrintOrderItem;
+import com.backend.printorder.dto.PrintOrderItemDTO;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
@@ -16,9 +17,11 @@ public interface PrintOrderMapper {
 
     PrintOrder selectByOrderId(@Param("orderId") String orderId);
 
-    List<PrintOrderItem> selectItemsByOrderNo(@Param("orderNo") Long orderNo);
+    List<PrintOrderItemDTO> selectItemsByOrderNo(@Param("orderNo") Long orderNo);
 
-    List<PrintOrder> selectListByEmail(@Param("email") String email);
+    List<PrintOrder> selectListByEmail(@Param("email") String email, @Param("skip") int skip, @Param("size") int size);
+
+    long selectListCountByEmail(@Param("email") String email);
 
     void updateStatus(@Param("orderId") String orderId, @Param("status") String status,
                       @Param("paymentKey") String paymentKey);

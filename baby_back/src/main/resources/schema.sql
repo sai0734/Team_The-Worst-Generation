@@ -208,7 +208,8 @@ CREATE TABLE IF NOT EXISTS tbl_baby_vaccination (
     reg_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (vaccination_no),
     CONSTRAINT fk_baby_vaccination_baby FOREIGN KEY (baby_no) REFERENCES tbl_baby_info (baby_no),
-    CONSTRAINT fk_baby_vaccination_schedule FOREIGN KEY (schedule_no) REFERENCES tbl_vaccine_schedule (schedule_no)
+    CONSTRAINT fk_baby_vaccination_schedule FOREIGN KEY (schedule_no) REFERENCES tbl_vaccine_schedule (schedule_no),
+    CONSTRAINT uq_baby_vaccination_schedule UNIQUE (baby_no, schedule_no)
     );
 
 CREATE TABLE IF NOT EXISTS tbl_baby_sleep (

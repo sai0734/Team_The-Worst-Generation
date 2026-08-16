@@ -18,4 +18,6 @@ public class PrintOrderItemDTO {
 
     private Integer unitPrice;
 
+    private String photoFileName;
+
 }

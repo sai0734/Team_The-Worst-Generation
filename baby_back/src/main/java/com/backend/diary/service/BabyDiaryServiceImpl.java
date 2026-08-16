@@ -66,7 +66,11 @@ public class BabyDiaryServiceImpl implements BabyDiaryService{
 
         BabyDiary babyDiary = BabyDiary.builder()
                 .babyNo(babyDiaryDTO.getBabyNo())
-                .diaryDate(LocalDate.now())
+                .diaryDate(
+                        babyDiaryDTO.getDiaryDate() != null
+                                ? babyDiaryDTO.getDiaryDate()
+                                : LocalDate.now()
+                )
                 .photoFileName(babyDiaryDTO.getPhotoFileName())
                 .content(babyDiaryDTO.getContent())
                 .build();
