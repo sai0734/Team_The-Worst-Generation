@@ -23,4 +23,10 @@ public interface PrintOrderMapper {
     void updateStatus(@Param("orderId") String orderId, @Param("status") String status,
                       @Param("paymentKey") String paymentKey);
 
+    void deleteItemsByBabyNo(@Param("babyNo") Long babyNo);
+
+    void deleteByBabyNo(@Param("babyNo") Long babyNo);
+
+    void deleteItemsByAlbumNo(@Param("albumNo") Long albumNo);
+
 }

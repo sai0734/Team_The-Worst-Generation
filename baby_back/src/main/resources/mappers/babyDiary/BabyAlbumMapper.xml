@@ -52,4 +52,10 @@
         WHERE ba.baby_no = #{babyNo} AND bi.email = #{email} AND ba.photo_file_name IS NOT NULL
     </select>
 
+    <select id="countByAlbumNoAndBabyNo" resultType="long">
+        SELECT COUNT(*)
+        FROM tbl_baby_album
+        WHERE album_no = #{albumNo} AND baby_no = #{babyNo}
+    </select>
+
 </mapper>

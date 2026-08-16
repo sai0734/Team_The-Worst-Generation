@@ -7,10 +7,13 @@ import com.backend.printorder.dto.PrintOrderDTO;
 import com.backend.printorder.dto.PrintOrderItemDTO;
 import com.backend.printorder.dto.PrintOrderItemRequestDTO;
 import com.backend.printorder.mapper.PrintOrderMapper;
+import com.backend.babyInfo.mapper.BabyInfoMapper;
+import com.backend.album.mapper.BabyAlbumMapper;
+import com.backend.printorder.client.TossPaymentClient;
+import com.backend.printorder.dto.TossPaymentResponseDTO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.modelmapper.ModelMapper;
-import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,9 +29,15 @@ public class PrintOrderServiceImpl implements PrintOrderService{
 
     private final PrintOrderMapper printOrderMapper;
 
+    private final BabyInfoMapper babyInfoMapper;
+
+    private final BabyAlbumMapper babyAlbumMapper;
+
+    private final TossPaymentClient tossPaymentClient;
+
     private final ModelMapper modelMapper;
 
-    private static final int UNIT_PRICE = 500;
+    private static final int UNIT_PRICE = 5000;
     @Override
     public PrintOrderDTO register(PrintOrderCreateRequestDTO requestDTO, String email) {
 
@@ -36,6 +45,16 @@ public class PrintOrderServiceImpl implements PrintOrderService{
 
         if(requestDTO.getItems() == null || requestDTO.getItems().isEmpty()) {
             throw new IllegalArgumentException("인화할 사진을 선택해주세요.");
+        }
+
+        if (babyInfoMapper.selectByBabyNo(requestDTO.getBabyNo(), email) == null) {
+            throw new IllegalArgumentException("존재하지 않는 아이입니다: " + requestDTO.getBabyNo());
+        }
+
+        for (PrintOrderItemRequestDTO itemReq : requestDTO.getItems()) {
+            if (babyAlbumMapper.countByAlbumNoAndBabyNo(itemReq.getAlbumNo(), requestDTO.getBabyNo()) == 0) {
+                throw new IllegalArgumentException("존재하지 않는 사진입니다: " + itemReq.getAlbumNo());
+            }
         }
 
         int totalAmount = requestDTO.getItems().stream()
@@ -89,8 +108,15 @@ public class PrintOrderServiceImpl implements PrintOrderService{
             throw new IllegalArgumentException("결제 금액이 주문 금액과 일치하지 않습니다.");
         }
 
-        // TODO: 다음 단계에서 여기에 토스페이먼츠 결제승인 API 호출을 추가할 예정
-        // (지금은 우리 쪽 금액 검증까지만 하고 바로 PAID로 처리 중 - 아직 미완성)
+        if ("PAID".equals(printOrder.getStatus())) {
+            return modelMapper.map(printOrder, PrintOrderDTO.class);
+        }
+
+        TossPaymentResponseDTO tossPaymentResponseDTO = tossPaymentClient.confirm(paymentKey, orderId, amount);
+
+        if (!"DONE".equals(tossPaymentResponseDTO.getStatus())) {
+            throw new IllegalArgumentException("결제가 완료되지 않았습니다. (status: " + tossPaymentResponseDTO.getStatus() + ")");
+        }
 
         printOrderMapper.updateStatus(orderId, "PAID", paymentKey);
 
