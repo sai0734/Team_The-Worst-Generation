@@ -72,4 +72,18 @@ public class BabySleepController {
 
     }
 
+    @PreAuthorize("hasAnyRole('ROLE_USER')")
+    @GetMapping("/{babyNo}/advice")
+    public Map<String, String> advice(@PathVariable(name = "babyNo") Long babyNo, Principal principal) {
+
+        log.info("babySleep_Controller_advice_실행~~~~~~~~~~~~");
+
+        String email = principal.getName();
+
+        String advice = babySleepService.getSleepAdvice(babyNo, email);
+
+        return Map.of("advice", advice);
+
+    }
+
 }

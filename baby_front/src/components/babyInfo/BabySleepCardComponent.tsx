@@ -34,6 +34,8 @@ const BabySleepCardComponent = ({ babyNo }: BabySleepCardProps) => {
   const [editEndTime, setEditEndTime] = useState("");
   const [showForm, setShowForm] = useState(false);
   const [showList, setShowList] = useState(false);
+  const [advice, setAdvice] = useState<string | null>(null);
+  const [adviceLoading, setAdviceLoading] = useState(false);
 
   const loadList = async () => {
     const result: BabySleep[] = await babySleepApi.getList(babyNo);
@@ -108,11 +110,33 @@ const BabySleepCardComponent = ({ babyNo }: BabySleepCardProps) => {
     setEditingNo(null);
   };
 
+  const handleGetAdvice = async () => {
+    setAdviceLoading(true);
+    try {
+      const result = await babySleepApi.getAdvice(babyNo);
+      setAdvice(result.advice);
+    } catch (err) {
+      alert("조언을 받아오는데 실패했습니다.");
+      console.error(err);
+    } finally {
+      setAdviceLoading(false);
+    }
+  };
+
   const toDateStr = (date: Date) => {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, "0");
     const day = String(date.getDate()).padStart(2, "0");
     return `${year}-${month}-${day}`;
+  };
+
+  const formatDateTime = (dateTimeStr: string) => {
+    const date = new Date(dateTimeStr);
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+    return `${month}월 ${day}일 ${hours}:${minutes}`;
   };
 
   const getTodaySegments = () => {
@@ -228,78 +252,115 @@ const BabySleepCardComponent = ({ babyNo }: BabySleepCardProps) => {
 
       {list.length > 0 && (
         <>
-      <div className="flex items-center gap-3 text-xs font-bold text-[#7A756C]">
-        <span className="flex items-center gap-1.5">
-          <span
-            className="h-2.5 w-2.5 rounded-full"
-            style={{ background: NAP_COLOR }}
-          />
-          낮잠
-        </span>
-        <span className="flex items-center gap-1.5">
-          <span
-            className="h-2.5 w-2.5 rounded-full"
-            style={{ background: NIGHT_COLOR }}
-          />
-          밤잠
-        </span>
-      </div>
+          <div className="flex items-center gap-3 text-xs font-bold text-[#7A756C]">
+            <span className="flex items-center gap-1.5">
+              <span
+                className="h-2.5 w-2.5 rounded-full"
+                style={{ background: NAP_COLOR }}
+              />
+              낮잠
+            </span>
+            <span className="flex items-center gap-1.5">
+              <span
+                className="h-2.5 w-2.5 rounded-full"
+                style={{ background: NIGHT_COLOR }}
+              />
+              밤잠
+            </span>
+          </div>
 
-      <div className="rounded-[20px] border border-[rgba(42,41,38,0.1)] bg-white p-4">
-        <p className={labelClass}>오늘</p>
-        <div className="relative mt-2 h-[28px] overflow-hidden rounded-full bg-[#EFE9DE]">
-          {todaySegments.map((seg) => (
-            <div
-              key={seg.sleepNo}
-              className="absolute h-full"
-              style={{
-                left: `${seg.left}%`,
-                width: `${seg.width}%`,
-                background: seg.sleepType === "낮잠" ? NAP_COLOR : NIGHT_COLOR,
-              }}
-            />
-          ))}
-        </div>
-        <div className="mt-1 flex justify-between text-[10px] text-[#7A756C]">
-          <span>0시</span>
-          <span>6시</span>
-          <span>12시</span>
-          <span>18시</span>
-          <span>24시</span>
-        </div>
-      </div>
+          <div className="rounded-[20px] border border-[rgba(42,41,38,0.1)] bg-white p-4">
+            <p className={labelClass}>오늘</p>
+            <div className="relative mt-2 h-[28px] overflow-hidden rounded-full bg-[#EFE9DE]">
+              {todaySegments.map((seg) => (
+                <div
+                  key={seg.sleepNo}
+                  className="absolute h-full"
+                  style={{
+                    left: `${seg.left}%`,
+                    width: `${seg.width}%`,
+                    background:
+                      seg.sleepType === "낮잠" ? NAP_COLOR : NIGHT_COLOR,
+                  }}
+                />
+              ))}
+            </div>
+            <div className="mt-1 flex justify-between text-[10px] text-[#7A756C]">
+              <span>0시</span>
+              <span>6시</span>
+              <span>12시</span>
+              <span>18시</span>
+              <span>24시</span>
+            </div>
+          </div>
 
-      <div className="rounded-[20px] border border-[rgba(42,41,38,0.1)] bg-white p-4">
-        <p className={labelClass}>최근 7일</p>
-        <ResponsiveContainer width="100%" height={140}>
-          <BarChart data={weekSummary} margin={{ top: 12, right: 0, left: 0, bottom: 0 }}>
-            <XAxis
-              dataKey="dateStr"
-              tickFormatter={(d: string) => d.slice(5)}
-              tick={AXIS_TICK}
-              axisLine={false}
-              tickLine={false}
-            />
-            <YAxis tick={AXIS_TICK} axisLine={false} tickLine={false} width={28} />
-            <Tooltip
-              formatter={(value: number) => `${value}시간`}
-              contentStyle={{
-                borderRadius: 12,
-                border: "1px solid rgba(42,41,38,0.1)",
-                fontSize: 12,
-              }}
-            />
-            <Bar dataKey="nap" name="낮잠" stackId="sleep" fill={NAP_COLOR} />
-            <Bar
-              dataKey="night"
-              name="밤잠"
-              stackId="sleep"
-              fill={NIGHT_COLOR}
-              radius={[6, 6, 0, 0]}
-            />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
+          <div className="rounded-[20px] border border-[rgba(42,41,38,0.1)] bg-white p-4">
+            <p className={labelClass}>최근 7일</p>
+            <ResponsiveContainer width="100%" height={140}>
+              <BarChart
+                data={weekSummary}
+                margin={{ top: 12, right: 0, left: 0, bottom: 0 }}
+              >
+                <XAxis
+                  dataKey="dateStr"
+                  tickFormatter={(d: string) => d.slice(5)}
+                  tick={AXIS_TICK}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <YAxis
+                  tick={AXIS_TICK}
+                  axisLine={false}
+                  tickLine={false}
+                  width={28}
+                />
+                <Tooltip
+                  formatter={(value) => `${value}시간`}
+                  contentStyle={{
+                    borderRadius: 12,
+                    border: "1px solid rgba(42,41,38,0.1)",
+                    fontSize: 12,
+                  }}
+                />
+                <Bar
+                  dataKey="nap"
+                  name="낮잠"
+                  stackId="sleep"
+                  fill={NAP_COLOR}
+                />
+                <Bar
+                  dataKey="night"
+                  name="밤잠"
+                  stackId="sleep"
+                  fill={NIGHT_COLOR}
+                  radius={[6, 6, 0, 0]}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="rounded-[20px] border border-[rgba(42,41,38,0.1)] bg-white p-4">
+            <div className="flex items-center justify-between gap-2">
+              <p className={labelClass}>AI 수면 조언</p>
+              <button
+                type="button"
+                className="flex-shrink-0 rounded-full bg-[#5AB2FF] px-4 py-2 text-xs font-bold text-white transition-colors hover:bg-[#1E6FCC] disabled:opacity-50"
+                onClick={handleGetAdvice}
+                disabled={adviceLoading}
+              >
+                {adviceLoading ? "분석 중..." : "조언 받기"}
+              </button>
+            </div>
+            {adviceLoading && (
+              <p className="mt-2 text-sm text-[#7A756C]">
+                AI가 수면 패턴을 분석하고 있어요...
+              </p>
+            )}
+            {!adviceLoading && advice && (
+              <p className="mt-2 whitespace-pre-wrap text-sm text-[#2A2926]">
+                {advice}
+              </p>
+            )}
+          </div>
         </>
       )}
 
@@ -318,35 +379,46 @@ const BabySleepCardComponent = ({ babyNo }: BabySleepCardProps) => {
               key={item.sleepNo}
               className="flex flex-col gap-2 rounded-[16px] border border-[rgba(42,41,38,0.1)] bg-white p-3"
             >
-              <div className="flex flex-wrap items-center gap-2">
-                <span
-                  className="rounded-full px-2.5 py-1 text-xs font-bold text-white"
-                  style={{
-                    background: item.sleepType === "낮잠" ? NAP_COLOR : NIGHT_COLOR,
-                  }}
-                >
-                  {item.sleepType}
-                </span>
-                <span className="flex-1 min-w-0 text-sm text-[#2A2926]">
-                  {item.startTime} ~ {item.endTime ?? "진행중"}
-                </span>
-                <span className="text-xs font-bold text-[#7A756C]">
-                  {getDuration(item)}
-                </span>
-                <button
-                  className="text-xs font-bold text-[#5AB2FF]"
-                  type="button"
-                  onClick={() => handleOpenEdit(item)}
-                >
-                  수정
-                </button>
-                <button
-                  className="flex h-6 w-6 items-center justify-center rounded-full bg-[rgba(42,41,38,0.06)] text-xs font-bold text-[#7A756C] transition-colors hover:bg-[#f3d9d9] hover:text-[#c0392b]"
-                  type="button"
-                  onClick={() => handleRemove(item.sleepNo)}
-                >
-                  ✕
-                </button>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-3">
+                  <span
+                    className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full text-base"
+                    style={{
+                      background:
+                        item.sleepType === "낮잠" ? "#FCEBD9" : "#DDEEFF",
+                    }}
+                  >
+                    {item.sleepType === "낮잠" ? "☀️" : "🌙"}
+                  </span>
+                  <div className="flex flex-col">
+                    <span className="text-sm font-bold text-[#2A2926]">
+                      {item.sleepType}
+                    </span>
+                    <span className="text-xs text-[#7A756C]">
+                      {formatDateTime(item.startTime)} →{" "}
+                      {item.endTime ? formatDateTime(item.endTime) : "진행중"}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="rounded-full bg-[#EFE9DE] px-3 py-1 text-xs font-bold text-[#7A756C]">
+                    {getDuration(item)}
+                  </span>
+                  <button
+                    className="text-xs font-bold text-[#5AB2FF]"
+                    type="button"
+                    onClick={() => handleOpenEdit(item)}
+                  >
+                    수정
+                  </button>
+                  <button
+                    className="flex h-6 w-6 items-center justify-center rounded-full bg-[rgba(42,41,38,0.06)] text-xs font-bold text-[#7A756C] transition-colors hover:bg-[#f3d9d9] hover:text-[#c0392b]"
+                    type="button"
+                    onClick={() => handleRemove(item.sleepNo)}
+                  >
+                    ✕
+                  </button>
+                </div>
               </div>
 
               {editingNo === item.sleepNo && (

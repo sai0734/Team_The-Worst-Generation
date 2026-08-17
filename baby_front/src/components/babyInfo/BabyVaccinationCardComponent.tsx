@@ -342,14 +342,12 @@ const BabyVaccinationCardComponent = ({
                   onChange={() => handleToggleComplete(item)}
                 />
                 <span className="flex-1 min-w-0 text-sm font-bold text-[#2A2926]">
-                  {/* 수정 시작 */}
                   {item.vaccineName}
                   {item.doseLabel && (
                     <span className="ml-1 font-normal text-[#7A756C]">
                       · {item.doseLabel}
                     </span>
                   )}
-                  {/* 수정 끝 */}
                 </span>
                 {item.isCustom && (
                   <span className="rounded-full bg-[#CAF4FF] px-2.5 py-1 text-xs font-bold text-[#1E6FCC]">

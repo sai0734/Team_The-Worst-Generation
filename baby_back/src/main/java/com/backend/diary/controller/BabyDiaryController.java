@@ -114,4 +114,16 @@ public class BabyDiaryController {
         return Map.of("diaryNo", diaryNo);
 
     }
+
+    @PreAuthorize("hasAnyRole('ROLE_USER')")
+    @PostMapping("/generate")
+    public Map<String, String> generate(@RequestParam("file") MultipartFile file) {
+
+        log.info("babyDiary_Controller_generate_실행~~~~~~~~~~~~");
+
+        String content = babyDiaryService.generateDiaryContent(file);
+
+        return Map.of("content", content);
+
+    }
 }

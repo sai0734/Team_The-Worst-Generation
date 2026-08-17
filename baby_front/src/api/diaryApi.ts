@@ -59,3 +59,14 @@ export const remove = async (diaryNo: number): Promise<{ diaryNo: number }> => {
 
   return res.data;
 };
+
+export const generateContent = async (file: File): Promise<{ content: string }> => {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const res = await jwtAxios.post(`${prefix}/generate`, formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+
+  return res.data;
+};

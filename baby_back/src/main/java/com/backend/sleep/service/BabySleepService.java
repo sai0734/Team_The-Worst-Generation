@@ -14,4 +14,5 @@ public interface BabySleepService {
 
     void remove(Long sleepNo, String email);
 
+    String getSleepAdvice(Long babyNo, String email);
 }
