@@ -13,6 +13,7 @@ import type {
 } from "../types/member";
 import axios from "axios";
 import { clearAccessToken, setAccessToken } from "../util/accessTokenStore";
+import { getCurrentProfileFromAccessToken } from "../util/jwtClaims";
 
 const initState: LoginState = {
   email: "",
@@ -48,11 +49,13 @@ export const loginPostAsync = createAsyncThunk<
 
 const applyLoginResponse = (payload: LoginResponse): LoginState => {
   const { accessToken, email, nickname, social, roleNames } = payload;
+  const currentProfile = getCurrentProfileFromAccessToken(accessToken);
   const memberInfo: LoginState = {
     email,
     nickname,
     social,
     roleNames,
+    ...(currentProfile ?? {}),
   };
 
   setAccessToken(accessToken);
@@ -78,6 +81,18 @@ const loginSlice = createSlice({
 
       return { ...initState };
     },
+    syncProfileFromAccessToken: (state, action: PayloadAction<string>) => {
+      const currentProfile = getCurrentProfileFromAccessToken(action.payload);
+      const memberInfo: LoginState = {
+        ...state,
+        profileId: currentProfile?.profileId,
+        profileName: currentProfile?.profileName,
+        parentType: currentProfile?.parentType,
+      };
+
+      setCookie("member", JSON.stringify(memberInfo), 1);
+      return memberInfo;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -93,5 +108,5 @@ const loginSlice = createSlice({
       });
   },
 });
-export const { login, logout } = loginSlice.actions;
+export const { login, logout, syncProfileFromAccessToken } = loginSlice.actions;
 export default loginSlice.reducer;

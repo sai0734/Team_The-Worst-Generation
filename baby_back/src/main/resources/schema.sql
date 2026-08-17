@@ -34,6 +34,7 @@ CREATE TABLE IF NOT EXISTS tbl_member_refresh_token (
                                                         id BIGINT AUTO_INCREMENT,
     member_email VARCHAR(100) NOT NULL,
     session_id VARCHAR(36) NOT NULL,
+    selected_profile_id BIGINT NULL,
     token_hash VARCHAR(64) NOT NULL,
     expires_at DATETIME NOT NULL,
     revoked BOOLEAN NOT NULL DEFAULT FALSE,
@@ -106,6 +107,8 @@ CREATE TABLE IF NOT EXISTS tbl_member_profile (
     CONSTRAINT fk_member_profile_member FOREIGN KEY (member_email) REFERENCES tbl_member (email),
     INDEX idx_member_profile_member (member_email, active)
     );
+
+ALTER TABLE tbl_member_refresh_token ADD COLUMN IF NOT EXISTS selected_profile_id BIGINT NULL;
 
 -- LDH 끝
 

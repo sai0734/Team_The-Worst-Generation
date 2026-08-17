@@ -1,5 +1,6 @@
 import { Suspense, lazy } from "react";
 import type { RouteObject } from "react-router-dom";
+import ProfilePage from "../pages/member/ProfilePage";
 
 const Loading = <div>Loading....</div>;
 const Login = lazy(() => import("../pages/member/LoginPage"));
@@ -56,6 +57,14 @@ const memberRouter = (): RouteObject[] => {
       element: (
         <Suspense fallback={Loading}>
           <MemberModify />
+        </Suspense>
+      ),
+    },
+    {
+      path: "profiles",
+      element: (
+        <Suspense fallback={Loading}>
+          <ProfilePage />
         </Suspense>
       ),
     },

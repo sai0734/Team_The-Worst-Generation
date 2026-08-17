@@ -215,19 +215,36 @@
 }
 .app .account {
   display: flex;
+  align-items: center;
   justify-content: flex-end;
   gap: 8px;
   font-size: 12px;
   font-weight: 700;
 }
-.app .account a {
+.app .account > a {
   padding: 10px 13px;
   border-radius: 99px;
 }
-.app .account a:last-child {
+.app .account .account-primary {
   background: var(--accent);
   color: #fff;
 }
+.app .account .current-profile-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: rgba(255,255,255,.68);
+  transition: border-color .18s ease, background .18s ease;
+}
+.app .account .current-profile-link:hover { border-color: rgba(0,91,178,.3); background: #fff; }
+.app .current-profile-dot { width: 8px; height: 8px; border-radius: 50%; background: #34a574; box-shadow: 0 0 0 4px rgba(52,165,116,.12); }
+.app .current-profile-copy { display: flex; flex-direction: column; gap: 1px; line-height: 1.15; }
+.app .current-profile-copy small { color: var(--muted); font-size: 9px; font-weight: 700; }
+.app .current-profile-copy strong { max-width: 90px; overflow: hidden; color: var(--ink); font-size: 11px; font-weight: 900; text-overflow: ellipsis; white-space: nowrap; }
+.app .account > a:focus-visible { outline: 3px solid rgba(0,91,178,.2); outline-offset: 2px; }
 .app .stage {
   height: calc(100vh - 78px);
   min-height: 650px;
@@ -1499,9 +1516,9 @@
     padding: 0;
     justify-content: center;
   }
-  .app .account a:first-child {
-    display: none;
-  }
+  .app .account-link { display: none; }
+  .app .current-profile-copy small { display: none; }
+  .app .account .current-profile-link { padding: 8px 10px; }
   .app .primary-nav {
     display: none;
   }

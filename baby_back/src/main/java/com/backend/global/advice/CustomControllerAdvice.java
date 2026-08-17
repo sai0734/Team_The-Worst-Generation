@@ -48,7 +48,7 @@ public class CustomControllerAdvice {
 
       String msg = e.getMessage();
 
-      return ResponseEntity.ok().body(Map.of("error", msg));
+      return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(Map.of("error", msg));
   }
     @ExceptionHandler(FamilyException.class)
     protected ResponseEntity<?> handleFamilyException(FamilyException e) {

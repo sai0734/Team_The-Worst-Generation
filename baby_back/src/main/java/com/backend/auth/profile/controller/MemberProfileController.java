@@ -1,7 +1,11 @@
 package com.backend.auth.profile.controller;
 
 import com.backend.auth.profile.dto.MemberProfileDTO;
+import com.backend.auth.profile.dto.MemberProfileSelectDTO;
 import com.backend.auth.profile.service.MemberProfileService;
+import com.backend.auth.service.AuthTokenService;
+import com.backend.auth.util.AuthCookieUtil;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -24,6 +28,7 @@ import java.util.Map;
 public class MemberProfileController {
 
     private final MemberProfileService memberProfileService;
+    private final AuthTokenService authTokenService;
 
     @PostMapping
     public Map<String, Long> register(
@@ -46,6 +51,15 @@ public class MemberProfileController {
             @PathVariable Long profileId
     ) {
         return memberProfileService.selectProfile(principal.getName(), profileId);
+    }
+
+    @PostMapping("/select")
+    public Map<String, Object> select(
+            HttpServletRequest request,
+            @RequestBody MemberProfileSelectDTO selectDTO
+    ) {
+        return authTokenService.selectProfile(
+                AuthCookieUtil.getRefreshTokenFromCookie(request), selectDTO.getProfileId());
     }
 
     @PutMapping("/{profileId}")
