@@ -6,11 +6,12 @@ import "../styles/theme.css";
 
 interface BasicLayoutProps {
   children: ReactNode;
+  fullBleed?: boolean;
 }
 
-const BasicLayout = ({ children }: BasicLayoutProps) => {
+const BasicLayout = ({ children, fullBleed }: BasicLayoutProps) => {
   return (
-    <div className="app">
+    <div className={`app${fullBleed ? " app--full-bleed" : ""}`}>
       <div id={WIPE_ELEMENT_ID} className="page-wipe">
         <span className="page-wipe-label">아이봄</span>
       </div>

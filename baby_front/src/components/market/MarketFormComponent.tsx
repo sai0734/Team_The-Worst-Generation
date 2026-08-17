@@ -1,6 +1,7 @@
 import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import * as marketApi from "../../api/marketApi";
+import { MARKET_CATEGORIES } from "../../api/marketApi";
 import type { MarketItem } from "../../api/marketApi";
 import * as marketProfileApi from "../../api/marketProfileApi";
 import useCustomLogin from "../../hooks/useCustomLogin";
@@ -202,11 +203,17 @@ const MarketFormComponent = () => {
 
       <div className="form-field">
         <label>카테고리</label>
-        <input
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
-          required
-        />
+        <div className="chip-row">
+          {MARKET_CATEGORIES.map((c) => (
+            <span
+              key={c}
+              className={`chip${category === c ? " is-active" : ""}`}
+              onClick={() => setCategory(c)}
+            >
+              {c}
+            </span>
+          ))}
+        </div>
       </div>
 
       <div className="form-row">

@@ -28,6 +28,8 @@ public class MyProductDTO {
 
     private String certNum;
 
+    private String imageName;
+
     private boolean recallMatched;
 
     private RecallMatchType recallType;

@@ -15,6 +15,7 @@
   min-height: 100vh;
   background: var(--bg);
   color: var(--ink);
+  font-family: "Noto Sans KR", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
   overflow: hidden;
   position: relative;
 }
@@ -153,7 +154,7 @@
   left: 0;
   right: 0;
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
   gap: 14px;
   background: var(--glass);
@@ -325,7 +326,6 @@
   box-shadow: 0 0 0 5px #4ce29b22;
 }
 
-
 /* ===== 홈 화면 카드 공통 (정부지원금 패널 등) ===== */
 .app .info {
   min-height: 135px;
@@ -374,17 +374,17 @@
   }
 }
 
-/* 카드/타이틀 등장: 마운트 후 살짝 떠오르며 페이드인 (순차 딜레이) */
+/* 카드/타이틀 등장: 마운트 후 떠오르며 살짝 커지는 페이드인 (순차 딜레이) */
 .app .home-rise-up {
   opacity: 0;
-  transform: translateY(28px);
+  transform: translateY(36px) scale(0.94);
   transition:
-    opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
-    transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    opacity 0.65s cubic-bezier(0.34, 1.4, 0.4, 1),
+    transform 0.65s cubic-bezier(0.34, 1.4, 0.4, 1);
 }
 .app .home-rise-up.in-view {
   opacity: 1;
-  transform: translateY(0);
+  transform: translateY(0) scale(1);
 }
 .app .home-grid.stagger > * {
   transition-delay: calc(var(--i) * 80ms);
@@ -425,6 +425,7 @@
   filter: blur(40px);
   pointer-events: none;
   z-index: 0;
+  animation: home-blob-float 13s ease-in-out infinite;
 }
 .app .home-hero-blob.a {
   width: 180px;
@@ -439,11 +440,45 @@
   background: rgba(0, 63, 125, 0.1);
   bottom: -40px;
   left: 10%;
+  animation-duration: 16s;
+  animation-delay: -4s;
 }
-.app .home-hero-text,
+@keyframes home-blob-float {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(14px, -16px) scale(1.06);
+  }
+  66% {
+    transform: translate(-10px, 10px) scale(0.97);
+  }
+}
+.app .home-hero-text {
+  position: relative;
+  z-index: 1;
+}
 .app .home-hero-art {
   position: relative;
   z-index: 1;
+  opacity: 0;
+  transform: translateY(16px) scale(0.94);
+  transition:
+    opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.5s,
+    transform 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.5s;
+}
+.app .home-hero-art.in-view {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  animation: home-art-bob 5s ease-in-out 1.4s infinite;
+}
+@keyframes home-art-bob {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
 }
 .app .home-hero--guest {
   margin-top: 4vh;
@@ -811,6 +846,50 @@
   color: #ef6262;
   border-color: #ef6262;
 }
+.app .recall-actions .ghost-btn {
+  height: 34px;
+  padding: 0 14px;
+  border-style: solid;
+}
+.app .modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 20, 35, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 1200;
+}
+.app .modal-content {
+  width: 100%;
+  max-width: 480px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+.app .modal-content .recall-header {
+  margin-bottom: 14px;
+}
+.app .modal-content .recall-header h3 {
+  font-size: 18px;
+  letter-spacing: -0.4px;
+  margin: 0;
+}
+.app .detail-list {
+  display: grid;
+  grid-template-columns: 84px 1fr;
+  gap: 10px 12px;
+  font-size: 13px;
+}
+.app .detail-list dt {
+  color: var(--muted);
+  font-weight: 700;
+}
+.app .detail-list dd {
+  margin: 0;
+  line-height: 1.5;
+  word-break: break-word;
+}
 .app .recall-form {
   display: flex;
   flex-direction: column;
@@ -833,6 +912,22 @@
 .app .photo-upload input[type="file"] {
   font-size: 12px;
   max-width: 100%;
+}
+.app .photo-preview {
+  width: 96px;
+  height: 96px;
+  object-fit: cover;
+  border-radius: 14px;
+  margin: 0 0 12px;
+  border: 1px solid var(--line);
+}
+.app .recall-item-thumb {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 12px;
+  border: 1px solid var(--line);
+  flex-shrink: 0;
 }
 .app .photo-hint {
   font-size: 11px;
@@ -861,6 +956,13 @@
 .app .field input:focus {
   outline: none;
   border-color: var(--accent);
+}
+.app .field-hint {
+  font-size: 11px;
+  color: var(--muted);
+  margin: -6px 0 0;
+  font-weight: 400;
+  line-height: 1.5;
 }
 .app .submit-btn {
   height: 50px;
@@ -1276,19 +1378,7 @@
   color: #fff;
 }
 
-/* ===== 감자마켓 전용 ===== */
-.app .market-toolbar {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-.app .market-toolbar h2 {
-  font-size: 20px;
-  margin: 0;
-}
+/* ===== 공용 유틸(여러 기능에서 재사용: btn/chip/seg) ===== */
 .app .btn {
   height: 40px;
   padding: 0 16px;
@@ -1309,293 +1399,42 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
-.app .market-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 14px;
-}
-
-.app .market-card {
+.app .chip {
   cursor: pointer;
-  overflow: hidden;
-  padding: 0;
-  position: relative;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
 }
-.app .market-card .thumb-wrap {
-  position: relative;
-}
-.app .market-card .thumb {
-  width: 100%;
-  height: 170px;
-  background: var(--soft);
-  object-fit: cover;
-  display: block;
-}
-.app .market-card .thumb-empty {
-  width: 100%;
-  height: 170px;
-  background: var(--soft);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--muted);
-  font-size: 12px;
-}
-.app .market-card .card-tag {
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  padding: 5px 10px;
-  background: var(--ink);
-  color: var(--bg);
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.3px;
-}
-.app .market-card .wish-btn {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  border: 0;
-  background: var(--glass);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-  cursor: pointer;
-  box-shadow: 0 4px 10px #0002;
-  color: var(--muted);
-}
-.app .market-card .wish-btn.active {
-  color: var(--warn);
-}
-.app .market-card .body {
-  padding: 14px;
-}
-.app .market-card .brand {
-  font-size: 10px;
-  letter-spacing: 0.6px;
-  color: var(--muted);
-  text-transform: uppercase;
-  margin: 0 0 4px;
-}
-.app .market-card .title {
-  font-size: 14px;
-  font-weight: 700;
-  margin: 0 0 8px;
-  line-height: 1.4;
-}
-.app .market-card .price-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-.app .market-card .price {
-  font-size: 17px;
-  font-weight: 900;
-}
-
-.app .status-badge {
-  display: inline-block;
-  padding: 4px 9px;
-  border-radius: 99px;
-  font-size: 10px;
-  font-weight: 900;
-}
-.app .status-badge.available {
-  background: var(--soft);
-  color: var(--accent);
-}
-.app .status-badge.done {
-  background: #eee;
-  color: #888;
-}
-
-.app .form-field {
-  margin-bottom: 16px;
-}
-.app .form-field label {
-  display: block;
-  font-size: 12px;
-  font-weight: 800;
-  margin-bottom: 6px;
-  color: var(--muted);
-}
-.app .form-field input,
-.app .form-field select,
-.app .form-field textarea {
-  width: 100%;
-  padding: 11px 13px;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  background: var(--glass);
-  font-size: 13px;
-  font-family: inherit;
-  color: var(--ink);
-}
-.app .form-field textarea {
-  resize: vertical;
-}
-.app .form-row {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-}
-.app .checkbox-field {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-}
-.app .thumb-list {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  margin-top: 8px;
-}
-.app .thumb-list img {
-  width: 72px;
-  height: 72px;
-  object-fit: cover;
-  border-radius: 10px;
-  border: 1px solid var(--line);
-}
-.app .thumb-remove {
-  position: relative;
-}
-.app .thumb-remove button {
-  position: absolute;
-  top: -6px;
-  right: -6px;
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  border: 0;
-  background: var(--warn, #e2604a);
+.app .chip.is-active {
+  background: var(--accent);
+  border-color: var(--accent);
   color: #fff;
-  font-size: 11px;
-  cursor: pointer;
 }
-
-.app .detail-gallery {
+.app .seg {
   display: flex;
-  gap: 10px;
-  overflow-x: auto;
-  margin-bottom: 16px;
+  border: 1px solid var(--line);
+  border-radius: 99px;
+  padding: 3px;
+  background: var(--glass);
 }
-.app .detail-gallery img {
-  height: 260px;
-  border-radius: var(--radius, 24px);
-  flex: none;
-}
-.app .detail-title {
-  font-size: 24px;
-  font-weight: 900;
-  margin: 8px 0;
-}
-.app .detail-price {
-  font-size: 22px;
-  font-weight: 900;
-  color: var(--accent);
-}
-.app .detail-meta {
+.app .seg button {
+  border: none;
+  background: none;
+  padding: 7px 16px;
+  border-radius: 99px;
   font-size: 12px;
+  font-weight: 700;
   color: var(--muted);
-  margin: 10px 0;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
 }
-.app .detail-actions {
-  display: flex;
-  gap: 8px;
-  margin-top: 16px;
-  flex-wrap: wrap;
-}
-
-.app .list-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 14px 0;
-  border-top: 1px solid var(--line);
-  font-size: 13px;
-}
-.app .list-row:first-child {
-  border-top: 0;
-}
-
-.app .chat-window {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  max-height: 420px;
-  overflow-y: auto;
-  padding: 10px 0;
-}
-.app .chat-bubble {
-  max-width: 70%;
-  padding: 10px 13px;
-  border-radius: 16px;
-  background: var(--soft);
-  font-size: 13px;
-}
-.app .chat-bubble.mine {
+.app .seg button.is-active {
   background: var(--accent);
   color: #fff;
 }
-.app .chat-bubble img {
-  max-width: 160px;
-  border-radius: 10px;
-  display: block;
-}
-.app .chat-sender {
-  font-size: 10px;
-  color: var(--muted);
-  margin-bottom: 4px;
-}
-.app .chat-input-row {
-  display: flex;
-  gap: 8px;
-  margin-top: 10px;
-}
-.app .chat-input-row input[type="text"] {
-  flex: 1;
-  padding: 11px 13px;
-  border: 1px solid var(--line);
-  border-radius: 99px;
-  background: var(--glass);
-}
-
-.app .market-subnav {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 18px;
-  flex-wrap: wrap;
-}
-.app .market-subnav a {
-  padding: 9px 14px;
-  border-radius: 99px;
-  font-size: 12px;
-  font-weight: 800;
-  background: var(--glass);
-  border: 1px solid var(--line);
-  color: var(--ink);
-  text-decoration: none;
-}
-.app .market-subnav a.active {
-  background: var(--tool);
-  color: #fff;
-  border-color: var(--tool);
-}
-
-@media (max-width: 900px) {
-  .app .market-grid {
-    grid-template-columns: 1fr;
-  }
-}
-/* ===== 감자마켓 끝 ===== */
 
 @media (max-width: 900px) {
   .app .ledger-top-grid {

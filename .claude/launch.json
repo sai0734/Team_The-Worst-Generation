@@ -1,0 +1,12 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "baby_front",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "baby_front", "run", "dev", "--", "--port", "3001"],
+      "port": 3001,
+      "autoPort": false
+    }
+  ]
+}

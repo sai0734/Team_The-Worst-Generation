@@ -21,6 +21,9 @@ public interface MarketItemMapper {
     // 지도 (내 주변) 후보군: 좌표가 있고 거래 가능 상태인 매물 전체. 거레 계산/반경 필터는 서비스단에서 처리
     List<MarketItem> selectNearbyCandidates();
 
+    // 내 매물: 판매자 본인이 등록한 매물 전체 (삭제된 매물 제외), 최신순
+    List<MarketItem> selectListBySeller(@Param("sellerEmail") String sellerEmail);
+
     void insert(MarketItem item);
 
     void insertImage(@Param("itemNo") Long itemNo, @Param("image") MarketItemImage image);

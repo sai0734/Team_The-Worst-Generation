@@ -24,4 +24,9 @@ public interface MarketItemService {
     void increaseViewCount(Long itemNo);
 
     void bump(Long itemNo);
+
+    // 로그인한 판매자 본인이 등록한 매물 전체 (삭제된 매물 제외)
+    List<MarketItemDTO> getMine(String sellerEmail);
+
+    void markAsCompleted(Long itemNo, String requesterEmail);
 }
