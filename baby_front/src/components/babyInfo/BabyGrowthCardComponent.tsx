@@ -50,10 +50,18 @@ const ComparisonBarChart = ({
 
   return (
     <div className="flex-1 min-w-0 rounded-[20px] border border-[rgba(42,41,38,0.1)] bg-white p-4">
-      <p className={labelClass}>
-        {label}
-        {extraNote ? ` (${extraNote})` : ""}
-      </p>
+      <div className="flex items-start justify-between gap-2">
+        <p className={labelClass}>
+          {label}
+          {extraNote ? ` (${extraNote})` : ""}
+        </p>
+        <p className="text-[18px] font-bold text-[#2A2926]">
+          {myValue.toFixed(1)}
+          <span className="ml-1 text-xs font-normal text-[#7A756C]">
+            {unit}
+          </span>
+        </p>
+      </div>
       <ResponsiveContainer width="100%" height={150}>
         <BarChart
           data={data}
@@ -243,7 +251,7 @@ const BabyGrowthCardComponent = ({ babyNo }: BabyGrowthCardProps) => {
           />
           {myKaup !== null && avgKaup !== null && (
             <ComparisonBarChart
-              label="카우프지수"
+              label="비만도"
               myValue={myKaup}
               avgValue={avgKaup}
               unit=""

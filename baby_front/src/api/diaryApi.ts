@@ -16,6 +16,7 @@ export interface BabyDiary {
 
 export interface DiaryListParam extends PageRequestParam {
   babyNo: number;
+  keyword?: string;
 }
 
 export const getViewUrl = (fileName: string): string =>

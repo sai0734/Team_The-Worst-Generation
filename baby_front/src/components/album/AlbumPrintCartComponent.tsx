@@ -3,6 +3,9 @@ import * as printOrderApi from "../../api/printOrderApi";
 import * as albumApi from "../../api/albumApi";
 import { BabyAlbum } from "../../api/albumApi";
 import { useKakaoPostcodePopup, Address } from "react-daum-postcode";
+import { useSelector } from "react-redux";
+import { RootState } from "../../store";
+import { ANONYMOUS, loadTossPayments } from "@tosspayments/tosspayments-sdk";
 
 const UNIT_PRICE = 5000;
 
@@ -17,7 +20,6 @@ interface AlbumPrintCartProps {
   onChangeQuantity: (albumNo: number, quantity: number) => void;
   onRemoveItem: (albumNo: number) => void;
   onClose: () => void;
-  onOrdered: () => void;
 }
 
 const labelClass = "text-[11px] font-bold tracking-wide text-[#7A756C]";
@@ -30,7 +32,6 @@ const AlbumPrintCartComponent = ({
   onChangeQuantity,
   onRemoveItem,
   onClose,
-  onOrdered,
 }: AlbumPrintCartProps) => {
   const [receiverName, setReceiverName] = useState("");
   const [receiverPhone, setReceiverPhone] = useState("");
@@ -39,6 +40,7 @@ const AlbumPrintCartComponent = ({
   const [addressDetail, setAddressDetail] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const openPostcode = useKakaoPostcodePopup();
+  const email = useSelector((state: RootState) => state.loginSlice.email);
 
   const handleSearchAddress = () => {
     openPostcode({
@@ -79,12 +81,30 @@ const AlbumPrintCartComponent = ({
         })),
       });
 
-      alert(
-        `주문이 접수됐습니다. (주문금액: ${order.totalAmount.toLocaleString()}원)\n결제 기능은 준비 중입니다.`,
+      const tossPayments = await loadTossPayments(
+        import.meta.env.VITE_TOSS_CLIENT_KEY,
       );
-      onOrdered();
+
+      const payment = tossPayments.payment({ customerKey: ANONYMOUS });
+
+      await payment.requestPayment({
+        method: "CARD",
+        amount: { currency: "KRW", value: order.totalAmount },
+        orderId: order.orderId,
+        orderName: `인화 사진 ${items.length}장`,
+        successUrl: `${window.location.origin}/diary/album/print/success`,
+        failUrl: `${window.location.origin}/diary/album/print/fail`,
+        customerEmail: email || undefined,
+        customerName: receiverName,
+        card: {
+          useEscrow: false,
+          flowMode: "DEFAULT",
+          useCardPoint: false,
+          useAppCardOnly: false,
+        },
+      });
     } catch (err) {
-      alert("주문 등록에 실패했습니다.");
+      alert("결제 요청에 실패했습니다.");
       console.error(err);
     } finally {
       setSubmitting(false);

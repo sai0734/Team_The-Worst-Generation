@@ -54,12 +54,6 @@ const AlbumPage = () => {
     );
   };
 
-  const handleOrdered = () => {
-    setShowCart(false);
-    setIsSelectMode(false);
-    setSelectedItems([]);
-  };
-
   if (!currentBaby) {
     return <div>불러오는 중...</div>;
   }
@@ -121,7 +115,6 @@ const AlbumPage = () => {
             onChangeQuantity={handleChangeQuantity}
             onRemoveItem={handleRemoveSelected}
             onClose={() => setShowCart(false)}
-            onOrdered={handleOrdered}
           />
         </div>
       )}

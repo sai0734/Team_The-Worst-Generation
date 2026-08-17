@@ -34,10 +34,8 @@ const AlbumGridComponent = ({
   const [list, setList] = useState<BabyAlbum[]>([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
-  const [filterMode, setFilterMode] = useState<
-    "year" | "month" | "day" | null
-  >(null);
-  const [filterValue, setFilterValue] = useState<string | null>(null);
+  const [selectedYear, setSelectedYear] = useState<string | null>(null);
+  const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
   const [selectedAlbum, setSelectedAlbum] = useState<BabyAlbum | null>(null);
 
   const observerRef = useRef<IntersectionObserver | null>(null);
@@ -81,33 +79,38 @@ const AlbumGridComponent = ({
     new Set(list.map((album) => album.takenDate.slice(0, 4))),
   ).sort((a, b) => b.localeCompare(a));
 
-  const availableMonthNumbers = Array.from(
-    new Set(list.map((album) => album.takenDate.slice(5, 7))),
-  ).sort((a, b) => a.localeCompare(b));
-
-  const availableDayNumbers = Array.from(
-    new Set(list.map((album) => album.takenDate.slice(8, 10))),
-  ).sort((a, b) => a.localeCompare(b));
+  const availableMonths = selectedYear
+    ? Array.from(
+        new Set(
+          list
+            .filter((album) => album.takenDate.slice(0, 4) === selectedYear)
+            .map((album) => album.takenDate.slice(5, 7)),
+        ),
+      ).sort((a, b) => a.localeCompare(b))
+    : [];
 
   const filteredList =
-    filterMode && filterValue
-      ? list.filter((album) => {
-          if (filterMode === "year")
-            return album.takenDate.slice(0, 4) === filterValue;
-          if (filterMode === "month")
-            return album.takenDate.slice(5, 7) === filterValue;
-          return album.takenDate.slice(8, 10) === filterValue;
-        })
-      : list;
+    selectedYear && selectedMonth
+      ? list.filter(
+          (album) =>
+            album.takenDate.slice(0, 7) === `${selectedYear}-${selectedMonth}`,
+        )
+      : selectedYear
+        ? list.filter((album) => album.takenDate.slice(0, 4) === selectedYear)
+        : list;
 
-  const handleSelectFilterMode = (mode: "year" | "month" | "day") => {
-    setFilterMode((prev) => (prev === mode ? null : mode));
-    setFilterValue(null);
+  const handleSelectYear = (year: string) => {
+    setSelectedYear(year === "" ? null : year);
+    setSelectedMonth(null);
+  };
+
+  const handleSelectMonth = (month: string) => {
+    setSelectedMonth(month === "" ? null : month);
   };
 
   const handleResetFilter = () => {
-    setFilterMode(null);
-    setFilterValue(null);
+    setSelectedYear(null);
+    setSelectedMonth(null);
   };
 
   const handleRemove = async (albumNo: number) => {
@@ -125,66 +128,46 @@ const AlbumGridComponent = ({
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex flex-col gap-2">
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={handleResetFilter}
-              disabled={filterMode === null}
-              className={`rounded-full px-4 py-2 text-xs font-bold transition-colors ${
-                filterMode === null
-                  ? "bg-[#5AB2FF] text-white"
-                  : "border border-[rgba(42,41,38,0.15)] bg-white text-[#2A2926]"
-              }`}
-            >
-              전체
-            </button>
-            {(
-              [
-                { key: "year", label: "년도" },
-                { key: "month", label: "월" },
-                { key: "day", label: "일" },
-              ] as const
-            ).map((tab) => (
-              <button
-                key={tab.key}
-                type="button"
-                onClick={() => handleSelectFilterMode(tab.key)}
-                className={`rounded-full px-4 py-2 text-xs font-bold transition-colors ${
-                  filterMode === tab.key
-                    ? "bg-[#5AB2FF] text-white"
-                    : "border border-[rgba(42,41,38,0.15)] bg-white text-[#2A2926]"
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            onClick={handleResetFilter}
+            disabled={selectedYear === null}
+            className={`rounded-full px-4 py-2 text-xs font-bold transition-colors ${
+              selectedYear === null
+                ? "bg-[#5AB2FF] text-white"
+                : "border border-[rgba(42,41,38,0.15)] bg-white text-[#2A2926]"
+            }`}
+          >
+            전체
+          </button>
 
-          {filterMode && (
-            <div className="flex flex-wrap gap-2">
-              {(filterMode === "year"
-                ? availableYears
-                : filterMode === "month"
-                  ? availableMonthNumbers
-                  : availableDayNumbers
-              ).map((value) => (
-                <button
-                  key={value}
-                  type="button"
-                  onClick={() => setFilterValue(value)}
-                  className={`rounded-full px-3 py-1.5 text-xs font-bold transition-colors ${
-                    filterValue === value
-                      ? "bg-[#1E6FCC] text-white"
-                      : "border border-[rgba(42,41,38,0.15)] bg-white text-[#7A756C]"
-                  }`}
-                >
-                  {filterMode === "year"
-                    ? value
-                    : `${Number(value)}${filterMode === "month" ? "월" : "일"}`}
-                </button>
+          <select
+            value={selectedYear ?? ""}
+            onChange={(e) => handleSelectYear(e.target.value)}
+            className="rounded-full border border-[rgba(42,41,38,0.15)] bg-white px-3 py-2 text-xs font-bold text-[#2A2926] outline-none"
+          >
+            <option value="">년도 선택</option>
+            {availableYears.map((year) => (
+              <option key={year} value={year}>
+                {year}
+              </option>
+            ))}
+          </select>
+
+          {selectedYear && availableMonths.length > 0 && (
+            <select
+              value={selectedMonth ?? ""}
+              onChange={(e) => handleSelectMonth(e.target.value)}
+              className="rounded-full border border-[rgba(42,41,38,0.15)] bg-white px-3 py-2 text-xs font-bold text-[#7A756C] outline-none"
+            >
+              <option value="">월 선택</option>
+              {availableMonths.map((month) => (
+                <option key={month} value={month}>
+                  {Number(month)}월
+                </option>
               ))}
-            </div>
+            </select>
           )}
         </div>
 

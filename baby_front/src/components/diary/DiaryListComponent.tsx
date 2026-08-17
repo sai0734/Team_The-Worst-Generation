@@ -31,6 +31,9 @@ const DiaryListComponent = ({ reloadTrigger }: DiaryListProps) => {
   const [editContent, setEditContent] = useState("");
   const [selectedDiary, setSelectedDiary] = useState<BabyDiary | null>(null);
 
+  const [keyword, setKeyword] = useState("");
+  const [searchKeyword, setSearchKeyword] = useState("");
+
   const loadList = async () => {
     if (!currentBaby?.babyNo) return;
 
@@ -38,6 +41,7 @@ const DiaryListComponent = ({ reloadTrigger }: DiaryListProps) => {
       babyNo: currentBaby.babyNo,
       page,
       size: PAGE_SIZE,
+      keyword: searchKeyword || undefined,
     });
 
     setList(result.dtoList);
@@ -50,7 +54,12 @@ const DiaryListComponent = ({ reloadTrigger }: DiaryListProps) => {
 
   useEffect(() => {
     loadList();
-  }, [currentBaby?.babyNo, page, reloadTrigger]);
+  }, [currentBaby?.babyNo, page, reloadTrigger, searchKeyword]);
+
+  const handleSearch = () => {
+    setSearchKeyword(keyword);
+    setPage(1);
+  };
 
   const handleOpenEdit = (diary: BabyDiary) => {
     setEditingNo(diary.diaryNo);
@@ -95,6 +104,24 @@ const DiaryListComponent = ({ reloadTrigger }: DiaryListProps) => {
 
   return (
     <div className="flex flex-col gap-3">
+      <div className="flex gap-2">
+        <input
+          className={inputClass}
+          placeholder="일기 내용 검색"
+          value={keyword}
+          onChange={(e) => setKeyword(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") handleSearch();
+          }}
+        />
+        <button
+          type="button"
+          className="flex-shrink-0 rounded-full bg-[#5AB2FF] px-5 py-2.5 text-sm font-bold text-white transition-colors hover:bg-[#1E6FCC]"
+          onClick={handleSearch}
+        >
+          검색
+        </button>
+      </div>
       {list.length === 0 && (
         <div className="flex flex-col items-center justify-center gap-2 rounded-[20px] border border-dashed border-[rgba(42,41,38,0.15)] bg-white p-8 text-center">
           <span className="text-2xl">📔</span>

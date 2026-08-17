@@ -26,9 +26,7 @@ const inputClass =
 const DDayBadge = ({ dDay }: { dDay: number }) => (
   <span
     className={`rounded-full px-2.5 py-1 text-xs font-bold ${
-      dDay >= 0
-        ? "bg-[#EFE9DE] text-[#7A756C]"
-        : "bg-[#f6dede] text-[#c0392b]"
+      dDay >= 0 ? "bg-[#EFE9DE] text-[#7A756C]" : "bg-[#f6dede] text-[#c0392b]"
     }`}
   >
     {dDay >= 0 ? `D-${dDay}` : `D+${Math.abs(dDay)}`}
@@ -332,97 +330,104 @@ const BabyVaccinationCardComponent = ({
       {listFilter !== null && (
         <div className="flex flex-col gap-2">
           {filteredList.map((item) => (
-          <div
-            key={item.vaccinationNo}
-            className="flex flex-col gap-2 rounded-[16px] border border-[rgba(42,41,38,0.1)] bg-white p-3"
-          >
-            <div className="flex items-center gap-2">
-              <input
-                className="h-4 w-4 accent-[#5AB2FF]"
-                type="checkbox"
-                checked={item.completed}
-                onChange={() => handleToggleComplete(item)}
-              />
-              <span className="flex-1 min-w-0 text-sm font-bold text-[#2A2926]">
-                {item.vaccineName}
-              </span>
-              {item.isCustom && (
-                <span className="rounded-full bg-[#CAF4FF] px-2.5 py-1 text-xs font-bold text-[#1E6FCC]">
-                  직접 추가
+            <div
+              key={item.vaccinationNo}
+              className="flex flex-col gap-2 rounded-[16px] border border-[rgba(42,41,38,0.1)] bg-white p-3"
+            >
+              <div className="flex items-center gap-2">
+                <input
+                  className="h-4 w-4 accent-[#5AB2FF]"
+                  type="checkbox"
+                  checked={item.completed}
+                  onChange={() => handleToggleComplete(item)}
+                />
+                <span className="flex-1 min-w-0 text-sm font-bold text-[#2A2926]">
+                  {/* 수정 시작 */}
+                  {item.vaccineName}
+                  {item.doseLabel && (
+                    <span className="ml-1 font-normal text-[#7A756C]">
+                      · {item.doseLabel}
+                    </span>
+                  )}
+                  {/* 수정 끝 */}
+                </span>
+                {item.isCustom && (
+                  <span className="rounded-full bg-[#CAF4FF] px-2.5 py-1 text-xs font-bold text-[#1E6FCC]">
+                    직접 추가
+                  </span>
+                )}
+                {!item.completed &&
+                  item.recommendedMonth != null &&
+                  (() => {
+                    const dDay = getDDay(item.recommendedMonth);
+                    return <DDayBadge dDay={dDay} />;
+                  })()}
+                {item.completed && (
+                  <button
+                    className="text-xs font-bold text-[#5AB2FF]"
+                    type="button"
+                    onClick={() => handleOpenEdit(item)}
+                  >
+                    수정
+                  </button>
+                )}
+                {item.isCustom && (
+                  <button
+                    className="flex h-6 w-6 items-center justify-center rounded-full bg-[rgba(42,41,38,0.06)] text-xs font-bold text-[#7A756C] transition-colors hover:bg-[#f3d9d9] hover:text-[#c0392b]"
+                    type="button"
+                    onClick={() => handleRemove(item.vaccinationNo)}
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+
+              {item.completed && (
+                <span className="pl-6 text-xs text-[#7A756C]">
+                  {item.completedDate} · {item.hospitalName || "병원명 미입력"}
                 </span>
               )}
-              {!item.completed &&
-                item.recommendedMonth != null &&
-                (() => {
-                  const dDay = getDDay(item.recommendedMonth);
-                  return <DDayBadge dDay={dDay} />;
-                })()}
-              {item.completed && (
-                <button
-                  className="text-xs font-bold text-[#5AB2FF]"
-                  type="button"
-                  onClick={() => handleOpenEdit(item)}
-                >
-                  수정
-                </button>
-              )}
-              {item.isCustom && (
-                <button
-                  className="flex h-6 w-6 items-center justify-center rounded-full bg-[rgba(42,41,38,0.06)] text-xs font-bold text-[#7A756C] transition-colors hover:bg-[#f3d9d9] hover:text-[#c0392b]"
-                  type="button"
-                  onClick={() => handleRemove(item.vaccinationNo)}
-                >
-                  ✕
-                </button>
+
+              {editingNo === item.vaccinationNo && (
+                <div className="flex flex-col gap-2 border-t border-[rgba(42,41,38,0.1)] pt-2 sm:flex-row sm:items-end">
+                  <div className="flex-1 min-w-0">
+                    <p className={labelClass}>접종일</p>
+                    <input
+                      className={inputClass}
+                      type="date"
+                      value={editDate}
+                      onChange={(e) => setEditDate(e.target.value)}
+                    />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className={labelClass}>병원명</p>
+                    <input
+                      className={inputClass}
+                      type="text"
+                      value={editHospital}
+                      onChange={(e) => setEditHospital(e.target.value)}
+                      placeholder="병원명"
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      className="rounded-full bg-[#5AB2FF] px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-[#1E6FCC]"
+                      type="button"
+                      onClick={() => handleSaveComplete(item)}
+                    >
+                      저장
+                    </button>
+                    <button
+                      className="rounded-full border border-[rgba(42,41,38,0.15)] px-4 py-2.5 text-sm font-bold text-[#7A756C]"
+                      type="button"
+                      onClick={handleCancelEdit}
+                    >
+                      취소
+                    </button>
+                  </div>
+                </div>
               )}
             </div>
-
-            {item.completed && (
-              <span className="pl-6 text-xs text-[#7A756C]">
-                {item.completedDate} · {item.hospitalName || "병원명 미입력"}
-              </span>
-            )}
-
-            {editingNo === item.vaccinationNo && (
-              <div className="flex flex-col gap-2 border-t border-[rgba(42,41,38,0.1)] pt-2 sm:flex-row sm:items-end">
-                <div className="flex-1 min-w-0">
-                  <p className={labelClass}>접종일</p>
-                  <input
-                    className={inputClass}
-                    type="date"
-                    value={editDate}
-                    onChange={(e) => setEditDate(e.target.value)}
-                  />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className={labelClass}>병원명</p>
-                  <input
-                    className={inputClass}
-                    type="text"
-                    value={editHospital}
-                    onChange={(e) => setEditHospital(e.target.value)}
-                    placeholder="병원명"
-                  />
-                </div>
-                <div className="flex gap-2">
-                  <button
-                    className="rounded-full bg-[#5AB2FF] px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-[#1E6FCC]"
-                    type="button"
-                    onClick={() => handleSaveComplete(item)}
-                  >
-                    저장
-                  </button>
-                  <button
-                    className="rounded-full border border-[rgba(42,41,38,0.15)] px-4 py-2.5 text-sm font-bold text-[#7A756C]"
-                    type="button"
-                    onClick={handleCancelEdit}
-                  >
-                    취소
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
           ))}
         </div>
       )}

@@ -32,18 +32,18 @@ public class BabyDiaryServiceImpl implements BabyDiaryService{
     private final CustomFileUtil customFileUtil;
 
     @Override
-    public PageResponseDTO<BabyDiaryDTO> getList(Long babyNo, String email, PageRequestDTO pageRequestDTO) {
+    public PageResponseDTO<BabyDiaryDTO> getList(Long babyNo, String email, PageRequestDTO pageRequestDTO, String keyword) {
 
         log.info("babyDiary_Service_getList_실행~~~~~~~~~~~~");
 
         int skip =  (pageRequestDTO.getPage() - 1) * pageRequestDTO.getSize();
 
-        List<BabyDiary> result = babyDiaryMapper.selectList(babyNo, email, skip, pageRequestDTO.getSize());
+        List<BabyDiary> result = babyDiaryMapper.selectList(babyNo, email, skip, pageRequestDTO.getSize(), keyword);
 
         List<BabyDiaryDTO> babyDiaryDTOList = result.stream().map(diary -> modelMapper.map(diary, BabyDiaryDTO.class))
                 .collect(Collectors.toList());
 
-        long totalCount = babyDiaryMapper.selectListCount(babyNo, email);
+        long totalCount = babyDiaryMapper.selectListCount(babyNo, email, keyword);
 
         PageResponseDTO<BabyDiaryDTO> dtoList = PageResponseDTO.<BabyDiaryDTO>withAll()
                 .dtoList(babyDiaryDTOList)
