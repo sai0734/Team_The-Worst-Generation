@@ -3,6 +3,9 @@ import type { RouteObject } from "react-router-dom";
 
 const Loading = <div>Loading....</div>;
 const List = lazy(() => import("../pages/community/CommunityListPage"));
+const BabysitterLayout = lazy(
+  () => import("../pages/babysitter/BabysitterLayoutPage"),
+);
 const Form = lazy(() => import("../pages/community/CommunityFormPage"));
 const Detail = lazy(() => import("../pages/community/CommunityDetailPage"));
 
@@ -82,6 +85,11 @@ const communityRouter = (): RouteObject[] => {
     },
     {
       path: "babysitter",
+      element: (
+        <Suspense fallback={Loading}>
+          <BabysitterLayout />
+        </Suspense>
+      ),
       children: [
         {
           index: true,

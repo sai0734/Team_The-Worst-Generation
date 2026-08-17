@@ -6,6 +6,7 @@ import type { BabysitterJobPost, TimeSlot } from "../../api/babysitterApi";
 import type { PageResponse } from "../../types/page";
 import type { MovePageParam } from "../../hooks/useCustomMove";
 import PageComponent from "../common/PageComponent";
+import { SEOUL_ALL_DONG, SEOUL_DISTRICT_NAMES, SEOUL_DISTRICTS } from "../../data/seoulRegions";
 
 const DEFAULT_CENTER = { lat: 37.566826, lng: 126.9786567 }; // 서울시청 (내 시터 프로필 위치도 GPS도 없을 때 기본값)
 const RADIUS_KM = 5;
@@ -18,7 +19,9 @@ const BabysitterJobListComponent = () => {
 
   const [viewMode, setViewMode] = useState<ViewMode>("search");
 
-  const [region, setRegion] = useState("");
+  const [gu, setGu] = useState("");
+  const [dong, setDong] = useState("");
+  const region = [gu, dong].filter(Boolean).join(" ");
   const [desiredDate, setDesiredDate] = useState("");
   const [timeSlot, setTimeSlot] = useState<TimeSlot | "">("");
   const [keyword, setKeyword] = useState("");
@@ -161,11 +164,28 @@ const BabysitterJobListComponent = () => {
       {viewMode === "search" ? (
         <>
           <div className="sitter-filter-bar">
-            <input
-              placeholder="지역"
-              value={region}
-              onChange={(e) => setRegion(e.target.value)}
-            />
+            <select
+              value={gu}
+              onChange={(e) => {
+                setGu(e.target.value);
+                setDong("");
+              }}
+            >
+              <option value="">구 전체</option>
+              {SEOUL_DISTRICT_NAMES.map((name) => (
+                <option key={name} value={name}>
+                  {name}
+                </option>
+              ))}
+            </select>
+            <select value={dong} onChange={(e) => setDong(e.target.value)}>
+              <option value="">동 전체</option>
+              {(gu ? SEOUL_DISTRICTS[gu] : SEOUL_ALL_DONG).map((name) => (
+                <option key={name} value={name}>
+                  {name}
+                </option>
+              ))}
+            </select>
             <input
               type="date"
               value={desiredDate}

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import * as babysitterApi from "../../api/babysitterApi";
-import { GRADE_BADGE_CLASS, GRADE_LABELS } from "../../api/babysitterApi";
+import { gradeLevelBadgeClass, gradeLevelLabel } from "../../api/babysitterApi";
 import type { BabysitterProfile } from "../../api/babysitterApi";
 
 const BabysitterMyPicksComponent = () => {
@@ -28,8 +28,8 @@ const BabysitterMyPicksComponent = () => {
             <div className="sitter-row-body">
               <div className="name-row">
                 {profile.name}
-                <span className={`community-badge ${GRADE_BADGE_CLASS[profile.grade]}`}>
-                  {GRADE_LABELS[profile.grade]}
+                <span className={`community-badge ${gradeLevelBadgeClass(profile.gradeLevel)}`}>
+                  {gradeLevelLabel(profile.gradeLevel)}
                 </span>
               </div>
               <div className="meta">

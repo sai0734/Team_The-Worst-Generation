@@ -4,8 +4,8 @@ import * as babysitterApi from "../../api/babysitterApi";
 import * as babysitterChatApi from "../../api/babysitterChatApi";
 import {
   DAY_OF_WEEK_LABELS,
-  GRADE_BADGE_CLASS,
-  GRADE_LABELS,
+  gradeLevelBadgeClass,
+  gradeLevelLabel,
   TIME_SLOT_LABELS,
 } from "../../api/babysitterApi";
 import type {
@@ -157,75 +157,102 @@ const BabysitterDetailComponent = () => {
 
   return (
     <div>
-      <div className="sitter-detail-header">
-        {profile.profileImageFileName && (
-          <img
-            src={babysitterApi.getFileUrl(profile.profileImageFileName)}
-            className="sitter-avatar-lg"
-          />
-        )}
-        <h2>
-          {profile.name}
-          <span className={`community-badge ${GRADE_BADGE_CLASS[profile.grade]}`}>
-            {GRADE_LABELS[profile.grade]}
-          </span>
-        </h2>
-      </div>
+      <div className="card sitter-detail-card">
+        <div className="sitter-detail-header">
+          {profile.profileImageFileName && (
+            <img
+              src={babysitterApi.getFileUrl(profile.profileImageFileName)}
+              className="sitter-avatar-lg"
+            />
+          )}
+          <div>
+            <h2>
+              {profile.name}
+              <span className={`community-badge ${gradeLevelBadgeClass(profile.gradeLevel)}`}>
+                {gradeLevelLabel(profile.gradeLevel)}
+              </span>
+            </h2>
+            <div className="sitter-detail-stats">
+              <span className="badge safe">찜 {pickCount}명</span>
+              <span className="badge pending">선정 {profile.selectionCount}회</span>
+              {profile.averageRating != null && (
+                <span className="badge pending">
+                  ★{profile.averageRating.toFixed(1)} (후기 {profile.reviewCount}개)
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
 
-      <div className="sitter-detail-meta">
-        픽 {pickCount}명
-        {profile.averageRating != null && (
-          <> · ★{profile.averageRating.toFixed(1)} (후기 {profile.reviewCount}개)</>
-        )}
-        {isLogin && !isMine && (
-          <button type="button" className="btn ghost" style={{ marginLeft: 8 }} onClick={handleTogglePick}>
-            {picked ? "픽 취소" : "픽하기"}
-          </button>
-        )}
-        {isLogin && !isMine && (
-          <button type="button" className="btn ghost" style={{ marginLeft: 8 }} onClick={handleStartChat}>
-            채팅하기
-          </button>
-        )}
-        <br />
-        경력 {profile.careerYears}년 · 지역: {profile.region ?? "미입력"}
-        <br />
-        가능 요일/시간대:{" "}
-        {profile.availability.length === 0 ? (
-          "미입력"
-        ) : (
-          DAYS.filter((day) =>
-            profile.availability.some((a) => a.dayOfWeek === day),
-          )
-            .map(
-              (day) =>
-                `${DAY_OF_WEEK_LABELS[day]}(${profile.availability
-                  .filter((a) => a.dayOfWeek === day)
-                  .map((a) => TIME_SLOT_LABELS[a.timeSlot])
-                  .join("/")})`,
-            )
-            .join(", ")
-        )}
-        {profile.availableTime && (
-          <>
-            <br />
-            참고: {profile.availableTime}
-          </>
-        )}
-        <br />
-        시급: {profile.hourlyRate ? `${profile.hourlyRate.toLocaleString()}원` : "협의"}
-      </div>
+        <dl className="detail-list" style={{ marginTop: 14 }}>
+          <dt>경력</dt>
+          <dd>{profile.careerYears}년</dd>
 
-      <p className="sitter-detail-intro">{profile.intro}</p>
+          <dt>지역</dt>
+          <dd>{profile.region ?? "미입력"}</dd>
+
+          <dt>가능시간</dt>
+          <dd>
+            {profile.availability.length === 0
+              ? "미입력"
+              : DAYS.filter((day) =>
+                  profile.availability.some((a) => a.dayOfWeek === day),
+                )
+                  .map(
+                    (day) =>
+                      `${DAY_OF_WEEK_LABELS[day]}(${profile.availability
+                        .filter((a) => a.dayOfWeek === day)
+                        .map((a) => TIME_SLOT_LABELS[a.timeSlot])
+                        .join("/")})`,
+                  )
+                  .join(", ")}
+          </dd>
+
+          {profile.availableTime && (
+            <>
+              <dt>참고</dt>
+              <dd>{profile.availableTime}</dd>
+            </>
+          )}
+
+          <dt>시급</dt>
+          <dd>{profile.hourlyRate ? `${profile.hourlyRate.toLocaleString()}원` : "협의"}</dd>
+        </dl>
+
+        {profile.intro && <p className="sitter-detail-intro">{profile.intro}</p>}
+
+        {isLogin && !isMine && (
+          <div className="sitter-actions">
+            <button type="button" className="btn ghost" onClick={handleTogglePick}>
+              {picked ? "찜 취소" : "찜하기"}
+            </button>
+            <button type="button" className="btn ghost" onClick={handleStartChat}>
+              채팅하기
+            </button>
+          </div>
+        )}
+
+        {isMine && (
+          <div className="sitter-actions">
+            <button
+              type="button"
+              className="btn ghost"
+              onClick={() => navigate("/community/babysitter/me/edit")}
+            >
+              내 프로필 수정
+            </button>
+          </div>
+        )}
+      </div>
 
       {isLogin && !isMine && (
-        <div className="sitter-actions" style={{ flexDirection: "column", alignItems: "flex-start" }}>
+        <div className="card" style={{ marginBottom: 16 }}>
           <button type="button" className="btn" onClick={() => setShowRequestForm((v) => !v)}>
             선정하기
           </button>
 
           {showRequestForm && (
-            <form onSubmit={handleSendRequest} className="recall-form" style={{ maxWidth: 360 }}>
+            <form onSubmit={handleSendRequest} className="recall-form" style={{ maxWidth: 360, marginTop: 14 }}>
               <div className="field">
                 <label>희망 날짜</label>
                 <input
@@ -263,16 +290,6 @@ const BabysitterDetailComponent = () => {
             </form>
           )}
         </div>
-      )}
-
-      {isMine && (
-        <button
-          type="button"
-          className="btn ghost"
-          onClick={() => navigate("/community/babysitter/me/edit")}
-        >
-          내 프로필 수정
-        </button>
       )}
 
       {reviewableRequests.length > 0 && (

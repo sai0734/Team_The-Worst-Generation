@@ -3,7 +3,6 @@ package com.backend.babysitter.dto;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import com.backend.babysitter.domain.BabysitterGrade;
 import com.backend.babysitter.domain.BabysitterStatus;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
@@ -48,7 +47,11 @@ public class BabysitterProfileDTO {
 
     private long pickCount;
 
-    private BabysitterGrade grade;
+    // 부모가 이 시터를 실제로 선정(요청 수락)한 횟수 - gradeLevel 산정 기준
+    private long selectionCount;
+
+    // 1~10 (Lv.1 ~ Lv.10)
+    private int gradeLevel;
 
     private Double averageRating;
 

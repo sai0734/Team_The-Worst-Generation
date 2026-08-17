@@ -118,7 +118,7 @@
     <sql id="searchWhere">
         WHERE status = 'ACTIVE'
         <if test="search.region != null and search.region != ''">
-            AND region = #{search.region}
+            AND region LIKE CONCAT('%', #{search.region}, '%')
         </if>
         <if test="search.minCareerYears != null">
             AND career_years &gt;= #{search.minCareerYears}

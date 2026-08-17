@@ -3,8 +3,8 @@ import { useNavigate } from "react-router-dom";
 import * as babysitterApi from "../../api/babysitterApi";
 import {
   DAY_OF_WEEK_LABELS,
-  GRADE_BADGE_CLASS,
-  GRADE_LABELS,
+  gradeLevelBadgeClass,
+  gradeLevelLabel,
   TIME_SLOT_LABELS,
 } from "../../api/babysitterApi";
 import type {
@@ -17,13 +17,14 @@ import type { PageResponse } from "../../types/page";
 import type { MovePageParam } from "../../hooks/useCustomMove";
 import PageComponent from "../common/PageComponent";
 import useCustomLogin from "../../hooks/useCustomLogin";
+import BabysitterMapComponent from "./BabysitterMapComponent";
 
 const DAYS = Object.keys(DAY_OF_WEEK_LABELS) as DayOfWeek[];
 const SLOTS = Object.keys(TIME_SLOT_LABELS) as TimeSlot[];
 
 const SORT_LABELS: Record<SortOption, string> = {
   recent: "최근 등록순",
-  pick: "픽 많은순",
+  pick: "찜 많은순",
   career: "경력 많은순",
 };
 
@@ -83,9 +84,9 @@ const BabysitterListComponent = () => {
     }
   };
 
-  const useGpsLocation = () => {
+  const fetchGpsLocation = () => {
     if (!navigator.geolocation) {
-      alert("이 브라우저는 위치 기능을 지원하지 않습니다.");
+      // GPS를 못 쓰면 기존 기준 좌표(내 동네 또는 기본값)로 그대로 진행
       return;
     }
     setLocating(true);
@@ -96,7 +97,7 @@ const BabysitterListComponent = () => {
         setLocating(false);
       },
       () => {
-        alert("위치 정보를 가져오지 못했습니다. 브라우저 위치 권한을 허용해주세요.");
+        // 위치 권한 거부/실패 시에도 기존 기준 좌표로 계속 진행
         setLocating(false);
       },
     );
@@ -126,7 +127,15 @@ const BabysitterListComponent = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // "내 주변" 탭으로 바뀌거나 기준 좌표가 바뀔 때마다 재조회
+  // "내 주변" 탭으로 들어오면 바로 GPS로 현재 위치를 다시 파악
+  useEffect(() => {
+    if (viewMode === "nearby") {
+      fetchGpsLocation();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [viewMode]);
+
+  // "내 주변" 탭이거나 기준 좌표가 바뀔 때마다(GPS로 갱신됐을 때 포함) 재조회
   useEffect(() => {
     if (viewMode === "nearby") {
       loadNearby(center.lat, center.lng);
@@ -150,8 +159,9 @@ const BabysitterListComponent = () => {
     loadList(1, locationInput);
   };
 
-  const sourceLabel =
-    centerSource === "profile"
+  const sourceLabel = locating
+    ? "현재 위치 확인 중..."
+    : centerSource === "profile"
       ? "내 동네 기준"
       : centerSource === "gps"
         ? "현재 위치 기준"
@@ -161,108 +171,64 @@ const BabysitterListComponent = () => {
     <div>
       <div className="recall-header">
         <h2>베이비시터 찾기</h2>
-        {isLogin && (
-          <div className="sitter-header-actions">
-            <button
-              type="button"
-              className="btn ghost"
-              onClick={() => navigate("/community/babysitter/jobs")}
-            >
-              돌봄 구인글 게시판
-            </button>
-            <button
-              type="button"
-              className="btn ghost"
-              onClick={() => navigate("/community/babysitter/my-picks")}
-            >
-              내가 찜한 시터
-            </button>
-            <button
-              type="button"
-              className="btn ghost"
-              onClick={() => navigate("/community/babysitter/chat")}
-            >
-              채팅목록
-            </button>
-            <button
-              type="button"
-              className="btn ghost"
-              onClick={() => navigate("/community/babysitter/requests/sent")}
-            >
-              내가 보낸 요청
-            </button>
-            <button
-              type="button"
-              className="btn ghost"
-              onClick={() => navigate("/community/babysitter/requests/received")}
-            >
-              나에게 온 요청
-            </button>
-            <button
-              type="button"
-              className="btn"
-              onClick={() => navigate("/community/babysitter/me/edit")}
-            >
-              내 프로필 등록/수정
-            </button>
-          </div>
-        )}
       </div>
 
-      {isLogin && (
-        <div className="sitter-location-row">
-          내 동네:{" "}
-          {editingLocation ? (
-            <>
-              <input
-                value={locationInput}
-                onChange={(e) => setLocationInput(e.target.value)}
-                placeholder="예: 역삼동"
-              />
-              <button type="button" className="btn ghost" onClick={handleSaveLocation}>
-                저장
-              </button>
-              <button
-                type="button"
-                className="btn ghost"
-                onClick={() => setEditingLocation(false)}
-              >
-                취소
-              </button>
-            </>
-          ) : (
-            <>
-              <b>{myLocation || "미설정"}</b>
-              <button
-                type="button"
-                className="btn ghost"
-                onClick={() => {
-                  setLocationInput(myLocation);
-                  setEditingLocation(true);
-                }}
-              >
-                변경
-              </button>
-            </>
-          )}
+      <div className="sitter-toolbar-row">
+        <div className="seg">
+          <button
+            type="button"
+            className={viewMode === "search" ? "is-active" : ""}
+            onClick={() => setViewMode("search")}
+          >
+            검색
+          </button>
+          <button
+            type="button"
+            className={viewMode === "nearby" ? "is-active" : ""}
+            onClick={() => setViewMode("nearby")}
+          >
+            내 주변
+          </button>
         </div>
-      )}
 
-      <div className="seg" style={{ marginBottom: 16 }}>
-        <button
-          type="button"
-          className={viewMode === "search" ? "is-active" : ""}
-          onClick={() => setViewMode("search")}
-        >
-          검색
-        </button>
-        <button
-          type="button"
-          className={viewMode === "nearby" ? "is-active" : ""}
-          onClick={() => setViewMode("nearby")}
-        >
-          내 주변
-        </button>
+        {isLogin && (
+          <div className="sitter-location-row">
+            내 동네:{" "}
+            {editingLocation ? (
+              <>
+                <input
+                  value={locationInput}
+                  onChange={(e) => setLocationInput(e.target.value)}
+                  placeholder="예: 역삼동"
+                />
+                <button type="button" className="btn ghost" onClick={handleSaveLocation}>
+                  저장
+                </button>
+                <button
+                  type="button"
+                  className="btn ghost"
+                  onClick={() => setEditingLocation(false)}
+                >
+                  취소
+                </button>
+              </>
+            ) : (
+              <>
+                <b>{myLocation || "미설정"}</b>
+                <button
+                  type="button"
+                  className="btn ghost"
+                  onClick={() => {
+                    setLocationInput(myLocation);
+                    setEditingLocation(true);
+                  }}
+                >
+                  변경
+                </button>
+              </>
+            )}
+          </div>
+        )}
       </div>
 
       {viewMode === "search" ? (
@@ -335,12 +301,12 @@ const BabysitterListComponent = () => {
                 <div className="sitter-row-body">
                   <div className="name-row">
                     {profile.name}
-                    <span className={`community-badge ${GRADE_BADGE_CLASS[profile.grade]}`}>
-                      {GRADE_LABELS[profile.grade]}
+                    <span className={`community-badge ${gradeLevelBadgeClass(profile.gradeLevel)}`}>
+                      {gradeLevelLabel(profile.gradeLevel)}
                     </span>
                   </div>
                   <div className="meta">
-                    픽 {profile.pickCount}
+                    찜 {profile.pickCount} · 선정 {profile.selectionCount}회
                     {profile.averageRating != null &&
                       ` · ★${profile.averageRating.toFixed(1)} (${profile.reviewCount})`}
                   </div>
@@ -367,61 +333,59 @@ const BabysitterListComponent = () => {
             <span className="meta">
               {sourceLabel} 반경 {RADIUS_KM}km · 신뢰할 수 있게 가까운 시터만 보여드려요
             </span>
-            <button
-              type="button"
-              className="btn ghost"
-              onClick={useGpsLocation}
-              disabled={locating}
-            >
-              {locating ? "위치 확인 중..." : "현재 위치로 보기"}
-            </button>
           </div>
 
-          {nearbyLoading ? (
-            <div className="empty-hint">불러오는 중...</div>
-          ) : nearbyList.length === 0 ? (
-            <div className="empty-hint">
-              반경 {RADIUS_KM}km 안에 위치를 등록한 시터가 없습니다.
+          <div className="sitter-nearby-split">
+            <div className="sitter-nearby-list-pane">
+              {nearbyLoading ? (
+                <div className="empty-hint">불러오는 중...</div>
+              ) : nearbyList.length === 0 ? (
+                <div className="empty-hint">
+                  반경 {RADIUS_KM}km 안에 위치를 등록한 시터가 없습니다.
+                </div>
+              ) : (
+                <div className="sitter-list">
+                  {nearbyList.map((profile) => (
+                    <article
+                      key={profile.email}
+                      className="card sitter-row"
+                      onClick={() => navigate(`/community/babysitter/${profile.email}`)}
+                    >
+                      {profile.profileImageFileName && (
+                        <img
+                          src={babysitterApi.getFileUrl(profile.profileImageFileName)}
+                          className="sitter-avatar"
+                        />
+                      )}
+                      <div className="sitter-row-body">
+                        <div className="name-row">
+                          {profile.name}
+                          <span className={`community-badge ${gradeLevelBadgeClass(profile.gradeLevel)}`}>
+                            {gradeLevelLabel(profile.gradeLevel)}
+                          </span>
+                        </div>
+                        <div className="meta">
+                          {profile.distanceKm != null && `내 위치에서 ${profile.distanceKm.toFixed(1)}km`}
+                          {profile.averageRating != null &&
+                            ` · ★${profile.averageRating.toFixed(1)} (${profile.reviewCount})`}
+                        </div>
+                        <div className="meta">
+                          선정 {profile.selectionCount}회 · 경력 {profile.careerYears}년 · {profile.region ?? "지역 미입력"}
+                        </div>
+                        <div className="meta">
+                          {profile.hourlyRate
+                            ? `시급 ${profile.hourlyRate.toLocaleString()}원`
+                            : "시급 협의"}
+                        </div>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              )}
             </div>
-          ) : (
-            <div className="sitter-list">
-              {nearbyList.map((profile) => (
-                <article
-                  key={profile.email}
-                  className="card sitter-row"
-                  onClick={() => navigate(`/community/babysitter/${profile.email}`)}
-                >
-                  {profile.profileImageFileName && (
-                    <img
-                      src={babysitterApi.getFileUrl(profile.profileImageFileName)}
-                      className="sitter-avatar"
-                    />
-                  )}
-                  <div className="sitter-row-body">
-                    <div className="name-row">
-                      {profile.name}
-                      <span className={`community-badge ${GRADE_BADGE_CLASS[profile.grade]}`}>
-                        {GRADE_LABELS[profile.grade]}
-                      </span>
-                    </div>
-                    <div className="meta">
-                      {profile.distanceKm != null && `내 위치에서 ${profile.distanceKm.toFixed(1)}km`}
-                      {profile.averageRating != null &&
-                        ` · ★${profile.averageRating.toFixed(1)} (${profile.reviewCount})`}
-                    </div>
-                    <div className="meta">
-                      경력 {profile.careerYears}년 · {profile.region ?? "지역 미입력"}
-                    </div>
-                    <div className="meta">
-                      {profile.hourlyRate
-                        ? `시급 ${profile.hourlyRate.toLocaleString()}원`
-                        : "시급 협의"}
-                    </div>
-                  </div>
-                </article>
-              ))}
-            </div>
-          )}
+
+            <BabysitterMapComponent sitters={nearbyList} center={center} />
+          </div>
         </>
       )}
     </div>

@@ -60,7 +60,7 @@
     <sql id="searchWhere">
         WHERE status = 'OPEN'
         <if test="search.region != null and search.region != ''">
-            AND region = #{search.region}
+            AND region LIKE CONCAT('%', #{search.region}, '%')
         </if>
         <if test="search.desiredDate != null">
             AND desired_date = #{search.desiredDate}

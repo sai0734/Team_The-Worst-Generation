@@ -13,13 +13,14 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.backend.babysitter.domain.BabysitterAvailability;
-import com.backend.babysitter.domain.BabysitterGrade;
+import com.backend.babysitter.domain.BabysitterGradeCalculator;
 import com.backend.babysitter.domain.BabysitterProfile;
 import com.backend.babysitter.dto.BabysitterAvailabilityDTO;
 import com.backend.babysitter.dto.BabysitterProfileDTO;
 import com.backend.babysitter.dto.BabysitterSearchDTO;
 import com.backend.babysitter.mapper.BabysitterPickMapper;
 import com.backend.babysitter.mapper.BabysitterProfileMapper;
+import com.backend.babysitter.mapper.BabysitterRequestMapper;
 import com.backend.babysitter.mapper.BabysitterReviewMapper;
 import com.backend.global.dto.PageResponseDTO;
 import com.backend.global.util.CustomFileUtil;
@@ -39,6 +40,8 @@ public class BabysitterProfileServiceImpl implements BabysitterProfileService {
     private final BabysitterProfileMapper babysitterProfileMapper;
 
     private final BabysitterPickMapper babysitterPickMapper;
+
+    private final BabysitterRequestMapper babysitterRequestMapper;
 
     private final BabysitterReviewMapper babysitterReviewMapper;
 
@@ -210,6 +213,7 @@ public class BabysitterProfileServiceImpl implements BabysitterProfileService {
             .collect(Collectors.toList());
 
         long pickCount = babysitterPickMapper.countBySitter(profile.getEmail());
+        long selectionCount = babysitterRequestMapper.countAcceptedBySitter(profile.getEmail());
 
         Double averageRating = babysitterReviewMapper.selectAverageRatingBySitter(profile.getEmail());
         long reviewCount = babysitterReviewMapper.countBySitter(profile.getEmail());
@@ -228,7 +232,8 @@ public class BabysitterProfileServiceImpl implements BabysitterProfileService {
             .status(profile.getStatus())
             .availability(availability)
             .pickCount(pickCount)
-            .grade(BabysitterGrade.fromPickCount(pickCount))
+            .selectionCount(selectionCount)
+            .gradeLevel(BabysitterGradeCalculator.levelFromSelectionCount(selectionCount))
             .averageRating(averageRating)
             .reviewCount(reviewCount)
             .regTime(profile.getRegTime())

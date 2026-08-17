@@ -12,21 +12,12 @@ const jobPrefix = `${API_SERVER_HOST}/api/babysitter/jobs`;
 export const getFileUrl = (fileName: string): string =>
   `${prefix}/files/${fileName}`;
 
-export type BabysitterGrade = "NEW" | "POPULAR" | "VETERAN" | "TOP";
+export const MAX_GRADE_LEVEL = 10;
 
-export const GRADE_LABELS: Record<BabysitterGrade, string> = {
-  NEW: "NEW",
-  POPULAR: "인기",
-  VETERAN: "베테랑",
-  TOP: "TOP",
-};
+// 부모가 실제로 선정(요청 수락)한 횟수 기준 Lv.1~Lv.10 - 찜(관심)이 아니라 활동 이력을 반영
+export const gradeLevelLabel = (level: number): string => `Lv.${level}`;
 
-export const GRADE_BADGE_CLASS: Record<BabysitterGrade, string> = {
-  NEW: "grade-new",
-  POPULAR: "grade-popular",
-  VETERAN: "grade-veteran",
-  TOP: "grade-top",
-};
+export const gradeLevelBadgeClass = (level: number): string => `grade-lv-${level}`;
 
 export type DayOfWeek = "MON" | "TUE" | "WED" | "THU" | "FRI" | "SAT" | "SUN";
 export type TimeSlot = "MORNING" | "AFTERNOON" | "EVENING";
@@ -70,7 +61,8 @@ export interface BabysitterProfile {
   status: "ACTIVE" | "INACTIVE";
   availability: BabysitterAvailability[];
   pickCount: number;
-  grade: BabysitterGrade;
+  selectionCount: number;
+  gradeLevel: number;
   averageRating: number | null;
   reviewCount: number;
   regTime: string;
