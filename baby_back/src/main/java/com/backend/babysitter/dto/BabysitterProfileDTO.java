@@ -26,6 +26,13 @@ public class BabysitterProfileDTO {
 
     private String region;
 
+    private Double latitude;
+
+    private Double longitude;
+
+    // /nearby 조회 시에만 채워짐 - 기준 좌표로부터 거리(km)
+    private Double distanceKm;
+
     private String availableTime;
 
     private Integer hourlyRate;

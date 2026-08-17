@@ -1,5 +1,7 @@
 package com.backend.babysitter.service;
 
+import java.math.BigDecimal;
+import java.util.Comparator;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Objects;
@@ -31,6 +33,9 @@ import lombok.extern.log4j.Log4j2;
 @RequiredArgsConstructor
 public class BabysitterProfileServiceImpl implements BabysitterProfileService {
 
+    // 하버사인 공식에서 각도 비율을 실제 km 거리로 환산할 때 곱하는 지구 반지름
+    private static final int EARTH_RADIUS_KM = 6371;
+
     private final BabysitterProfileMapper babysitterProfileMapper;
 
     private final BabysitterPickMapper babysitterPickMapper;
@@ -53,12 +58,17 @@ public class BabysitterProfileServiceImpl implements BabysitterProfileService {
 
         BabysitterProfile profile = babysitterProfileMapper.selectByEmail(profileDTO.getEmail());
 
+        BigDecimal latitude = profileDTO.getLatitude() != null ? BigDecimal.valueOf(profileDTO.getLatitude()) : null;
+        BigDecimal longitude = profileDTO.getLongitude() != null ? BigDecimal.valueOf(profileDTO.getLongitude()) : null;
+
         if (profile == null) {
             profile = BabysitterProfile.builder()
                 .email(profileDTO.getEmail())
                 .name(profileDTO.getName())
                 .careerYears(profileDTO.getCareerYears())
                 .region(profileDTO.getRegion())
+                .latitude(latitude)
+                .longitude(longitude)
                 .availableTime(profileDTO.getAvailableTime())
                 .hourlyRate(profileDTO.getHourlyRate())
                 .intro(profileDTO.getIntro())
@@ -71,6 +81,8 @@ public class BabysitterProfileServiceImpl implements BabysitterProfileService {
                 profileDTO.getName(),
                 profileDTO.getCareerYears(),
                 profileDTO.getRegion(),
+                latitude,
+                longitude,
                 profileDTO.getAvailableTime(),
                 profileDTO.getHourlyRate(),
                 profileDTO.getIntro()
@@ -119,6 +131,41 @@ public class BabysitterProfileServiceImpl implements BabysitterProfileService {
             .totalCount(totalCount)
             .pageRequestDTO(searchDTO)
             .build();
+    }
+
+    @Override
+    public List<BabysitterProfileDTO> getNearby(double lat, double lng, double radiusKm) {
+
+        List<BabysitterProfile> candidates = babysitterProfileMapper.selectNearbyCandidates();
+
+        return candidates.stream()
+            .map(profile -> {
+                double distanceKm = haversineKm(
+                    lat, lng,
+                    profile.getLatitude().doubleValue(),
+                    profile.getLongitude().doubleValue()
+                );
+                BabysitterProfileDTO dto = toDTO(profile);
+                dto.setDistanceKm(distanceKm);
+                return dto;
+            })
+            .filter(dto -> dto.getDistanceKm() <= radiusKm)
+            .sorted(Comparator.comparingDouble(BabysitterProfileDTO::getDistanceKm))
+            .collect(Collectors.toList());
+    }
+
+    private double haversineKm(double lat1, double lon1, double lat2, double lon2) {
+
+        double dLat = Math.toRadians(lat2 - lat1);
+        double dLon = Math.toRadians(lon2 - lon1);
+
+        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2)
+            + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
+            * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+        return EARTH_RADIUS_KM * c;
     }
 
     @Override
@@ -172,6 +219,8 @@ public class BabysitterProfileServiceImpl implements BabysitterProfileService {
             .name(profile.getName())
             .careerYears(profile.getCareerYears())
             .region(profile.getRegion())
+            .latitude(profile.getLatitude() != null ? profile.getLatitude().doubleValue() : null)
+            .longitude(profile.getLongitude() != null ? profile.getLongitude().doubleValue() : null)
             .availableTime(profile.getAvailableTime())
             .hourlyRate(profile.getHourlyRate())
             .intro(profile.getIntro())

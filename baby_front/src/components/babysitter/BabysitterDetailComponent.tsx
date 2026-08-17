@@ -1,8 +1,10 @@
 import { FormEvent, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import * as babysitterApi from "../../api/babysitterApi";
+import * as babysitterChatApi from "../../api/babysitterChatApi";
 import {
   DAY_OF_WEEK_LABELS,
+  GRADE_BADGE_CLASS,
   GRADE_LABELS,
   TIME_SLOT_LABELS,
 } from "../../api/babysitterApi";
@@ -93,6 +95,16 @@ const BabysitterDetailComponent = () => {
     }
   };
 
+  const handleStartChat = async () => {
+    try {
+      const room = await babysitterChatApi.getOrCreateRoom(email);
+      navigate(`/community/babysitter/chat/${room.roomNo}`);
+    } catch (err) {
+      console.error(err);
+      alert(describeError(err));
+    }
+  };
+
   const handleSendRequest = async (e: FormEvent) => {
     e.preventDefault();
     if (!requestDate) {
@@ -145,37 +157,39 @@ const BabysitterDetailComponent = () => {
 
   return (
     <div>
-      <div className="flex gap-3 items-center">
+      <div className="sitter-detail-header">
         {profile.profileImageFileName && (
           <img
             src={babysitterApi.getFileUrl(profile.profileImageFileName)}
-            className="w-20 h-20 rounded-full object-cover"
+            className="sitter-avatar-lg"
           />
         )}
-        <h2 className="text-xl font-bold">
-          {profile.name}{" "}
-          <span className="text-sm bg-yellow-100 text-yellow-800 px-1.5 py-0.5 rounded">
+        <h2>
+          {profile.name}
+          <span className={`community-badge ${GRADE_BADGE_CLASS[profile.grade]}`}>
             {GRADE_LABELS[profile.grade]}
           </span>
         </h2>
       </div>
 
-      <div className="my-1">
+      <div className="sitter-detail-meta">
         픽 {pickCount}명
         {profile.averageRating != null && (
           <> · ★{profile.averageRating.toFixed(1)} (후기 {profile.reviewCount}개)</>
         )}
         {isLogin && !isMine && (
-          <button onClick={handleTogglePick} className="ml-2">
+          <button type="button" className="btn ghost" style={{ marginLeft: 8 }} onClick={handleTogglePick}>
             {picked ? "픽 취소" : "픽하기"}
           </button>
         )}
-      </div>
-
-      <div>경력 {profile.careerYears}년</div>
-      <div>지역: {profile.region ?? "미입력"}</div>
-
-      <div className="my-2">
+        {isLogin && !isMine && (
+          <button type="button" className="btn ghost" style={{ marginLeft: 8 }} onClick={handleStartChat}>
+            채팅하기
+          </button>
+        )}
+        <br />
+        경력 {profile.careerYears}년 · 지역: {profile.region ?? "미입력"}
+        <br />
         가능 요일/시간대:{" "}
         {profile.availability.length === 0 ? (
           "미입력"
@@ -192,31 +206,37 @@ const BabysitterDetailComponent = () => {
             )
             .join(", ")
         )}
-      </div>
-
-      {profile.availableTime && <div>참고: {profile.availableTime}</div>}
-      <div>
+        {profile.availableTime && (
+          <>
+            <br />
+            참고: {profile.availableTime}
+          </>
+        )}
+        <br />
         시급: {profile.hourlyRate ? `${profile.hourlyRate.toLocaleString()}원` : "협의"}
       </div>
-      <p className="whitespace-pre-wrap">{profile.intro}</p>
+
+      <p className="sitter-detail-intro">{profile.intro}</p>
 
       {isLogin && !isMine && (
-        <div className="my-3">
-          <button onClick={() => setShowRequestForm((v) => !v)}>선정하기</button>
+        <div className="sitter-actions" style={{ flexDirection: "column", alignItems: "flex-start" }}>
+          <button type="button" className="btn" onClick={() => setShowRequestForm((v) => !v)}>
+            선정하기
+          </button>
 
           {showRequestForm && (
-            <form onSubmit={handleSendRequest} className="mt-2 flex flex-col gap-2 max-w-xs">
-              <label>
-                희망 날짜
+            <form onSubmit={handleSendRequest} className="recall-form" style={{ maxWidth: 360 }}>
+              <div className="field">
+                <label>희망 날짜</label>
                 <input
                   type="date"
                   value={requestDate}
                   onChange={(e) => setRequestDate(e.target.value)}
                   required
                 />
-              </label>
-              <label>
-                시간대
+              </div>
+              <div className="field">
+                <label>시간대</label>
                 <select
                   value={requestTimeSlot}
                   onChange={(e) => setRequestTimeSlot(e.target.value as TimeSlot)}
@@ -227,31 +247,45 @@ const BabysitterDetailComponent = () => {
                     </option>
                   ))}
                 </select>
-              </label>
-              <textarea
-                placeholder="시터에게 남길 메시지 (선택)"
-                value={requestMessage}
-                onChange={(e) => setRequestMessage(e.target.value)}
-              />
-              <button type="submit">요청 보내기</button>
+              </div>
+              <div className="field">
+                <label>시터에게 남길 메시지 (선택)</label>
+                <textarea
+                  className="bulk-input"
+                  style={{ minHeight: 80 }}
+                  value={requestMessage}
+                  onChange={(e) => setRequestMessage(e.target.value)}
+                />
+              </div>
+              <button type="submit" className="submit-btn">
+                요청 보내기
+              </button>
             </form>
           )}
         </div>
       )}
 
       {isMine && (
-        <button onClick={() => navigate("/community/babysitter/me/edit")}>
+        <button
+          type="button"
+          className="btn ghost"
+          onClick={() => navigate("/community/babysitter/me/edit")}
+        >
           내 프로필 수정
         </button>
       )}
 
       {reviewableRequests.length > 0 && (
-        <div className="my-3 border p-2">
-          <p className="font-bold">후기 작성 가능한 요청이 있어요</p>
+        <div className="card" style={{ margin: "14px 0" }}>
+          <p style={{ fontWeight: 800, margin: "0 0 8px" }}>후기 작성 가능한 요청이 있어요</p>
           {reviewableRequests.map((r) => (
-            <div key={r.requestNo} className="flex items-center gap-2 my-1">
-              <span>{r.requestDate} ({TIME_SLOT_LABELS[r.timeSlot]})</span>
-              <button onClick={() => setReviewTargetRequestNo(r.requestNo)}>
+            <div key={r.requestNo} className="sitter-actions" style={{ margin: "4px 0" }}>
+              <span className="meta">{r.requestDate} ({TIME_SLOT_LABELS[r.timeSlot]})</span>
+              <button
+                type="button"
+                className="btn ghost"
+                onClick={() => setReviewTargetRequestNo(r.requestNo)}
+              >
                 후기 작성
               </button>
             </div>
@@ -260,9 +294,9 @@ const BabysitterDetailComponent = () => {
       )}
 
       {reviewTargetRequestNo && (
-        <form onSubmit={handleSubmitReview} className="my-3 flex flex-col gap-2 max-w-xs border p-2">
-          <label>
-            평점
+        <form onSubmit={handleSubmitReview} className="card recall-form" style={{ margin: "14px 0", maxWidth: 360 }}>
+          <div className="field">
+            <label>평점</label>
             <select
               value={reviewRating}
               onChange={(e) => setReviewRating(Number(e.target.value))}
@@ -273,35 +307,52 @@ const BabysitterDetailComponent = () => {
                 </option>
               ))}
             </select>
-          </label>
-          <textarea
-            placeholder="후기 내용"
-            value={reviewContent}
-            onChange={(e) => setReviewContent(e.target.value)}
-          />
-          <div className="flex gap-2">
-            <button type="submit">등록</button>
-            <button type="button" onClick={() => setReviewTargetRequestNo(null)}>
+          </div>
+          <div className="field">
+            <label>후기 내용</label>
+            <textarea
+              className="bulk-input"
+              style={{ minHeight: 80 }}
+              value={reviewContent}
+              onChange={(e) => setReviewContent(e.target.value)}
+            />
+          </div>
+          <div className="sitter-actions">
+            <button type="submit" className="btn">
+              등록
+            </button>
+            <button
+              type="button"
+              className="btn ghost"
+              onClick={() => setReviewTargetRequestNo(null)}
+            >
               취소
             </button>
           </div>
         </form>
       )}
 
-      <h3 className="font-bold mt-5">후기 {reviews.length}</h3>
-      <ul>
-        {reviews.map((r) => (
-          <li key={r.reviewNo} className="border-b py-2">
-            <div>
-              {r.writerNickname ?? "익명"} · ★{r.rating}
+      <div className="card" style={{ marginTop: 20 }}>
+        <h3 style={{ fontSize: 14, fontWeight: 800, margin: "0 0 10px" }}>
+          후기 {reviews.length}
+        </h3>
+        <div className="sitter-review-list">
+          {reviews.map((r) => (
+            <div key={r.reviewNo} className="sitter-review">
+              <div className="head">
+                <span>{r.writerNickname ?? "익명"}</span>
+                <span className="rating">★{r.rating}</span>
+              </div>
+              {r.content && <div className="content">{r.content}</div>}
             </div>
-            {r.content && <div>{r.content}</div>}
-          </li>
-        ))}
-      </ul>
+          ))}
+        </div>
+      </div>
 
-      <div>
-        <button onClick={() => navigate("/community/babysitter")}>목록으로</button>
+      <div className="sitter-back-link">
+        <button type="button" className="btn ghost" onClick={() => navigate("/community/babysitter")}>
+          목록으로
+        </button>
       </div>
     </div>
   );

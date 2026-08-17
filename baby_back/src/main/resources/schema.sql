@@ -277,6 +277,8 @@ CREATE TABLE IF NOT EXISTS tbl_babysitter_profile (
     name           VARCHAR(50)  NOT NULL,
     career_years   INT          NOT NULL DEFAULT 0,
     region         VARCHAR(100),
+    latitude       DECIMAL(10,7),
+    longitude      DECIMAL(10,7),
     available_time VARCHAR(255),
     hourly_rate    INT,
     intro          VARCHAR(1000),
@@ -289,6 +291,8 @@ CREATE TABLE IF NOT EXISTS tbl_babysitter_profile (
 );
 
 ALTER TABLE tbl_babysitter_profile ADD COLUMN IF NOT EXISTS profile_image_file_name VARCHAR(500) NULL;
+ALTER TABLE tbl_babysitter_profile ADD COLUMN IF NOT EXISTS latitude DECIMAL(10,7) NULL;
+ALTER TABLE tbl_babysitter_profile ADD COLUMN IF NOT EXISTS longitude DECIMAL(10,7) NULL;
 
 -- KYI - 베이비시터 가능 요일/시간대
 CREATE TABLE IF NOT EXISTS tbl_babysitter_availability (
@@ -301,11 +305,16 @@ CREATE TABLE IF NOT EXISTS tbl_babysitter_availability (
 
 -- KYI - 부모(사용자) 내 동네 설정
 CREATE TABLE IF NOT EXISTS tbl_babysitter_parent_location (
-    email  VARCHAR(100) NOT NULL,
-    region VARCHAR(100) NOT NULL,
+    email     VARCHAR(100) NOT NULL,
+    region    VARCHAR(100) NOT NULL,
+    latitude  DECIMAL(10,7),
+    longitude DECIMAL(10,7),
     PRIMARY KEY (email),
     CONSTRAINT fk_babysitter_parent_location_email FOREIGN KEY (email) REFERENCES tbl_member (email)
 );
+
+ALTER TABLE tbl_babysitter_parent_location ADD COLUMN IF NOT EXISTS latitude DECIMAL(10,7) NULL;
+ALTER TABLE tbl_babysitter_parent_location ADD COLUMN IF NOT EXISTS longitude DECIMAL(10,7) NULL;
 
 -- KYI - 베이비시터 픽(찜)
 CREATE TABLE IF NOT EXISTS tbl_babysitter_pick (
@@ -343,6 +352,8 @@ CREATE TABLE IF NOT EXISTS tbl_babysitter_job_post (
     parent_email VARCHAR(100) NOT NULL,
     title        VARCHAR(200) NOT NULL,
     region       VARCHAR(100),
+    latitude     DECIMAL(10,7),
+    longitude    DECIMAL(10,7),
     desired_date DATE         NOT NULL,
     time_slot    VARCHAR(10)  NOT NULL,
     hourly_rate  INT,
@@ -355,6 +366,9 @@ CREATE TABLE IF NOT EXISTS tbl_babysitter_job_post (
     INDEX idx_babysitter_job_post_region_date (region, desired_date),
     INDEX idx_babysitter_job_post_status (status)
 );
+
+ALTER TABLE tbl_babysitter_job_post ADD COLUMN IF NOT EXISTS latitude DECIMAL(10,7) NULL;
+ALTER TABLE tbl_babysitter_job_post ADD COLUMN IF NOT EXISTS longitude DECIMAL(10,7) NULL;
 
 -- KYI - 베이비시터 구인글 지원
 CREATE TABLE IF NOT EXISTS tbl_babysitter_job_application (
@@ -387,11 +401,36 @@ CREATE TABLE IF NOT EXISTS tbl_babysitter_review (
     UNIQUE KEY uq_babysitter_review_request (request_no)
 );
 
+-- KYI - 베이비시터 채팅방 (부모-시터 1:1)
+CREATE TABLE IF NOT EXISTS tbl_babysitter_chat_room (
+    room_no      BIGINT AUTO_INCREMENT,
+    parent_email VARCHAR(100) NOT NULL,
+    sitter_email VARCHAR(100) NOT NULL,
+    reg_time     DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (room_no),
+    CONSTRAINT fk_babysitter_chat_room_parent FOREIGN KEY (parent_email) REFERENCES tbl_member (email),
+    CONSTRAINT fk_babysitter_chat_room_sitter FOREIGN KEY (sitter_email) REFERENCES tbl_babysitter_profile (email),
+    UNIQUE KEY uq_babysitter_chat_room (parent_email, sitter_email)
+);
+
+-- KYI - 베이비시터 채팅 메시지
+CREATE TABLE IF NOT EXISTS tbl_babysitter_chat_message (
+    msg_no       BIGINT AUTO_INCREMENT,
+    room_no      BIGINT       NOT NULL,
+    sender_email VARCHAR(100) NOT NULL,
+    content      VARCHAR(1000) NOT NULL,
+    reg_time     DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (msg_no),
+    CONSTRAINT fk_babysitter_chat_message_room FOREIGN KEY (room_no) REFERENCES tbl_babysitter_chat_room (room_no),
+    CONSTRAINT fk_babysitter_chat_message_sender FOREIGN KEY (sender_email) REFERENCES tbl_member (email)
+);
+
 -- KYI - 커뮤니티 게시글
 CREATE TABLE IF NOT EXISTS tbl_community_post (
     post_no       BIGINT AUTO_INCREMENT,
     writer_email  VARCHAR(100)  NOT NULL,
     nickname      VARCHAR(50)   NOT NULL,
+    category      VARCHAR(10)   NOT NULL DEFAULT '자유',
     title         VARCHAR(200)  NOT NULL,
     content       TEXT          NOT NULL,
     ai_summary    TEXT,
@@ -403,6 +442,8 @@ CREATE TABLE IF NOT EXISTS tbl_community_post (
     PRIMARY KEY (post_no),
     CONSTRAINT fk_community_post_email FOREIGN KEY (writer_email) REFERENCES tbl_member (email)
 );
+
+ALTER TABLE tbl_community_post ADD COLUMN IF NOT EXISTS category VARCHAR(10) NOT NULL DEFAULT '자유';
 
 -- KYI - 커뮤니티 게시글 첨부파일
 CREATE TABLE IF NOT EXISTS tbl_community_post_image (

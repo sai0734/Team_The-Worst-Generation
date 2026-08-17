@@ -89,4 +89,14 @@ public class BabysitterProfileController {
 
         return babysitterProfileService.getList(searchDTO);
     }
+
+    // 내 위치(lat, lng) 기준 반경 radiusKm(기본 5km) 안의 활동중인 시터, 가까운 순
+    @GetMapping("/nearby")
+    public List<BabysitterProfileDTO> nearby(
+        @RequestParam double lat,
+        @RequestParam double lng,
+        @RequestParam(defaultValue = "5") double radiusKm
+    ) {
+        return babysitterProfileService.getNearby(lat, lng, radiusKm);
+    }
 }

@@ -23,6 +23,9 @@ public interface BabysitterJobPostMapper {
 
     List<BabysitterJobPost> selectListByParent(@Param("parentEmail") String parentEmail);
 
+    // 지도 (내 주변) 후보군: 좌표가 있고 모집중인 구인글 전체. 거리 계산/반경 필터는 서비스단에서 처리
+    List<BabysitterJobPost> selectNearbyCandidates();
+
     void insert(BabysitterJobPost jobPost);
 
     void updateStatus(@Param("jobNo") Long jobNo, @Param("status") BabysitterJobStatus status);

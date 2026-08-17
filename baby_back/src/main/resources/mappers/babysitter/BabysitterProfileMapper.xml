@@ -9,6 +9,8 @@
         <result property="name" column="name"/>
         <result property="careerYears" column="career_years"/>
         <result property="region" column="region"/>
+        <result property="latitude" column="latitude"/>
+        <result property="longitude" column="longitude"/>
         <result property="availableTime" column="available_time"/>
         <result property="hourlyRate" column="hourly_rate"/>
         <result property="intro" column="intro"/>
@@ -24,7 +26,7 @@
     </resultMap>
 
     <select id="selectByEmail" resultMap="profileResultMap">
-        SELECT email, name, career_years, region, available_time, hourly_rate, intro,
+        SELECT email, name, career_years, region, latitude, longitude, available_time, hourly_rate, intro,
                profile_image_file_name, status, reg_time, mod_time
         FROM tbl_babysitter_profile
         WHERE email = #{email}
@@ -47,9 +49,9 @@
 
     <insert id="insert">
         INSERT INTO tbl_babysitter_profile
-            (email, name, career_years, region, available_time, hourly_rate, intro, status)
+            (email, name, career_years, region, latitude, longitude, available_time, hourly_rate, intro, status)
         VALUES
-            (#{email}, #{name}, #{careerYears}, #{region}, #{availableTime}, #{hourlyRate}, #{intro}, #{status})
+            (#{email}, #{name}, #{careerYears}, #{region}, #{latitude}, #{longitude}, #{availableTime}, #{hourlyRate}, #{intro}, #{status})
     </insert>
 
     <update id="update">
@@ -57,6 +59,8 @@
         SET name           = #{name},
             career_years   = #{careerYears},
             region         = #{region},
+            latitude       = #{latitude},
+            longitude      = #{longitude},
             available_time = #{availableTime},
             hourly_rate    = #{hourlyRate},
             intro          = #{intro},
@@ -77,7 +81,7 @@
     </delete>
 
     <select id="selectList" resultType="com.backend.babysitter.domain.BabysitterProfile">
-        SELECT email, name, career_years, region, available_time, hourly_rate, intro,
+        SELECT email, name, career_years, region, latitude, longitude, available_time, hourly_rate, intro,
                profile_image_file_name, status, reg_time, mod_time
         FROM tbl_babysitter_profile
         <include refid="searchWhere"/>
@@ -100,6 +104,15 @@
         SELECT COUNT(*)
         FROM tbl_babysitter_profile
         <include refid="searchWhere"/>
+    </select>
+
+    <select id="selectNearbyCandidates" resultType="com.backend.babysitter.domain.BabysitterProfile">
+        SELECT email, name, career_years, region, latitude, longitude, available_time, hourly_rate, intro,
+               profile_image_file_name, status, reg_time, mod_time
+        FROM tbl_babysitter_profile
+        WHERE status = 'ACTIVE'
+          AND latitude IS NOT NULL
+          AND longitude IS NOT NULL
     </select>
 
     <sql id="searchWhere">

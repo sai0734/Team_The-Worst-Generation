@@ -39,6 +39,12 @@ const BabysitterMyJobPosts = lazy(
 const BabysitterMyApplications = lazy(
   () => import("../pages/babysitter/BabysitterMyApplicationsPage"),
 );
+const BabysitterChatRoomList = lazy(
+  () => import("../pages/babysitter/BabysitterChatRoomListPage"),
+);
+const BabysitterChatRoom = lazy(
+  () => import("../pages/babysitter/BabysitterChatRoomPage"),
+);
 
 const communityRouter = (): RouteObject[] => {
   return [
@@ -161,6 +167,22 @@ const communityRouter = (): RouteObject[] => {
               ),
             },
           ],
+        },
+        {
+          path: "chat",
+          element: (
+            <Suspense fallback={Loading}>
+              <BabysitterChatRoomList />
+            </Suspense>
+          ),
+        },
+        {
+          path: "chat/:roomNo",
+          element: (
+            <Suspense fallback={Loading}>
+              <BabysitterChatRoom />
+            </Suspense>
+          ),
         },
         {
           path: ":email",

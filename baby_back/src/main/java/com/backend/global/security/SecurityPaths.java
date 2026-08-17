@@ -16,6 +16,7 @@ public final class SecurityPaths {
       "/api/community/posts/files/**",
       "/api/babysitter/profiles/files/**",
       "/api/openclaw/**",
+      "/ws-chat/**",
           "/api/baby-info/view/**",
       "/api/market/items/list",
       "/api/market/items/nearby",

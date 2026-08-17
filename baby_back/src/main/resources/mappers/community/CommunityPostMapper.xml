@@ -8,6 +8,7 @@
         <id property="postNo" column="post_no"/>
         <result property="writerEmail" column="writer_email"/>
         <result property="nickname" column="nickname"/>
+        <result property="category" column="category"/>
         <result property="title" column="title"/>
         <result property="content" column="content"/>
         <result property="aiSummary" column="ai_summary"/>
@@ -24,7 +25,7 @@
     </resultMap>
 
     <select id="selectByPostNo" resultMap="postResultMap">
-        SELECT post_no, writer_email, nickname, title, content, ai_summary, view_count, comment_count,
+        SELECT post_no, writer_email, nickname, category, title, content, ai_summary, view_count, comment_count,
                del_flag, reg_time, mod_time
         FROM tbl_community_post
         WHERE post_no = #{postNo}
@@ -39,8 +40,8 @@
     </select>
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="postNo" keyColumn="post_no">
-        INSERT INTO tbl_community_post (writer_email, nickname, title, content)
-        VALUES (#{writerEmail}, #{nickname}, #{title}, #{content})
+        INSERT INTO tbl_community_post (writer_email, nickname, category, title, content)
+        VALUES (#{writerEmail}, #{nickname}, #{category}, #{title}, #{content})
     </insert>
 
     <insert id="insertImage" useGeneratedKeys="true" keyProperty="imageNo" keyColumn="image_no">
@@ -54,7 +55,8 @@
 
     <update id="update">
         UPDATE tbl_community_post
-        SET title      = #{title},
+        SET category   = #{category},
+            title      = #{title},
             content    = #{content},
             ai_summary = #{aiSummary},
             mod_time   = CURRENT_TIMESTAMP
@@ -86,7 +88,7 @@
     </update>
 
     <select id="selectList" resultType="com.backend.community.domain.CommunityPost">
-        SELECT post_no, writer_email, nickname, title, content, ai_summary, view_count, comment_count,
+        SELECT post_no, writer_email, nickname, category, title, content, ai_summary, view_count, comment_count,
                del_flag, reg_time, mod_time
         FROM tbl_community_post
         <include refid="searchWhere"/>

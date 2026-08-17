@@ -3,6 +3,9 @@ import react from "@vitejs/plugin-react";
 
 export default defineConfig({
   envDir: "../",
+  define: {
+    global: "globalThis",
+  },
   plugins: [
     react({
       include: "**/*.{jsx,js,tsx,ts}",
