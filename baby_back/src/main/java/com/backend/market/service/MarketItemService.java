@@ -28,5 +28,6 @@ public interface MarketItemService {
     // 로그인한 판매자 본인이 등록한 매물 전체 (삭제된 매물 제외)
     List<MarketItemDTO> getMine(String sellerEmail);
 
-    void markAsCompleted(Long itemNo, String requesterEmail);
+    // 거래완료는 구매자(채팅방 buyer)만 - 소유권 확인은 ChatRoomService에서 이미 끝내고 호출함
+    void markAsCompletedByBuyer(Long itemNo);
 }

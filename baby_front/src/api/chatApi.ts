@@ -11,6 +11,9 @@ export interface ChatRoom {
   buyerEmail?: string;
   sellerEmail?: string;
   regTime?: string;
+  itemTitle?: string;
+  itemStatus?: string;
+  reviewed?: boolean;
 }
 
 // ChatMessageDTO
@@ -50,6 +53,11 @@ export const uploadChatImage = async (file: File): Promise<string> => {
     headers: { "Content-Type": "multipart/form-data" },
   });
   return res.data.fileName;
+};
+
+// 거래완료: 구매자만 가능
+export const completeRoom = async (roomNo: number): Promise<void> => {
+  await jwtAxios.put(`${roomPrefix}/${roomNo}/complete`);
 };
 
 export const respondToOffer = async (

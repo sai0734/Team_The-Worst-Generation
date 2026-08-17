@@ -5,22 +5,31 @@
 <mapper namespace="com.backend.market.mapper.ChatRoomMapper">
 
     <select id="selectByItemAndMembers" resultType="com.backend.market.domain.ChatRoom">
-        SELECT room_no, item_no, buyer_email, seller_email, reg_time
-        FROM tbl_chat_room
-        WHERE item_no = #{itemNo} AND buyer_email = #{buyerEmail} AND seller_email = #{sellerEmail}
+        SELECT c.room_no, c.item_no, c.buyer_email, c.seller_email, c.reg_time,
+        i.title AS item_title, i.status AS item_status,
+        EXISTS(SELECT 1 FROM tbl_review r WHERE r.room_no = c.room_no) AS reviewed
+        FROM tbl_chat_room c
+        JOIN tbl_market_item i ON c.item_no = i.item_no
+        WHERE c.item_no = #{itemNo} AND c.buyer_email = #{buyerEmail} AND c.seller_email = #{sellerEmail}
     </select>
 
     <select id="selectListByMember" resultType="com.backend.market.domain.ChatRoom">
-        SELECT room_no, item_no, buyer_email, seller_email, reg_time
-        FROM tbl_chat_room
-        WHERE buyer_email = #{memberEmail} OR seller_email = #{memberEmail}
-        ORDER BY reg_time DESC
+        SELECT c.room_no, c.item_no, c.buyer_email, c.seller_email, c.reg_time,
+        i.title AS item_title, i.status AS item_status,
+        EXISTS(SELECT 1 FROM tbl_review r WHERE r.room_no = c.room_no) AS reviewed
+        FROM tbl_chat_room c
+        JOIN tbl_market_item i ON c.item_no = i.item_no
+        WHERE c.buyer_email = #{memberEmail} OR c.seller_email = #{memberEmail}
+        ORDER BY c.reg_time DESC
     </select>
 
     <select id="selectOne" resultType="com.backend.market.domain.ChatRoom">
-        SELECT room_no, item_no, buyer_email, seller_email, reg_time
-        FROM tbl_chat_room
-        WHERE room_no = #{roomNo}
+        SELECT c.room_no, c.item_no, c.buyer_email, c.seller_email, c.reg_time,
+        i.title AS item_title, i.status AS item_status,
+        EXISTS(SELECT 1 FROM tbl_review r WHERE r.room_no = c.room_no) AS reviewed
+        FROM tbl_chat_room c
+        JOIN tbl_market_item i ON c.item_no = i.item_no
+        WHERE c.room_no = #{roomNo}
     </select>
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="roomNo" keyColumn="room_no">

@@ -6,6 +6,7 @@ import com.backend.cryCheck.domain.CryCheck;
 import com.backend.cryCheck.dto.CryCheckDTO;
 import com.backend.cryCheck.mapper.CryCheckMapper;
 import com.backend.global.ai.OllamaClient;
+import com.backend.global.util.CustomFileUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.modelmapper.ModelMapper;
@@ -36,6 +37,8 @@ public class CryCheckServiceImpl implements CryCheckService {
 
     private final OllamaClient ollamaClient;
 
+    private final CustomFileUtil fileUtil;
+
     private final ModelMapper modelMapper;
 
     @Override
@@ -49,9 +52,26 @@ public class CryCheckServiceImpl implements CryCheckService {
             throw new IllegalArgumentException("존재하지 않는 아이입니다: " + cryCheckDTO.getBabyNo());
         }
 
-        String aiResultJson = isLikelyCry(cryCheckDTO)
-                ? ollamaClient.chat(buildPrompt(cryCheckDTO))
-                : NOT_A_CRY_RESULT;
+        // 울음소리로 보기 어려우면 AI 호출도 안 하고, 파일 저장도 안 하고(고아 파일 방지), 기록에도 안 남김
+        if (!isLikelyCry(cryCheckDTO)) {
+            return CryCheckDTO.builder()
+                    .babyNo(cryCheckDTO.getBabyNo())
+                    .avgPitch(cryCheckDTO.getAvgPitch())
+                    .avgVolume(cryCheckDTO.getAvgVolume())
+                    .durationSeconds(cryCheckDTO.getDurationSeconds())
+                    .pattern(cryCheckDTO.getPattern())
+                    .aiResultJson(NOT_A_CRY_RESULT)
+                    .build();
+        }
+
+        // 여기부터는 진짜 울음소리로 판단된 것만 오므로 이때 처음으로 파일을 저장함
+        String audioFileName = null;
+        if (cryCheckDTO.getFile() != null) {
+            List<String> savedNames = fileUtil.saveFiles(List.of(cryCheckDTO.getFile()));
+            audioFileName = savedNames.get(0);
+        }
+
+        String aiResultJson = ollamaClient.chat(buildPrompt(cryCheckDTO));
 
         CryCheck cryCheck = CryCheck.builder()
                 .babyNo(cryCheckDTO.getBabyNo())
@@ -60,6 +80,7 @@ public class CryCheckServiceImpl implements CryCheckService {
                 .durationSeconds(cryCheckDTO.getDurationSeconds())
                 .pattern(cryCheckDTO.getPattern())
                 .aiResultJson(aiResultJson)
+                .audioFileName(audioFileName)
                 .build();
 
         cryCheckMapper.insert(cryCheck);
@@ -93,6 +114,36 @@ public class CryCheckServiceImpl implements CryCheckService {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public void submitFeedback(Long cryCheckNo, String userFeedback, String email) {
+
+        log.info("cryCheck_Service_submitFeedback_실행~~~~~~~~~~");
+
+        CryCheck cryCheck = cryCheckMapper.selectByCheckNo(cryCheckNo, email);
+
+        if (cryCheck == null) {
+            throw new IllegalArgumentException("존재하지 않는 분석 기록입니다: " + cryCheckNo);
+        }
+
+        cryCheckMapper.updateFeedback(cryCheckNo, userFeedback);
+    }
+
+    @Override
+    public String remove(Long cryCheckNo, String email) {
+
+        log.info("cryCheck_Service_remove_실행~~~~~~~~~~");
+
+        CryCheck cryCheck = cryCheckMapper.selectByCheckNo(cryCheckNo, email);
+
+        if (cryCheck == null) {
+            throw new IllegalArgumentException("존재하지 않는 분석 기록입니다: " + cryCheckNo);
+        }
+
+        cryCheckMapper.delete(cryCheckNo);
+
+        return cryCheck.getAudioFileName();
+    }
+
     // 피치/길이가 아기 울음소리의 일반적인 범위를 벗어나면 AI 호출 전에 거름
     private boolean isLikelyCry(CryCheckDTO cryCheckDTO) {
 
@@ -121,12 +172,14 @@ public class CryCheckServiceImpl implements CryCheckService {
         sb.append("다음은 아기 울음소리를 분석한 음향 특징이다.\n");
         sb.append("이 정보만으로 원인을 확정할 수 없으므로, 원인을 하나로 단정하지 말고 ")
                 .append("의심되는 원인을 전부 순위별로 제시하라.\n");
+        sb.append("각 원인마다 확신 정도를 0~100 사이의 정수 confidence 값으로 추정하라. ")
+                .append("모든 candidate의 confidence 합이 100에 가깝게 배분하라.\n");
         sb.append("평균 피치: ").append(cryCheckDTO.getAvgPitch()).append("Hz\n");
         sb.append("평균 크기: ").append(cryCheckDTO.getAvgVolume()).append("\n");
         sb.append("울음 지속시간: ").append(cryCheckDTO.getDurationSeconds()).append("초\n");
         sb.append("울음 패턴: ").append(cryCheckDTO.getPattern()).append("\n");
         sb.append("아래 JSON 형식으로만 응답하라. 설명을 추가하지 마라.\n");
-        sb.append("{\"candidates\":[{\"rank\":1,\"cause\":\"원인\",\"reason\":\"이유\"}, ...]}");
+        sb.append("{\"candidates\":[{\"rank\":1,\"cause\":\"원인\",\"confidence\":78,\"reason\":\"이유\"}, ...]}");
 
         return sb.toString();
     }

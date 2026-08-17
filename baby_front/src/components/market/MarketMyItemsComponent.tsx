@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import * as marketApi from "../../api/marketApi";
 import type { MarketItem } from "../../api/marketApi";
 import useCustomLogin from "../../hooks/useCustomLogin";
+import { formatRelativeTime } from "../../util/relativeTime";
 
 const MarketMyItemsComponent = () => {
   const navigate = useNavigate();
@@ -44,13 +45,6 @@ const MarketMyItemsComponent = () => {
     );
   }
 
-  const handleComplete = async (itemNo?: number) => {
-    if (!itemNo) return;
-    if (!confirm("이 매물을 거래완료로 표시할까요?")) return;
-    await marketApi.completeItem(itemNo);
-    setReloadTrigger((prev) => prev + 1);
-  };
-
   const handleRemove = async (itemNo?: number) => {
     if (!itemNo) return;
     if (!confirm("이 매물을 삭제할까요?")) return;
@@ -59,7 +53,7 @@ const MarketMyItemsComponent = () => {
   };
 
   return (
-    <div className="card">
+    <div className="card market-page-centered">
       <div className="head">
         <h2>내 매물</h2>
       </div>
@@ -71,7 +65,11 @@ const MarketMyItemsComponent = () => {
       ) : (
         <div className="market-grid">
           {items.map((item) => (
-            <article className="card market-card" key={item.itemNo}>
+            <article
+              className="card market-card"
+              key={item.itemNo}
+              onClick={() => navigate(`/market/${item.itemNo}`)}
+            >
               <div className="thumb-wrap">
                 {item.uploadFileNames && item.uploadFileNames.length > 0 ? (
                   <img
@@ -98,27 +96,33 @@ const MarketMyItemsComponent = () => {
                     {item.status}
                   </span>
                 </div>
+                <p className="reg-time">{formatRelativeTime(item.regTime)}</p>
+                {item.status !== "거래완료" && (
+                  <p
+                    className="cry-check-hint"
+                    style={{ margin: "6px 0 0", fontSize: 10.5 }}
+                  >
+                    구매자가 채팅방에서 거래완료 처리를 하면 여기에 반영돼요.
+                  </p>
+                )}
                 <div className="market-my-item-actions">
                   <button
                     type="button"
                     className="btn ghost"
-                    onClick={() => navigate(`/market/${item.itemNo}/edit`)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      navigate(`/market/${item.itemNo}/edit`);
+                    }}
                   >
                     수정
                   </button>
-                  {item.status !== "거래완료" && (
-                    <button
-                      type="button"
-                      className="btn ghost"
-                      onClick={() => handleComplete(item.itemNo)}
-                    >
-                      거래완료로 변경
-                    </button>
-                  )}
                   <button
                     type="button"
                     className="btn ghost"
-                    onClick={() => handleRemove(item.itemNo)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleRemove(item.itemNo);
+                    }}
                   >
                     삭제
                   </button>

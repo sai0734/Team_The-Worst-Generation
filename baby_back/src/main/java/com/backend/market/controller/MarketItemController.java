@@ -124,14 +124,15 @@ public class MarketItemController {
         return marketItemService.getMine(principal.getName());
     }
 
+    // 상세페이지 사이드바 "판매자의 다른 매물"용. getMine과 같은 로직이지만
+    // principal이 아니라 아무 이메일이나 조회 가능 (다른 사람 매물 목록을 보는 거라 본인 확인 불필요)
     @PreAuthorize("hasAnyRole('ROLE_USER')")
-    @PutMapping("/{itemNo}/complete")
-    public Map<String, String> complete(@PathVariable Long itemNo, Principal principal) {
-
-        marketItemService.markAsCompleted(itemNo, principal.getName());
-
-        return Map.of("result", "success");
+    @GetMapping("/by-seller/{email}")
+    public List<MarketItemDTO> bySeller(@PathVariable String email) {
+        return marketItemService.getMine(email);
     }
+
+    // 거래완료는 구매자만 가능 - ChatRoomController의 /api/market/chat/rooms/{roomNo}/complete로 이동함
 
     @GetMapping("/files/{fileName}")
     public ResponseEntity<Resource> viewFile(@PathVariable String fileName) {

@@ -2,6 +2,7 @@ package com.backend.market.dto;
 
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Data
@@ -12,15 +13,19 @@ public class ReviewDTO {
 
     private Long reviewNo;
 
+    private Long roomNo;
+
     private Long itemNo;
 
     private String writerEmail;
 
     private String targetEmail;
 
-    private int rating;
+    private Integer rating;
 
     private String content;
+
+    private BigDecimal tempDelta;
 
     private LocalDateTime regTime;
 

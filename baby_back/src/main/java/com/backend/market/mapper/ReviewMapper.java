@@ -17,4 +17,7 @@ public interface ReviewMapper {
 
     void insert(Review review);
 
+    // 이 채팅방(거래)에 이미 온도 평가를 남겼는지 - 중복 방지
+    int countByRoom(@Param("roomNo") Long roomNo);
+
 }

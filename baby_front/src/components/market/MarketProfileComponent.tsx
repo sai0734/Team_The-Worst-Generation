@@ -1,49 +1,27 @@
-import { FormEvent, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import * as marketProfileApi from "../../api/marketProfileApi";
 import type { MarketProfile } from "../../api/marketProfileApi";
 import * as reviewApi from "../../api/reviewApi";
 import type { Review } from "../../api/reviewApi";
-import useCustomLogin from "../../hooks/useCustomLogin";
 
 const MarketProfileComponent = () => {
   const { email } = useParams();
-  const { isLogin, loginState } = useCustomLogin();
 
   const [profile, setProfile] = useState<MarketProfile | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
-  const [rating, setRating] = useState(5);
-  const [content, setContent] = useState("");
 
-  const loadAll = async () => {
+  useEffect(() => {
     if (!email) {
       return;
     }
-    setProfile(await marketProfileApi.getProfile(email));
-    setReviews(await reviewApi.getReviewList(email));
-  };
-
-  useEffect(() => {
-    loadAll();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    marketProfileApi.getProfile(email).then(setProfile);
+    reviewApi.getReviewList(email).then(setReviews);
   }, [email]);
 
   if (!profile || !email) {
     return <div className="card">불러오는 중...</div>;
   }
-
-  const isMine = loginState.email === email;
-
-  const handleSubmitReview = async (e: FormEvent) => {
-    e.preventDefault();
-    if (!content.trim()) {
-      return;
-    }
-
-    await reviewApi.registerReview({ targetEmail: email, rating, content });
-    setContent("");
-    await loadAll();
-  };
 
   return (
     <div className="card" style={{ maxWidth: 560 }}>
@@ -53,45 +31,23 @@ const MarketProfileComponent = () => {
         동네: {profile.locationName ?? "미인증"}
       </div>
 
-      <h3>받은 후기 {reviews.length}</h3>
+      <h3>받은 평가 {reviews.length}</h3>
       {reviews.map((review) => (
         <div
           className="list-row"
           key={review.reviewNo}
           style={{ display: "block" }}
         >
-          <div>{"★".repeat(review.rating)}</div>
-          <div>{review.content}</div>
+          {review.tempDelta != null && (
+            <div>
+              온도 {review.tempDelta > 0 ? "+" : ""}
+              {review.tempDelta.toFixed(1)}°C
+            </div>
+          )}
+          {review.rating != null && <div>{"★".repeat(review.rating)}</div>}
+          {review.content && <div>{review.content}</div>}
         </div>
       ))}
-
-      {isLogin && !isMine && (
-        <form onSubmit={handleSubmitReview} style={{ marginTop: 16 }}>
-          <div className="form-field">
-            <label>후기 작성</label>
-            <select
-              value={rating}
-              onChange={(e) => setRating(Number(e.target.value))}
-            >
-              {[5, 4, 3, 2, 1].map((n) => (
-                <option key={n} value={n}>
-                  {n}점
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="form-field">
-            <textarea
-              value={content}
-              onChange={(e) => setContent(e.target.value)}
-              rows={3}
-            />
-          </div>
-          <button type="submit" className="btn">
-            등록
-          </button>
-        </form>
-      )}
     </div>
   );
 };
