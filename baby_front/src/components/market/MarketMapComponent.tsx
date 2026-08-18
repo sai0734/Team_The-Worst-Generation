@@ -71,7 +71,7 @@ const MarketMapComponent = ({ items, center }: MarketMapComponentProps) => {
 
       wrap.appendChild(body);
 
-      const overlay = new window.kakao.maps.CustomOverlay({
+      const overlay = new (window as any).kakao.maps.CustomOverlay({
         position,
         content: wrap,
         yAnchor: 1.15,
@@ -101,7 +101,7 @@ const MarketMapComponent = ({ items, center }: MarketMapComponentProps) => {
         );
 
         // 지도 빈 곳 클릭하면 열려있던 팝업 닫기 (맵 인스턴스는 한 번만 생성되므로 여기서 한 번만 등록)
-        window.kakao.maps.event.addListener(
+        (window as any).kakao.maps.event.addListener(
           mapRef.current,
           "click",
           closeItemPopup,
@@ -147,7 +147,7 @@ const MarketMapComponent = ({ items, center }: MarketMapComponentProps) => {
           map: mapRef.current,
         });
 
-        window.kakao.maps.event.addListener(marker, "click", () => {
+        (window as any).kakao.event.addListener(marker, "click", () => {
           openItemPopup(item, position);
         });
 

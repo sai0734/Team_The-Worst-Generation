@@ -31,19 +31,19 @@ const MarketSellerQuickInfo = ({ item }: MarketSellerQuickInfoProps) => {
       .then(() => {
         if (cancelled || !mapContainerRef.current) return;
 
-        const position = new window.kakao.maps.LatLng(
+        const position = new (window as any).kakao.LatLng(
           item.latitude,
           item.longitude,
         );
 
-        const map = new window.kakao.maps.Map(mapContainerRef.current, {
+        const map = new (window as any).kakao.Map(mapContainerRef.current, {
           center: position,
           level: 4,
         });
         map.setDraggable(false);
         map.setZoomable(false);
 
-        new window.kakao.maps.Marker({ position, map });
+        new (window as any).kakao.Marker({ position, map });
       })
       .catch((err) => console.error(err));
 
@@ -72,7 +72,9 @@ const MarketSellerQuickInfo = ({ item }: MarketSellerQuickInfoProps) => {
         </div>
       )}
 
-      {hasCoords && <div ref={mapContainerRef} className="detail-quickinfo-map" />}
+      {hasCoords && (
+        <div ref={mapContainerRef} className="detail-quickinfo-map" />
+      )}
     </div>
   );
 };
