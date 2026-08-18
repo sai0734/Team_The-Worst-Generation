@@ -50,6 +50,7 @@ public class MarketDummySeeder implements ApplicationRunner {
             "user5@aaa.com", "user6@aaa.com", "user7@aaa.com", "user8@aaa.com"
     );
     private static final String SEED_LOCATION_NAME = "서울 서초구 서운로 일대";
+    private static final String SEED_TRACKER_FILE = ".market-seed-files.json"; // 저번 시딩 때 만든 파일 목록 추적용
 
     // 래미안서초스위트 (서울 서초구 서운로 221) 기준
     private static final double CENTER_LAT = 37.5021291;
@@ -100,17 +101,54 @@ public class MarketDummySeeder implements ApplicationRunner {
             uploadDir.mkdirs();
         }
 
+        // DB가 비어서 다시 시딩한다는 건 예전 시딩 결과물(이미지)은 이미 주인 잃은 상태라는 뜻 -
+        // 실제 사용자 업로드 파일은 이 추적 목록에 없으니 안전하게 예전 시드 이미지만 지움
+        cleanupPreviousSeedFiles();
+
         // 판매자로 쓰는 계정들의 "내 동네"를 래미안서초스위트로 맞춰서, 이 계정으로 로그인하면
         // 홈 지도가 처음부터 매물이 다 잡히는 위치를 중심으로 뜨게 함
         availableSellers.forEach(this::alignProfileToSeedCenter);
 
+        List<String> allSavedFileNames = new ArrayList<>();
         for (int i = 0; i < items.size(); i++) {
             String sellerEmail = availableSellers.get(i % availableSellers.size());
-            registerSeedItem(items.get(i), sellerEmail);
+            allSavedFileNames.addAll(registerSeedItem(items.get(i), sellerEmail));
         }
+
+        writeSeedTracker(allSavedFileNames);
 
         log.info("감자마켓 더미데이터 {}건 시딩 완료 (판매자 {}명: {})",
                 items.size(), availableSellers.size(), availableSellers);
+    }
+
+    // 저번 시딩 때 추적 목록에 남겨둔 파일들을 정리 (원본 + 썸네일). 목록에 없는 파일(실사용자 업로드)은 절대 안 건드림
+    private void cleanupPreviousSeedFiles() {
+
+        File trackerFile = Paths.get(uploadPath, SEED_TRACKER_FILE).toFile();
+        if (!trackerFile.exists()) {
+            return;
+        }
+
+        try {
+            List<String> previousFiles = objectMapper.readValue(
+                    trackerFile,
+                    objectMapper.getTypeFactory().constructCollectionType(List.class, String.class)
+            );
+            for (String fileName : previousFiles) {
+                Files.deleteIfExists(Paths.get(uploadPath, fileName));
+                Files.deleteIfExists(Paths.get(uploadPath, "s_" + fileName));
+            }
+            log.info("이전 감자마켓 시드 이미지 {}개 정리 완료", previousFiles.size());
+        } catch (Exception e) {
+            log.warn("이전 시드 이미지 정리 중 오류 (무시하고 계속 진행)", e);
+        } finally {
+            trackerFile.delete();
+        }
+    }
+
+    // 이번에 새로 만든 파일 목록을 남겨서, 다음 재시딩 때 정확히 이 파일들만 지울 수 있게 함
+    private void writeSeedTracker(List<String> fileNames) throws Exception {
+        objectMapper.writeValue(Paths.get(uploadPath, SEED_TRACKER_FILE).toFile(), fileNames);
     }
 
     // MarketProfileServiceImpl.get()과 동일한 upsert 패턴 (없으면 insert, 있으면 update)
@@ -130,7 +168,7 @@ public class MarketDummySeeder implements ApplicationRunner {
         }
     }
 
-    private void registerSeedItem(SeedItem item, String sellerEmail) throws Exception {
+    private List<String> registerSeedItem(SeedItem item, String sellerEmail) throws Exception {
 
         List<String> savedNames = new ArrayList<>();
         savedNames.add(saveSeedImage(item.dir, item.mainImage));
@@ -159,6 +197,8 @@ public class MarketDummySeeder implements ApplicationRunner {
         // 등록 시점이 다 똑같으면 "N일 전" 표시가 밋밋해서, 최근 2주 안에서 랜덤하게 흩어놓음
         LocalDateTime randomRegTime = LocalDateTime.now().minusMinutes((long) (Math.random() * 14 * 24 * 60));
         marketItemMapper.updateRegTime(itemNo, randomRegTime);
+
+        return savedNames;
     }
 
     // CustomFileUtil.saveFiles와 동일한 규칙(UUID 접두어 + 200x200 썸네일)으로 저장.
