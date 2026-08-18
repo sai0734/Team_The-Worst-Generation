@@ -34,6 +34,11 @@ public class CommunityPostDTO {
 
     private int commentCount;
 
+    private int likeCount;
+
+    // 조회한 사용자가 이 글에 공감했는지 여부 (로그인 안 했으면 false)
+    private boolean liked;
+
     @Builder.Default
     private List<CommunityImageDTO> imageList = List.of();
 

@@ -19,7 +19,15 @@ public class BabysitterChatMessage {
     // FK (tbl_member.email)
     private String senderEmail;
 
-    private String content;
+    @Builder.Default
+    private String msgType = "TEXT";    // TEXT | REQUEST
+
+    private String content;             // TEXT: 메시지 내용, REQUEST: 미사용(null)
+
+    // FK (tbl_babysitter_request.requestNo) - msgType이 REQUEST인 경우만
+    private Long requestNo;
+
+    private String requestStatus;       // PENDING | ACCEPTED | REJECTED - REQUEST 카드 렌더링용 스냅샷
 
     private LocalDateTime regTime;
 }

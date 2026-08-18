@@ -38,38 +38,27 @@ const splitMemo = (memo: string): { title: string; detail: string | null } => {
   return { title: memo, detail: null };
 };
 const PAGE_SIZE = 5;
-const MONTH_COUNT = 6;
+const YEAR_RANGE = 6;
 
 const todayStr = () => new Date().toISOString().slice(0, 10);
 
-interface MonthOption {
-  offset: number;
-  label: string;
-  start: string;
-  end: string;
-}
-
-const buildMonthOptions = (): MonthOption[] => {
+const getCurrentYM = () => {
   const now = new Date();
-  const fmt = (d: Date) => d.toISOString().slice(0, 10);
-  const options: MonthOption[] = [];
-
-  for (let i = 0; i < MONTH_COUNT; i++) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    const start = new Date(d.getFullYear(), d.getMonth(), 1);
-    const end = new Date(d.getFullYear(), d.getMonth() + 1, 0);
-    options.push({
-      offset: i,
-      label: i === 0 ? "이번 달" : `${d.getMonth() + 1}월`,
-      start: fmt(start),
-      end: fmt(end),
-    });
-  }
-
-  return options;
+  return { year: now.getFullYear(), month: now.getMonth() + 1 };
 };
 
-const MONTH_OPTIONS = buildMonthOptions();
+const monthRange = (year: number, month: number) => {
+  const fmt = (d: Date) => d.toISOString().slice(0, 10);
+  const start = new Date(year, month - 1, 1);
+  const end = new Date(year, month, 0);
+  return { start: fmt(start), end: fmt(end) };
+};
+
+const isSameMonth = (dateStr: string, year: number, month: number) => {
+  if (!dateStr) return false;
+  const d = new Date(dateStr);
+  return d.getFullYear() === year && d.getMonth() + 1 === month;
+};
 
 const sumByType = (list: Ledger[], type: LedgerType) =>
   list.filter((entry) => entry.type === type).reduce((sum, entry) => sum + entry.amount, 0);
@@ -92,7 +81,8 @@ const LedgerComponent = () => {
   const [savingAll, setSavingAll] = useState(false);
   const [activeCategoryTab, setActiveCategoryTab] = useState<LedgerCategory | "ALL">("ALL");
   const [page, setPage] = useState(1);
-  const [monthOffset, setMonthOffset] = useState(0);
+  const [selectedYear, setSelectedYear] = useState(getCurrentYM().year);
+  const [selectedMonth, setSelectedMonth] = useState(getCurrentYM().month);
   const [monthEntries, setMonthEntries] = useState<Ledger[] | null>(null);
   const [monthLoading, setMonthLoading] = useState(false);
 
@@ -112,6 +102,15 @@ const LedgerComponent = () => {
 
       setEntries(entriesRes);
       setBriefingAvailable(settingRes.briefingAvailable);
+
+      // 이번 달이 아닌 다른 년/월을 보고 있는 상태에서 항목을 추가/수정/삭제했을 때도
+      // 그 목록이 같이 갱신되도록 함께 새로고침한다.
+      const current = getCurrentYM();
+      if (selectedYear !== current.year || selectedMonth !== current.month) {
+        const { start, end } = monthRange(selectedYear, selectedMonth);
+        const monthList = await ledgerApi.getLedgerList(start, end);
+        setMonthEntries(monthList);
+      }
     } catch (err) {
       exceptionHandle(err);
     }
@@ -122,20 +121,22 @@ const LedgerComponent = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleMonthClick = async (offset: number) => {
-    setMonthOffset(offset);
+  const handleMonthChange = async (year: number, month: number) => {
+    setSelectedYear(year);
+    setSelectedMonth(month);
     setActiveCategoryTab("ALL");
     setPage(1);
 
-    if (offset === 0) {
+    const current = getCurrentYM();
+    if (year === current.year && month === current.month) {
       setMonthEntries(null);
       return;
     }
 
-    const option = MONTH_OPTIONS[offset];
+    const { start, end } = monthRange(year, month);
     setMonthLoading(true);
     try {
-      const list = await ledgerApi.getLedgerList(option.start, option.end);
+      const list = await ledgerApi.getLedgerList(start, end);
       setMonthEntries(list);
     } catch (err) {
       exceptionHandle(err);
@@ -184,7 +185,7 @@ const LedgerComponent = () => {
           id: `${Date.now()}-${i}`,
           memo: result?.description?.trim() || line,
           type: result?.type ?? "EXPENSE",
-          category: "",
+          category: result?.category && CATEGORY_ORDER.includes(result.category) ? result.category : "",
           amount: result?.amount != null ? String(result.amount) : "",
           txDate: batchDate,
         };
@@ -224,7 +225,7 @@ const LedgerComponent = () => {
               id: `${Date.now()}-receipt-${i}-${j}`,
               memo: result.description?.trim() || `영수증 ${i + 1} 항목`,
               type: result.type,
-              category: "",
+              category: result.category && CATEGORY_ORDER.includes(result.category) ? result.category : "",
               amount: result.amount != null ? String(result.amount) : "",
               txDate: result.txDate || batchDate,
             });
@@ -361,14 +362,18 @@ const LedgerComponent = () => {
 
   const expenseDelta = summary ? summary.totalExpense - summary.prevTotalExpense : 0;
 
-  const displayEntries = monthOffset === 0 ? entries : (monthEntries ?? []);
+  const isCurrentMonth =
+    selectedYear === getCurrentYM().year && selectedMonth === getCurrentYM().month;
+  const monthLabel = isCurrentMonth ? "이번 달" : `${selectedYear}년 ${selectedMonth}월`;
+
+  const displayEntries = isCurrentMonth ? entries : (monthEntries ?? []);
 
   const monthIncome =
-    monthOffset === 0 && summary ? summary.totalIncome : sumByType(displayEntries, "INCOME");
+    isCurrentMonth && summary ? summary.totalIncome : sumByType(displayEntries, "INCOME");
   const monthExpense =
-    monthOffset === 0 && summary ? summary.totalExpense : sumByType(displayEntries, "EXPENSE");
+    isCurrentMonth && summary ? summary.totalExpense : sumByType(displayEntries, "EXPENSE");
   const monthCategoryBreakdown: Partial<Record<LedgerCategory, number>> =
-    monthOffset === 0 && summary
+    isCurrentMonth && summary
       ? summary.categoryBreakdown
       : displayEntries.reduce<Partial<Record<LedgerCategory, number>>>((acc, entry) => {
           acc[entry.category] = (acc[entry.category] ?? 0) + entry.amount;
@@ -401,18 +406,41 @@ const LedgerComponent = () => {
       <p className="eyebrow">THIS MONTH</p>
       <h2 className="page-title">우리집 가계부</h2>
 
-      <div className="month-tabs">
-        {MONTH_OPTIONS.map((opt) => (
+      <div className="month-select-row">
+        <select
+          value={selectedYear}
+          onChange={(e) => handleMonthChange(Number(e.target.value), selectedMonth)}
+          disabled={monthLoading}
+        >
+          {Array.from({ length: YEAR_RANGE }, (_, i) => getCurrentYM().year - i).map((y) => (
+            <option key={y} value={y}>
+              {y}년
+            </option>
+          ))}
+        </select>
+        <select
+          value={selectedMonth}
+          onChange={(e) => handleMonthChange(selectedYear, Number(e.target.value))}
+          disabled={monthLoading}
+        >
+          {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
+            <option key={m} value={m}>
+              {m}월
+            </option>
+          ))}
+        </select>
+        {isCurrentMonth ? (
+          <span className="current-month-badge">이번 달</span>
+        ) : (
           <button
-            key={opt.offset}
             type="button"
-            className={`category-tab${monthOffset === opt.offset ? " active" : ""}`}
-            onClick={() => handleMonthClick(opt.offset)}
+            className="current-month-badge current-month-jump"
+            onClick={() => handleMonthChange(getCurrentYM().year, getCurrentYM().month)}
             disabled={monthLoading}
           >
-            {opt.label}
+            이번 달로
           </button>
-        ))}
+        )}
       </div>
 
       {summary && (
@@ -426,13 +454,13 @@ const LedgerComponent = () => {
             </div>
 
             <div className="card stat-card income area-income">
-              <small>{MONTH_OPTIONS[monthOffset].label} 수입</small>
+              <small>{monthLabel} 수입</small>
               <strong>{formatWon(monthIncome)}</strong>
             </div>
             <div className="card stat-card expense area-expense">
-              <small>{MONTH_OPTIONS[monthOffset].label} 지출</small>
+              <small>{monthLabel} 지출</small>
               <strong>{formatWon(monthExpense)}</strong>
-              {monthOffset === 0 && (
+              {isCurrentMonth && (
                 <div className="delta">
                   {expenseDelta === 0
                     ? "지난 달과 동일해요"
@@ -444,14 +472,14 @@ const LedgerComponent = () => {
             </div>
           </div>
 
-          {monthOffset === 0 && briefingAvailable && !briefingText && (
+          {isCurrentMonth && briefingAvailable && !briefingText && (
             <button type="button" className="tool" onClick={handleBriefing} disabled={briefingLoading}>
               <i>✦</i>
               <span>{briefingLoading ? "브리핑 생성 중..." : "AI 브리핑 받기"}</span>
             </button>
           )}
 
-          {monthOffset === 0 && briefingText && (
+          {isCurrentMonth && briefingText && (
             <div className="card briefing-box" style={{ marginTop: briefingAvailable ? 12 : 0 }}>
               <p>{briefingText}</p>
             </div>
@@ -539,11 +567,16 @@ const LedgerComponent = () => {
                     value={item.amount}
                     onChange={(e) => updateItem(item.id, { amount: e.target.value })}
                   />
-                  <input
-                    type="date"
-                    value={item.txDate}
-                    onChange={(e) => updateItem(item.id, { txDate: e.target.value })}
-                  />
+                  <div className="pending-date-cell">
+                    <input
+                      type="date"
+                      value={item.txDate}
+                      onChange={(e) => updateItem(item.id, { txDate: e.target.value })}
+                    />
+                    {!isSameMonth(item.txDate, getCurrentYM().year, getCurrentYM().month) && (
+                      <small className="date-warn-badge">이번 달 아님</small>
+                    )}
+                  </div>
                   <button
                     type="button"
                     className="icon-btn-ghost"
@@ -586,9 +619,7 @@ const LedgerComponent = () => {
       )}
 
       {displayEntries.length === 0 && (
-        <div className="card empty-hint">
-          {MONTH_OPTIONS[monthOffset].label} 기록이 없어요.
-        </div>
+        <div className="card empty-hint">{monthLabel} 기록이 없어요.</div>
       )}
       {displayEntries.length > 0 && filteredEntries.length === 0 && (
         <div className="card empty-hint">해당 카테고리 기록이 없어요.</div>

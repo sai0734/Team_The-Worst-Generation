@@ -16,4 +16,6 @@ import lombok.experimental.SuperBuilder;
 public class CommunityPostSearchDTO extends PageRequestDTO {
 
     private String keyword;
+
+    private String category;
 }

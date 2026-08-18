@@ -31,6 +31,8 @@ export interface CommunityPost {
   aiSummary: string | null;
   viewCount: number;
   commentCount: number;
+  likeCount: number;
+  liked: boolean;
   imageList: CommunityImage[];
   regTime: string;
   modTime: string;
@@ -44,6 +46,7 @@ export interface CommunityPostInput {
 
 export interface CommunityPostSearchParam extends PageRequestParam {
   keyword?: string;
+  category?: CommunityCategory;
 }
 
 export interface CommunityComment {
@@ -135,6 +138,14 @@ export const modify = async (
 
 export const remove = async (postNo: number): Promise<{ RESULT: string }> => {
   const res = await jwtAxios.delete(`${prefix}/${postNo}`);
+
+  return res.data;
+};
+
+export const toggleLike = async (
+  postNo: number,
+): Promise<{ liked: boolean }> => {
+  const res = await jwtAxios.put(`${prefix}/${postNo}/like`);
 
   return res.data;
 };

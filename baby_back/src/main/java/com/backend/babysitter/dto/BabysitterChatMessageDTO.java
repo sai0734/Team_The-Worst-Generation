@@ -16,7 +16,14 @@ public class BabysitterChatMessageDTO {
 
     private String senderEmail;
 
-    private String content;
+    @Builder.Default
+    private String msgType = "TEXT";    // TEXT | REQUEST
+
+    private String content;             // TEXT: 메시지 내용, REQUEST: 미사용(null)
+
+    private Long requestNo;
+
+    private String requestStatus;       // PENDING | ACCEPTED | REJECTED
 
     private LocalDateTime regTime;
 

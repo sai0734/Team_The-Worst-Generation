@@ -24,6 +24,8 @@ public interface CommunityPostMapper {
 
     void changeCommentCount(@Param("postNo") Long postNo, @Param("delta") int delta);
 
+    void changeLikeCount(@Param("postNo") Long postNo, @Param("delta") int delta);
+
     void updateToDelete(@Param("postNo") Long postNo);
 
     List<CommunityPost> selectList(@Param("search") CommunityPostSearchDTO search, @Param("skip") int skip);

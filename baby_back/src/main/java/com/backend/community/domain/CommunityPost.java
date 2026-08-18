@@ -34,6 +34,9 @@ public class CommunityPost {
     private int commentCount = 0;
 
     @Builder.Default
+    private int likeCount = 0;
+
+    @Builder.Default
     private boolean delFlag = false;
 
     private LocalDateTime regTime;
@@ -60,6 +63,10 @@ public class CommunityPost {
 
     public void changeCommentCount(int delta) {
         this.commentCount += delta;
+    }
+
+    public void changeLikeCount(int delta) {
+        this.likeCount += delta;
     }
 
     public void markDeleted() {

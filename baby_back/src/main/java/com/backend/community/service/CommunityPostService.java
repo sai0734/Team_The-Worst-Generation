@@ -12,9 +12,13 @@ public interface CommunityPostService {
 
     Long register(CommunityPostDTO postDTO);
 
-    CommunityPostDTO get(Long postNo);
+    // viewerEmail은 로그인 안 했으면 null - 이 경우 liked는 항상 false로 내려간다.
+    CommunityPostDTO get(Long postNo, String viewerEmail);
 
     PageResponseDTO<CommunityPostDTO> getList(CommunityPostSearchDTO searchDTO);
+
+    // 공감 토글. 반환값은 토글 후 상태(true = 공감함).
+    boolean toggleLike(Long postNo, String memberEmail);
 
     void modify(CommunityPostDTO postDTO, String email);
 

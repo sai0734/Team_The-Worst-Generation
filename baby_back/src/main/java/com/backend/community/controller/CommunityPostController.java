@@ -73,9 +73,20 @@ public class CommunityPostController {
     }
 
     @GetMapping("/{postNo}")
-    public CommunityPostDTO get(@PathVariable Long postNo) {
+    public CommunityPostDTO get(@PathVariable Long postNo, Principal principal) {
 
-        return communityPostService.get(postNo);
+        String viewerEmail = principal != null ? principal.getName() : null;
+
+        return communityPostService.get(postNo, viewerEmail);
+    }
+
+    @PreAuthorize("hasAnyRole('ROLE_USER')")
+    @PutMapping("/{postNo}/like")
+    public Map<String, Boolean> toggleLike(@PathVariable Long postNo, Principal principal) {
+
+        boolean liked = communityPostService.toggleLike(postNo, principal.getName());
+
+        return Map.of("liked", liked);
     }
 
     @GetMapping("/{postNo}/summary")

@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import * as communityApi from "../../api/communityApi";
-import { CATEGORY_BADGE_CLASS } from "../../api/communityApi";
-import type { CommunityPost } from "../../api/communityApi";
+import { CATEGORY_BADGE_CLASS, COMMUNITY_CATEGORIES } from "../../api/communityApi";
+import type { CommunityCategory, CommunityPost } from "../../api/communityApi";
 import type { PageResponse } from "../../types/page";
 import type { MovePageParam } from "../../hooks/useCustomMove";
 import PageComponent from "../common/PageComponent";
@@ -15,22 +15,33 @@ const excerptOf = (content: string): string =>
     ? `${content.slice(0, EXCERPT_MAX_LENGTH)}…`
     : content;
 
+const formatDateTime = (iso: string): string => iso.slice(0, 16).replace("T", " ");
+
 const CommunityListComponent = () => {
   const navigate = useNavigate();
   const { isLogin } = useCustomLogin();
 
   const [keyword, setKeyword] = useState("");
+  const [category, setCategory] = useState<CommunityCategory | "ALL">("ALL");
   const [pageResponse, setPageResponse] =
     useState<PageResponse<CommunityPost> | null>(null);
 
-  const loadList = async (pageNum: number) => {
+  const loadList = async (pageNum: number, categoryOverride?: CommunityCategory | "ALL") => {
+    const activeCategory = categoryOverride ?? category;
+
     const res = await communityApi.getList({
       page: pageNum,
       size: 10,
       keyword: keyword || undefined,
+      category: activeCategory === "ALL" ? undefined : activeCategory,
     });
 
     setPageResponse(res);
+  };
+
+  const handleCategoryClick = (cat: CommunityCategory | "ALL") => {
+    setCategory(cat);
+    loadList(1, cat);
   };
 
   useEffect(() => {
@@ -55,6 +66,26 @@ const CommunityListComponent = () => {
             글쓰기
           </button>
         )}
+      </div>
+
+      <div className="seg" style={{ marginBottom: 12 }}>
+        <button
+          type="button"
+          className={category === "ALL" ? "is-active" : ""}
+          onClick={() => handleCategoryClick("ALL")}
+        >
+          전체
+        </button>
+        {COMMUNITY_CATEGORIES.map((c) => (
+          <button
+            type="button"
+            key={c}
+            className={category === c ? "is-active" : ""}
+            onClick={() => handleCategoryClick(c)}
+          >
+            {c}
+          </button>
+        ))}
       </div>
 
       <div className="community-search">
@@ -90,7 +121,8 @@ const CommunityListComponent = () => {
               {post.aiSummary ? `AI 한줄요약 · ${post.aiSummary}` : excerptOf(post.content)}
             </span>
             <span className="meta">
-              {post.nickname} · 조회 {post.viewCount} · 댓글 {post.commentCount}
+              {post.nickname} · {formatDateTime(post.regTime)} · 조회 {post.viewCount} · 공감 {post.likeCount} · 댓글{" "}
+              {post.commentCount}
             </span>
           </article>
         ))}
