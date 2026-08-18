@@ -23,6 +23,7 @@ public final class SecurityPaths {
       "/api/market/items/files/**",
           "/api/diary/view/**",
           "/api/baby-album/view/**",
+          "/api/walk/trail/nearby",
           "/api/recall/my-products/view/**",
   };
 

@@ -1,20 +1,14 @@
 import { useCallback, useState, type CSSProperties } from "react";
-import {
-  NavLink,
-  Outlet,
-  useLocation,
-  useNavigate,
-  useParams,
-} from "react-router-dom";
+import { Outlet, useLocation, useNavigate, useParams } from "react-router-dom";
 import BasicLayout from "../../layouts/BasicLayout";
 import * as babyInfoApi from "../../api/babyInfoApi";
 import type { BabyInfo } from "../../api/babyInfoApi";
 
-type AllergyAction = "check" | "custom";
+type HealthAction = "skin" | "stool";
 
-const SIDE_ITEMS: { label: string; action: AllergyAction }[] = [
-  { label: "성분 검사", action: "check" },
-  { label: "추가 알레르기 관리", action: "custom" },
+const SIDE_ITEMS: { label: string; action: HealthAction }[] = [
+  { label: "피부 검사", action: "skin" },
+  { label: "대변 검사", action: "stool" },
 ];
 
 const layoutStyle: CSSProperties = {
@@ -73,15 +67,15 @@ const babyPickBtnStyle: CSSProperties = {
   cursor: "pointer",
 };
 
-const AllergyIndexPage = () => {
+const HealthIndexPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { babyNo } = useParams<{ babyNo: string }>();
   const [babyList, setBabyList] = useState<BabyInfo[] | null>(null);
-  const [pendingPath, setPendingPath] = useState<AllergyAction | null>(null);
+  const [pendingPath, setPendingPath] = useState<HealthAction | null>(null);
 
   const goWithBaby = useCallback(
-    async (path: AllergyAction) => {
+    async (path: HealthAction) => {
       if (babyNo) {
         navigate({ pathname: `${path}/${babyNo}` });
         return;
@@ -113,8 +107,8 @@ const AllergyIndexPage = () => {
     setPendingPath(null);
   };
 
-  const isActionActive = (action: AllergyAction) =>
-    location.pathname.includes(`/allergy/${action}/`);
+  const isActionActive = (action: HealthAction) =>
+    location.pathname.includes(`/health/${action}/`);
 
   return (
     <BasicLayout>
@@ -129,12 +123,6 @@ const AllergyIndexPage = () => {
               {item.label}
             </span>
           ))}
-          <NavLink
-            to="ingredient"
-            style={({ isActive }) => navItemStyle(isActive)}
-          >
-            알레르기 유발 성분
-          </NavLink>
         </nav>
 
         <div style={contentStyle}>
@@ -165,4 +153,4 @@ const AllergyIndexPage = () => {
   );
 };
 
-export default AllergyIndexPage;
+export default HealthIndexPage;

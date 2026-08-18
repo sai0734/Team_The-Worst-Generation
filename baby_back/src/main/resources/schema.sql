@@ -642,6 +642,24 @@ CREATE TABLE IF NOT EXISTS tbl_baby_skin_check (
     CONSTRAINT fk_skin_check_baby FOREIGN KEY (babyNo) REFERENCES tbl_baby_info (baby_no)
     );
 
+-- LMJ - 산책로 기본 정보 (현재위치 기반 산책로 추천용)
+CREATE TABLE IF NOT EXISTS tbl_walk_trail(
+    trail_no BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    description VARCHAR(500),
+    location_name VARCHAR(200),
+    latitude DECIMAL(10,7) NOT NULL,
+    longitude DECIMAL(10,7) NOT NULL ,
+    reg_time DATETIME NOT NULL DEFAULT current_timestamp
+);
+
+INSERT INTO tbl_walk_trail (name, description, location_name, latitude, longitude) VALUES
+    ('반포한강공원 산책로', '한강 뷰가 좋은 평지 코스, 유모차 이동 편함', '서울 서초구 반포동', 37.5107, 127.0021),
+    ('서리풀공원 산책로', '숲길 코스, 그늘이 많아 여름에 좋음', '서울 서초구 서초동', 37.4884, 127.0102),
+    ('양재천 산책로', '강변 산책로, 벚꽃 명소', '서울 서초구 양재동', 37.4779, 127.0387);
+
+-- LMJ 끝
+
 -- =========================================================
 -- YSJ - 퀘스트 (DAILY / URGENT)
 -- =========================================================

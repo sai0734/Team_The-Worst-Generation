@@ -29,14 +29,21 @@ const RecipeRecommendComponent = ({
   };
 
   return (
-    <div className="space-y-4">
-      <p className="font-semibold text-gray-900">알레르기 회피 레시피 추천</p>
+    <div className="card">
+      <div className="head">
+        <h2>알레르기 회피 레시피 추천</h2>
+      </div>
 
-      <div className="flex gap-2">
+      <div style={{ display: "flex", gap: 8 }}>
         <select
           value={productType}
           onChange={(e) => setProductType(e.target.value)}
-          className="rounded border border-gray-300 px-3 py-2"
+          style={{
+            padding: "10px 12px",
+            border: "1px solid var(--line)",
+            borderRadius: 12,
+            background: "var(--glass)",
+          }}
         >
           {productTypes.map((type) => (
             <option key={type} value={type}>
@@ -48,16 +55,16 @@ const RecipeRecommendComponent = ({
           type="button"
           disabled={loading}
           onClick={handleRecommend}
-          className="rounded bg-sky-500 px-4 py-2 text-white disabled:opacity-60"
+          className="submit-btn"
         >
           {loading ? "추천 받는 중..." : "레시피 추천받기"}
         </button>
       </div>
 
       {recipe && (
-        <div className="whitespace-pre-line rounded-xl border border-gray-200 bg-white p-4 text-sm text-gray-700">
+        <p style={{ whiteSpace: "pre-line", marginTop: 16 }}>
           {recipe.recommendRecipe}
-        </div>
+        </p>
       )}
     </div>
   );
