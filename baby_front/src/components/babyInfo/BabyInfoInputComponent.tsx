@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useState } from "react";
+import { DragEvent, FormEvent, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import * as babyInfoApi from "../../api/babyInfoApi";
 import * as babyGrowInfoApi from "../../api/babyGrowInfoApi";
@@ -18,6 +18,7 @@ const BabyInfoInputComponent = () => {
   const navigate = useNavigate();
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
+  const [isDragOver, setIsDragOver] = useState(false);
   const [birthWeekCount, setBirthWeekCount] = useState("");
   const [babyName, setBabyName] = useState("");
   const [birthDate, setBirthDate] = useState("");
@@ -31,8 +32,13 @@ const BabyInfoInputComponent = () => {
   const [registeredList, setRegisteredList] = useState<BabyInfo[]>([]);
 
   const loadRegisteredList = async () => {
-    const list: BabyInfo[] = await babyInfoApi.getList();
-    setRegisteredList(list);
+    try {
+      const list: BabyInfo[] = await babyInfoApi.getList();
+      setRegisteredList(list);
+    } catch (err) {
+      alert("등록된 아이 목록을 불러오지 못했습니다.");
+      console.error(err);
+    }
   };
 
   useEffect(() => {
@@ -163,7 +169,8 @@ const BabyInfoInputComponent = () => {
     }
   };
 
-  const labelClass = "block text-[11px] font-bold tracking-wide text-[#7A756C] mb-1.5";
+  const labelClass =
+    "block text-[11px] font-bold tracking-wide text-[#7A756C] mb-1.5";
   const inputClass =
     "w-full rounded-[14px] border border-[rgba(42,41,38,0.12)] bg-white px-4 py-2.5 text-sm text-[#2A2926] outline-none transition-colors focus:border-[#5AB2FF]";
   const pillBtn = (active: boolean) =>
@@ -197,7 +204,28 @@ const BabyInfoInputComponent = () => {
         </h1>
       </div>
 
-      <div className="relative mx-auto h-[96px] w-[96px] sm:h-[120px] sm:w-[120px]">
+      <div
+        className={`relative mx-auto h-[96px] w-[96px] rounded-full sm:h-[120px] sm:w-[120px] ${
+          isDragOver ? "ring-4 ring-[#5AB2FF] ring-offset-2" : ""
+        }`}
+        onDragOver={(e: DragEvent<HTMLDivElement>) => {
+          e.preventDefault();
+          setIsDragOver(true);
+        }}
+        onDragLeave={() => setIsDragOver(false)}
+        onDrop={(e: DragEvent<HTMLDivElement>) => {
+          e.preventDefault();
+          setIsDragOver(false);
+
+          const dropped = e.dataTransfer.files?.[0] ?? null;
+          if (dropped && !dropped.type.startsWith("image/")) {
+            alert("이미지 파일만 등록할 수 있습니다.");
+            return;
+          }
+          setFile(dropped);
+          setPreview(dropped ? URL.createObjectURL(dropped) : null);
+        }}
+      >
         {preview ? (
           <img
             className="h-[96px] w-[96px] rounded-full object-cover border-4 border-[#CAF4FF] sm:h-[120px] sm:w-[120px]"
@@ -220,11 +248,24 @@ const BabyInfoInputComponent = () => {
             setPreview(selected ? URL.createObjectURL(selected) : null);
           }}
         />
+        {preview && (
+          <button
+            type="button"
+            className="absolute -right-1.5 -top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-white text-xs font-bold text-[#7A756C] shadow transition-colors hover:bg-[#f3d9d9] hover:text-[#c0392b]"
+            onClick={(e) => {
+              e.stopPropagation();
+              setFile(null);
+              setPreview(null);
+            }}
+          >
+            ✕
+          </button>
+        )}
       </div>
 
       <div className="flex flex-col gap-4 rounded-[24px] border border-[rgba(42,41,38,0.1)] bg-[#FAF6F0] p-4 sm:p-6">
         <div>
-          <p className={labelClass}>이름</p>
+          <p className={labelClass}>이름 (필수)</p>
           <input
             className={inputClass}
             name="babyName"
@@ -236,7 +277,7 @@ const BabyInfoInputComponent = () => {
         </div>
         <div className="flex flex-col gap-4 sm:flex-row">
           <div className="flex-1 min-w-0">
-            <p className={labelClass}>생년월일</p>
+            <p className={labelClass}>생년월일 (필수)</p>
             <input
               className={inputClass}
               name="birthDate"
@@ -246,7 +287,7 @@ const BabyInfoInputComponent = () => {
             />
           </div>
           <div className="flex-1 min-w-0">
-            <p className={labelClass}>혈액형</p>
+            <p className={labelClass}>혈액형 (선택)</p>
             <select
               className={inputClass}
               value={bloodType}
@@ -260,7 +301,7 @@ const BabyInfoInputComponent = () => {
           </div>
         </div>
         <div>
-          <p className={labelClass}>성별</p>
+          <p className={labelClass}>성별 (필수)</p>
           <div className="flex gap-2">
             <button
               className={pillBtn(gender === "남자")}
@@ -282,7 +323,7 @@ const BabyInfoInputComponent = () => {
         </div>
         <div className="flex flex-col gap-4 sm:flex-row">
           <div className="flex-1 min-w-0">
-            <p className={labelClass}>출생 주수</p>
+            <p className={labelClass}>출생 주수 (선택)</p>
             <input
               className={inputClass}
               name="birthWeekCount"
@@ -293,7 +334,7 @@ const BabyInfoInputComponent = () => {
             />
           </div>
           <div className="flex-1 min-w-0">
-            <p className={labelClass}>머리둘레(cm)</p>
+            <p className={labelClass}>머리둘레(cm) (선택)</p>
             <input
               className={inputClass}
               name="head"
@@ -305,7 +346,7 @@ const BabyInfoInputComponent = () => {
         </div>
         <div className="flex flex-col gap-4 sm:flex-row">
           <div className="flex-1 min-w-0">
-            <p className={labelClass}>출생 시 체중(kg)</p>
+            <p className={labelClass}>출생 시 체중(kg) (선택)</p>
             <input
               className={inputClass}
               name="birthWeight"
@@ -315,7 +356,7 @@ const BabyInfoInputComponent = () => {
             />
           </div>
           <div className="flex-1 min-w-0">
-            <p className={labelClass}>출생 시 키(cm)</p>
+            <p className={labelClass}>출생 시 키(cm) (선택)</p>
             <input
               className={inputClass}
               name="birthHeight"
@@ -328,7 +369,7 @@ const BabyInfoInputComponent = () => {
         {!isEditMode && (
           <div className="flex flex-col gap-4 sm:flex-row">
             <div className="flex-1 min-w-0">
-              <p className={labelClass}>현재 체중(kg)</p>
+              <p className={labelClass}>현재 체중(kg) (선택)</p>
               <input
                 className={inputClass}
                 name="weight"
@@ -338,7 +379,7 @@ const BabyInfoInputComponent = () => {
               />
             </div>
             <div className="flex-1 min-w-0">
-              <p className={labelClass}>현재 키(cm)</p>
+              <p className={labelClass}>현재 키(cm) (선택)</p>
               <input
                 className={inputClass}
                 name="height"

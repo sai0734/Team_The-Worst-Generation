@@ -72,6 +72,8 @@ AI 모델/설정 데이터는 git으로 안 넘어오고 **각자 컴퓨터의 �
 ```bat
 docker compose exec ollama ollama pull qwen3:8b
 docker compose exec ollama ollama create parenting-qwen:8b -f /modelfiles/Modelfile
+docker compose exec ollama ollama pull llava
+docker compose exec ollama ollama pull qwen2.5vl:7b
 docker compose exec openclaw openclaw onboard --auth-choice ollama --custom-base-url "http://ollama:11434" --skip-health --skip-channels --non-interactive --accept-risk
 docker compose exec openclaw openclaw models set ollama/parenting-qwen:8b
 ```
@@ -82,8 +84,10 @@ docker compose exec openclaw openclaw models set ollama/parenting-qwen:8b
 |---|---|---|
 | 1번째 | `qwen3:8b` 기본 모델 다운로드 (5GB 이상) | 몇 분 ~ 십몇 분 (인터넷 속도에 따라 다름) |
 | 2번째 | `ai/ollama/Modelfile` 설정을 적용해 `parenting-qwen:8b` 커스텀 모델 생성 | 몇 초 (다운로드 아님) |
-| 3번째 | OpenClaw 초기 설정(onboard), 기본 모델 다운로드 포함 | 몇 분 |
-| 4번째 | OpenClaw 기본 모델을 `parenting-qwen:8b`로 지정 | 몇 초 (다운로드 아님) |
+| 3번째 | 응가체크/피부체크용 비전 모델 `llava` 다운로드 | 몇 분 |
+| 4번째 | 육아일기 AI 자동작성 전용 비전 모델 `qwen2.5vl:7b` 다운로드 | 몇 분 (5GB 이상) |
+| 5번째 | OpenClaw 초기 설정(onboard), 기본 모델 다운로드 포함 | 몇 분 |
+| 6번째 | OpenClaw 기본 모델을 `parenting-qwen:8b`로 지정 | 몇 초 (다운로드 아님) |
 
 한 번 완료하면 `ollama_data`, `openclaw_data` 볼륨에 저장되기 때문에, 이후 `docker compose down`/`up`을 반복해도 다시 할 필요 없습니다. (단, `docker compose down -v`처럼 볼륨까지 지우면 다시 해야 합니다.)
 

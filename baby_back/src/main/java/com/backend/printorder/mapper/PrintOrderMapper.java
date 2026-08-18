@@ -32,4 +32,6 @@ public interface PrintOrderMapper {
 
     void deleteItemsByAlbumNo(@Param("albumNo") Long albumNo);
 
+    long countPaidItemsByAlbumNo(@Param("albumNo") Long albumNo);
+
 }

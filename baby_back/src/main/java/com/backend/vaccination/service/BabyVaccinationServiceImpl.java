@@ -84,6 +84,14 @@ public class BabyVaccinationServiceImpl implements BabyVaccinationService {
             throw new IllegalArgumentException("존재하지 않는 아이입니다: " + babyVaccinationDTO.getBabyNo());
         }
 
+        String vaccineName = babyVaccinationDTO.getVaccineName();
+        if (vaccineName == null || vaccineName.isBlank()) {
+            throw new IllegalArgumentException("접종 이름은 필수 입력 항목입니다.");
+        }
+        if (vaccineName.length() > 100) {
+            throw new IllegalArgumentException("접종 이름은 100자를 초과할 수 없습니다.");
+        }
+
         BabyVaccination babyVaccination = modelMapper.map(babyVaccinationDTO, BabyVaccination.class);
 
         babyVaccinationMapper.insertCustom(babyVaccination);
