@@ -13,4 +13,5 @@ public class AssistRegion {
     private String email;
     private String regionSido;
     private String regionSigungu;
+    private Integer babyMonths;
 }

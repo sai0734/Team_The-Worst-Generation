@@ -3,6 +3,7 @@ package com.backend.assistant.controller;
 import com.backend.assistant.dto.AssistRecommendRequest;
 import com.backend.assistant.dto.AssistRecommendresponse;
 import com.backend.assistant.domain.AssistRegion;
+import com.backend.assistant.service.AssistBatchService;
 import com.backend.assistant.service.AssistantService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -16,12 +17,20 @@ import java.security.Principal;
 public class AssistantController {
 
     private final AssistantService assistantService;
+    private final AssistBatchService assistBatchService;
 
     @PreAuthorize("hasAnyRole('ROLE_USER')")        // YSJ -- 로그인한 유저만
     @PostMapping("/recommend")
     //YSJ --  프론트 post를 받는 곳, Service에 넘기고 다시 JSON으로 반환,
     public AssistRecommendresponse recommend(@RequestBody AssistRecommendRequest request) {
         return assistantService.recommend(request);
+    }
+
+    @PreAuthorize("hasAnyRole('ROLE_USER')")
+    @PostMapping("/refresh")
+    public AssistRecommendresponse refresh(Principal principal) {
+        assistBatchService.refreshEmail(principal.getName());
+        return assistantService.loadSnapshot(principal.getName());
     }
 
     @PreAuthorize("hasAnyRole('ROLE_USER')")
@@ -42,6 +51,7 @@ public class AssistantController {
         assistantService.saveRegion(
                 principal.getName(),
                 body.getRegionSido(),
-                body.getRegionSigungu());
+                body.getRegionSigungu(),
+                body.getBabyMonths());
     }
 }
