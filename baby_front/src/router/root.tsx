@@ -9,6 +9,8 @@ import marketRouter from "./marketRouter";
 import recallRouter from "./recallRouter";
 import ledgerRouter from "./ledgerRouter";
 import allergyRouter from "./allergyRouter";
+import healthRouter from "./healthRouter";
+import walkRouter from "./walkRouter";
 
 const Loading = <div>Loading....</div>;
 const Main = lazy(() => import("../pages/MainPage"));
@@ -17,6 +19,8 @@ const BabyInfoIndex = lazy(() => import("../pages/babyInfo/BabyInfoIndexPage"));
 const CommunityIndex = lazy(
   () => import("../pages/community/CommunityIndexPage"),
 );
+const AllergyIndex = lazy(() => import("../pages/allergy/AllergyIndexPage"));
+const HealthIndex = lazy(() => import("../pages/health/HealthIndexPage"));
 
 const root = createBrowserRouter([
   {
@@ -79,7 +83,25 @@ const root = createBrowserRouter([
   },
   {
     path: "allergy",
+    element: (
+      <Suspense fallback={Loading}>
+        <AllergyIndex />
+      </Suspense>
+    ),
     children: allergyRouter(),
+  },
+  {
+    path: "health",
+    element: (
+      <Suspense fallback={Loading}>
+        <HealthIndex />
+      </Suspense>
+    ),
+    children: healthRouter(),
+  },
+  {
+    path: "walk",
+    children: walkRouter(),
   },
 ]);
 

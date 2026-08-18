@@ -81,38 +81,63 @@ const CustomAllergyListComponent = ({
   };
 
   return (
-    <div className="space-y-4">
-      <p className="font-semibold text-gray-900">추가 알레르기 성분 관리</p>
+    <div className="card">
+      <div className="head">
+        <h2>추가 알레르기 성분 관리</h2>
+      </div>
 
-      {loadError && <p className="text-sm text-red-500">{loadError}</p>}
+      {loadError && (
+        <p style={{ color: "#ef6262", fontSize: 13, marginBottom: 10 }}>
+          {loadError}
+        </p>
+      )}
 
-      <div className="flex gap-2">
-        <input
-          type="text"
-          value={ingredientName}
-          onChange={(e) => setIngredientName(e.target.value)}
-          placeholder="성분명 입력"
-          className="flex-1 rounded border border-gray-300 px-3 py-2"
-        />
+      <div
+        className="field"
+        style={{ display: "flex", gap: 8, alignItems: "flex-end" }}
+      >
+        <div style={{ flex: 1 }}>
+          <label>성분명</label>
+          <input
+            type="text"
+            value={ingredientName}
+            onChange={(e) => setIngredientName(e.target.value)}
+            placeholder="성분명 입력"
+          />
+        </div>
         <button
           type="button"
           onClick={handleAdd}
-          className="rounded bg-sky-500 px-4 py-2 text-white"
+          className="submit-btn"
+          style={{ padding: "0 20px" }}
         >
           추가
         </button>
       </div>
 
       {list.length === 0 ? (
-        <p className="text-sm text-gray-500">
-          등록된 추가 알레르기 성분이 없습니다.
-        </p>
+        <p className="empty-hint">등록된 추가 알레르기 성분이 없습니다.</p>
       ) : (
-        <ul className="space-y-2">
+        <ul
+          style={{
+            listStyle: "none",
+            padding: 0,
+            marginTop: 14,
+            display: "flex",
+            flexDirection: "column",
+            gap: 8,
+          }}
+        >
           {list.map((item) => (
             <li
               key={item.customAllergyNo}
-              className="flex items-center justify-between rounded border border-gray-200 px-3 py-2"
+              className="card"
+              style={{
+                padding: "10px 14px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}
             >
               {editingNo === item.customAllergyNo ? (
                 <>
@@ -120,43 +145,65 @@ const CustomAllergyListComponent = ({
                     type="text"
                     value={editingName}
                     onChange={(e) => setEditingName(e.target.value)}
-                    className="mr-2 flex-1 rounded border border-gray-300 px-2 py-1"
+                    style={{
+                      flex: 1,
+                      marginRight: 10,
+                      padding: "8px 10px",
+                      border: "1px solid var(--line)",
+                      borderRadius: 10,
+                    }}
                   />
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
+                  <div style={{ display: "flex", gap: 10 }}>
+                    <span
+                      style={{
+                        cursor: "pointer",
+                        color: "var(--accent)",
+                        fontWeight: 700,
+                        fontSize: 13,
+                      }}
                       onClick={() => handleUpdate(item.customAllergyNo)}
-                      className="text-sm text-sky-500"
                     >
                       저장
-                    </button>
-                    <button
-                      type="button"
+                    </span>
+                    <span
+                      style={{
+                        cursor: "pointer",
+                        color: "var(--muted)",
+                        fontWeight: 700,
+                        fontSize: 13,
+                      }}
                       onClick={cancelEdit}
-                      className="text-sm text-gray-500"
                     >
                       취소
-                    </button>
+                    </span>
                   </div>
                 </>
               ) : (
                 <>
                   <span>{item.ingredientName}</span>
-                  <div className="flex gap-3">
-                    <button
-                      type="button"
+                  <div style={{ display: "flex", gap: 14 }}>
+                    <span
+                      style={{
+                        cursor: "pointer",
+                        color: "var(--accent)",
+                        fontWeight: 700,
+                        fontSize: 13,
+                      }}
                       onClick={() => startEdit(item)}
-                      className="text-sm text-sky-500"
                     >
                       수정
-                    </button>
-                    <button
-                      type="button"
+                    </span>
+                    <span
+                      style={{
+                        cursor: "pointer",
+                        color: "#ef6262",
+                        fontWeight: 700,
+                        fontSize: 13,
+                      }}
                       onClick={() => handleRemove(item.customAllergyNo)}
-                      className="text-sm text-red-500"
                     >
                       삭제
-                    </button>
+                    </span>
                   </div>
                 </>
               )}
