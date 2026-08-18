@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
@@ -90,7 +91,13 @@ public class MarketItemServiceImpl implements MarketItemService{
                     return dto;
                 })
                 .filter(dto -> dto.getDistanceKm() <= radiusKm)
-                .sorted(Comparator.comparingDouble(MarketItemDTO::getDistanceKm))
+                // 거리는 반경 필터로만 쓰고, 정렬은 최신순(끌어올리기 하면 bump_at이 갱신되어 다시 위로 올라옴)
+                .sorted(
+                        Comparator.<MarketItemDTO, LocalDateTime>comparing(
+                                dto -> dto.getBumpAt() != null ? dto.getBumpAt() : dto.getRegTime(),
+                                Comparator.nullsLast(Comparator.naturalOrder())
+                        ).reversed()
+                )
                 .collect(Collectors.toList());
     }
 
@@ -211,13 +218,13 @@ public class MarketItemServiceImpl implements MarketItemService{
     }
 
     @Override
-    public void markAsCompleted(Long itemNo, String requesterEmail) {
+    public void markAsCompletedByBuyer(Long itemNo) {
 
         MarketItem item = Optional.ofNullable(marketItemMapper.selectOne(itemNo))
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 매물입니다: " + itemNo));
 
-        if (!item.getSellerEmail().equals(requesterEmail)) {
-            throw new AccessDeniedException("본인이 등록한 매물만 거래완료로 변경할 수 있습니다.");
+        if (!"거래가능".equals(item.getStatus())) {
+            throw new IllegalStateException("이미 처리된 매물입니다.");
         }
 
         item.changeStatus("거래완료");

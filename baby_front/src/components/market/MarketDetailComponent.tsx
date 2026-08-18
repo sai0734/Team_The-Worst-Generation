@@ -5,6 +5,8 @@ import type { MarketItem } from "../../api/marketApi";
 import * as wishApi from "../../api/wishApi";
 import * as chatApi from "../../api/chatApi";
 import useCustomLogin from "../../hooks/useCustomLogin";
+import MarketSellerQuickInfo from "./MarketSellerQuickInfo";
+import MarketDetailSidebar from "./MarketDetailSidebar";
 
 const MarketDetailComponent = () => {
   const { itemNo } = useParams();
@@ -14,6 +16,7 @@ const MarketDetailComponent = () => {
   const [item, setItem] = useState<MarketItem | null>(null);
   const [wishCount, setWishCount] = useState(0);
   const [wished, setWished] = useState(false);
+  const [mainImageIndex, setMainImageIndex] = useState(0);
 
   const loadItem = async () => {
     if (!itemNo) {
@@ -21,6 +24,7 @@ const MarketDetailComponent = () => {
     }
     const data = await marketApi.getItem(Number(itemNo));
     setItem(data);
+    setMainImageIndex(0);
     setWishCount(await wishApi.getWishCount(Number(itemNo)));
   };
 
@@ -55,6 +59,7 @@ const MarketDetailComponent = () => {
   }
 
   const isMine = loginState.email === item.sellerEmail;
+  const images = item.uploadFileNames ?? [];
 
   const handleToggleWish = async () => {
     const result = await wishApi.toggleWish(Number(itemNo));
@@ -82,82 +87,97 @@ const MarketDetailComponent = () => {
   };
 
   return (
-    <div className="card" style={{ maxWidth: 640 }}>
-      {item.uploadFileNames && item.uploadFileNames.length > 0 && (
+    <div className="card detail-page">
+      <div className="detail-top-row">
         <div className="detail-gallery">
-          {item.uploadFileNames.map((fileName) => (
-            <img key={fileName} src={marketApi.getFileUrl(fileName)} />
-          ))}
+          {images.length > 0 ? (
+            <>
+              <div className="detail-gallery-main">
+                <img src={marketApi.getFileUrl(images[mainImageIndex])} />
+              </div>
+              {images.length > 1 && (
+                <div className="detail-gallery-thumbs">
+                  {images.map((fileName, idx) => (
+                    <img
+                      key={fileName}
+                      src={marketApi.getFileUrl(fileName)}
+                      className={idx === mainImageIndex ? "active" : ""}
+                      onClick={() => setMainImageIndex(idx)}
+                    />
+                  ))}
+                </div>
+              )}
+            </>
+          ) : (
+            <div className="detail-gallery-main empty">이미지 없음</div>
+          )}
         </div>
-      )}
 
-      <span
-        className={`status-badge ${item.status === "거래완료" ? "done" : "available"}`}
-      >
-        {item.status}
-      </span>
-
-      <h2 className="detail-title">{item.title}</h2>
-      <div className="detail-price">{item.price.toLocaleString()}원</div>
-
-      <div className="detail-meta">
-        {item.tradeType === "RENTAL" ? "대여" : "판매"} · {item.category} ·
-        판매자 {item.sellerEmail} · 조회 {item.viewCount} · 찜 {wishCount}
+        <MarketSellerQuickInfo item={item} />
       </div>
 
-      {item.tradeType === "RENTAL" && (
-        <div className="detail-meta">
-          보증금 {item.deposit?.toLocaleString() ?? "-"}원 · 최소{" "}
-          {item.minDays ?? "-"}일 · 최대 {item.maxDays ?? "-"}일
-        </div>
-      )}
-
-      <p style={{ lineHeight: 1.7 }}>{item.description}</p>
-
-      {item.locationName && (
-        <div className="detail-meta">거래 장소: {item.locationName}</div>
-      )}
-
-      <div className="detail-actions">
-        {isLogin && !isMine && (
-          <>
-            <button className="btn ghost" onClick={handleToggleWish}>
-              {wished ? "찜 해제" : "찜하기"}
-            </button>
-            <button className="btn" onClick={handleChat}>
-              채팅으로 문의하기
-            </button>
-          </>
-        )}
-
-        {isMine && (
-          <>
-            <button
-              className="btn ghost"
-              onClick={() => navigate(`/market/${itemNo}/edit`)}
-            >
-              수정
-            </button>
-            <button className="btn ghost" onClick={handleBump}>
-              끌어올리기
-            </button>
-            <button className="btn ghost" onClick={handleRemove}>
-              삭제
-            </button>
-          </>
-        )}
-
-        <button
-          className="btn ghost"
-          onClick={() => navigate(`/market/profile/${item.sellerEmail}`)}
+      <div className="detail-info-full">
+        <span
+          className={`status-badge ${item.status === "거래완료" ? "done" : "available"}`}
         >
-          판매자 프로필 보기
-        </button>
+          {item.status}
+        </span>
 
-        <button className="btn ghost" onClick={() => navigate("/market")}>
-          목록으로
-        </button>
+        <h2 className="detail-title">{item.title}</h2>
+        <div className="detail-price">{item.price.toLocaleString()}원</div>
+
+        <div className="detail-meta">
+          {item.tradeType === "RENTAL" ? "대여" : "판매"} · {item.category} ·
+          판매자 {item.sellerEmail} · 조회 {item.viewCount} · 찜 {wishCount}
+        </div>
+
+        <p style={{ lineHeight: 1.7 }}>{item.description}</p>
+
+        {item.locationName && (
+          <div className="detail-meta">거래 장소: {item.locationName}</div>
+        )}
+
+        <div className="detail-actions">
+          {isLogin && !isMine && (
+            <>
+              <button
+                type="button"
+                className={`detail-wish-btn${wished ? " active" : ""}`}
+                onClick={handleToggleWish}
+                aria-label={wished ? "찜 해제" : "찜하기"}
+              >
+                {wished ? "♥" : "♡"}
+              </button>
+              <button className="btn" onClick={handleChat}>
+                채팅으로 문의하기
+              </button>
+            </>
+          )}
+
+          {isMine && (
+            <>
+              <button
+                className="btn ghost"
+                onClick={() => navigate(`/market/${itemNo}/edit`)}
+              >
+                수정
+              </button>
+              <button className="btn ghost" onClick={handleBump}>
+                끌어올리기
+              </button>
+              <button className="btn ghost" onClick={handleRemove}>
+                삭제
+              </button>
+            </>
+          )}
+
+          <button className="btn ghost" onClick={() => navigate("/market")}>
+            목록으로
+          </button>
+        </div>
       </div>
+
+      <MarketDetailSidebar item={item} />
     </div>
   );
 };

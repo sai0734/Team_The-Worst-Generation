@@ -8,10 +8,13 @@ import type { MarketProfile } from "../../api/marketProfileApi";
 import * as wishApi from "../../api/wishApi";
 import useCustomLogin from "../../hooks/useCustomLogin";
 import MarketMapComponent from "./MarketMapComponent";
+import { formatRelativeTime } from "../../util/relativeTime";
 
 const CATEGORY_FILTERS = ["전체", ...MARKET_CATEGORIES];
 const DEFAULT_CENTER = { lat: 37.566826, lng: 126.9786567 }; // 서울시청 (내 동네도 GPS도 없을 때 기본값)
-const RADIUS_KM = 5;
+// 더미데이터가 몇 개 없어서 위치(GPS/내 동네)에 상관없이 전부 보이도록 사실상 무제한 반경으로 둠.
+// 실제 매물이 쌓이면 5 정도로 다시 좁히면 됨.
+const RADIUS_KM = 20000;
 
 type ListFilter = "nearby" | "wish";
 type CenterSource = "profile" | "gps" | "default";
@@ -186,23 +189,6 @@ const MarketHomeComponent = () => {
 
       <div className="market-home-split">
         <div className="market-home-list-pane">
-          {isLogin && profile && (
-            <div className="card market-profile-widget">
-              <div className="head">
-                <h2>내 매너온도</h2>
-                <b>{profile.mannerTemp.toFixed(1)}°C</b>
-              </div>
-              <div className="temp-bar">
-                <div
-                  className="temp-fill"
-                  style={{
-                    width: `${Math.min(100, (profile.mannerTemp / 60) * 100)}%`,
-                  }}
-                />
-              </div>
-            </div>
-          )}
-
           <div className="market-home-filter">
             <div className="seg">
               <button
@@ -223,7 +209,7 @@ const MarketHomeComponent = () => {
             {listFilter === "nearby" && (
               <div className="market-home-location">
                 <span className="market-map-sub">
-                  {sourceLabel} 반경 {RADIUS_KM}km
+                  {sourceLabel} · 전체 매물 표시 중
                 </span>
                 <button
                   type="button"
@@ -294,6 +280,7 @@ const MarketHomeComponent = () => {
                         {item.status}
                       </span>
                     </div>
+                    <p className="reg-time">{formatRelativeTime(item.regTime)}</p>
                   </div>
                 </article>
               ))
@@ -302,7 +289,26 @@ const MarketHomeComponent = () => {
         </div>
 
         <div className="market-home-map-pane">
-          <MarketMapComponent items={filteredItems} center={center} />
+          {isLogin && profile && (
+            <div className="card market-profile-widget">
+              <div className="head">
+                <h2>내 매너온도</h2>
+                <b>{profile.mannerTemp.toFixed(1)}°C</b>
+              </div>
+              <div className="temp-bar">
+                <div
+                  className="temp-fill"
+                  style={{
+                    width: `${Math.min(100, (profile.mannerTemp / 60) * 100)}%`,
+                  }}
+                />
+              </div>
+            </div>
+          )}
+
+          <div className="market-home-map-canvas-wrap">
+            <MarketMapComponent items={filteredItems} center={center} />
+          </div>
         </div>
       </div>
     </div>

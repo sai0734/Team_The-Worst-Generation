@@ -24,4 +24,12 @@ public class ChatRoom {
     private String sellerEmail;
 
     private LocalDateTime regTime;
+
+    // 채팅방 목록에 매물번호 대신 표시할 매물 제목 (JOIN으로만 채워짐, DB 컬럼 아님)
+    private String itemTitle;
+
+    // 거래완료 버튼 / 온도평가 폼 노출 여부 판단용 (JOIN/서브쿼리로만 채워짐, DB 컬럼 아님)
+    private String itemStatus;
+
+    private boolean reviewed;
 }

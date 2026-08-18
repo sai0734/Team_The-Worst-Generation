@@ -15,6 +15,9 @@ public interface MarketItemMapper {
 
     long selectListCount();
 
+    // 삭제 여부 상관없이 전체 매물 수 (더미데이터 시딩 여부 판단용)
+    long countAll();
+
     // 단건 조회: 이미지 목록 포함
     MarketItem selectOne(@Param("itemNo") Long itemNo);
 
@@ -37,5 +40,8 @@ public interface MarketItemMapper {
     void increaseViewCount(@Param("itemNo") Long itemNo);
 
     void bump(@Param("itemNo") Long itemNo);
+
+    // 더미데이터 등록 시점을 과거로 흩어놓기용 (실제 등록 흐름에서는 안 씀)
+    void updateRegTime(@Param("itemNo") Long itemNo, @Param("regTime") java.time.LocalDateTime regTime);
 
 }

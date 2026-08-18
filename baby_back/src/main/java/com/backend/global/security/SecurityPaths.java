@@ -25,6 +25,8 @@ public final class SecurityPaths {
           "/api/baby-album/view/**",
           "/api/walk/trail/nearby",
           "/api/recall/my-products/view/**",
+          "/ws-chat/**",
+          "/api/cry-check/files/**",
   };
 
   private static final AntPathMatcher PATH_MATCHER = new AntPathMatcher();

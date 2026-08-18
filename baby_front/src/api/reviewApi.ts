@@ -7,11 +7,13 @@ const prefix = `${API_SERVER_HOST}/api/market/reviews`;
 // ReviewDTO
 export interface Review {
   reviewNo?: number;
+  roomNo?: number;
   itemNo?: number;
   writerEmail?: string;
-  targetEmail: string;
-  rating: number;
+  targetEmail?: string;
+  rating?: number;
   content?: string;
+  tempDelta?: number;
   regTime?: string;
 }
 

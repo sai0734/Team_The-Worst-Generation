@@ -28,7 +28,7 @@ const ChatRoomListComponent = () => {
   }
 
   return (
-    <div className="card">
+    <div className="card market-page-centered">
       <h2 style={{ marginTop: 0 }}>채팅</h2>
 
       {rooms.length === 0 && <p>채팅방이 없습니다.</p>}
@@ -40,7 +40,13 @@ const ChatRoomListComponent = () => {
           style={{ cursor: "pointer" }}
           onClick={() => navigate(`/market/chat/${room.roomNo}`)}
         >
-          <span>매물 #{room.itemNo}</span>
+          <span>
+            <span className="chip" style={{ marginRight: 8 }}>
+              {loginState.email === room.sellerEmail ? "판매" : "구매"}
+              {room.itemStatus === "거래완료" ? "완료" : "중"}
+            </span>
+            {room.itemTitle ?? `매물 #${room.itemNo}`}
+          </span>
           <span>
             {loginState.email === room.buyerEmail
               ? room.sellerEmail

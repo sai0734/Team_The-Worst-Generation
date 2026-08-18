@@ -1,18 +1,24 @@
 package com.backend.market.service;
 
+import com.backend.market.domain.ChatRoom;
+import com.backend.market.domain.MarketItem;
 import com.backend.market.domain.MarketProfile;
 import com.backend.market.domain.Review;
 import com.backend.market.dto.ReviewDTO;
+import com.backend.market.mapper.ChatRoomMapper;
+import com.backend.market.mapper.MarketItemMapper;
 import com.backend.market.mapper.MarketProfileMapper;
 import com.backend.market.mapper.ReviewMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.modelmapper.ModelMapper;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -21,9 +27,16 @@ import java.util.stream.Collectors;
 @Transactional
 public class ReviewServiceImpl implements ReviewService {
 
+    private static final BigDecimal MIN_DELTA = new BigDecimal("-1.0");
+    private static final BigDecimal MAX_DELTA = new BigDecimal("1.0");
+
     private final ReviewMapper reviewMapper;
 
     private final MarketProfileMapper marketProfileMapper;
+
+    private final ChatRoomMapper chatRoomMapper;
+
+    private final MarketItemMapper marketItemMapper;
 
     private final ModelMapper modelMapper;
 
@@ -37,22 +50,54 @@ public class ReviewServiceImpl implements ReviewService {
                 .collect(Collectors.toList());
     }
 
+    // 거래완료된 채팅방 1건당 온도 평가 1건. targetEmail/itemNo는 클라이언트 값을 안 믿고
+    // 채팅방에서 그대로 가져옴 (구매자가 아무 이메일에나 평가를 꽂아넣지 못하게).
     @Override
     public Long register(ReviewDTO dto) {
+
+        if (dto.getRoomNo() == null) {
+            throw new IllegalArgumentException("채팅방 정보가 없습니다.");
+        }
+
+        BigDecimal tempDelta = dto.getTempDelta();
+        if (tempDelta == null) {
+            throw new IllegalArgumentException("온도 조정 값이 없습니다.");
+        }
+        if (tempDelta.compareTo(MIN_DELTA) < 0 || tempDelta.compareTo(MAX_DELTA) > 0) {
+            throw new IllegalArgumentException("온도 조정 값은 -1.0 ~ +1.0 사이여야 합니다.");
+        }
+
+        ChatRoom room = Optional.ofNullable(chatRoomMapper.selectOne(dto.getRoomNo()))
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 채팅방입니다: " + dto.getRoomNo()));
+
+        if (!room.getBuyerEmail().equals(dto.getWriterEmail())) {
+            throw new AccessDeniedException("구매자만 온도 평가를 남길 수 있습니다.");
+        }
+
+        MarketItem item = Optional.ofNullable(marketItemMapper.selectOne(room.getItemNo()))
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 매물입니다: " + room.getItemNo()));
+
+        if (!"거래완료".equals(item.getStatus())) {
+            throw new IllegalStateException("거래완료된 채팅방에서만 온도 평가를 남길 수 있습니다.");
+        }
+
+        if (reviewMapper.countByRoom(dto.getRoomNo()) > 0) {
+            throw new IllegalStateException("이미 이 거래에 대한 평가를 남겼습니다.");
+        }
+
+        dto.setItemNo(room.getItemNo());
+        dto.setTargetEmail(room.getSellerEmail());
 
         Review review = modelMapper.map(dto, Review.class);
 
         reviewMapper.insert(review);
 
-        applyMannerTempChange(dto.getTargetEmail(), dto.getRating());
+        applyMannerTempChange(dto.getTargetEmail(), tempDelta);
 
         return review.getReviewNo();
     }
 
-    // 매너온도 계산식: 최초 36.5도에서 시작(MarketProfile 기본값), 후기 하나 등록될 때마다
-    // 그 후기의 평점(1~5점)이 3점에서 벗어난 만큼 1점당 0.5도씩 "현재 온도에 누적"으로 가감.
-    // (5점=+1.0, 4점=+0.5, 3점=0, 2점=-0.5, 1점=-1.0)
-    private void applyMannerTempChange(String targetEmail, int rating) {
+    private void applyMannerTempChange(String targetEmail, BigDecimal tempDelta) {
 
         MarketProfile profile = marketProfileMapper.selectByEmail(targetEmail);
 
@@ -61,8 +106,7 @@ public class ReviewServiceImpl implements ReviewService {
             marketProfileMapper.insert(profile);
         }
 
-        BigDecimal delta = BigDecimal.valueOf((rating - 3) * 0.5);
-        BigDecimal newTemp = profile.getMannerTemp().add(delta);
+        BigDecimal newTemp = profile.getMannerTemp().add(tempDelta);
 
         profile.changeMannerTemp(newTemp);
 

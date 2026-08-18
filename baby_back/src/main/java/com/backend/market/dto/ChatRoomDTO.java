@@ -20,4 +20,10 @@ public class ChatRoomDTO {
 
     private LocalDateTime regTime;
 
+    private String itemTitle;
+
+    private String itemStatus;
+
+    private boolean reviewed;
+
 }

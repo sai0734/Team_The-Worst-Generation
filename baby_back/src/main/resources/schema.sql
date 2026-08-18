@@ -971,6 +971,12 @@ CREATE TABLE IF NOT EXISTS tbl_review (
     CONSTRAINT fk_review_target FOREIGN KEY (target_email) REFERENCES tbl_member (email)
     );
 
+-- 거래완료된 채팅방 1건당 온도 평가 1건. rating(별점)은 이제 선택값이고, 매너온도는
+-- rating에서 환산하지 않고 temp_delta(-1.0~+1.0, 0.1 단위)를 구매자가 직접 골라서 그대로 반영
+ALTER TABLE tbl_review ADD COLUMN IF NOT EXISTS room_no BIGINT NULL;
+ALTER TABLE tbl_review ADD COLUMN IF NOT EXISTS temp_delta DECIMAL(3,1) NOT NULL DEFAULT 0;
+ALTER TABLE tbl_review MODIFY COLUMN rating INT NULL;
+
 CREATE TABLE IF NOT EXISTS tbl_cry_check (
                                              cry_check_no BIGINT AUTO_INCREMENT,
                                              baby_no BIGINT NOT NULL,
@@ -983,6 +989,9 @@ CREATE TABLE IF NOT EXISTS tbl_cry_check (
     PRIMARY KEY (cry_check_no),
     CONSTRAINT fk_cry_check_baby FOREIGN KEY (baby_no) REFERENCES tbl_baby_info (baby_no)
     );
+
+ALTER TABLE tbl_cry_check ADD COLUMN IF NOT EXISTS audio_file_name VARCHAR(300) NULL;
+ALTER TABLE tbl_cry_check ADD COLUMN IF NOT EXISTS user_feedback VARCHAR(50) NULL;
 
 -- LJW 끝
 -- YSJ 추가 정부지원금 3시 배치

@@ -3,20 +3,37 @@ import { useParams } from "react-router-dom";
 import { Client, IMessage } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
 import * as chatApi from "../../api/chatApi";
-import type { ChatMessage } from "../../api/chatApi";
+import type { ChatMessage, ChatRoom } from "../../api/chatApi";
 import * as marketApi from "../../api/marketApi";
+import * as reviewApi from "../../api/reviewApi";
 import useCustomLogin from "../../hooks/useCustomLogin";
 import { getAccessToken } from "../../util/accessTokenStore";
 
 const API_SERVER_HOST = "http://localhost:8080";
+
+const formatMessageTime = (regTime?: string) => {
+  if (!regTime) return "";
+  const d = new Date(regTime);
+  if (Number.isNaN(d.getTime())) return "";
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  const hh = String(d.getHours()).padStart(2, "0");
+  const min = String(d.getMinutes()).padStart(2, "0");
+  return `${mm}/${dd} ${hh}:${min}`;
+};
 
 const ChatRoomComponent = () => {
   const { roomNo } = useParams();
   const { loginState } = useCustomLogin();
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [room, setRoom] = useState<ChatRoom | null>(null);
   const [input, setInput] = useState("");
   const [connected, setConnected] = useState(false);
+  const [completing, setCompleting] = useState(false);
+  const [tempDelta, setTempDelta] = useState(0);
+  const [reviewContent, setReviewContent] = useState("");
+  const [submittingReview, setSubmittingReview] = useState(false);
 
   const clientRef = useRef<Client | null>(null);
 
@@ -29,6 +46,18 @@ const ChatRoomComponent = () => {
 
   useEffect(() => {
     loadMessages();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [roomNo]);
+
+  // 채팅방 정보(상대방 이메일/매물 상태/평가 여부) - 단건 조회 API가 따로 없어서 내 채팅방 목록에서 찾음
+  const loadRoom = async () => {
+    if (!roomNo) return;
+    const rooms = await chatApi.getMyRoomList();
+    setRoom(rooms.find((r) => r.roomNo === Number(roomNo)) ?? null);
+  };
+
+  useEffect(() => {
+    loadRoom();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [roomNo]);
 
@@ -68,12 +97,24 @@ const ChatRoomComponent = () => {
     return <div className="card">잘못된 접근입니다.</div>;
   }
 
+  const isBuyer = !!room && loginState.email === room.buyerEmail;
+  const isDealClosed = room?.itemStatus === "거래완료";
+  const counterpartEmail = room
+    ? loginState.email === room.buyerEmail
+      ? room.sellerEmail
+      : room.buyerEmail
+    : null;
+
   const sendMessage = (payload: Partial<ChatMessage>) => {
     if (!clientRef.current || !connected) return;
 
     clientRef.current.publish({
       destination: `/app/chat/${roomNo}/send`,
-      body: JSON.stringify({ roomNo: Number(roomNo), ...payload }),
+      body: JSON.stringify({
+        roomNo: Number(roomNo),
+        senderEmail: loginState.email,
+        ...payload,
+      }),
     });
   };
 
@@ -101,14 +142,109 @@ const ChatRoomComponent = () => {
     loadMessages();
   };
 
+  const handleComplete = async () => {
+    if (!confirm("이 거래를 완료 처리할까요? 이후에는 되돌릴 수 없어요.")) return;
+
+    setCompleting(true);
+    try {
+      await chatApi.completeRoom(Number(roomNo));
+      await loadRoom();
+    } catch (err) {
+      console.error(err);
+      alert("거래완료 처리에 실패했습니다.");
+    } finally {
+      setCompleting(false);
+    }
+  };
+
+  const handleSubmitReview = async () => {
+    setSubmittingReview(true);
+    try {
+      await reviewApi.registerReview({
+        roomNo: Number(roomNo),
+        tempDelta,
+        content: reviewContent.trim() || undefined,
+      });
+      await loadRoom();
+    } catch (err) {
+      console.error(err);
+      alert("온도 평가 등록에 실패했습니다.");
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
+
   return (
-    <div className="card" style={{ maxWidth: 480 }}>
+    <div className="card market-page-centered">
       <div className="market-toolbar">
-        <h2 style={{ margin: 0 }}>채팅방 #{roomNo}</h2>
+        <h2 style={{ margin: 0 }}>
+          {counterpartEmail ? `${counterpartEmail}님과의 채팅방` : "채팅방"}
+        </h2>
         <span style={{ fontSize: 12, color: connected ? "green" : "gray" }}>
           {connected ? "연결됨" : "연결 중..."}
         </span>
       </div>
+
+      {room && (
+        <div className="chat-deal-status">
+          {room.itemStatus === "거래완료" ? (
+            isBuyer && !room.reviewed ? (
+              <div className="chat-temp-review">
+                <p className="cry-check-hint" style={{ margin: "0 0 8px" }}>
+                  거래가 완료됐어요. 상대방의 매너온도를 조정해줄 수 있어요.
+                </p>
+                <div className="chat-temp-slider-row">
+                  <input
+                    type="range"
+                    min={-1}
+                    max={1}
+                    step={0.1}
+                    value={tempDelta}
+                    onChange={(e) => setTempDelta(Number(e.target.value))}
+                  />
+                  <span className="chat-temp-value">
+                    {tempDelta > 0 ? "+" : ""}
+                    {tempDelta.toFixed(1)}°C
+                  </span>
+                </div>
+                <textarea
+                  placeholder="한 줄 후기 (선택)"
+                  value={reviewContent}
+                  onChange={(e) => setReviewContent(e.target.value)}
+                  rows={2}
+                  style={{ width: "100%", marginTop: 8 }}
+                />
+                <button
+                  type="button"
+                  className="btn"
+                  style={{ marginTop: 8 }}
+                  onClick={handleSubmitReview}
+                  disabled={submittingReview}
+                >
+                  {submittingReview ? "등록 중..." : "온도 평가 등록"}
+                </button>
+              </div>
+            ) : (
+              <span className="chip">
+                거래완료{room.reviewed ? " · 온도 평가 완료" : ""}
+              </span>
+            )
+          ) : isBuyer ? (
+            <button
+              type="button"
+              className="btn ghost"
+              onClick={handleComplete}
+              disabled={completing}
+            >
+              {completing ? "처리 중..." : "거래완료로 표시"}
+            </button>
+          ) : (
+            <p className="cry-check-hint" style={{ margin: 0 }}>
+              구매자가 거래완료 처리를 하면 여기에 반영돼요.
+            </p>
+          )}
+        </div>
+      )}
 
       <div className="chat-window">
         {messages.map((msg, idx) => {
@@ -122,8 +258,6 @@ const ChatRoomComponent = () => {
                 alignItems: mine ? "flex-end" : "flex-start",
               }}
             >
-              <div className="chat-sender">{mine ? "나" : msg.senderEmail}</div>
-
               {msg.msgType === "TEXT" && (
                 <div className={`chat-bubble${mine ? " mine" : ""}`}>
                   {msg.content}
@@ -162,29 +296,41 @@ const ChatRoomComponent = () => {
                   )}
                 </div>
               )}
+
+              {msg.regTime && (
+                <div className="chat-time">{formatMessageTime(msg.regTime)}</div>
+              )}
             </div>
           );
         })}
       </div>
 
-      <div className="chat-input-row">
-        <input
-          type="text"
-          placeholder="메시지 입력"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") handleSend();
-          }}
-          disabled={!connected}
-        />
-        <button className="btn" onClick={handleSend} disabled={!connected}>
-          전송
-        </button>
-      </div>
-      <div style={{ marginTop: 8 }}>
-        <input type="file" accept="image/*" onChange={handleImageUpload} />
-      </div>
+      {isDealClosed ? (
+        <p className="cry-check-hint" style={{ marginTop: 10 }}>
+          거래가 완료되어 더 이상 메시지를 보낼 수 없어요.
+        </p>
+      ) : (
+        <>
+          <div className="chat-input-row">
+            <input
+              type="text"
+              placeholder="메시지 입력"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleSend();
+              }}
+              disabled={!connected}
+            />
+            <button className="btn" onClick={handleSend} disabled={!connected}>
+              전송
+            </button>
+          </div>
+          <div style={{ marginTop: 8 }}>
+            <input type="file" accept="image/*" onChange={handleImageUpload} />
+          </div>
+        </>
+      )}
     </div>
   );
 };

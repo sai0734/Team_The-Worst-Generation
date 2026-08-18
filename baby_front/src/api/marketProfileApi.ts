@@ -1,5 +1,4 @@
 import jwtAxios from "../util/jwtUtil";
-import axios from "axios";
 
 const API_SERVER_HOST = "http://localhost:8080";
 const prefix = `${API_SERVER_HOST}/api/market/profile`;
@@ -19,8 +18,9 @@ export const getMyProfile = async (): Promise<MarketProfile> => {
   return res.data;
 };
 
+// /{email} 은 anyRequest().authenticated() 대상이라 로그인 상태여야 호출 가능 (jwtAxios 필요)
 export const getProfile = async (email: string): Promise<MarketProfile> => {
-  const res = await axios.get(`${prefix}/${email}`);
+  const res = await jwtAxios.get(`${prefix}/${email}`);
   return res.data;
 };
 
