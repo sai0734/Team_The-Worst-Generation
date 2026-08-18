@@ -322,73 +322,6 @@
   outline: 3px solid rgba(200, 61, 61, 0.24);
   outline-offset: 2px;
 }
-.app .homecam-modal-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 100;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(10, 20, 30, 0.72);
-  backdrop-filter: blur(3px);
-}
-.app .homecam-modal {
-  width: 100vw;
-  height: 100vh;
-  background: #10151a;
-  border-radius: 0;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45);
-}
-.app .homecam-modal__head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px 20px;
-  background: #161d24;
-  color: #fff;
-  flex-shrink: 0;
-}
-.app .homecam-modal__head h2 {
-  margin: 0;
-  font-size: 16px;
-  font-weight: 800;
-}
-.app .homecam-modal__close {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  border: 0;
-  background: rgba(255, 255, 255, 0.12);
-  color: #fff;
-  font-size: 18px;
-  line-height: 1;
-  cursor: pointer;
-}
-.app .homecam-modal__close:hover {
-  background: rgba(255, 255, 255, 0.22);
-}
-.app .homecam-modal__body {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: #000;
-  min-height: 0;
-}
-.app .homecam-modal__video {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-}
-.app .homecam-modal__error {
-  color: #f5c6c6;
-  font-size: 13px;
-  padding: 24px;
-  text-align: center;
-}
 .app .account {
   display: flex;
   align-items: center;
@@ -587,6 +520,7 @@
   font-weight: 800;
   font-size: 12px;
   cursor: pointer;
+  position: relative;
 }
 .app .tool i {
   font-style: normal;

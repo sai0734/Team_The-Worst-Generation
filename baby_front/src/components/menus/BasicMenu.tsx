@@ -3,8 +3,11 @@ import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import useCurrentProfile from "../../hooks/useCurrentProfile";
 import useCustomLogin from "../../hooks/useCustomLogin";
+import useHomeCamMonitor from "../../hooks/useHomeCamMonitor";
+import { homeCamMonitor } from "../../util/homeCamMonitor";
 import type { RootState } from "../../store";
 import HomeCamModal from "./HomeCamModal";
+import "../../styles/homecam.css";
 
 interface SubItem {
   label: string;
@@ -99,6 +102,14 @@ const BasicMenu = () => {
 
   const [isSosModalOpen, setIsSosModalOpen] = useState(false);
   const [isHomeCamOpen, setIsHomeCamOpen] = useState(false);
+  const { isMonitoring, isAlertActive } = useHomeCamMonitor();
+
+  // 홈캠을 안 보고 있어도(감시만 켜둔 상태) 안전영역 이탈이 감지되면 화면을 강제로 띄움
+  useEffect(() => {
+    if (isAlertActive) {
+      setIsHomeCamOpen(true);
+    }
+  }, [isAlertActive]);
 
   const handleTabEnter = (code: string) => {
     setHovered(code);
@@ -121,6 +132,14 @@ const BasicMenu = () => {
     window.addEventListener("keydown", closeWithEscape);
     return () => window.removeEventListener("keydown", closeWithEscape);
   }, [isSosModalOpen]);
+
+  const toggleMonitoring = () => {
+    if (isMonitoring) {
+      homeCamMonitor.stopMonitoring();
+    } else {
+      homeCamMonitor.startMonitoring();
+    }
+  };
 
   return (
     <>
@@ -225,6 +244,17 @@ const BasicMenu = () => {
         </button>
         <button
           type="button"
+          className={`tool tool--monitor${isMonitoring ? " is-active" : ""}`}
+          aria-pressed={isMonitoring}
+          title="AI가 화면에서 빠른 움직임을 감지하면 알림을 드려요. (이 사이트가 켜져 있는 동안만 동작해요)"
+          onClick={toggleMonitoring}
+        >
+          <i>{isMonitoring ? "👁️" : "🚫"}</i>
+          <span>{isMonitoring ? "감시 중지" : "감시 시작"}</span>
+          {isMonitoring && <b className="live"></b>}
+        </button>
+        <button
+          type="button"
           className="tool"
           aria-haspopup="dialog"
           aria-expanded={isHomeCamOpen}
@@ -232,7 +262,7 @@ const BasicMenu = () => {
         >
           <i>📹</i>
           <span>홈캠</span>
-          <b className="live"></b>
+          {isMonitoring && <b className="live"></b>}
         </button>
       </div>
 
