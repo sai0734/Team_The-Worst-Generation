@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useState } from "react";
+import { DragEvent, FormEvent, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import * as babyInfoApi from "../../api/babyInfoApi";
 import * as babyGrowInfoApi from "../../api/babyGrowInfoApi";
@@ -18,6 +18,7 @@ const BabyInfoInputComponent = () => {
   const navigate = useNavigate();
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
+  const [isDragOver, setIsDragOver] = useState(false);
   const [birthWeekCount, setBirthWeekCount] = useState("");
   const [babyName, setBabyName] = useState("");
   const [birthDate, setBirthDate] = useState("");
@@ -168,7 +169,8 @@ const BabyInfoInputComponent = () => {
     }
   };
 
-  const labelClass = "block text-[11px] font-bold tracking-wide text-[#7A756C] mb-1.5";
+  const labelClass =
+    "block text-[11px] font-bold tracking-wide text-[#7A756C] mb-1.5";
   const inputClass =
     "w-full rounded-[14px] border border-[rgba(42,41,38,0.12)] bg-white px-4 py-2.5 text-sm text-[#2A2926] outline-none transition-colors focus:border-[#5AB2FF]";
   const pillBtn = (active: boolean) =>
@@ -202,7 +204,28 @@ const BabyInfoInputComponent = () => {
         </h1>
       </div>
 
-      <div className="relative mx-auto h-[96px] w-[96px] sm:h-[120px] sm:w-[120px]">
+      <div
+        className={`relative mx-auto h-[96px] w-[96px] rounded-full sm:h-[120px] sm:w-[120px] ${
+          isDragOver ? "ring-4 ring-[#5AB2FF] ring-offset-2" : ""
+        }`}
+        onDragOver={(e: DragEvent<HTMLDivElement>) => {
+          e.preventDefault();
+          setIsDragOver(true);
+        }}
+        onDragLeave={() => setIsDragOver(false)}
+        onDrop={(e: DragEvent<HTMLDivElement>) => {
+          e.preventDefault();
+          setIsDragOver(false);
+
+          const dropped = e.dataTransfer.files?.[0] ?? null;
+          if (dropped && !dropped.type.startsWith("image/")) {
+            alert("이미지 파일만 등록할 수 있습니다.");
+            return;
+          }
+          setFile(dropped);
+          setPreview(dropped ? URL.createObjectURL(dropped) : null);
+        }}
+      >
         {preview ? (
           <img
             className="h-[96px] w-[96px] rounded-full object-cover border-4 border-[#CAF4FF] sm:h-[120px] sm:w-[120px]"
@@ -225,6 +248,19 @@ const BabyInfoInputComponent = () => {
             setPreview(selected ? URL.createObjectURL(selected) : null);
           }}
         />
+        {preview && (
+          <button
+            type="button"
+            className="absolute -right-1.5 -top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-white text-xs font-bold text-[#7A756C] shadow transition-colors hover:bg-[#f3d9d9] hover:text-[#c0392b]"
+            onClick={(e) => {
+              e.stopPropagation();
+              setFile(null);
+              setPreview(null);
+            }}
+          >
+            ✕
+          </button>
+        )}
       </div>
 
       <div className="flex flex-col gap-4 rounded-[24px] border border-[rgba(42,41,38,0.1)] bg-[#FAF6F0] p-4 sm:p-6">

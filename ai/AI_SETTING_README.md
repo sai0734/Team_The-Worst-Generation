@@ -164,3 +164,33 @@ curl http://127.0.0.1:11434/api/chat -d '{
 "stream": false
 }'
 \`\`\`
+
+## 육아일기 전용 이미지 분석 모델 (qwen2.5vl:7b)
+
+육아일기 AI 자동작성 기능(사진 보고 일기 초안 써주는 기능)은 위 `llava`를
+그대로 쓰지 않고, 별도 모델 `qwen2.5vl:7b`를 씁니다.
+
+이유: `llava`는 한국어 사진 설명 정확도가 낮고 같은 단어를 반복하는 문제가 있어서,
+한국어/다국어 이해가 더 나은 `qwen2.5vl:7b`로 교체했습니다. 응가체크/피부체크는
+`llava`를 그대로 쓰는 채로 육아일기만 따로 분리해서, 응가체크/피부체크 쪽 동작에는
+영향이 없습니다.
+
+설치:
+
+\`\`\`bat
+ollama pull qwen2.5vl:7b
+\`\`\`
+
+설치 확인:
+
+\`\`\`bat
+ollama list
+\`\`\`
+
+목록에 `qwen2.5vl:7b`가 보이면 완료입니다. `llava`와 마찬가지로 커스텀 Modelfile
+없이 원본 그대로 사용합니다 (백엔드에서 `OLLAMA_DIARY_VISION_MODEL` 값으로 지정,
+기본값이 이미 `qwen2.5vl:7b`라 `.env`에 따로 안 넣어도 됩니다 —
+`baby_back/src/main/resources/application.properties`의
+`ollama.diary-vision-model=${OLLAMA_DIARY_VISION_MODEL:qwen2.5vl:7b}` 참고).
+
+API 호출 방식은 `llava`와 완전히 동일합니다 — 모델명만 `qwen2.5vl:7b`로 바뀝니다.

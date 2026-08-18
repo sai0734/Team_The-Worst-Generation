@@ -1,4 +1,4 @@
-import { ChangeEvent, FormEvent, useState } from "react";
+import { ChangeEvent, DragEvent, FormEvent, useState } from "react";
 import { useSelector } from "react-redux";
 import { RootState } from "../../store";
 import exifr from "exifr";
@@ -60,6 +60,7 @@ const AlbumUploadComponent = ({ onRegistered }: AlbumUploadProps) => {
 
   const [defaultTakenDate, setDefaultTakenDate] = useState(getTodayStr());
   const [photos, setPhotos] = useState<PendingPhoto[]>([]);
+  const [isDragOver, setIsDragOver] = useState(false);
 
   const handleDefaultDateChange = (date: string) => {
     setDefaultTakenDate(date);
@@ -74,12 +75,11 @@ const AlbumUploadComponent = ({ onRegistered }: AlbumUploadProps) => {
     setPhotos((prev) => prev.map((photo) => ({ ...photo, takenDate: date })));
   };
 
-  const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
-    const selectedFiles = Array.from(e.target.files ?? []);
-    if (selectedFiles.length === 0) return;
+  const processFiles = async (files: File[]) => {
+    if (files.length === 0) return;
 
     const newPhotos = await Promise.all(
-      selectedFiles.map(async (file) => {
+      files.map(async (file) => {
         const meta = await readPhotoMeta(file);
         const resolvedDate =
           meta.takenDate ?? (defaultTakenDate || getTodayStr());
@@ -96,7 +96,26 @@ const AlbumUploadComponent = ({ onRegistered }: AlbumUploadProps) => {
     );
 
     setPhotos((prev) => [...prev, ...newPhotos]);
+  };
+
+  const handleFileChange = async (e: ChangeEvent<HTMLInputElement>) => {
+    await processFiles(Array.from(e.target.files ?? []));
     e.target.value = "";
+  };
+
+  const handleDrop = async (e: DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragOver(false);
+
+    const droppedFiles = Array.from(e.dataTransfer.files ?? []);
+    const imageFiles = droppedFiles.filter((f) => f.type.startsWith("image/"));
+
+    if (imageFiles.length === 0) {
+      alert("이미지 파일만 등록할 수 있습니다.");
+      return;
+    }
+
+    await processFiles(imageFiles);
   };
 
   const handleRemovePhoto = (index: number) => {
@@ -177,7 +196,17 @@ const AlbumUploadComponent = ({ onRegistered }: AlbumUploadProps) => {
         )}
       </div>
 
-      <div className="flex flex-wrap gap-3 rounded-[16px] bg-white p-3">
+      <div
+        className={`flex flex-wrap gap-3 rounded-[16px] bg-white p-3 ${
+          isDragOver ? "ring-4 ring-[#5AB2FF] ring-offset-2" : ""
+        }`}
+        onDragOver={(e: DragEvent<HTMLDivElement>) => {
+          e.preventDefault();
+          setIsDragOver(true);
+        }}
+        onDragLeave={() => setIsDragOver(false)}
+        onDrop={handleDrop}
+      >
         {photos.map((photo, index) => (
           <div
             key={index}
