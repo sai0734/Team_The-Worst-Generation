@@ -11,6 +11,7 @@ import { questApi, type QuestHome } from "../api/questApi";
 import AssistantPanel from "../components/assistant/AssistantPanel";
 import heroBaby from "../assets/hero-baby.png";
 import { triggerWipe } from "../utils/pageTransition";
+import "../styles/dashboard-home.css";
 
 const MARQUEE_TEXT =
   "오늘도 함께, 잘 키워가요 ✦ 육아 기록 · 가계부 · AI 정부지원금 · 리콜 알림 ✦ ";
@@ -229,7 +230,7 @@ const DashboardPage = () => {
       </div>
       </div>
 
-      <div className="home-grid stagger">
+      <div className="home-grid home-grid-v2 stagger">
         <article
           className={`card home-tip-card area-tip motif-star home-rise-up${cardsIn ? " in-view" : ""}`}
           style={{ "--i": 0 } as CSSProperties}
@@ -317,6 +318,7 @@ const DashboardPage = () => {
           )}
         </article>
 
+        <div className="home-side-col area-side">
         <Link
           to="/ledger"
           className={`card home-side-card area-ledger motif-moon home-rise-up${cardsIn ? " in-view" : ""}`}
@@ -366,15 +368,10 @@ const DashboardPage = () => {
           <span className="home-side-btn">가계부 상세 보기</span>
         </Link>
 
-        <AssistantPanel
-          className={`area-assist motif-sun home-rise-up${cardsIn ? " in-view" : ""}`}
-          style={{ "--i": 3 } as CSSProperties}
-        />
-
         <Link
           to="/recall"
           className={`card home-side-card area-recall motif-sparkle home-rise-up${cardsIn ? " in-view" : ""}`}
-          style={{ "--i": 4 } as CSSProperties}
+          style={{ "--i": 3 } as CSSProperties}
           onClick={(e) => {
             e.preventDefault();
             triggerWipe(() => navigate("/recall"));
@@ -400,6 +397,12 @@ const DashboardPage = () => {
           )}
           <span className="home-side-btn">리콜 현황 보기</span>
         </Link>
+        </div>
+
+        <AssistantPanel
+          className={`area-assist home-rise-up${cardsIn ? " in-view" : ""}`}
+          style={{ "--i": 4 } as CSSProperties}
+        />
       </div>
       </div>
     </BasicLayout>
