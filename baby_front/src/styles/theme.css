@@ -15,7 +15,13 @@
   min-height: 100vh;
   background: var(--bg);
   color: var(--ink);
-  font-family: "Noto Sans KR", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+  font-family:
+    "Noto Sans KR",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Apple SD Gothic Neo",
+    "Malgun Gothic",
+    sans-serif;
   overflow: hidden;
   position: relative;
 }
@@ -287,7 +293,10 @@
   font-size: 13px;
   font-weight: 850;
   cursor: pointer;
-  transition: background 0.18s ease, border-color 0.18s ease, transform 0.12s ease;
+  transition:
+    background 0.18s ease,
+    border-color 0.18s ease,
+    transform 0.12s ease;
 }
 .app .sos-modal__cancel {
   border: 1px solid #d5dde3;
@@ -344,15 +353,46 @@
   padding: 6px 10px;
   border: 1px solid var(--line);
   border-radius: 10px;
-  background: rgba(255,255,255,.68);
-  transition: border-color .18s ease, background .18s ease;
+  background: rgba(255, 255, 255, 0.68);
+  transition:
+    border-color 0.18s ease,
+    background 0.18s ease;
 }
-.app .account .current-profile-link:hover { border-color: rgba(0,91,178,.3); background: #fff; }
-.app .current-profile-dot { width: 8px; height: 8px; border-radius: 50%; background: #34a574; box-shadow: 0 0 0 4px rgba(52,165,116,.12); }
-.app .current-profile-copy { display: flex; flex-direction: column; gap: 1px; line-height: 1.15; }
-.app .current-profile-copy small { color: var(--muted); font-size: 9px; font-weight: 700; }
-.app .current-profile-copy strong { max-width: 90px; overflow: hidden; color: var(--ink); font-size: 11px; font-weight: 900; text-overflow: ellipsis; white-space: nowrap; }
-.app .account > a:focus-visible { outline: 3px solid rgba(0,91,178,.2); outline-offset: 2px; }
+.app .account .current-profile-link:hover {
+  border-color: rgba(0, 91, 178, 0.3);
+  background: #fff;
+}
+.app .current-profile-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #34a574;
+  box-shadow: 0 0 0 4px rgba(52, 165, 116, 0.12);
+}
+.app .current-profile-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  line-height: 1.15;
+}
+.app .current-profile-copy small {
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 700;
+}
+.app .current-profile-copy strong {
+  max-width: 90px;
+  overflow: hidden;
+  color: var(--ink);
+  font-size: 11px;
+  font-weight: 900;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.app .account > a:focus-visible {
+  outline: 3px solid rgba(0, 91, 178, 0.2);
+  outline-offset: 2px;
+}
 .app .stage {
   height: calc(100vh - 78px);
   min-height: 650px;
@@ -480,6 +520,7 @@
   font-weight: 800;
   font-size: 12px;
   cursor: pointer;
+  position: relative;
 }
 .app .tool i {
   font-style: normal;
@@ -632,10 +673,20 @@
   position: absolute;
   inset: -25%;
   background:
-    radial-gradient(circle at 22% 25%, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0) 38%),
-    linear-gradient(120deg, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0) 55%);
+    radial-gradient(
+      circle at 22% 25%,
+      rgba(255, 255, 255, 0.5) 0%,
+      rgba(255, 255, 255, 0) 38%
+    ),
+    linear-gradient(
+      120deg,
+      rgba(255, 255, 255, 0.4) 0%,
+      rgba(255, 255, 255, 0) 55%
+    );
   background-repeat: no-repeat;
-  background-size: 140% 140%, 90% 220%;
+  background-size:
+    140% 140%,
+    90% 220%;
   background-position:
     0% 0%,
     -10% -10%;
@@ -673,7 +724,8 @@
   animation-delay: -4s;
 }
 @keyframes home-blob-float {
-  0%, 100% {
+  0%,
+  100% {
     transform: translate(0, 0) scale(1);
   }
   33% {
@@ -698,7 +750,8 @@
   animation: home-art-bob 5s ease-in-out 1.4s infinite;
 }
 @keyframes home-art-bob {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0);
   }
   50% {
@@ -829,7 +882,8 @@
   animation-delay: 0.2s;
 }
 @keyframes home-train-chug {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0);
   }
   50% {
@@ -897,7 +951,13 @@
   overflow: hidden;
   pointer-events: none;
   z-index: 0;
-  background: linear-gradient(180deg, #bfe0ff 0%, #dceeff 30%, #f6ecff 62%, #fff7ec 100%);
+  background: linear-gradient(
+    180deg,
+    #bfe0ff 0%,
+    #dceeff 30%,
+    #f6ecff 62%,
+    #fff7ec 100%
+  );
 }
 .app .home-content {
   position: relative;
@@ -980,7 +1040,8 @@
   animation: sky-drift 46s linear infinite -6s;
 }
 @keyframes sky-bob {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0);
   }
   50% {
@@ -988,7 +1049,8 @@
   }
 }
 @keyframes sky-twinkle {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 0.35;
     transform: scale(0.9);
   }
@@ -1053,10 +1115,20 @@
   position: absolute;
   inset: -25%;
   background:
-    radial-gradient(circle at 28% 22%, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0) 38%),
-    linear-gradient(120deg, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0) 55%);
+    radial-gradient(
+      circle at 28% 22%,
+      rgba(255, 255, 255, 0.5) 0%,
+      rgba(255, 255, 255, 0) 38%
+    ),
+    linear-gradient(
+      120deg,
+      rgba(255, 255, 255, 0.4) 0%,
+      rgba(255, 255, 255, 0) 55%
+    );
   background-repeat: no-repeat;
-  background-size: 140% 140%, 90% 220%;
+  background-size:
+    140% 140%,
+    90% 220%;
   background-position:
     0% 0%,
     -10% -10%;
@@ -1066,7 +1138,8 @@
   animation: liquid-shine 9s ease-in-out infinite;
 }
 @keyframes liquid-shine {
-  0%, 100% {
+  0%,
+  100% {
     opacity: 0.3;
     background-position:
       0% 0%,
@@ -2554,9 +2627,15 @@
     padding: 0;
     justify-content: center;
   }
-  .app .account-link { display: none; }
-  .app .current-profile-copy small { display: none; }
-  .app .account .current-profile-link { padding: 8px 10px; }
+  .app .account-link {
+    display: none;
+  }
+  .app .current-profile-copy small {
+    display: none;
+  }
+  .app .account .current-profile-link {
+    padding: 8px 10px;
+  }
   .app .primary-nav {
     display: none;
   }

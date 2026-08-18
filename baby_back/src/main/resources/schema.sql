@@ -911,6 +911,8 @@ CREATE TABLE IF NOT EXISTS tbl_market_profile (
     CONSTRAINT fk_market_profile_email FOREIGN KEY (email) REFERENCES tbl_member (email)
     );
 
+ALTER TABLE tbl_market_profile ADD COLUMN IF NOT EXISTS nickname VARCHAR(50) NULL;
+
 CREATE TABLE IF NOT EXISTS tbl_rental_detail (
                                                  item_no  BIGINT NOT NULL,
                                                  deposit  INT    NOT NULL DEFAULT 0,
