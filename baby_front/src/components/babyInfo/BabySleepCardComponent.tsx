@@ -38,8 +38,13 @@ const BabySleepCardComponent = ({ babyNo }: BabySleepCardProps) => {
   const [adviceLoading, setAdviceLoading] = useState(false);
 
   const loadList = async () => {
-    const result: BabySleep[] = await babySleepApi.getList(babyNo);
-    setList(result);
+    try {
+      const result: BabySleep[] = await babySleepApi.getList(babyNo);
+      setList(result);
+    } catch (err) {
+      alert("수면기록을 불러오지 못했습니다.");
+      console.error(err);
+    }
   };
 
   useEffect(() => {
@@ -47,7 +52,10 @@ const BabySleepCardComponent = ({ babyNo }: BabySleepCardProps) => {
   }, [babyNo]);
 
   const handleRegister = async () => {
-    if (!startTime) return;
+    if (!sleepType || !startTime) {
+      alert("빈 칸을 모두 입력해주세요.");
+      return;
+    }
 
     try {
       await babySleepApi.register({

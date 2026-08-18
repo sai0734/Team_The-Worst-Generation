@@ -70,4 +70,11 @@
         DELETE FROM tbl_print_order_item WHERE album_no = #{albumNo}
     </delete>
 
+    <select id="countPaidItemsByAlbumNo" resultType="long">
+        SELECT COUNT(*)
+        FROM tbl_print_order_item pi
+        JOIN tbl_print_order po ON pi.order_no = po.order_no
+        WHERE pi.album_no = #{albumNo} AND po.status = 'PAID'
+    </select>
+
 </mapper>

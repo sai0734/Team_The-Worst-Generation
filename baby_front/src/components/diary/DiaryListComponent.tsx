@@ -29,27 +29,39 @@ const DiaryListComponent = ({ reloadTrigger }: DiaryListProps) => {
 
   const [editingNo, setEditingNo] = useState<number | null>(null);
   const [editContent, setEditContent] = useState("");
+  const [editFile, setEditFile] = useState<File | null>(null);
+  const [editPreview, setEditPreview] = useState<string | null>(null);
+  const [editRemovePhoto, setEditRemovePhoto] = useState(false);
   const [selectedDiary, setSelectedDiary] = useState<BabyDiary | null>(null);
 
   const [keyword, setKeyword] = useState("");
   const [searchKeyword, setSearchKeyword] = useState("");
+  const [loading, setLoading] = useState(true);
 
   const loadList = async () => {
     if (!currentBaby?.babyNo) return;
 
-    const result = await diaryApi.getList({
-      babyNo: currentBaby.babyNo,
-      page,
-      size: PAGE_SIZE,
-      keyword: searchKeyword || undefined,
-    });
+    setLoading(true);
+    try {
+      const result = await diaryApi.getList({
+        babyNo: currentBaby.babyNo,
+        page,
+        size: PAGE_SIZE,
+        keyword: searchKeyword || undefined,
+      });
 
-    setList(result.dtoList);
-    setPageNumList(result.pageNumList);
-    setPrev(result.prev);
-    setNext(result.next);
-    setPrevPage(result.prevPage);
-    setNextPage(result.nextPage);
+      setList(result.dtoList);
+      setPageNumList(result.pageNumList);
+      setPrev(result.prev);
+      setNext(result.next);
+      setPrevPage(result.prevPage);
+      setNextPage(result.nextPage);
+    } catch (err) {
+      alert("일기 목록을 불러오지 못했습니다.");
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -64,19 +76,35 @@ const DiaryListComponent = ({ reloadTrigger }: DiaryListProps) => {
   const handleOpenEdit = (diary: BabyDiary) => {
     setEditingNo(diary.diaryNo);
     setEditContent(diary.content);
+    setEditFile(null);
+    setEditPreview(
+      diary.photoFileName ? diaryApi.getThumbnailUrl(diary.photoFileName) : null,
+    );
+    setEditRemovePhoto(false);
   };
 
   const handleCancelEdit = () => {
     setEditingNo(null);
+    setEditFile(null);
+    setEditPreview(null);
+    setEditRemovePhoto(false);
   };
 
   const handleSaveEdit = async (diaryNo: number) => {
     const formData = new FormData();
     formData.append("content", editContent);
+    if (editFile) {
+      formData.append("files", editFile);
+    } else if (editRemovePhoto) {
+      formData.append("removePhoto", "true");
+    }
 
     try {
       await diaryApi.modify(diaryNo, formData);
       setEditingNo(null);
+      setEditFile(null);
+      setEditPreview(null);
+      setEditRemovePhoto(false);
       await loadList();
     } catch (err) {
       alert("수정에 실패했습니다.");
@@ -122,7 +150,7 @@ const DiaryListComponent = ({ reloadTrigger }: DiaryListProps) => {
           검색
         </button>
       </div>
-      {list.length === 0 && (
+      {!loading && list.length === 0 && (
         <div className="flex flex-col items-center justify-center gap-2 rounded-[20px] border border-dashed border-[rgba(42,41,38,0.15)] bg-white p-8 text-center">
           <span className="text-2xl">📔</span>
           <p className="text-sm font-bold text-[#2A2926]">
@@ -144,7 +172,52 @@ const DiaryListComponent = ({ reloadTrigger }: DiaryListProps) => {
             if (editingNo !== diary.diaryNo) setSelectedDiary(diary);
           }}
         >
-          {diary.photoFileName ? (
+          {editingNo === diary.diaryNo ? (
+            <div className="relative h-[64px] w-[64px] flex-shrink-0 rounded-[12px]">
+              {editPreview ? (
+                <img
+                  className="h-[64px] w-[64px] rounded-[12px] object-cover"
+                  src={editPreview}
+                  alt="미리보기"
+                />
+              ) : (
+                <div className="flex h-[64px] w-[64px] items-center justify-center rounded-[12px] bg-[#EFE9DE] text-[10px] font-bold text-[#7A756C]">
+                  사진 없음
+                </div>
+              )}
+              <input
+                type="file"
+                accept="image/*"
+                className="absolute inset-0 cursor-pointer rounded-[12px] opacity-0"
+                onChange={(e) => {
+                  const selected = e.target.files?.[0] ?? null;
+                  setEditFile(selected);
+                  setEditRemovePhoto(false);
+                  setEditPreview(
+                    selected
+                      ? URL.createObjectURL(selected)
+                      : diary.photoFileName
+                        ? diaryApi.getThumbnailUrl(diary.photoFileName)
+                        : null,
+                  );
+                }}
+              />
+              {editPreview && (
+                <button
+                  type="button"
+                  className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-white text-[10px] font-bold text-[#7A756C] shadow transition-colors hover:bg-[#f3d9d9] hover:text-[#c0392b]"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setEditFile(null);
+                    setEditPreview(null);
+                    setEditRemovePhoto(true);
+                  }}
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+          ) : diary.photoFileName ? (
             <img
               className="h-[64px] w-[64px] flex-shrink-0 rounded-[12px] object-cover"
               src={diaryApi.getThumbnailUrl(diary.photoFileName)}

@@ -117,7 +117,7 @@ CREATE TABLE IF NOT EXISTS tbl_baby_info (
     baby_no BIGINT AUTO_INCREMENT,
     email VARCHAR(100) NOT NULL,
     baby_name VARCHAR(100) NOT NULL,
-    birth_date DATE,
+    birth_date DATE NOT NULL,
     gender VARCHAR(100) NOT NULL,
     profile_image_file_name VARCHAR(500),
     blood_type VARCHAR(100),
@@ -927,6 +927,8 @@ CREATE TABLE IF NOT EXISTS tbl_market_profile (
     PRIMARY KEY (email),
     CONSTRAINT fk_market_profile_email FOREIGN KEY (email) REFERENCES tbl_member (email)
     );
+
+ALTER TABLE tbl_market_profile ADD COLUMN IF NOT EXISTS nickname VARCHAR(50) NULL;
 
 CREATE TABLE IF NOT EXISTS tbl_rental_detail (
                                                  item_no  BIGINT NOT NULL,

@@ -13,6 +13,8 @@ import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.Period;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -71,7 +73,7 @@ public class CryCheckServiceImpl implements CryCheckService {
             audioFileName = savedNames.get(0);
         }
 
-        String aiResultJson = ollamaClient.chat(buildPrompt(cryCheckDTO));
+        String aiResultJson = ollamaClient.chat(buildPrompt(cryCheckDTO, babyInfo));
 
         CryCheck cryCheck = CryCheck.builder()
                 .babyNo(cryCheckDTO.getBabyNo())
@@ -165,22 +167,59 @@ public class CryCheckServiceImpl implements CryCheckService {
         return true;
     }
 
-    private String buildPrompt(CryCheckDTO cryCheckDTO) {
+    private String buildPrompt(CryCheckDTO cryCheckDTO, BabyInfo babyInfo) {
 
         StringBuilder sb = new StringBuilder();
 
-        sb.append("다음은 아기 울음소리를 분석한 음향 특징이다.\n");
+        sb.append("너는 영유아 울음소리 음향 특징을 보고 원인을 추정하는 육아 보조 AI다.\n");
+        sb.append("아래 [아기 정보]와 [음향 특징]을 바탕으로, [판단 기준]에 제시된 경향을 참고해서 추론하라.\n");
+        sb.append("[판단 기준]은 절대적인 규칙이 아니라 참고용 경향이니, 수치가 애매하면 여러 원인의 confidence를 비슷하게 배분해도 된다.\n\n");
+
+        sb.append("[아기 정보]\n");
+        Integer ageMonths = calculateAgeMonths(babyInfo.getBirthDate());
+        if (ageMonths != null) {
+            sb.append("개월수: 약 ").append(ageMonths).append("개월\n");
+        } else {
+            sb.append("개월수: 정보 없음\n");
+        }
+        sb.append('\n');
+
+        sb.append("[음향 특징]\n");
+        sb.append("평균 피치: ").append(cryCheckDTO.getAvgPitch()).append("Hz\n");
+        sb.append("평균 크기(0~100): ").append(cryCheckDTO.getAvgVolume()).append("\n");
+        sb.append("울음 지속시간: ").append(cryCheckDTO.getDurationSeconds()).append("초\n");
+        sb.append("울음 패턴: ").append(cryCheckDTO.getPattern())
+                .append(" (불규칙/상승형/하강형/일정형 중 하나)\n\n");
+
+        sb.append("[판단 기준 - 참고용 경향]\n");
+        sb.append("- 배고픔: 리드미컬하고 반복적인 패턴(일정형 또는 상승형), 피치가 중간~약간 높은 편이며 ")
+                .append("시간이 지날수록 강도가 세지는 경향. 생후 개월수가 어릴수록(신생아~3개월) 수유 간격이 짧아 배고픔 빈도가 상대적으로 높다.\n");
+        sb.append("- 졸림/수면 신호: 칭얼거리듯 약하고 늘어지는 소리, 하강형 패턴, 피치와 볼륨이 상대적으로 낮은 편. ")
+                .append("울다가 중간에 끊기거나 잦아드는 경향.\n");
+        sb.append("- 불편함 또는 통증: 전조 없이 갑자기 시작되고 피치가 매우 높고 날카로우며 불규칙 패턴, ")
+                .append("강하고 급격한 볼륨 변화. 생후 6~8주 전후 영아는 원인을 특정하기 힘든 장시간 울음(콜릭)이 흔하고 보통 3~4개월이면 줄어든다.\n");
+        sb.append("- 정서적 필요(안아달라/불안 등): 위 세 가지처럼 극단적인 음향 특징이 뚜렷하지 않고 애매한 경우, ")
+                .append("또는 음향 특징만으로 다른 원인을 특정할 근거가 약할 때 고려하라.\n\n");
+
         sb.append("이 정보만으로 원인을 확정할 수 없으므로, 원인을 하나로 단정하지 말고 ")
                 .append("의심되는 원인을 전부 순위별로 제시하라.\n");
         sb.append("각 원인마다 확신 정도를 0~100 사이의 정수 confidence 값으로 추정하라. ")
                 .append("모든 candidate의 confidence 합이 100에 가깝게 배분하라.\n");
-        sb.append("평균 피치: ").append(cryCheckDTO.getAvgPitch()).append("Hz\n");
-        sb.append("평균 크기: ").append(cryCheckDTO.getAvgVolume()).append("\n");
-        sb.append("울음 지속시간: ").append(cryCheckDTO.getDurationSeconds()).append("초\n");
-        sb.append("울음 패턴: ").append(cryCheckDTO.getPattern()).append("\n");
+        sb.append("reason에는 위 음향 특징과 개월수 중 실제로 근거가 된 값을 구체적으로 언급하라. 근거 없이 일반론만 쓰지 마라.\n");
         sb.append("아래 JSON 형식으로만 응답하라. 설명을 추가하지 마라.\n");
         sb.append("{\"candidates\":[{\"rank\":1,\"cause\":\"원인\",\"confidence\":78,\"reason\":\"이유\"}, ...]}");
 
         return sb.toString();
+    }
+
+    // 생년월일 기준 만 개월수 계산. 생년월일 미입력 시 null
+    private Integer calculateAgeMonths(LocalDate birthDate) {
+
+        if (birthDate == null) {
+            return null;
+        }
+
+        return Period.between(birthDate, LocalDate.now()).getYears() * 12
+                + Period.between(birthDate, LocalDate.now()).getMonths();
     }
 }

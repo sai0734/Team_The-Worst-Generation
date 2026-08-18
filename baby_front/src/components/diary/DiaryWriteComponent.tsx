@@ -1,6 +1,6 @@
 import { useSelector } from "react-redux";
 import { RootState } from "../../store";
-import { FormEvent, useState } from "react";
+import { DragEvent, FormEvent, useState } from "react";
 import * as diaryApi from "../../api/diaryApi";
 
 interface DiaryWriteProps {
@@ -25,6 +25,7 @@ const DiaryWriteComponent = ({ onRegistered }: DiaryWriteProps) => {
   const [content, setContent] = useState("");
   const [diaryDate, setDiaryDate] = useState(getTodayStr());
   const [aiLoading, setAiLoading] = useState(false);
+  const [isDragOver, setIsDragOver] = useState(false);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -78,7 +79,28 @@ const DiaryWriteComponent = ({ onRegistered }: DiaryWriteProps) => {
     >
       <div className="flex flex-col gap-3 sm:flex-row">
         <div className="flex w-full flex-shrink-0 flex-col gap-2 sm:w-[160px]">
-          <div className="relative h-[160px] w-full">
+          <div
+            className={`relative h-[160px] w-full rounded-[16px] ${
+              isDragOver ? "ring-4 ring-[#5AB2FF] ring-offset-2" : ""
+            }`}
+            onDragOver={(e: DragEvent<HTMLDivElement>) => {
+              e.preventDefault();
+              setIsDragOver(true);
+            }}
+            onDragLeave={() => setIsDragOver(false)}
+            onDrop={(e: DragEvent<HTMLDivElement>) => {
+              e.preventDefault();
+              setIsDragOver(false);
+
+              const dropped = e.dataTransfer.files?.[0] ?? null;
+              if (dropped && !dropped.type.startsWith("image/")) {
+                alert("이미지 파일만 등록할 수 있습니다.");
+                return;
+              }
+              setFile(dropped);
+              setPreview(dropped ? URL.createObjectURL(dropped) : null);
+            }}
+          >
             {preview ? (
               <img
                 className="h-full w-full rounded-[16px] object-cover border-4 border-[#CAF4FF]"
@@ -101,15 +123,21 @@ const DiaryWriteComponent = ({ onRegistered }: DiaryWriteProps) => {
                 setPreview(selected ? URL.createObjectURL(selected) : null);
               }}
             />
+            {preview && (
+              <button
+                type="button"
+                className="absolute -right-1.5 -top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-white text-xs font-bold text-[#7A756C] shadow transition-colors hover:bg-[#f3d9d9] hover:text-[#c0392b]"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setFile(null);
+                  setPreview(null);
+                  setContent("");
+                }}
+              >
+                ✕
+              </button>
+            )}
           </div>
-          <button
-            type="button"
-            onClick={handleGenerateContent}
-            disabled={!file || aiLoading}
-            className="rounded-[12px] bg-[#5AB2FF] px-3 py-2 text-xs font-bold text-white transition-colors hover:bg-[#1E6FCC] disabled:cursor-not-allowed disabled:bg-[#CBD5E1]"
-          >
-            {aiLoading ? "AI가 작성중..." : "AI로 일기 쓰기"}
-          </button>
         </div>
         <textarea
           className="h-[160px] flex-1 min-w-0 resize-none rounded-[16px] border border-[rgba(42,41,38,0.12)] bg-white p-4 text-sm text-[#2A2926] outline-none transition-colors focus:border-[#5AB2FF]"
@@ -118,20 +146,30 @@ const DiaryWriteComponent = ({ onRegistered }: DiaryWriteProps) => {
           placeholder="오늘 하루는 어땠나요?"
         />
       </div>
-      <div className="flex items-center justify-end gap-3">
-        <span className="text-xs font-bold text-[#7A756C]">날짜 선택하기</span>
-        <input
-          type="date"
-          className="rounded-[12px] border border-[rgba(42,41,38,0.12)] bg-white px-3 py-2 text-sm font-bold text-[#7A756C] outline-none transition-colors focus:border-[#5AB2FF]"
-          value={diaryDate}
-          onChange={(e) => setDiaryDate(e.target.value)}
-        />
+      <div className="flex items-center justify-between gap-3">
         <button
-          type="submit"
-          className="rounded-full bg-[#5AB2FF] px-6 py-2.5 text-sm font-bold text-white transition-colors hover:bg-[#1E6FCC]"
+          type="button"
+          onClick={handleGenerateContent}
+          disabled={!file || aiLoading}
+          className="rounded-[12px] bg-[#5AB2FF] px-3 py-2 text-xs font-bold text-white transition-colors hover:bg-[#1E6FCC] disabled:cursor-not-allowed disabled:bg-[#CBD5E1]"
         >
-          저장하기
+          {aiLoading ? "AI가 작성중..." : "AI로 일기 쓰기"}
         </button>
+        <div className="flex items-center gap-3">
+          <span className="text-xs font-bold text-[#7A756C]">날짜 선택하기</span>
+          <input
+            type="date"
+            className="rounded-[12px] border border-[rgba(42,41,38,0.12)] bg-white px-3 py-2 text-sm font-bold text-[#7A756C] outline-none transition-colors focus:border-[#5AB2FF]"
+            value={diaryDate}
+            onChange={(e) => setDiaryDate(e.target.value)}
+          />
+          <button
+            type="submit"
+            className="rounded-full bg-[#5AB2FF] px-6 py-2.5 text-sm font-bold text-white transition-colors hover:bg-[#1E6FCC]"
+          >
+            저장하기
+          </button>
+        </div>
       </div>
     </form>
   );

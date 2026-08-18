@@ -24,4 +24,6 @@ public interface BabyAlbumMapper {
 
     long countByAlbumNoAndBabyNo(@Param("albumNo") Long albumNo, @Param("babyNo") Long babyNo);
 
+    String selectPhotoFileNameByAlbumNo(@Param("albumNo") Long albumNo, @Param("email") String email);
+
 }

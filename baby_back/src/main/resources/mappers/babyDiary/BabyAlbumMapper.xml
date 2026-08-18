@@ -58,4 +58,11 @@
         WHERE album_no = #{albumNo} AND baby_no = #{babyNo}
     </select>
 
+    <select id="selectPhotoFileNameByAlbumNo" resultType="string">
+        SELECT ba.photo_file_name
+        FROM tbl_baby_album ba
+        JOIN tbl_baby_info bi ON ba.baby_no = bi.baby_no
+        WHERE ba.album_no = #{albumNo} AND bi.email = #{email}
+    </select>
+
 </mapper>

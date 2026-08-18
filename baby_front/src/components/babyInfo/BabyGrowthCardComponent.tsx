@@ -115,11 +115,16 @@ const BabyGrowthCardComponent = ({ babyNo }: BabyGrowthCardProps) => {
   const [showForm, setShowForm] = useState(false);
 
   const loadGrowList = async () => {
-    const list: BabyGrowInfo[] = await babyGrowInfoApi.getList(babyNo);
-    const sorted = [...list].sort((a, b) =>
-      b.measuredDate.localeCompare(a.measuredDate),
-    );
-    setGrowList(sorted);
+    try {
+      const list: BabyGrowInfo[] = await babyGrowInfoApi.getList(babyNo);
+      const sorted = [...list].sort((a, b) =>
+        b.measuredDate.localeCompare(a.measuredDate),
+      );
+      setGrowList(sorted);
+    } catch (err) {
+      alert("성장기록을 불러오지 못했습니다.");
+      console.error(err);
+    }
   };
 
   useEffect(() => {
@@ -129,10 +134,15 @@ const BabyGrowthCardComponent = ({ babyNo }: BabyGrowthCardProps) => {
   useEffect(() => {
     growthPercentileApi
       .getOne(babyNo)
-      .then((data: GrowthPercentile) => setPercentile(data));
+      .then((data: GrowthPercentile) => setPercentile(data))
+      .catch((err) => console.error(err));
   }, [babyNo]);
 
   const handleRegister = async () => {
+    if (!measuredDate || !weight || !height) {
+      alert("빈 칸을 모두 입력해주세요.");
+      return;
+    }
     try {
       await babyGrowInfoApi.register({
         babyNo,

@@ -81,6 +81,8 @@ public class BabyInfoServiceImpl implements BabyInfoService{
 
         log.info("babyInfo_Service_register_실행~~~~~~~~~~~~");
 
+        validateRequiredFields(babyInfoDTO);
+
         BabyInfo babyInfo = modelMapper.map(babyInfoDTO, BabyInfo.class);
 
         babyInfoMapper.insert(babyInfo, email);
@@ -99,6 +101,8 @@ public class BabyInfoServiceImpl implements BabyInfoService{
         if(babyInfo == null) {
             throw new IllegalArgumentException("존재하지 않는 아이입니다:" + babyInfoDTO.getBabyNo());
         }
+
+        validateRequiredFields(babyInfoDTO);
 
         babyInfo.changeName(babyInfoDTO.getBabyName());
         babyInfo.changeGender(babyInfoDTO.getGender());
@@ -148,5 +152,20 @@ public class BabyInfoServiceImpl implements BabyInfoService{
 
         babyInfoMapper.delete(babyNo, email);
 
+    }
+
+    private void validateRequiredFields(BabyInfoDTO babyInfoDTO) {
+        if(babyInfoDTO.getBabyName() == null || babyInfoDTO.getBabyName().isEmpty()
+                || babyInfoDTO.getBirthDate() == null || babyInfoDTO.getGender() == null || babyInfoDTO.getGender().isEmpty()) {
+            throw new IllegalArgumentException("이름, 생년월일, 성별은 필수 입력 항목입니다.");
+
+        }
+
+        if ((babyInfoDTO.getBirthWeekCount() != null && babyInfoDTO.getBirthWeekCount() < 0)
+                || (babyInfoDTO.getBirthWeight() != null && babyInfoDTO.getBirthWeight() < 0)
+                || (babyInfoDTO.getBirthHeight() != null && babyInfoDTO.getBirthHeight() < 0)
+                || (babyInfoDTO.getHeadCircumference() != null && babyInfoDTO.getHeadCircumference() < 0)) {
+            throw new IllegalArgumentException("출생 주수/체중/키/머리둘레는 0 이상이어야 합니다.");
+        }
     }
 }

@@ -10,4 +10,6 @@ public interface MarketProfileService {
     void modify(MarketProfileDTO marketProfileDTO);
 
     void verifyLocation(String email);
+
+    void changeNickname(String email, String nickname);
 }
