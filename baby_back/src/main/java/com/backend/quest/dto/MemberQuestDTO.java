@@ -30,4 +30,6 @@ public class MemberQuestDTO {
     private QuestDTO quest;
 
     private LocalDate dueDate;
+
+    private Long profileId;
 }
