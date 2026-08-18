@@ -1,7 +1,8 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import useCurrentProfile from "../../hooks/useCurrentProfile";
+import useCustomLogin from "../../hooks/useCustomLogin";
 import type { RootState } from "../../store";
 
 interface SubItem {
@@ -81,6 +82,7 @@ const NAV_ITEMS: NavItem[] = [
 const BasicMenu = () => {
   const loginState = useSelector((state: RootState) => state.loginSlice);
   const currentProfile = useCurrentProfile();
+  const { doLogout, moveToPath } = useCustomLogin();
   const [hovered, setHovered] = useState<string | null>(null);
   const [subnavLeft, setSubnavLeft] = useState<number | undefined>(undefined);
   const topWrapRef = useRef<HTMLElement | null>(null);
@@ -88,6 +90,13 @@ const BasicMenu = () => {
 
   const activeItem = NAV_ITEMS.find((item) => item.code === hovered);
   const closeSubnav = () => setHovered(null);
+
+  const handleLogout = () => {
+    doLogout();
+    moveToPath("/");
+  };
+
+  const [isSosModalOpen, setIsSosModalOpen] = useState(false);
 
   const handleTabEnter = (code: string) => {
     setHovered(code);
@@ -99,6 +108,17 @@ const BasicMenu = () => {
       setSubnavLeft(tabRect.left - wrapRect.left);
     }
   };
+
+  useEffect(() => {
+    if (!isSosModalOpen) return;
+
+    const closeWithEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setIsSosModalOpen(false);
+    };
+
+    window.addEventListener("keydown", closeWithEscape);
+    return () => window.removeEventListener("keydown", closeWithEscape);
+  }, [isSosModalOpen]);
 
   return (
     <>
@@ -133,18 +153,34 @@ const BasicMenu = () => {
             <div className="account">
               {loginState.email ? (
                 <>
-                  <Link className="current-profile-link" to="/member/profiles" aria-label="현재 프로필 변경">
+                  <Link
+                    className="current-profile-link"
+                    to="/member/profiles"
+                    aria-label="현재 프로필 변경"
+                  >
                     <span className="current-profile-dot" aria-hidden="true" />
                     <span className="current-profile-copy">
                       <small>현재 프로필</small>
-                      <strong>{currentProfile?.profileName ?? "프로필 선택"}</strong>
+                      <strong>
+                        {currentProfile?.profileName ?? "프로필 선택"}
+                      </strong>
                     </span>
                   </Link>
-                  <Link className="account-link" to="/mypage">마이페이지</Link>
-                  <Link className="account-primary" to="/member/logout">로그아웃</Link>
+                  <Link className="account-link" to="/mypage">
+                    마이페이지
+                  </Link>
+                  <button
+                    type="button"
+                    className="account-primary"
+                    onClick={handleLogout}
+                  >
+                    로그아웃
+                  </button>
                 </>
               ) : (
-                <Link className="account-primary" to="/member/login">로그인</Link>
+                <Link className="account-primary" to="/member/login">
+                  로그인
+                </Link>
               )}
             </div>
           </div>
@@ -168,6 +204,17 @@ const BasicMenu = () => {
       <div className="floating-tools">
         <button
           type="button"
+          className="tool tool--sos"
+          aria-label="긴급 도움 요청"
+          aria-haspopup="dialog"
+          aria-expanded={isSosModalOpen}
+          onClick={() => setIsSosModalOpen(true)}
+        >
+          <i aria-hidden="true">!</i>
+          <span>SOS</span>
+        </button>
+        <button
+          type="button"
           className="tool"
           onClick={() => window.dispatchEvent(new Event("open-chatbot"))}
         >
@@ -180,6 +227,44 @@ const BasicMenu = () => {
           <b className="live"></b>
         </button>
       </div>
+
+      {isSosModalOpen && (
+        <div
+          className="sos-modal-backdrop"
+          role="presentation"
+          onMouseDown={() => setIsSosModalOpen(false)}
+        >
+          <section
+            className="sos-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="sos-modal-title"
+            onMouseDown={(event) => event.stopPropagation()}
+          >
+            <span className="sos-modal__icon" aria-hidden="true">
+              !
+            </span>
+            <h2 id="sos-modal-title">응급 요청을 하시겠습니까?</h2>
+            <p>잘못 누르셨다면 취소를 선택해주세요.</p>
+            <div className="sos-modal__actions">
+              <button
+                type="button"
+                className="sos-modal__cancel"
+                onClick={() => setIsSosModalOpen(false)}
+              >
+                취소
+              </button>
+              <button
+                type="button"
+                className="sos-modal__confirm"
+                onClick={() => setIsSosModalOpen(false)}
+              >
+                응급 요청하기
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
     </>
   );
 };

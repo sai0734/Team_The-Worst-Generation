@@ -213,6 +213,106 @@
 .app .floating-tools .tool {
   box-shadow: 0 10px 30px rgba(0, 45, 90, 0.22);
 }
+.app .floating-tools .tool--sos {
+  background: #c83d3d;
+  box-shadow: 0 8px 22px rgba(137, 31, 31, 0.24);
+}
+.app .floating-tools .tool--sos:hover {
+  background: #b82f2f;
+}
+.app .floating-tools .tool--sos i {
+  display: grid;
+  width: 18px;
+  height: 18px;
+  place-items: center;
+  border: 1.5px solid rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  font-size: 12px;
+  line-height: 1;
+  font-weight: 900;
+}
+.app .sos-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  padding: 20px;
+  place-items: center;
+  background: rgba(17, 27, 38, 0.48);
+  backdrop-filter: blur(3px);
+}
+.app .sos-modal {
+  width: min(420px, 100%);
+  padding: 30px;
+  border: 1px solid rgba(37, 52, 65, 0.12);
+  border-radius: 18px;
+  background: #fff;
+  color: #1c2b3a;
+  box-shadow: 0 24px 70px rgba(15, 28, 40, 0.25);
+  text-align: center;
+}
+.app .sos-modal__icon {
+  display: grid;
+  width: 48px;
+  height: 48px;
+  margin: 0 auto 18px;
+  place-items: center;
+  border-radius: 50%;
+  background: #fff0f0;
+  color: #bd3434;
+  font-size: 24px;
+  font-weight: 900;
+}
+.app .sos-modal h2 {
+  margin: 0;
+  font-size: 22px;
+  line-height: 1.4;
+  letter-spacing: -0.5px;
+}
+.app .sos-modal p {
+  margin: 9px 0 24px;
+  color: #6b7884;
+  font-size: 13px;
+  line-height: 1.55;
+}
+.app .sos-modal__actions {
+  display: grid;
+  grid-template-columns: 1fr 1.25fr;
+  gap: 9px;
+}
+.app .sos-modal__actions button {
+  height: 44px;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 850;
+  cursor: pointer;
+  transition: background 0.18s ease, border-color 0.18s ease, transform 0.12s ease;
+}
+.app .sos-modal__cancel {
+  border: 1px solid #d5dde3;
+  background: #fff;
+  color: #465866;
+}
+.app .sos-modal__cancel:hover {
+  background: #f5f7f8;
+  border-color: #bcc8d1;
+}
+.app .sos-modal__confirm {
+  border: 1px solid #be3838;
+  background: #c83d3d;
+  color: #fff;
+}
+.app .sos-modal__confirm:hover {
+  background: #b82f2f;
+}
+.app .sos-modal__actions button:active {
+  transform: translateY(1px);
+}
+.app .sos-modal__actions button:focus-visible {
+  outline: 3px solid rgba(200, 61, 61, 0.24);
+  outline-offset: 2px;
+}
 .app .account {
   display: flex;
   align-items: center;
@@ -221,13 +321,21 @@
   font-size: 12px;
   font-weight: 700;
 }
-.app .account > a {
+.app .account > a,
+.app .account > button {
   padding: 10px 13px;
   border-radius: 99px;
 }
 .app .account .account-primary {
   background: var(--accent);
   color: #fff;
+}
+.app .account > button.account-primary {
+  border: 0;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
 }
 .app .account .current-profile-link {
   display: inline-flex;
