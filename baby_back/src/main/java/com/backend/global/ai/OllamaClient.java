@@ -29,6 +29,9 @@ public class OllamaClient {
     @Value("${ollama.vision-model}")
     private String visionModel;
 
+    @Value("${ollama.diary-vision-model}")
+    private String diaryVisionModel;
+
     private final HttpClient httpClient = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(5))
             .build();
@@ -52,6 +55,14 @@ public class OllamaClient {
     }
 
     public String chatWithImage(String userMessage, byte[] imageBytes) {
+        return sendImageChat(userMessage, imageBytes, visionModel);
+    }
+
+    public String chatWithImageForDiary(String userMessage, byte[] imageBytes) {
+        return sendImageChat(userMessage, imageBytes, diaryVisionModel);
+    }
+
+    private String sendImageChat(String userMessage, byte[] imageBytes, String model) {
 
         String base64Image = Base64.getEncoder().encodeToString(imageBytes);
 
@@ -67,7 +78,7 @@ public class OllamaClient {
         messages.add(message);
 
         JsonObject body = new JsonObject();
-        body.addProperty("model", visionModel);
+        body.addProperty("model", model);
         body.add("messages", messages);
         body.addProperty("think", false);
         body.addProperty("stream", false);

@@ -62,15 +62,20 @@ const BabyVaccinationCardComponent = ({
 
   useEffect(() => {
     const load = async () => {
-      const result: BabyVaccination[] =
-        await babyVaccinationApi.getList(babyNo);
+      try {
+        const result: BabyVaccination[] =
+          await babyVaccinationApi.getList(babyNo);
 
-      if (result.length === 0) {
-        await babyVaccinationApi.init(babyNo);
+        if (result.length === 0) {
+          await babyVaccinationApi.init(babyNo);
+        }
+
+        await loadList();
+        await loadProgress();
+      } catch (err) {
+        alert("예방접종 정보를 불러오지 못했습니다.");
+        console.error(err);
       }
-
-      await loadList();
-      await loadProgress();
     };
     load();
   }, [babyNo]);
@@ -157,7 +162,10 @@ const BabyVaccinationCardComponent = ({
   };
 
   const handleAddCustom = async () => {
-    if (!customName) return;
+    if (!customName || !customDate) {
+      alert("빈 칸을 모두 입력해주세요.");
+      return;
+    }
 
     const recommendedMonth = getMonthsBetween(birthDate, customDate);
 
@@ -189,7 +197,9 @@ const BabyVaccinationCardComponent = ({
       await loadList();
       await loadProgress();
     } catch (err) {
-      alert("표준 접종 항목은 삭제할 수 없습니다.");
+      const message =
+        (err as any)?.response?.data?.msg ?? "삭제에 실패했습니다.";
+      alert(message);
       console.error(err);
     }
   };

@@ -69,6 +69,11 @@ public class BabyGrowInfoServiceImpl implements BabyGrowInfoService{
             throw new IllegalArgumentException("존재하지 않는 아이입니다: " + babyGrowInfoDTO.getBabyNo());
         }
 
+        if ((babyGrowInfoDTO.getWeight() != null && babyGrowInfoDTO.getWeight() <= 0)
+                || (babyGrowInfoDTO.getHeight() != null && babyGrowInfoDTO.getHeight() <= 0)) {
+            throw new IllegalArgumentException("체중/키는 0보다 커야 합니다.");
+        }
+
         BabyGrowInfo babyGrowInfo = modelMapper.map(babyGrowInfoDTO, BabyGrowInfo.class);
 
         babyGrowInfoMapper.insert(babyGrowInfo);
