@@ -34,6 +34,9 @@ public class MemberQuest {
     // YSJ - 긴급퀘 생성자(시스템 배정이면 null)
     private String createdBy;
 
+    // YSJ - 같은 아이디의 프로필별로 퀘스트를 나누기 위함 (schema.sql 미수정)
+    private Long profileId;
+
     private LocalDate dueDate;
     private String difficulty;
     private String theme;

@@ -8,6 +8,7 @@
         SELECT
             mq.id, mq.member_email, mq.quest_id, mq.status,
             mq.assigned_date, mq.due_date, mq.completed_at, mq.created_by,
+            mq.profile_id,
             q.title, q.description, q.type, q.difficulty, q.theme,
             q.reward, q.urgency, q.due_days
         FROM tbl_member_quest mq
@@ -15,6 +16,9 @@
         WHERE mq.member_email = #{email}
           AND mq.assigned_date = #{date}
           AND q.active = TRUE
+          <if test="profileId != null">
+            AND mq.profile_id = #{profileId}
+          </if>
         ORDER BY q.urgency DESC, mq.id ASC
     </select>
 
@@ -22,6 +26,7 @@
         SELECT
             mq.id, mq.member_email, mq.quest_id, mq.status,
             mq.assigned_date, mq.due_date, mq.completed_at, mq.created_by,
+            mq.profile_id,
             q.title, q.description, q.type, q.difficulty, q.theme,
             q.reward, q.urgency, q.due_days
         FROM tbl_member_quest mq
@@ -91,10 +96,15 @@
 
     <insert id="insertMemberQuest" useGeneratedKeys="true" keyProperty="id" keyColumn="id">
         INSERT INTO tbl_member_quest
-            (member_email, quest_id, status, assigned_date, due_date, created_by)
+            (member_email, quest_id, status, assigned_date, due_date, created_by, profile_id)
         VALUES
-            (#{memberEmail}, #{questId}, #{status}, #{assignedDate}, #{dueDate}, #{createdBy})
+            (#{memberEmail}, #{questId}, #{status}, #{assignedDate}, #{dueDate}, #{createdBy}, #{profileId})
     </insert>
+
+    <!-- YSJ - schema.sql 대신 런타임 ALTER. 같은 아이디 프로필 구분 -->
+    <update id="ensureProfileIdColumn">
+        ALTER TABLE tbl_member_quest ADD COLUMN IF NOT EXISTS profile_id BIGINT NULL
+    </update>
 
     <select id="selectPartnerEmail" resultType="string">
         SELECT CASE
@@ -130,6 +140,12 @@
         WHERE mq.member_email = #{email}
           AND mq.assigned_date = #{date}
           AND q.type = #{type}
+          <if test="profileId != null">
+            AND mq.profile_id = #{profileId}
+          </if>
+          <if test="profileId == null">
+            AND mq.profile_id IS NULL
+          </if>
     </select>
 
     <update id="expireOverdue">
@@ -138,6 +154,9 @@
         WHERE member_email = #{email}
           AND status = 'TODO'
           AND due_date &lt; #{today}
+          <if test="profileId != null">
+            AND profile_id = #{profileId}
+          </if>
     </update>
 
     <update id="uncompleteMemberQuest">
