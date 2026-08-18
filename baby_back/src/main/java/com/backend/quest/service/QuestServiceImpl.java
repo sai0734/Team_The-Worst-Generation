@@ -5,6 +5,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.backend.auth.profile.domain.MemberProfile;
+import com.backend.auth.profile.mapper.MemberProfileMapper;
 import com.backend.quest.domain.MemberQuest;
 import com.backend.quest.domain.Quest;
 import com.backend.quest.dto.MemberQuestDTO;
@@ -24,16 +26,18 @@ import lombok.RequiredArgsConstructor;
 public class QuestServiceImpl implements QuestService {
 
     private final QuestMapper questMapper;
+    private final MemberProfileMapper memberProfileMapper;
+    private final QuestRealtimeNotifier questRealtimeNotifier;
 
     @Override
-    public QuestHomeDTO getHome(String email) {
+    public QuestHomeDTO getHome(String email, Long profileId) {
         LocalDate today = LocalDate.now();
 
         // YSJ - 기한 만료 처리 + 오늘 일퀘 자동 배정
-        questMapper.expireOverdue(email, today);
-        ensureDailyQuests(email);
+        questMapper.expireOverdue(email, today, profileId);
+        ensureDailyQuests(email, profileId);
 
-        List<MemberQuest> list = questMapper.selectTodayByMember(email, today);
+        List<MemberQuest> list = questMapper.selectTodayByMember(email, today, profileId);
 
         List<MemberQuestDTO> daily = list.stream()
                 .filter(q -> "DAILY".equals(q.getType()))
@@ -83,10 +87,10 @@ public class QuestServiceImpl implements QuestService {
     }
 
     @Override
-    public void ensureDailyQuests(String email) {
+    public void ensureDailyQuests(String email, Long profileId) {
         LocalDate today = LocalDate.now();
 
-        int exists = questMapper.countAssignedTodayByType(email, today, "DAILY");
+        int exists = questMapper.countAssignedTodayByType(email, today, "DAILY", profileId);
         int need = 3 - exists;
         if (need <= 0) {
             return;
@@ -102,22 +106,28 @@ public class QuestServiceImpl implements QuestService {
                     .assignedDate(today)
                     .dueDate(today)
                     .createdBy(null)
+                    .profileId(profileId)
                     .build();
             questMapper.insertMemberQuest(mq);
         }
     }
 
     @Override
-    public MemberQuestDTO createUrgentBySpouse(String creatorEmail, UrgentQuestCreateDTO dto) {
-        String partner = questMapper.selectPartnerEmail(creatorEmail);
-        if (partner == null) {
-            throw new IllegalStateException("연결된 배우자가 없습니다");
+    public MemberQuestDTO createUrgentForOtherProfile(
+            String creatorEmail, Long creatorProfileId, UrgentQuestCreateDTO dto) {
+        if (creatorProfileId == null) {
+            throw new IllegalArgumentException("프로필을 선택한 뒤 긴급 퀘스트를 보낼 수 있습니다");
         }
+        if (dto == null || dto.getTitle() == null || dto.getTitle().isBlank()) {
+            throw new IllegalArgumentException("제목을 입력하세요");
+        }
+
+        Long targetProfileId = findOtherProfileId(creatorEmail, creatorProfileId);
 
         LocalDate today = LocalDate.now();
 
         Quest urgent = Quest.builder()
-                .title(dto.getTitle())
+                .title(dto.getTitle().trim())
                 .description(dto.getDescription())
                 .type("URGENT")
                 .difficulty("MEDIUM")
@@ -130,16 +140,28 @@ public class QuestServiceImpl implements QuestService {
         questMapper.insertUrgentQuest(urgent);
 
         MemberQuest mq = MemberQuest.builder()
-                .memberEmail(partner)
+                .memberEmail(creatorEmail)
                 .questId(urgent.getQuestId())
                 .status("TODO")
                 .assignedDate(today)
                 .dueDate(today)
                 .createdBy(creatorEmail)
+                .profileId(targetProfileId)
                 .build();
         questMapper.insertMemberQuest(mq);
 
-        return toDTO(questMapper.selectMemberQuest(mq.getId(), partner));
+        MemberQuestDTO result = toDTO(questMapper.selectMemberQuest(mq.getId(), creatorEmail));
+        questRealtimeNotifier.notifyUrgentAssigned(targetProfileId, result);
+        return result;
+    }
+
+    private Long findOtherProfileId(String memberEmail, Long creatorProfileId) {
+        List<MemberProfile> profiles = memberProfileMapper.selectListByMemberEmail(memberEmail);
+        return profiles.stream()
+                .map(MemberProfile::getProfileId)
+                .filter(id -> id != null && !id.equals(creatorProfileId))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("상대 프로필이 없습니다"));
     }
 
     private MemberQuestDTO toDTO(MemberQuest mq) {
@@ -164,6 +186,7 @@ public class QuestServiceImpl implements QuestService {
                 .assignedDate(mq.getAssignedDate())
                 .dueDate(mq.getDueDate())
                 .completedAt(mq.getCompletedAt())
+                .profileId(mq.getProfileId())
                 .quest(quest)
                 .build();
     }

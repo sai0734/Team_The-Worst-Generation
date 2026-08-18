@@ -1,13 +1,14 @@
-import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useState, type CSSProperties, type FormEvent, type ReactNode } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import BasicLayout from "../layouts/BasicLayout";
 import useCustomLogin from "../hooks/useCustomLogin";
+import useQuestRealtime from "../hooks/useQuestRealtime";
 import * as ledgerApi from "../api/ledgerApi";
 import { CATEGORY_LABELS } from "../api/ledgerApi";
 import type { LedgerCategory, LedgerSummary } from "../api/ledgerApi";
 import * as recallApi from "../api/recallApi";
 import type { MyProduct } from "../api/recallApi";
-import { questApi, type QuestHome } from "../api/questApi";
+import { questApi, type MemberQuest, type QuestHome } from "../api/questApi";
 import AssistantPanel from "../components/assistant/AssistantPanel";
 import heroBaby from "../assets/hero-baby.png";
 import { triggerWipe } from "../utils/pageTransition";
@@ -66,8 +67,19 @@ const getTodayTip = () => {
   return DAILY_TIPS[dayOfYear % DAILY_TIPS.length];
 };
 
+const questErrorMsg = (err: unknown) => {
+  if (typeof err === "object" && err && "response" in err) {
+    const data = (err as { response?: { data?: { msg?: string } } }).response
+      ?.data;
+    if (data?.msg) {
+      return data.msg;
+    }
+  }
+  return "보내지 못했습니다.";
+};
+
 const DashboardPage = () => {
-  const { isLogin } = useCustomLogin();
+  const { isLogin, loginState } = useCustomLogin();
   const navigate = useNavigate();
 
   const [ledgerSummary, setLedgerSummary] = useState<LedgerSummary | null>(null);
@@ -75,6 +87,10 @@ const DashboardPage = () => {
 
   const [home, setHome] = useState<QuestHome>(emptyHome);
   const [completingId, setCompletingId] = useState<number | null>(null);
+  const [urgentTitle, setUrgentTitle] = useState("");
+  const [urgentDesc, setUrgentDesc] = useState("");
+  const [sendingUrgent, setSendingUrgent] = useState(false);
+  const [urgentMsg, setUrgentMsg] = useState("");
 
   const [heroPlay, setHeroPlay] = useState(false);
   const [cardsIn, setCardsIn] = useState(false);
@@ -118,10 +134,28 @@ const DashboardPage = () => {
       .getMyProductList()
       .then(setRecallProducts)
       .catch(() => setRecallProducts(null));
+  }, [isLogin]);
 
+  useEffect(() => {
+    if (!isLogin) {
+      setHome(emptyHome);
+      return;
+    }
     loadQuests();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLogin]);
+  }, [isLogin, loginState.profileId]);
+
+  useQuestRealtime(loginState.profileId, (quest: MemberQuest) => {
+    setHome((prev) => {
+      if (prev.urgentQuests.some((item) => item.id === quest.id)) {
+        return prev;
+      }
+      return {
+        ...prev,
+        urgentQuests: [quest, ...prev.urgentQuests],
+      };
+    });
+  });
 
   const handleToggle = async (id: number, done: boolean) => {
     setCompletingId(id);
@@ -134,6 +168,31 @@ const DashboardPage = () => {
       await loadQuests();
     } finally {
       setCompletingId(null);
+    }
+  };
+
+  const handleSendUrgent = async (event: FormEvent) => {
+    event.preventDefault();
+    const title = urgentTitle.trim();
+    if (!title || sendingUrgent) {
+      return;
+    }
+    setSendingUrgent(true);
+    setUrgentMsg("");
+    try {
+      await questApi.createUrgent({
+        title,
+        description: urgentDesc.trim(),
+        reward: 10,
+        urgency: 8,
+      });
+      setUrgentTitle("");
+      setUrgentDesc("");
+      setUrgentMsg("상대 프로필에 보냈습니다.");
+    } catch (err) {
+      setUrgentMsg(questErrorMsg(err));
+    } finally {
+      setSendingUrgent(false);
     }
   };
 
@@ -164,7 +223,7 @@ const DashboardPage = () => {
     recallProducts?.filter((product) => product.recallMatched).length ?? 0;
 
   const daily = home.dailyQuests;
-  const urgent = home.urgentQuests[0];
+  const openUrgents = home.urgentQuests.filter((q) => q.status !== "DONE");
   const done = daily.filter((q) => q.status === "DONE").length;
   const dailyPct = daily.length ? (done / daily.length) * 100 : 0;
 
@@ -257,8 +316,8 @@ const DashboardPage = () => {
             />
           </div>
 
-          {urgent && urgent.status !== "DONE" && (
-            <div className="home-urgent-banner">
+          {openUrgents.map((urgent) => (
+            <div className="home-urgent-banner" key={urgent.id}>
               <span className="alert">긴급</span>
               <div className="home-urgent-body">
                 <strong>{urgent.quest?.title ?? "긴급 퀘스트"}</strong>
@@ -276,7 +335,39 @@ const DashboardPage = () => {
                 {completingId === urgent.id ? "처리 중..." : "완료"}
               </button>
             </div>
-          )}
+          ))}
+
+          <form className="home-urgent-send" onSubmit={handleSendUrgent}>
+            <p className="home-urgent-send-label">상대에게 긴급 할 일 보내기</p>
+            <input
+              type="text"
+              value={urgentTitle}
+              onChange={(e) => setUrgentTitle(e.target.value)}
+              placeholder="예: 기저귀 사다 주세요"
+              maxLength={40}
+              disabled={!loginState.profileId || sendingUrgent}
+            />
+            <input
+              type="text"
+              value={urgentDesc}
+              onChange={(e) => setUrgentDesc(e.target.value)}
+              placeholder="설명 (선택)"
+              maxLength={80}
+              disabled={!loginState.profileId || sendingUrgent}
+            />
+            <button
+              type="submit"
+              className="ghost-btn"
+              disabled={!loginState.profileId || sendingUrgent || !urgentTitle.trim()}
+            >
+              {sendingUrgent ? "보내는 중..." : "보내기"}
+            </button>
+            <small>
+              {loginState.profileId
+                ? urgentMsg
+                : "프로필을 선택한 뒤 보낼 수 있어요."}
+            </small>
+          </form>
 
           {daily.length === 0 ? (
             <p className="empty-hint">배정된 일일 퀘스트가 없습니다.</p>
