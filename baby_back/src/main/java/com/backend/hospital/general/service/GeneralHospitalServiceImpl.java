@@ -123,7 +123,7 @@ public class GeneralHospitalServiceImpl implements GeneralHospitalService {
         return safeHospitalIds(hospitalIds).stream()
                 .map(hospitalId -> {
                     int previousCount = waitingCountByHospitalId.computeIfAbsent(hospitalId, this::initialWaitingCount);
-                    int nextCount = Math.max(0, previousCount + ThreadLocalRandom.current().nextInt(-3, 4));
+                    int nextCount = Math.max(0, previousCount + ThreadLocalRandom.current().nextInt(-1, 2));
                     waitingCountByHospitalId.put(hospitalId, nextCount);
 
                     return GeneralHospitalWaitingDTO.builder()
@@ -146,7 +146,7 @@ public class GeneralHospitalServiceImpl implements GeneralHospitalService {
     }
 
     private int initialWaitingCount(String hospitalId) {
-        return Math.abs(hospitalId.hashCode() % 18) + 3;
+        return Math.abs(hospitalId.hashCode() % 6);
     }
 
     private Comparator<GeneralHospitalResponseDTO> recommendationComparator() {

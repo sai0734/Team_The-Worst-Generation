@@ -19,7 +19,7 @@ const HospitalHomeComponent = () => {
   const [hospitals, setHospitals] = useState<PediatricHospital[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [locating, setLocating] = useState(false);
+  const [locating, setLocating] = useState(true);
   const [locationMessage, setLocationMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [refreshingWaiting, setRefreshingWaiting] = useState(false);
@@ -46,8 +46,8 @@ const HospitalHomeComponent = () => {
   const locateUser = useCallback(() => {
     if (!navigator.geolocation) {
       setLocating(false);
+      setLoading(false);
       setLocationMessage("이 브라우저에서는 현재 위치를 사용할 수 없어요. 지도를 이동해 찾아보세요.");
-      void loadHospitals(DEFAULT_CENTER);
       return;
     }
 
@@ -72,25 +72,22 @@ const HospitalHomeComponent = () => {
       },
       (error) => {
         setLocating(false);
+        setLoading(false);
         setLocationMessage(
           error.code === error.PERMISSION_DENIED
-            ? "위치 권한이 꺼져 있어 기본 지역을 보여드리고 있어요. 브라우저 설정에서 위치 권한을 허용할 수 있어요."
+            ? "위치 권한이 꺼져 있어요. 브라우저 설정에서 위치 권한을 허용하거나, 지도를 이동해 찾아보세요."
             : error.code === error.POSITION_UNAVAILABLE
-              ? "현재 위치 정보를 확인할 수 없어요. 기기의 위치 기능이 켜져 있는지 확인해주세요."
+              ? "현재 위치 정보를 확인할 수 없어요. 기기의 위치 기능을 켠 뒤 다시 시도해주세요."
               : "위치 확인 시간이 초과됐어요. 잠시 후 다시 시도해주세요.",
         );
-        void loadHospitals(DEFAULT_CENTER);
       },
       { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 },
     );
   }, [loadHospitals]);
 
   useEffect(() => {
-    const frameId = window.requestAnimationFrame(() => {
-      void loadHospitals(DEFAULT_CENTER);
-    });
-    return () => window.cancelAnimationFrame(frameId);
-  }, [loadHospitals]);
+    locateUser();
+  }, [locateUser]);
 
   const handleSelect = useCallback((hospital: PediatricHospital) => {
     setSelectedId(hospital.hospitalId);
