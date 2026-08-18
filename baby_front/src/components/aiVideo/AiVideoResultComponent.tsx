@@ -28,12 +28,12 @@ const AiVideoResultComponent = ({ videoUrl }: AiVideoResultProps) => {
 
       {videoUrl ? (
         <video
-          className="h-[220px] w-full rounded-[14px] bg-black object-cover"
+          className="w-full h-auto rounded-[14px] bg-black"
           src={videoUrl}
           controls
         />
       ) : (
-        <div className="flex h-[220px] w-full items-center justify-center rounded-[14px] bg-[#1A1A18]">
+        <div className="flex aspect-video w-full items-center justify-center rounded-[14px] bg-[#1A1A18]">
           <span className="text-sm text-[#9A988F]">
             아직 생성된 영상이 없어요
           </span>

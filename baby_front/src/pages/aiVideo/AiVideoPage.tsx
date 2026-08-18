@@ -1,6 +1,8 @@
 import { DragEvent, useState } from "react";
 import useCustomBabyGuard from "../../hooks/useCustomBabyGuard";
 import { BabyDiary } from "../../api/diaryApi";
+import * as diaryApi from "../../api/diaryApi";
+import * as aiVideoApi from "../../api/aiVideoApi";
 import AiVideoDiarySelectComponent from "../../components/aiVideo/AiVideoDiarySelectComponent";
 import AiVideoResultComponent from "../../components/aiVideo/AiVideoResultComponent";
 
@@ -11,6 +13,7 @@ const AiVideoPage = () => {
   const [videoPhotoPreview, setVideoPhotoPreview] = useState<string | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
 
   const handleSelectDiary = (diary: BabyDiary) => {
     setSelectedDiary(diary);
@@ -26,9 +29,61 @@ const AiVideoPage = () => {
   const needsPhoto = !!selectedDiary && !selectedDiary.photoFileName;
   const canGenerate = !!selectedDiary && (!!selectedDiary.photoFileName || !!videoPhoto);
 
-  const handleGenerate = () => {
-    alert("영상 생성 기능은 준비 중입니다.");
+  const getImageFile = async (): Promise<File | null> => {
+    if (videoPhoto) return videoPhoto;
+
+    if (selectedDiary?.photoFileName) {
+      const res = await fetch(diaryApi.getViewUrl(selectedDiary.photoFileName));
+      const blob = await res.blob();
+      return new File([blob], selectedDiary.photoFileName, { type: blob.type });
+    }
+
+    return null;
+  };
+
+  const pollStatus = (taskId: string) => {
+    const intervalId = setInterval(async () => {
+      try {
+        const result = await aiVideoApi.checkStatus(taskId);
+
+        if (result.status === "succeed") {
+          clearInterval(intervalId);
+          setVideoUrl(result.videoUrl);
+          setIsGenerating(false);
+        } else if (result.status === "failed") {
+          clearInterval(intervalId);
+          alert("영상 생성에 실패했습니다.");
+          setIsGenerating(false);
+        }
+      } catch (err) {
+        clearInterval(intervalId);
+        alert("상태 확인 중 오류가 발생했습니다.");
+        console.error(err);
+        setIsGenerating(false);
+      }
+    }, 5000);
+  };
+
+  const handleGenerate = async () => {
+    if (!selectedDiary) return;
+
+    const imageFile = await getImageFile();
+    if (!imageFile) {
+      alert("사진이 필요합니다.");
+      return;
+    }
+
+    setIsGenerating(true);
     setVideoUrl(null);
+
+    try {
+      const { taskId } = await aiVideoApi.generate(selectedDiary.content, imageFile);
+      pollStatus(taskId);
+    } catch (err) {
+      alert("영상 생성 요청에 실패했습니다.");
+      console.error(err);
+      setIsGenerating(false);
+    }
   };
 
   if (!currentBaby) {
@@ -121,10 +176,10 @@ const AiVideoPage = () => {
       <button
         type="button"
         onClick={handleGenerate}
-        disabled={!canGenerate}
+        disabled={!canGenerate || isGenerating}
         className="self-end rounded-full bg-[#7F77DD] px-6 py-2.5 text-sm font-bold text-white disabled:cursor-not-allowed disabled:opacity-40"
       >
-        영상 만들기
+        {isGenerating ? "생성 중..." : "영상 만들기"}
       </button>
 
       <AiVideoResultComponent videoUrl={videoUrl} />
