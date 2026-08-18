@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import useCurrentProfile from "../../hooks/useCurrentProfile";
 import useCustomLogin from "../../hooks/useCustomLogin";
 import type { RootState } from "../../store";
+import HomeCamModal from "./HomeCamModal";
 
 interface SubItem {
   label: string;
@@ -97,6 +98,7 @@ const BasicMenu = () => {
   };
 
   const [isSosModalOpen, setIsSosModalOpen] = useState(false);
+  const [isHomeCamOpen, setIsHomeCamOpen] = useState(false);
 
   const handleTabEnter = (code: string) => {
     setHovered(code);
@@ -221,12 +223,22 @@ const BasicMenu = () => {
           <i>💬</i>
           <span>AI 챗봇</span>
         </button>
-        <button type="button" className="tool">
+        <button
+          type="button"
+          className="tool"
+          aria-haspopup="dialog"
+          aria-expanded={isHomeCamOpen}
+          onClick={() => setIsHomeCamOpen(true)}
+        >
           <i>📹</i>
           <span>홈캠</span>
           <b className="live"></b>
         </button>
       </div>
+
+      {isHomeCamOpen && (
+        <HomeCamModal onClose={() => setIsHomeCamOpen(false)} />
+      )}
 
       {isSosModalOpen && (
         <div

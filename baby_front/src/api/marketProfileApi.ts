@@ -11,6 +11,7 @@ export interface MarketProfile {
   latitude?: number;
   longitude?: number;
   locationVerified: boolean;
+  nickname?: string;
 }
 
 export const getMyProfile = async (): Promise<MarketProfile> => {
@@ -32,4 +33,8 @@ export const modifyProfile = async (
 
 export const verifyLocation = async (): Promise<void> => {
   await jwtAxios.put(`${prefix}/verify-location`);
+};
+
+export const changeNickname = async (nickname: string): Promise<void> => {
+  await jwtAxios.put(`${prefix}/nickname`, { nickname });
 };

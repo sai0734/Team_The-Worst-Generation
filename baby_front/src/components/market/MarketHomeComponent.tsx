@@ -24,6 +24,8 @@ const MarketHomeComponent = () => {
   const { isLogin } = useCustomLogin();
 
   const [category, setCategory] = useState("전체");
+  const [searchText, setSearchText] = useState("");
+  const [appliedSearch, setAppliedSearch] = useState("");
   const [listFilter, setListFilter] = useState<ListFilter>("nearby");
   const [center, setCenter] = useState(DEFAULT_CENTER);
   const [centerSource, setCenterSource] = useState<CenterSource>("default");
@@ -161,10 +163,35 @@ const MarketHomeComponent = () => {
     });
   };
 
-  const filteredItems =
-    category === "전체"
-      ? items
-      : items.filter((item) => item.category === category);
+  const handleEditNickname = async () => {
+    const next = prompt(
+      "홈에 표시할 이름을 입력해주세요.",
+      profile?.nickname ?? "",
+    );
+    if (next === null) return;
+
+    const trimmed = next.trim();
+    if (!trimmed) return;
+
+    await marketProfileApi.changeNickname(trimmed);
+    setProfile((prev) => (prev ? { ...prev, nickname: trimmed } : prev));
+  };
+
+  const runSearch = () => setAppliedSearch(searchText);
+
+  const normalizedSearch = appliedSearch.trim().toLowerCase();
+
+  const filteredItems = items
+    .filter((item) => category === "전체" || item.category === category)
+    .filter((item) => {
+      if (!normalizedSearch) return true;
+      const title = item.title?.toLowerCase() ?? "";
+      const description = item.description?.toLowerCase() ?? "";
+      return (
+        title.includes(normalizedSearch) ||
+        description.includes(normalizedSearch)
+      );
+    });
 
   const sourceLabel =
     centerSource === "profile"
@@ -175,6 +202,26 @@ const MarketHomeComponent = () => {
 
   return (
     <div className="market-home">
+      <div className="market-search-bar">
+        <input
+          type="text"
+          className="market-search-input"
+          placeholder="제목이나 설명으로 검색"
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") runSearch();
+          }}
+        />
+        <button
+          type="button"
+          className="btn market-search-btn"
+          onClick={runSearch}
+        >
+          검색
+        </button>
+      </div>
+
       <div className="market-category-bar">
         {CATEGORY_FILTERS.map((c) => (
           <span
@@ -280,7 +327,9 @@ const MarketHomeComponent = () => {
                         {item.status}
                       </span>
                     </div>
-                    <p className="reg-time">{formatRelativeTime(item.regTime)}</p>
+                    <p className="reg-time">
+                      {formatRelativeTime(item.regTime)}
+                    </p>
                   </div>
                 </article>
               ))
@@ -292,7 +341,17 @@ const MarketHomeComponent = () => {
           {isLogin && profile && (
             <div className="card market-profile-widget">
               <div className="head">
-                <h2>내 매너온도</h2>
+                <h2>{profile.nickname || "이름 설정하기"}</h2>
+                <button
+                  type="button"
+                  className="btn ghost profile-nickname-btn"
+                  onClick={handleEditNickname}
+                >
+                  이름 수정
+                </button>
+              </div>
+              <div className="head profile-manner-row">
+                <span className="profile-manner-label">매너온도</span>
                 <b>{profile.mannerTemp.toFixed(1)}°C</b>
               </div>
               <div className="temp-bar">

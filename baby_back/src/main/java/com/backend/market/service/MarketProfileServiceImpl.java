@@ -61,4 +61,19 @@ public class MarketProfileServiceImpl implements MarketProfileService{
 
         marketProfileMapper.update(profile);
     }
+
+    @Override
+    public void changeNickname(String email, String nickname) {
+
+        MarketProfile profile = marketProfileMapper.selectByEmail(email);
+
+        if (profile == null) {
+            profile = MarketProfile.builder().email(email).build();
+            marketProfileMapper.insert(profile);
+        }
+
+        profile.changeNickname(nickname);
+
+        marketProfileMapper.update(profile);
+    }
 }

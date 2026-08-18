@@ -147,7 +147,7 @@ const MarketMapComponent = ({ items, center }: MarketMapComponentProps) => {
           map: mapRef.current,
         });
 
-        (window as any).kakao.event.addListener(marker, "click", () => {
+        (window as any).kakao.maps.event.addListener(marker, "click", () => {
           openItemPopup(item, position);
         });
 

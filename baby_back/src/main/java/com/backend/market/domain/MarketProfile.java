@@ -27,6 +27,8 @@ public class MarketProfile {
 
     private boolean locationVerified;
 
+    private String nickname; // 감자마켓 홈에서 보이는 표시 이름
+
     public void changeMannerTemp(BigDecimal mannerTemp) {
         this.mannerTemp = mannerTemp;
     }
@@ -40,4 +42,6 @@ public class MarketProfile {
     public void verifyLocation() {
         this.locationVerified = true;
     }
+
+    public void changeNickname(String nickname) { this.nickname = nickname; }
 }
