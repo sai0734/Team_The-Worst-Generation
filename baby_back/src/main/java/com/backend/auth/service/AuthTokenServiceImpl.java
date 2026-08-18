@@ -3,6 +3,7 @@ package com.backend.auth.service;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -14,6 +15,8 @@ import com.backend.auth.domain.MemberRefreshToken;
 import com.backend.auth.dto.MemberDTO;
 import com.backend.auth.mapper.MemberMapper;
 import com.backend.auth.mapper.MemberRefreshTokenMapper;
+import com.backend.auth.profile.domain.MemberProfile;
+import com.backend.auth.profile.mapper.MemberProfileMapper;
 import com.backend.auth.util.AuthCookieUtil;
 import com.backend.auth.util.AuthTokenUtil;
 import com.backend.global.util.CustomJWTException;
@@ -33,6 +36,7 @@ public class AuthTokenServiceImpl implements AuthTokenService {
 
     private final MemberMapper memberMapper;
     private final MemberRefreshTokenMapper memberRefreshTokenMapper;
+    private final MemberProfileMapper memberProfileMapper;
 
     @Override
     public Map<String, Object> issueLoginTokens(
@@ -101,6 +105,8 @@ public class AuthTokenServiceImpl implements AuthTokenService {
                 .orElseThrow(() -> new CustomJWTException("MEMBER_NOT_FOUND"));
 
         Map<String, Object> claims = AuthTokenUtil.createMemberClaims(member);
+        MemberProfile selectedProfile = getSelectedProfile(savedToken);
+        addProfileClaims(claims, selectedProfile);
 
         String newAccessToken = AuthTokenUtil.generateAccessToken(claims, ACCESS_TOKEN_MINUTES);
         String newRefreshToken = AuthTokenUtil.generateRefreshToken(
@@ -111,6 +117,7 @@ public class AuthTokenServiceImpl implements AuthTokenService {
         memberRefreshTokenMapper.insert(MemberRefreshToken.builder()
                 .memberEmail(member.getEmail())
                 .sessionId(savedToken.getSessionId())
+                .selectedProfileId(selectedProfile == null ? null : selectedProfile.getProfileId())
                 .tokenHash(AuthTokenUtil.hashToken(newRefreshToken))
                 .expiresAt(LocalDateTime.now().plusMinutes(REFRESH_TOKEN_MINUTES))
                 .userAgent(AuthCookieUtil.getUserAgent(request))
@@ -119,6 +126,48 @@ public class AuthTokenServiceImpl implements AuthTokenService {
         AuthCookieUtil.addRefreshTokenCookie(response, newRefreshToken, REFRESH_TOKEN_MINUTES);
 
         return Map.of("accessToken", newAccessToken);
+    }
+
+    @Override
+    @Transactional(noRollbackFor = CustomJWTException.class)
+    public Map<String, Object> selectProfile(String refreshToken, Long profileId) {
+        if (refreshToken == null || refreshToken.isBlank()) {
+            throw new CustomJWTException("NULL_REFRESH");
+        }
+        if (profileId == null) {
+            throw new IllegalArgumentException("PROFILE_ID_REQUIRED");
+        }
+
+        MemberRefreshToken savedToken = Optional
+                .ofNullable(memberRefreshTokenMapper.selectByTokenHash(AuthTokenUtil.hashToken(refreshToken)))
+                .orElseThrow(() -> new CustomJWTException("INVALID_REFRESH"));
+        if (savedToken.isRevoked() || savedToken.getUsedAt() != null
+                || savedToken.getExpiresAt().isBefore(LocalDateTime.now())) {
+            throw new CustomJWTException("INVALID_REFRESH");
+        }
+
+        Map<String, Object> refreshClaims = JWTUtil.validateToken(refreshToken);
+        validateRefreshClaims(refreshClaims, savedToken);
+
+        MemberProfile profile = Optional.ofNullable(memberProfileMapper.selectByProfileId(profileId))
+                .filter(candidate -> candidate.getMemberEmail().equals(savedToken.getMemberEmail()))
+                .orElseThrow(() -> new NoSuchElementException("PROFILE_NOT_FOUND"));
+
+        int updated = memberRefreshTokenMapper.updateSelectedProfileBySessionId(
+                savedToken.getSessionId(), profile.getProfileId());
+        if (updated < 1) {
+            throw new CustomJWTException("INVALID_REFRESH");
+        }
+
+        Member member = Optional.ofNullable(memberMapper.selectByEmail(savedToken.getMemberEmail()))
+                .orElseThrow(() -> new CustomJWTException("MEMBER_NOT_FOUND"));
+        Map<String, Object> claims = AuthTokenUtil.createMemberClaims(member);
+        addProfileClaims(claims, profile);
+        return Map.of(
+                "accessToken", AuthTokenUtil.generateAccessToken(claims, ACCESS_TOKEN_MINUTES),
+                "profileId", profile.getProfileId(),
+                "profileName", profile.getProfileName(),
+                "parentType", profile.getParentType().name());
     }
 
     @Override
@@ -140,6 +189,26 @@ public class AuthTokenServiceImpl implements AuthTokenService {
         if (!savedToken.getSessionId().equals(String.valueOf(refreshClaims.get("sessionId")))) {
             memberRefreshTokenMapper.revokeAllBySessionId(savedToken.getSessionId());
             throw new CustomJWTException("INVALID_REFRESH");
+        }
+    }
+
+    private MemberProfile getSelectedProfile(MemberRefreshToken savedToken) {
+        if (savedToken.getSelectedProfileId() == null) {
+            return null;
+        }
+        MemberProfile profile = memberProfileMapper.selectByProfileId(savedToken.getSelectedProfileId());
+        if (profile == null || !profile.getMemberEmail().equals(savedToken.getMemberEmail())) {
+            memberRefreshTokenMapper.updateSelectedProfileBySessionId(savedToken.getSessionId(), null);
+            return null;
+        }
+        return profile;
+    }
+
+    private void addProfileClaims(Map<String, Object> claims, MemberProfile profile) {
+        if (profile != null) {
+            claims.put("profileId", profile.getProfileId());
+            claims.put("profileName", profile.getProfileName());
+            claims.put("parentType", profile.getParentType().name());
         }
     }
 }

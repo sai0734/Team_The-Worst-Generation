@@ -1,6 +1,8 @@
+import type { CurrentProfile } from "./profile";
+
 // matches the JSON returned by login/kakao/refresh endpoints,
 // which is MemberDTO.getClaims() (com.backend.dto.MemberDTO) plus JWT tokens
-export interface LoginState {
+export interface LoginState extends Partial<CurrentProfile> {
   email: string;
   nickname?: string;
   social?: boolean;

@@ -25,6 +25,12 @@ public class MemberDTO extends User {
 
   private List<String> roleNames = new ArrayList<>();
 
+  private Long profileId;
+
+  private String profileName;
+
+  private String parentType;
+
   public MemberDTO(String email, String pw, String nickname, boolean social, List<String> roleNames) {
     super(
       email,
@@ -38,6 +44,12 @@ public class MemberDTO extends User {
     this.roleNames = roleNames;
   }
 
+  public void selectProfile(Long profileId, String profileName, String parentType) {
+    this.profileId = profileId;
+    this.profileName = profileName;
+    this.parentType = parentType;
+  }
+
   public Map<String, Object> getClaims() {
 
     Map<String, Object> dataMap = new HashMap<>();
@@ -46,6 +58,12 @@ public class MemberDTO extends User {
     dataMap.put("nickname", nickname);
     dataMap.put("social", social);
     dataMap.put("roleNames", roleNames);
+
+    if (profileId != null) {
+      dataMap.put("profileId", profileId);
+      dataMap.put("profileName", profileName);
+      dataMap.put("parentType", parentType);
+    }
 
     return dataMap;
   }

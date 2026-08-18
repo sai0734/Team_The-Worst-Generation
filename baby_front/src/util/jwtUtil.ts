@@ -8,6 +8,7 @@ import {
   getAccessToken,
   setAccessToken,
 } from "./accessTokenStore";
+import { syncAuthStateFromAccessToken } from "./authStateSync";
 
 const API_SERVER_HOST = "http://localhost:8080";
 
@@ -29,6 +30,7 @@ const refreshJWT = async (): Promise<string> => {
   );
 
   setAccessToken(response.data.accessToken);
+  syncAuthStateFromAccessToken(response.data.accessToken);
   return response.data.accessToken;
 };
 
