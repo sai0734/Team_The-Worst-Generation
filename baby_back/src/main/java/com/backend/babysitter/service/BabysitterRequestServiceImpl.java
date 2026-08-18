@@ -1,5 +1,6 @@
 package com.backend.babysitter.service;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -112,6 +113,29 @@ public class BabysitterRequestServiceImpl implements BabysitterRequestService {
         requirePending(request);
 
         babysitterRequestMapper.updateStatus(requestNo, BabysitterRequestStatus.CANCELED);
+    }
+
+    @Override
+    public void modify(Long requestNo, BabysitterRequestDTO requestDTO, String parentEmail) {
+
+        BabysitterRequest request = Optional.ofNullable(babysitterRequestMapper.selectByRequestNo(requestNo))
+            .orElseThrow(() -> new NoSuchElementException("존재하지 않는 요청입니다."));
+
+        if (!request.getParentEmail().equals(parentEmail)) {
+            throw new AccessDeniedException("본인이 보낸 요청만 수정할 수 있습니다.");
+        }
+
+        requirePending(request);
+
+        request.changeDetails(requestDTO.getRequestDate(), requestDTO.getTimeSlot(), requestDTO.getMessage());
+
+        babysitterRequestMapper.update(request);
+    }
+
+    @Override
+    public List<LocalDate> getBookedDates(String sitterEmail) {
+
+        return babysitterRequestMapper.selectAcceptedDatesBySitter(sitterEmail);
     }
 
     private BabysitterRequest findOwnedBySitterOrThrow(Long requestNo, String sitterEmail) {

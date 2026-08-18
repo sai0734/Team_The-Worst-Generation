@@ -1783,8 +1783,11 @@
 }
 .app .pending-item {
   display: grid;
-  grid-template-columns: 1.3fr 0.7fr 0.9fr 0.8fr 1fr auto;
+  grid-template-columns: 1fr 1fr;
   gap: 8px;
+}
+.app .pending-item input[type="text"] {
+  grid-column: 1 / -1;
 }
 .app .pending-item input,
 .app .pending-item select {
@@ -1796,6 +1799,7 @@
   font-family: inherit;
   color: var(--ink);
   width: 100%;
+  min-width: 0;
 }
 .app .pending-item select.unselected {
   border-color: #ef6262;
@@ -1806,6 +1810,17 @@
 .app .pending-item select:focus {
   outline: none;
   border-color: var(--accent);
+}
+.app .pending-panel .submit-btn {
+  height: auto;
+  min-height: 50px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  line-height: 1.3;
+  white-space: normal;
 }
 .app .ledger-entries {
   display: grid;
@@ -1922,12 +1937,60 @@
   display: flex;
   gap: 4px;
 }
-.app .category-tabs,
-.app .month-tabs {
+.app .category-tabs {
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
   margin-bottom: 14px;
+}
+.app .month-select-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.app .month-select-row select {
+  border: 1px solid var(--line);
+  background: var(--glass);
+  color: var(--ink);
+  border-radius: 99px;
+  padding: 8px 16px;
+  font-size: 12px;
+  font-weight: 800;
+  cursor: pointer;
+  font-family: inherit;
+}
+.app .current-month-badge {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--accent);
+  background: var(--soft);
+  border-radius: 99px;
+  padding: 6px 12px;
+}
+.app .current-month-jump {
+  border: 0;
+  cursor: pointer;
+  font-family: inherit;
+}
+.app .current-month-jump:hover {
+  opacity: 0.8;
+}
+.app .pending-date-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.app .date-warn-badge {
+  align-self: flex-start;
+  font-size: 11px;
+  font-weight: 800;
+  color: #b8860b;
+  background: #fff4d6;
+  border-radius: 99px;
+  padding: 2px 8px;
 }
 .app .category-tab {
   border: 1px solid var(--line);
@@ -1970,6 +2033,11 @@
 .app .btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+.app .btn.ghost.is-active {
+  background: var(--soft);
+  color: var(--accent);
+  border-color: var(--accent);
 }
 .app .chip {
   cursor: pointer;
@@ -2269,36 +2337,64 @@
 }
 
 /* ===== 베이비시터 ===== */
-.app .sitter-tab-groups {
+.app .sitter-common-row {
   display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 16px;
+  justify-content: flex-end;
+  gap: 18px;
+  margin-bottom: 14px;
 }
-.app .sitter-tab-group {
+.app .sitter-common-icon {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 8px 10px;
-  border-radius: 14px;
-  background: var(--glass);
-  border: 1px solid var(--line);
+  align-items: center;
+  gap: 2px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted);
 }
-.app .sitter-tab-group-label {
-  font-size: 10px;
-  font-weight: 900;
+.app .sitter-common-icon .icon {
+  font-size: 18px;
+}
+.app .sitter-common-icon:hover,
+.app .sitter-common-icon.active {
   color: var(--accent);
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
-  padding: 0 2px;
 }
-.app .sitter-tab-group-tabs {
+.app .sitter-branch-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.app .sitter-branch-card {
   display: flex;
+  flex-direction: column;
   gap: 4px;
-  flex-wrap: wrap;
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  background: var(--glass);
 }
-.app .sitter-tab-chip {
-  padding: 7px 12px;
+.app .sitter-branch-card strong {
+  font-size: 15px;
+}
+.app .sitter-branch-card span {
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 600;
+}
+.app .sitter-branch-card.active {
+  border-color: var(--accent);
+  border-width: 2px;
+  padding: 13px 15px;
+}
+.app .sitter-subtabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.app .sitter-subtab {
+  padding: 7px 14px;
   border-radius: 99px;
   font-size: 12px;
   font-weight: 700;
@@ -2306,10 +2402,10 @@
   background: var(--hover);
   white-space: nowrap;
 }
-.app .sitter-tab-chip:hover {
+.app .sitter-subtab:hover {
   color: var(--accent);
 }
-.app .sitter-tab-chip.active {
+.app .sitter-subtab.active {
   background: var(--accent);
   color: #fff;
 }
@@ -2565,6 +2661,9 @@
 }
 
 @media (max-width: 900px) {
+  .app .sitter-branch-row {
+    grid-template-columns: 1fr;
+  }
   .app .ledger-top-grid {
     grid-template-columns: 1fr;
     grid-template-areas:
@@ -2592,12 +2691,6 @@
   }
   .app .pending-panel {
     max-height: 280px;
-  }
-  .app .pending-item {
-    grid-template-columns: 1fr 1fr;
-  }
-  .app .pending-item input[type="text"] {
-    grid-column: 1 / -1;
   }
   .app .entry-edit-row {
     grid-template-columns: 1fr 1fr;

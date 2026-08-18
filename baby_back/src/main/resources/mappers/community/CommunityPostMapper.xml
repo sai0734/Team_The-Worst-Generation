@@ -14,6 +14,7 @@
         <result property="aiSummary" column="ai_summary"/>
         <result property="viewCount" column="view_count"/>
         <result property="commentCount" column="comment_count"/>
+        <result property="likeCount" column="like_count"/>
         <result property="delFlag" column="del_flag"/>
         <result property="regTime" column="reg_time"/>
         <result property="modTime" column="mod_time"/>
@@ -26,7 +27,7 @@
 
     <select id="selectByPostNo" resultMap="postResultMap">
         SELECT post_no, writer_email, nickname, category, title, content, ai_summary, view_count, comment_count,
-               del_flag, reg_time, mod_time
+               like_count, del_flag, reg_time, mod_time
         FROM tbl_community_post
         WHERE post_no = #{postNo}
           AND del_flag = false
@@ -81,6 +82,12 @@
         WHERE post_no = #{postNo}
     </update>
 
+    <update id="changeLikeCount">
+        UPDATE tbl_community_post
+        SET like_count = like_count + #{delta}
+        WHERE post_no = #{postNo}
+    </update>
+
     <update id="updateToDelete">
         UPDATE tbl_community_post
         SET del_flag = true
@@ -89,7 +96,7 @@
 
     <select id="selectList" resultType="com.backend.community.domain.CommunityPost">
         SELECT post_no, writer_email, nickname, category, title, content, ai_summary, view_count, comment_count,
-               del_flag, reg_time, mod_time
+               like_count, del_flag, reg_time, mod_time
         FROM tbl_community_post
         <include refid="searchWhere"/>
         ORDER BY post_no DESC
@@ -107,6 +114,9 @@
         <if test="search.keyword != null and search.keyword != ''">
             AND (title LIKE CONCAT('%', #{search.keyword}, '%')
                  OR content LIKE CONCAT('%', #{search.keyword}, '%'))
+        </if>
+        <if test="search.category != null and search.category != ''">
+            AND category = #{search.category}
         </if>
     </sql>
 

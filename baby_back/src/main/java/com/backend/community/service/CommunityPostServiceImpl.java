@@ -14,9 +14,11 @@ import org.springframework.web.multipart.MultipartFile;
 import com.backend.auth.mapper.MemberMapper;
 import com.backend.community.domain.CommunityPost;
 import com.backend.community.domain.CommunityPostImage;
+import com.backend.community.domain.CommunityPostLike;
 import com.backend.community.dto.CommunityImageDTO;
 import com.backend.community.dto.CommunityPostDTO;
 import com.backend.community.dto.CommunityPostSearchDTO;
+import com.backend.community.mapper.CommunityPostLikeMapper;
 import com.backend.community.mapper.CommunityPostMapper;
 import com.backend.global.dto.PageResponseDTO;
 import com.backend.global.ai.OllamaClient;
@@ -36,6 +38,8 @@ public class CommunityPostServiceImpl implements CommunityPostService {
     private static final String DEFAULT_CATEGORY = "자유";
 
     private final CommunityPostMapper communityPostMapper;
+
+    private final CommunityPostLikeMapper communityPostLikeMapper;
 
     private final MemberMapper memberMapper;
 
@@ -62,13 +66,16 @@ public class CommunityPostServiceImpl implements CommunityPostService {
     }
 
     @Override
-    public CommunityPostDTO get(Long postNo) {
+    public CommunityPostDTO get(Long postNo, String viewerEmail) {
 
         CommunityPost post = findOrThrow(postNo);
 
         communityPostMapper.increaseViewCount(postNo);
 
-        return toDTO(post);
+        boolean liked = viewerEmail != null
+            && communityPostLikeMapper.selectOne(postNo, viewerEmail) != null;
+
+        return toDTO(post, liked);
     }
 
     @Override
@@ -78,7 +85,7 @@ public class CommunityPostServiceImpl implements CommunityPostService {
 
         List<CommunityPostDTO> dtoList = communityPostMapper.selectList(searchDTO, skip)
             .stream()
-            .map(this::toDTO)
+            .map(post -> toDTO(post, false))
             .collect(Collectors.toList());
 
         long totalCount = communityPostMapper.selectListCount(searchDTO);
@@ -88,6 +95,27 @@ public class CommunityPostServiceImpl implements CommunityPostService {
             .totalCount(totalCount)
             .pageRequestDTO(searchDTO)
             .build();
+    }
+
+    @Override
+    public boolean toggleLike(Long postNo, String memberEmail) {
+
+        findOrThrow(postNo);
+
+        CommunityPostLike existing = communityPostLikeMapper.selectOne(postNo, memberEmail);
+
+        if (existing != null) {
+            communityPostLikeMapper.delete(postNo, memberEmail);
+            communityPostMapper.changeLikeCount(postNo, -1);
+            return false;
+        }
+
+        communityPostLikeMapper.insert(
+            CommunityPostLike.builder().postNo(postNo).memberEmail(memberEmail).build()
+        );
+        communityPostMapper.changeLikeCount(postNo, 1);
+
+        return true;
     }
 
     @Override
@@ -204,7 +232,7 @@ public class CommunityPostServiceImpl implements CommunityPostService {
         return contentType != null && contentType.startsWith("video");
     }
 
-    private CommunityPostDTO toDTO(CommunityPost post) {
+    private CommunityPostDTO toDTO(CommunityPost post, boolean liked) {
 
         List<CommunityImageDTO> imageList = post.getImageList()
             .stream()
@@ -224,6 +252,8 @@ public class CommunityPostServiceImpl implements CommunityPostService {
             .aiSummary(post.getAiSummary())
             .viewCount(post.getViewCount())
             .commentCount(post.getCommentCount())
+            .likeCount(post.getLikeCount())
+            .liked(liked)
             .imageList(imageList)
             .regTime(post.getRegTime())
             .modTime(post.getModTime())
