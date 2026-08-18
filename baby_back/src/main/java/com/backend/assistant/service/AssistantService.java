@@ -7,6 +7,6 @@ import com.backend.assistant.dto.AssistRecommendresponse;
 public interface AssistantService {
     AssistRecommendresponse recommend(AssistRecommendRequest request);
     AssistRecommendresponse loadSnapshot(String email);
-    void saveRegion(String email, String regionSido, String regionSigungu);
+    void saveRegion(String email, String regionSido, String regionSigungu, Integer babyMonths);
     AssistRegion loadRegion(String email);
 }

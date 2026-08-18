@@ -1,0 +1,207 @@
+/* ===== AI 울음소리 분석 (다른 기능 페이지와 파일 충돌 방지 위해 별도 파일) ===== */
+
+.app .cry-check-recorder {
+  margin-bottom: 18px;
+}
+
+.app .cry-check-mode-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.app .cry-check-record-zone {
+  text-align: center;
+  padding: 10px 10px 4px;
+}
+.app .cry-check-mic-btn {
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  border: 0;
+  background: var(--accent);
+  color: #fff;
+  font-size: 26px;
+  cursor: pointer;
+  box-shadow: 0 14px 24px -10px rgba(0, 91, 178, 0.5);
+}
+.app .cry-check-mic-btn.recording {
+  background: var(--warn, #e2604a);
+  box-shadow: 0 14px 24px -10px rgba(226, 96, 74, 0.5);
+}
+.app .cry-check-rec-state {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+  margin-top: 12px;
+}
+.app .cry-check-rec-timer {
+  font-family: ui-monospace, "SF Mono", Consolas, monospace;
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.app .cry-check-upload {
+  padding: 6px 0 2px;
+}
+.app .cry-check-hint {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 0 0 10px;
+}
+.app .cry-check-filename {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.app .cry-check-analyze-btn {
+  margin-top: 14px;
+  width: 100%;
+}
+
+.app .cry-check-result {
+  margin-top: 20px;
+  padding-top: 18px;
+  border-top: 1px dashed var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.app .cry-check-features {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.app .cry-check-audio {
+  width: 100%;
+  height: 36px;
+}
+
+.app .cry-check-candidates {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.app .cry-check-candidate {
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--glass);
+}
+.app .cry-check-candidate.primary {
+  border-color: var(--accent);
+  background: var(--soft);
+}
+.app .cry-check-candidate-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 800;
+}
+.app .cry-check-candidate-head .pct {
+  font-family: ui-monospace, "SF Mono", Consolas, monospace;
+  color: var(--accent);
+}
+.app .cry-check-candidate .prob-track {
+  height: 6px;
+  border-radius: 99px;
+  background: var(--soft);
+  overflow: hidden;
+  margin-top: 6px;
+}
+.app .cry-check-candidate .prob-fill {
+  height: 100%;
+  border-radius: 99px;
+  background: var(--accent);
+}
+.app .cry-check-candidate .reason {
+  font-size: 11.5px;
+  color: var(--muted);
+  margin-top: 6px;
+  line-height: 1.5;
+}
+
+.app .cry-check-notice {
+  font-size: 12.5px;
+  color: var(--muted);
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: var(--soft);
+}
+
+.app .cry-check-disclaimer {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.6;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--soft);
+}
+
+.app .cry-check-feedback-done {
+  font-size: 12px;
+  color: var(--accent);
+  font-weight: 700;
+}
+.app .feedback-chips {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.app .cry-check-empty {
+  font-size: 13px;
+  color: var(--muted);
+}
+.app .cry-check-history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.app .cry-check-history-item {
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+}
+.app .cry-check-history-item .row-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer;
+}
+.app .cry-check-history-item .row-top-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.app .cry-check-delete-btn {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: var(--glass);
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+}
+.app .cry-check-delete-btn:hover {
+  color: var(--warn, #e2604a);
+  border-color: var(--warn, #e2604a);
+}
+.app .cry-check-history-item .date {
+  font-size: 11px;
+  color: var(--muted);
+}
+.app .cry-check-history-item .top-cause {
+  font-size: 14px;
+  font-weight: 800;
+  margin-top: 4px;
+  cursor: pointer;
+}
+/* ===== 울음소리 분석 끝 ===== */

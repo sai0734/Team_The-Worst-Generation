@@ -1,10 +1,11 @@
-import { ChangeEvent, FormEvent, useEffect, useState } from "react";
+import { ChangeEvent, FormEvent, useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import * as marketApi from "../../api/marketApi";
 import { MARKET_CATEGORIES } from "../../api/marketApi";
 import type { MarketItem } from "../../api/marketApi";
 import * as marketProfileApi from "../../api/marketProfileApi";
 import useCustomLogin from "../../hooks/useCustomLogin";
+import { loadKakaoMapScript } from "../../util/kakaoMapLoader";
 
 const MarketFormComponent = () => {
   const { itemNo } = useParams();
@@ -15,21 +16,22 @@ const MarketFormComponent = () => {
   const [title, setTitle] = useState("");
   const [price, setPrice] = useState("");
   const [description, setDescription] = useState("");
-  const [tradeType, setTradeType] = useState<"SALE" | "RENTAL">("SALE");
   const [category, setCategory] = useState("");
   const [ageRange, setAgeRange] = useState("");
   const [condition, setCondition] = useState("");
-  const [allowOffer, setAllowOffer] = useState(false);
   const [locationName, setLocationName] = useState("");
   const [latitude, setLatitude] = useState<number | undefined>(undefined);
   const [longitude, setLongitude] = useState<number | undefined>(undefined);
-  const [locatingMe, setLocatingMe] = useState(false);
-  const [deposit, setDeposit] = useState("");
-  const [minDays, setMinDays] = useState("");
-  const [maxDays, setMaxDays] = useState("");
+  const [locationNotFound, setLocationNotFound] = useState(false);
 
   const [existingFileNames, setExistingFileNames] = useState<string[]>([]);
   const [newFiles, setNewFiles] = useState<File[]>([]);
+
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const mapObjRef = useRef<any>(null);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const markerRef = useRef<any>(null);
 
   useEffect(() => {
     if (!isLogin || !isEdit || !itemNo) {
@@ -40,23 +42,18 @@ const MarketFormComponent = () => {
       setTitle(item.title);
       setPrice(String(item.price));
       setDescription(item.description);
-      setTradeType(item.tradeType);
       setCategory(item.category);
       setAgeRange(item.ageRange ?? "");
       setCondition(item.condition ?? "");
-      setAllowOffer(item.allowOffer);
       setLocationName(item.locationName ?? "");
       setLatitude(item.latitude);
       setLongitude(item.longitude);
-      setDeposit(item.deposit !== undefined ? String(item.deposit) : "");
-      setMinDays(item.minDays !== undefined ? String(item.minDays) : "");
-      setMaxDays(item.maxDays !== undefined ? String(item.maxDays) : "");
       setExistingFileNames(item.uploadFileNames ?? []);
     });
   }, [isEdit, itemNo]);
 
   // 신규 등록일 때만 - 내 동네(MarketProfile)에 좌표가 설정돼 있으면 기본값으로 미리 채워둠
-  // ("내 위치로 좌표 설정" 버튼으로 매물별로 다시 바꿀 수 있으니 그냥 기본값일 뿐)
+  // (거래 희망 장소에 새 주소를 입력하면 그 값으로 덮어써짐)
   useEffect(() => {
     if (!isLogin || isEdit) {
       return;
@@ -76,6 +73,81 @@ const MarketFormComponent = () => {
       .catch((err) => console.error(err));
   }, [isEdit]);
 
+  // 마커를 옮기면(드래그/클릭) 그 좌표의 장소명을 역지오코딩해서 거래 희망 장소 텍스트에도 반영.
+  // 건물명이 있으면(관공서 등) 건물명 우선, 없으면 도로명/지번 주소로 대체.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const reverseGeocodeLocationName = (position: any) => {
+    const geocoder = new window.kakao.maps.services.Geocoder();
+    geocoder.coord2Address(
+      position.getLng(),
+      position.getLat(),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (result: any[], status: string) => {
+        if (status !== window.kakao.maps.services.Status.OK || result.length === 0) {
+          return;
+        }
+        const road = result[0].road_address;
+        const jibun = result[0].address;
+        const name =
+          road?.building_name || road?.address_name || jibun?.address_name;
+        if (name) setLocationName(name);
+      },
+    );
+  };
+
+  // 좌표가 생기면(주소 검색 결과 / 내 동네 기본값 / 수정 시 기존값) 지도를 그리거나 마커만 옮김.
+  // 마커는 드래그 가능해서 대략적인 주소 위치에서 정확한 거래 장소로 손으로 미세조정 가능.
+  useEffect(() => {
+    if (latitude == null || longitude == null) return;
+
+    let cancelled = false;
+
+    loadKakaoMapScript().then(() => {
+      if (cancelled || !mapContainerRef.current) return;
+
+      const position = new window.kakao.maps.LatLng(latitude, longitude);
+
+      if (!mapObjRef.current) {
+        mapObjRef.current = new window.kakao.maps.Map(mapContainerRef.current, {
+          center: position,
+          level: 4,
+        });
+
+        markerRef.current = new window.kakao.maps.Marker({
+          position,
+          map: mapObjRef.current,
+          draggable: true,
+        });
+
+        window.kakao.maps.event.addListener(markerRef.current, "dragend", () => {
+          const pos = markerRef.current.getPosition();
+          setLatitude(pos.getLat());
+          setLongitude(pos.getLng());
+          reverseGeocodeLocationName(pos);
+        });
+
+        window.kakao.maps.event.addListener(
+          mapObjRef.current,
+          "click",
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (e: any) => {
+            markerRef.current.setPosition(e.latLng);
+            setLatitude(e.latLng.getLat());
+            setLongitude(e.latLng.getLng());
+            reverseGeocodeLocationName(e.latLng);
+          },
+        );
+      } else {
+        mapObjRef.current.setCenter(position);
+        markerRef.current.setPosition(position);
+      }
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [latitude, longitude]);
+
   if (!isLogin) {
     return (
       <div className="card">
@@ -87,24 +159,25 @@ const MarketFormComponent = () => {
     );
   }
 
-  const handleUseCurrentLocation = () => {
-    if (!navigator.geolocation) {
-      alert("이 브라우저는 위치 기능을 지원하지 않습니다.");
-      return;
-    }
+  // 거래 희망 장소에 주소를 입력하고 포커스를 벗어나면 좌표를 찾아서 지도를 띄움.
+  // 이후 정확한 위치는 지도에서 마커를 드래그해서 맞추면 됨.
+  const handleLocationBlur = async () => {
+    if (!locationName.trim()) return;
 
-    setLocatingMe(true);
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setLatitude(pos.coords.latitude);
-        setLongitude(pos.coords.longitude);
-        setLocatingMe(false);
-      },
-      () => {
-        alert(
-          "위치 정보를 가져오지 못했습니다. 브라우저 위치 권한을 허용해주세요.",
-        );
-        setLocatingMe(false);
+    setLocationNotFound(false);
+    await loadKakaoMapScript();
+
+    const geocoder = new window.kakao.maps.services.Geocoder();
+    geocoder.addressSearch(
+      locationName,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (result: any[], status: string) => {
+        if (status !== window.kakao.maps.services.Status.OK || result.length === 0) {
+          setLocationNotFound(true);
+          return;
+        }
+        setLatitude(parseFloat(result[0].y));
+        setLongitude(parseFloat(result[0].x));
       },
     );
   };
@@ -117,6 +190,10 @@ const MarketFormComponent = () => {
     setExistingFileNames((prev) => prev.filter((name) => name !== fileName));
   };
 
+  const removeNewFile = (index: number) => {
+    setNewFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
@@ -124,17 +201,14 @@ const MarketFormComponent = () => {
       title,
       price: Number(price),
       description,
-      tradeType,
+      tradeType: "SALE",
       category,
       ageRange: ageRange || undefined,
       condition: condition || undefined,
-      allowOffer,
+      allowOffer: false,
       locationName: locationName || undefined,
       latitude,
       longitude,
-      deposit: tradeType === "RENTAL" && deposit ? Number(deposit) : undefined,
-      minDays: tradeType === "RENTAL" && minDays ? Number(minDays) : undefined,
-      maxDays: tradeType === "RENTAL" && maxDays ? Number(maxDays) : undefined,
     };
 
     try {
@@ -157,19 +231,8 @@ const MarketFormComponent = () => {
   };
 
   return (
-    <form className="card" onSubmit={handleSubmit} style={{ maxWidth: 560 }}>
+    <form className="card market-page-centered" onSubmit={handleSubmit}>
       <h2 style={{ marginTop: 0 }}>{isEdit ? "매물 수정" : "매물 등록"}</h2>
-
-      <div className="form-field">
-        <label>거래 방식</label>
-        <select
-          value={tradeType}
-          onChange={(e) => setTradeType(e.target.value as "SALE" | "RENTAL")}
-        >
-          <option value="SALE">판매</option>
-          <option value="RENTAL">대여</option>
-        </select>
-      </div>
 
       <div className="form-field">
         <label>제목</label>
@@ -227,90 +290,40 @@ const MarketFormComponent = () => {
 
         <div className="form-field">
           <label>상태</label>
-          <input
+          <select
             value={condition}
             onChange={(e) => setCondition(e.target.value)}
-            placeholder="새상품/거의새것/사용감있음 등"
-          />
-        </div>
-
-        <div className="form-field">
-          <label>거래 희망 장소</label>
-          <input
-            value={locationName}
-            onChange={(e) => setLocationName(e.target.value)}
-          />
+          >
+            <option value="">선택 안 함</option>
+            <option value="새상품">새상품</option>
+            <option value="거의새것">거의새것</option>
+            <option value="사용감있음">사용감있음</option>
+          </select>
         </div>
       </div>
 
       <div className="form-field">
-        <label>지도 좌표</label>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <button
-            type="button"
-            className="btn ghost"
-            onClick={handleUseCurrentLocation}
-            disabled={locatingMe}
-          >
-            {locatingMe ? "위치 확인 중..." : "내 위치로 좌표 설정"}
-          </button>
-          {latitude != null && longitude != null ? (
-            <span style={{ fontSize: 12, color: "var(--muted)" }}>
-              설정됨 ({latitude.toFixed(5)}, {longitude.toFixed(5)})
-            </span>
-          ) : (
-            <span style={{ fontSize: 12, color: "var(--muted)" }}>
-              좌표 미설정 - 감자마켓 지도에 안 나옵니다
-            </span>
-          )}
-        </div>
-      </div>
-
-      <div className="form-field checkbox-field">
+        <label>거래 희망 장소</label>
         <input
-          type="checkbox"
-          id="allowOffer"
-          checked={allowOffer}
-          onChange={(e) => setAllowOffer(e.target.checked)}
+          value={locationName}
+          onChange={(e) => setLocationName(e.target.value)}
+          onBlur={handleLocationBlur}
+          placeholder="주소를 입력하면 아래 지도에 위치가 표시돼요"
         />
-        <label htmlFor="allowOffer" style={{ margin: 0 }}>
-          가격 제안 받기
-        </label>
+        {locationNotFound && (
+          <p className="alert" style={{ marginTop: 6 }}>
+            주소를 찾지 못했어요. 조금 더 구체적으로 입력해보세요.
+          </p>
+        )}
+        {latitude != null && longitude != null && (
+          <>
+            <div ref={mapContainerRef} className="market-form-location-map" />
+            <p className="cry-check-hint" style={{ marginTop: 6 }}>
+              지도의 마커를 드래그하거나 클릭해서 정확한 거래 위치로 조정할 수 있어요.
+            </p>
+          </>
+        )}
       </div>
-
-      {tradeType === "RENTAL" && (
-        <div className="form-row">
-          <div className="form-field">
-            <label>보증금</label>
-            <input
-              type="number"
-              min={0}
-              value={deposit}
-              onChange={(e) => setDeposit(e.target.value)}
-            />
-          </div>
-
-          <div className="form-field">
-            <label>최소 대여일</label>
-            <input
-              type="number"
-              min={0}
-              value={minDays}
-              onChange={(e) => setMinDays(e.target.value)}
-            />
-          </div>
-
-          <div className="form-field">
-            <label>최대 대여일</label>
-            <input
-              type="number"
-              min={0}
-              value={maxDays}
-              onChange={(e) => setMaxDays(e.target.value)}
-            />
-          </div>
-        </div>
-      )}
 
       {existingFileNames.length > 0 && (
         <div className="form-field">
@@ -332,13 +345,25 @@ const MarketFormComponent = () => {
       )}
 
       <div className="form-field">
-        <label>사진 첨부</label>
+        <label>사진 첨부 (여러 장 선택 가능)</label>
         <input
           type="file"
           accept="image/*"
           multiple
           onChange={handleFileChange}
         />
+        {newFiles.length > 0 && (
+          <div className="thumb-list">
+            {newFiles.map((file, idx) => (
+              <div className="thumb-remove" key={`${file.name}-${idx}`}>
+                <img src={URL.createObjectURL(file)} />
+                <button type="button" onClick={() => removeNewFile(idx)}>
+                  ×
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <button type="submit" className="btn">

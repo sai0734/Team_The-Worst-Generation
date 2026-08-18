@@ -14,6 +14,8 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,10 +27,12 @@ public class OpenClawClient {
     @Value("${openclaw.base-url:http://127.0.0.1:18789}")
     private String baseUrl;
 
+    @Value("${openclaw.gateway-token:}")
+    private String gatewayToken;
+
     private final HttpClient http = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(5))
             .build();
-    private final Gson gson = new Gson();
 
     /** 실패하면 null. OpenClaw가 [] 를 주면 빈 목록. 공공 API 원본은 호출 쪽에서 쓰지 않는다. */
     public List<AssistItemDTO> pick(int months, String region, String babyName, String gender,
@@ -39,20 +43,30 @@ public class OpenClawClient {
 
         String message = buildPrompt(months, region, babyName, gender, candidates);
 
+        JsonObject user = new JsonObject();
+        user.addProperty("role", "user");
+        user.addProperty("content", message);
+        JsonArray messages = new JsonArray();
+        messages.add(user);
+
         JsonObject body = new JsonObject();
-        body.addProperty("agent", "main");
-        body.addProperty("message", message);
+        body.addProperty("model", "openclaw/default");
+        body.add("messages", messages);
 
         try {
-            HttpRequest req = HttpRequest.newBuilder()
-                    .uri(URI.create(baseUrl + "/v1/chat"))
+            String root = baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
+            String token = resolveToken();
+            HttpRequest.Builder builder = HttpRequest.newBuilder()
+                    .uri(URI.create(root + "/v1/chat/completions"))
                     .header("Content-Type", "application/json")
-                    .timeout(Duration.ofSeconds(60))
-                    .POST(HttpRequest.BodyPublishers.ofString(body.toString()))
-                    .build();
-            HttpResponse<String> res = http.send(req, HttpResponse.BodyHandlers.ofString());
+                    .timeout(Duration.ofSeconds(25))
+                    .POST(HttpRequest.BodyPublishers.ofString(body.toString()));
+            if (!token.isBlank()) {
+                builder.header("Authorization", "Bearer " + token);
+            }
+            HttpResponse<String> res = http.send(builder.build(), HttpResponse.BodyHandlers.ofString());
             if (res.statusCode() != 200) {
-                log.warn("OpenClaw HTTP {}", res.statusCode());
+                log.warn("OpenClaw HTTP {} body={}", res.statusCode(), res.body());
                 return null;
             }
             return parseItems(res.body());
@@ -101,14 +115,39 @@ public class OpenClawClient {
                 + candidatesJson;
     }
 
+    private String resolveToken() {
+        if (gatewayToken != null && !gatewayToken.isBlank()) {
+            return gatewayToken.trim();
+        }
+        try {
+            Path file = Path.of(System.getProperty("user.home"), ".openclaw", "openclaw.json");
+            if (!Files.isRegularFile(file)) {
+                return "";
+            }
+            JsonObject root = JsonParser.parseString(Files.readString(file)).getAsJsonObject();
+            if (!root.has("gateway") || !root.get("gateway").isJsonObject()) {
+                return "";
+            }
+            JsonObject auth = root.getAsJsonObject("gateway").getAsJsonObject("auth");
+            if (auth == null || !auth.has("token") || auth.get("token").isJsonNull()) {
+                return "";
+            }
+            return auth.get("token").getAsString().trim();
+        } catch (Exception e) {
+            log.warn("OpenClaw 토큰 파일을 읽지 못함");
+            return "";
+        }
+    }
+
     private List<AssistItemDTO> parseItems(String raw) {
         try {
-            int start = raw.indexOf('[');
-            int end = raw.lastIndexOf(']');
-            if (start < 0 || end <= start) {
+            String content = extractAssistantText(raw);
+            String json = extractJsonArray(content);
+            if (json == null) {
+                log.warn("OpenClaw 응답에 JSON 배열이 없음");
                 return null;
             }
-            JsonArray arr = JsonParser.parseString(raw.substring(start, end + 1)).getAsJsonArray();
+            JsonArray arr = JsonParser.parseString(json).getAsJsonArray();
             List<AssistItemDTO> out = new ArrayList<>();
             for (JsonElement el : arr) {
                 if (!el.isJsonObject()) {
@@ -134,6 +173,46 @@ public class OpenClawClient {
             log.warn("OpenClaw 응답 파싱 실패", e);
             return null;
         }
+    }
+
+    private static String extractAssistantText(String raw) {
+        if (raw == null || raw.isBlank()) {
+            return "";
+        }
+        try {
+            JsonElement el = JsonParser.parseString(raw);
+            if (!el.isJsonObject()) {
+                return raw;
+            }
+            JsonObject o = el.getAsJsonObject();
+            if (o.has("choices") && o.get("choices").isJsonArray()) {
+                JsonArray choices = o.getAsJsonArray("choices");
+                if (!choices.isEmpty() && choices.get(0).isJsonObject()) {
+                    JsonObject c0 = choices.get(0).getAsJsonObject();
+                    if (c0.has("message") && c0.get("message").isJsonObject()) {
+                        String content = str(c0.getAsJsonObject("message"), "content");
+                        if (!content.isBlank()) {
+                            return content;
+                        }
+                    }
+                }
+            }
+        } catch (Exception ignored) {
+            // 봉투가 JSON이 아니면 본문 전체를 모델 답으로 본다
+        }
+        return raw;
+    }
+
+    private static String extractJsonArray(String content) {
+        if (content == null) {
+            return null;
+        }
+        int start = content.indexOf('[');
+        int end = content.lastIndexOf(']');
+        if (start < 0 || end <= start) {
+            return null;
+        }
+        return content.substring(start, end + 1);
     }
 
     private static String normalizeStatus(String status) {

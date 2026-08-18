@@ -14,7 +14,8 @@ public class AssistRecommendScheduler {
 
     private final AssistBatchService assistBatchService;
 
-    @Scheduled(cron = "0 0 3 * * *")
+    // 매시 정각
+    @Scheduled(cron = "0 0 * * * *")
     public void refreshDaily() {
         log.info("정부지원금 재조회 배치 시작");
         assistBatchService.refreshAll();

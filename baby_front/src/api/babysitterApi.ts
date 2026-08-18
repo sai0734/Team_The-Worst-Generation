@@ -12,14 +12,12 @@ const jobPrefix = `${API_SERVER_HOST}/api/babysitter/jobs`;
 export const getFileUrl = (fileName: string): string =>
   `${prefix}/files/${fileName}`;
 
-export type BabysitterGrade = "NEW" | "POPULAR" | "VETERAN" | "TOP";
+export const MAX_GRADE_LEVEL = 10;
 
-export const GRADE_LABELS: Record<BabysitterGrade, string> = {
-  NEW: "NEW",
-  POPULAR: "인기",
-  VETERAN: "베테랑",
-  TOP: "TOP",
-};
+// 부모가 실제로 선정(요청 수락)한 횟수 기준 Lv.1~Lv.10 - 찜(관심)이 아니라 활동 이력을 반영
+export const gradeLevelLabel = (level: number): string => `Lv.${level}`;
+
+export const gradeLevelBadgeClass = (level: number): string => `grade-lv-${level}`;
 
 export type DayOfWeek = "MON" | "TUE" | "WED" | "THU" | "FRI" | "SAT" | "SUN";
 export type TimeSlot = "MORNING" | "AFTERNOON" | "EVENING";
@@ -52,6 +50,10 @@ export interface BabysitterProfile {
   name: string;
   careerYears: number;
   region: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  // /nearby 조회 시에만 채워짐 - 기준 좌표로부터 거리(km)
+  distanceKm?: number;
   availableTime: string | null;
   hourlyRate: number | null;
   intro: string | null;
@@ -59,7 +61,8 @@ export interface BabysitterProfile {
   status: "ACTIVE" | "INACTIVE";
   availability: BabysitterAvailability[];
   pickCount: number;
-  grade: BabysitterGrade;
+  selectionCount: number;
+  gradeLevel: number;
   averageRating: number | null;
   reviewCount: number;
   regTime: string;
@@ -70,6 +73,8 @@ export interface BabysitterProfileInput {
   name: string;
   careerYears: number;
   region?: string;
+  latitude?: number;
+  longitude?: number;
   availableTime?: string;
   hourlyRate?: number;
   intro?: string;
@@ -119,6 +124,19 @@ export const getList = async (
   return res.data;
 };
 
+// 내 위치(lat, lng) 기준 반경 radiusKm(기본 5km) 안의 활동중인 시터, 가까운 순
+export const getNearby = async (
+  lat: number,
+  lng: number,
+  radiusKm = 5,
+): Promise<BabysitterProfile[]> => {
+  const res = await jwtAxios.get(`${prefix}/nearby`, {
+    params: { lat, lng, radiusKm },
+  });
+
+  return res.data;
+};
+
 export const getMyPicks = async (): Promise<BabysitterProfile[]> => {
   const res = await jwtAxios.get(`${prefix}/picks/mine`);
 
@@ -138,16 +156,32 @@ export const uploadPhoto = async (
   return res.data;
 };
 
-export const getMyLocation = async (): Promise<string> => {
+export interface BabysitterParentLocation {
+  region: string;
+  latitude: number | null;
+  longitude: number | null;
+}
+
+export const getMyLocation = async (): Promise<BabysitterParentLocation> => {
   const res = await jwtAxios.get(`${locationPrefix}/`);
 
-  return res.data.region ?? "";
+  return {
+    region: res.data.region ?? "",
+    latitude: res.data.latitude ?? null,
+    longitude: res.data.longitude ?? null,
+  };
 };
 
 export const saveMyLocation = async (
   region: string,
+  latitude?: number,
+  longitude?: number,
 ): Promise<{ RESULT: string }> => {
-  const res = await jwtAxios.put(`${locationPrefix}/`, { region });
+  const res = await jwtAxios.put(`${locationPrefix}/`, {
+    region,
+    latitude,
+    longitude,
+  });
 
   return res.data;
 };
@@ -175,6 +209,13 @@ export const REQUEST_STATUS_LABELS: Record<RequestStatus, string> = {
   ACCEPTED: "수락됨",
   REJECTED: "거절됨",
   CANCELED: "취소됨",
+};
+
+export const REQUEST_STATUS_BADGE_CLASS: Record<RequestStatus, string> = {
+  PENDING: "pending",
+  ACCEPTED: "safe",
+  REJECTED: "danger",
+  CANCELED: "danger",
 };
 
 export interface BabysitterRequest {
@@ -287,6 +328,12 @@ export const JOB_STATUS_LABELS: Record<JobStatus, string> = {
   CANCELED: "취소됨",
 };
 
+export const JOB_STATUS_BADGE_CLASS: Record<JobStatus, string> = {
+  OPEN: "safe",
+  CLOSED: "pending",
+  CANCELED: "danger",
+};
+
 export type JobApplicationStatus = "PENDING" | "ACCEPTED" | "REJECTED";
 
 export const JOB_APPLICATION_STATUS_LABELS: Record<
@@ -298,12 +345,25 @@ export const JOB_APPLICATION_STATUS_LABELS: Record<
   REJECTED: "거절됨",
 };
 
+export const JOB_APPLICATION_STATUS_BADGE_CLASS: Record<
+  JobApplicationStatus,
+  string
+> = {
+  PENDING: "pending",
+  ACCEPTED: "safe",
+  REJECTED: "danger",
+};
+
 export interface BabysitterJobPost {
   jobNo: number;
   parentEmail: string;
   parentNickname: string | null;
   title: string;
   region: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  // /nearby 조회 시에만 채워짐 - 기준 좌표로부터 거리(km)
+  distanceKm?: number;
   desiredDate: string;
   timeSlot: TimeSlot;
   hourlyRate: number | null;
@@ -317,6 +377,8 @@ export interface BabysitterJobPost {
 export interface BabysitterJobPostInput {
   title: string;
   region?: string;
+  latitude?: number;
+  longitude?: number;
   desiredDate: string;
   timeSlot: TimeSlot;
   hourlyRate?: number;
@@ -354,6 +416,19 @@ export const getJobList = async (
   searchParam: BabysitterJobSearchParam,
 ): Promise<PageResponse<BabysitterJobPost>> => {
   const res = await jwtAxios.get(`${jobPrefix}/list`, { params: searchParam });
+
+  return res.data;
+};
+
+// 내 위치(lat, lng) 기준 반경 radiusKm(기본 5km) 안의 모집중인 구인글, 가까운 순
+export const getNearbyJobs = async (
+  lat: number,
+  lng: number,
+  radiusKm = 5,
+): Promise<BabysitterJobPost[]> => {
+  const res = await jwtAxios.get(`${jobPrefix}/nearby`, {
+    params: { lat, lng, radiusKm },
+  });
 
   return res.data;
 };

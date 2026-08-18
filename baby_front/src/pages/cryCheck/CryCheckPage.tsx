@@ -8,6 +8,7 @@ import { BabyInfo } from "../../api/babyInfoApi";
 import BasicLayout from "../../layouts/BasicLayout";
 import CryCheckRecorderComponent from "../../components/cryCheck/CryCheckRecorderComponent";
 import CryCheckHistoryComponent from "../../components/cryCheck/CryCheckHistoryComponent";
+import "../../styles/cryCheck.css";
 
 const CryCheckPage = () => {
   const dispatch = useDispatch();
@@ -48,29 +49,25 @@ const CryCheckPage = () => {
 
   return (
     <BasicLayout>
-      <div>
-        <span>{currentBaby.babyName}의 울음소리 분석</span>
+      <div className="cry-check-page">
+        {babyList.length > 1 && (
+          <div className="cry-check-mode-tabs">
+            {babyList.map((baby) => (
+              <button
+                key={baby.babyNo}
+                type="button"
+                onClick={() => dispatch(setCurrentBaby(baby))}
+                className={`chip${baby.babyNo === currentBaby.babyNo ? " is-active" : ""}`}
+              >
+                {baby.babyName}
+              </button>
+            ))}
+          </div>
+        )}
+
+        <CryCheckRecorderComponent onAnalyzed={handleAnalyzed} />
+        <CryCheckHistoryComponent reloadTrigger={reloadTrigger} />
       </div>
-      {babyList.length > 1 && (
-        <div>
-          {babyList.map((baby) => (
-            <button
-              key={baby.babyNo}
-              type="button"
-              onClick={() => dispatch(setCurrentBaby(baby))}
-              className={
-                baby.babyNo === currentBaby.babyNo
-                  ? "bg-black text-white"
-                  : "bg-white text-black"
-              }
-            >
-              {baby.babyName}
-            </button>
-          ))}
-        </div>
-      )}
-      <CryCheckRecorderComponent onAnalyzed={handleAnalyzed} />
-      <CryCheckHistoryComponent reloadTrigger={reloadTrigger} />
     </BasicLayout>
   );
 };

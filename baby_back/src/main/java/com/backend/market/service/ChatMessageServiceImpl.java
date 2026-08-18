@@ -52,7 +52,11 @@ public class ChatMessageServiceImpl implements ChatMessageService {
 
         chatMessageMapper.insert(chatMessage);
 
-        return modelMapper.map(chatMessage, ChatMessageDTO.class);
+        // insert 직후 in-memory 객체엔 DB가 DEFAULT로 채운 reg_time이 없어서(useGeneratedKeys는 msgNo만 채움),
+        // 그대로 리턴하면 방금 보낸 메시지엔 시간이 안 찍힘 -> 다시 조회해서 reg_time까지 채운 채로 리턴
+        ChatMessage saved = chatMessageMapper.selectOne(chatMessage.getMsgNo());
+
+        return modelMapper.map(saved, ChatMessageDTO.class);
     }
 
     @Override

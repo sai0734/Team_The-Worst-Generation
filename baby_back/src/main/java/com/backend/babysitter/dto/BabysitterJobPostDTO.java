@@ -28,6 +28,13 @@ public class BabysitterJobPostDTO {
 
     private String region;
 
+    private Double latitude;
+
+    private Double longitude;
+
+    // /nearby 조회 시에만 채워짐 - 기준 좌표로부터 거리(km)
+    private Double distanceKm;
+
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate desiredDate;
 

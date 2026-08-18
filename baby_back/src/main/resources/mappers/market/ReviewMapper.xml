@@ -5,7 +5,7 @@
 <mapper namespace="com.backend.market.mapper.ReviewMapper">
 
     <select id="selectListByTarget" resultType="com.backend.market.domain.Review">
-        SELECT review_no, item_no, writer_email, target_email, rating, content, reg_time
+        SELECT review_no, room_no, item_no, writer_email, target_email, rating, content, temp_delta, reg_time
         FROM tbl_review
         WHERE target_email = #{targetEmail}
         ORDER BY reg_time DESC
@@ -15,9 +15,13 @@
         SELECT AVG(rating) FROM tbl_review WHERE target_email = #{targetEmail}
     </select>
 
+    <select id="countByRoom" resultType="int">
+        SELECT COUNT(*) FROM tbl_review WHERE room_no = #{roomNo}
+    </select>
+
     <insert id="insert" useGeneratedKeys="true" keyProperty="reviewNo" keyColumn="review_no">
-        INSERT INTO tbl_review (item_no, writer_email, target_email, rating, content)
-        VALUES (#{itemNo}, #{writerEmail}, #{targetEmail}, #{rating}, #{content})
+        INSERT INTO tbl_review (room_no, item_no, writer_email, target_email, rating, content, temp_delta)
+        VALUES (#{roomNo}, #{itemNo}, #{writerEmail}, #{targetEmail}, #{rating}, #{content}, #{tempDelta})
     </insert>
 
 </mapper>

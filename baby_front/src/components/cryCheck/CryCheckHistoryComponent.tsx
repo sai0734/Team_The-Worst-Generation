@@ -4,6 +4,7 @@ import type { RootState } from "../../store";
 import * as cryCheckApi from "../../api/cryCheckApi";
 import { parseAiResult } from "../../api/cryCheckApi";
 import type { CryCheck } from "../../api/cryCheckApi";
+import CryCheckResultView from "./CryCheckResultView";
 
 interface CryCheckHistoryProps {
   reloadTrigger?: number;
@@ -33,6 +34,27 @@ const CryCheckHistoryComponent = ({ reloadTrigger }: CryCheckHistoryProps) => {
     setOpenNo((prev) => (prev === cryCheckNo ? null : cryCheckNo));
   };
 
+  const handleFeedbackSubmit = (cryCheckNo: number, feedback: string) => {
+    setList((prev) =>
+      prev.map((item) =>
+        item.cryCheckNo === cryCheckNo ? { ...item, userFeedback: feedback } : item,
+      ),
+    );
+  };
+
+  const handleDelete = async (cryCheckNo: number) => {
+    if (!confirm("이 분석 기록을 삭제할까요?")) return;
+
+    try {
+      await cryCheckApi.remove(cryCheckNo);
+      setList((prev) => prev.filter((item) => item.cryCheckNo !== cryCheckNo));
+      if (openNo === cryCheckNo) setOpenNo(null);
+    } catch (err) {
+      console.error(err);
+      alert("삭제에 실패했습니다.");
+    }
+  };
+
   return (
     <div className="card">
       <div className="head">
@@ -50,35 +72,44 @@ const CryCheckHistoryComponent = ({ reloadTrigger }: CryCheckHistoryProps) => {
             const isOpen = openNo === item.cryCheckNo;
 
             return (
-              <div
-                className="cry-check-history-item"
-                key={item.cryCheckNo}
-                onClick={() => toggleOpen(item.cryCheckNo)}
-              >
-                <div className="row-top">
+              <div className="cry-check-history-item" key={item.cryCheckNo}>
+                <div
+                  className="row-top"
+                  onClick={() => toggleOpen(item.cryCheckNo)}
+                >
                   <span className="date">
                     {new Date(item.regTime).toLocaleString("ko-KR")}
                   </span>
-                  <span className="chip">패턴 {item.pattern}</span>
+                  <span className="row-top-right">
+                    <span className="chip">패턴 {item.pattern}</span>
+                    <button
+                      type="button"
+                      className="cry-check-delete-btn"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(item.cryCheckNo);
+                      }}
+                      aria-label="삭제"
+                    >
+                      ×
+                    </button>
+                  </span>
                 </div>
-                <div className="top-cause">{topCause}</div>
+                <div
+                  className="top-cause"
+                  onClick={() => toggleOpen(item.cryCheckNo)}
+                >
+                  {topCause}
+                </div>
 
-                {isOpen &&
-                  (parsed.candidates.length > 0 ? (
-                    parsed.candidates.map((c) => (
-                      <div className="cry-check-candidate" key={c.rank}>
-                        <span className="rank">{c.rank}</span>
-                        <div>
-                          <div className="cause">{c.cause}</div>
-                          <div className="reason">{c.reason}</div>
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="cry-check-notice">
-                      {parsed.notice ?? "분석 결과가 없습니다."}
-                    </div>
-                  ))}
+                {isOpen && (
+                  <CryCheckResultView
+                    item={item}
+                    onFeedbackSubmit={(feedback) =>
+                      handleFeedbackSubmit(item.cryCheckNo, feedback)
+                    }
+                  />
+                )}
               </div>
             );
           })}

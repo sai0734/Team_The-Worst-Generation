@@ -33,8 +33,8 @@ public class NationalWelfareProvider implements AssistDataProvider {
         try {
             Map<String, String> p = DataGoKrClient.page(1, 20);
             p.put("callTp", "L");
+            p.put("srchKeyCode", "001");
             p.put("lifeArray", "001");
-            p.put("intrsThemeArray", "090");
 
             List<AssistItemDTO> list = new ArrayList<>();
             for (JsonObject it : client.items(client.get(URL, p))) {

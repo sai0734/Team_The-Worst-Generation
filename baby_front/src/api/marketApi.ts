@@ -9,8 +9,6 @@ export const MARKET_CATEGORIES = [
   "유모차",
   "카시트",
   "아기띠",
-  "장난감",
-  "수유용품",
 ];
 
 // MarketItemDTO
@@ -142,9 +140,13 @@ export const getMyItems = async (): Promise<MarketItem[]> => {
   return res.data;
 };
 
-export const completeItem = async (itemNo: number): Promise<void> => {
-  await jwtAxios.put(`${prefix}/${itemNo}/complete`);
+// 상세페이지 사이드바에서 "판매자의 다른 매물" 보여줄 때 사용 (백엔드 /by-seller/{email} 필요)
+export const getItemsBySeller = async (email: string): Promise<MarketItem[]> => {
+  const res = await jwtAxios.get(`${prefix}/by-seller/${email}`);
+  return res.data;
 };
+
+// 거래완료는 구매자만 가능 - chatApi.completeRoom(roomNo)로 이동함
 
 export const getFileUrl = (fileName: string): string =>
   `${prefix}/files/${fileName}`;

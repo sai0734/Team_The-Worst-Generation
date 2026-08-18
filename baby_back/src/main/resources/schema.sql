@@ -328,6 +328,8 @@ CREATE TABLE IF NOT EXISTS tbl_babysitter_profile (
     name           VARCHAR(50)  NOT NULL,
     career_years   INT          NOT NULL DEFAULT 0,
     region         VARCHAR(100),
+    latitude       DECIMAL(10,7),
+    longitude      DECIMAL(10,7),
     available_time VARCHAR(255),
     hourly_rate    INT,
     intro          VARCHAR(1000),
@@ -340,6 +342,8 @@ CREATE TABLE IF NOT EXISTS tbl_babysitter_profile (
 );
 
 ALTER TABLE tbl_babysitter_profile ADD COLUMN IF NOT EXISTS profile_image_file_name VARCHAR(500) NULL;
+ALTER TABLE tbl_babysitter_profile ADD COLUMN IF NOT EXISTS latitude DECIMAL(10,7) NULL;
+ALTER TABLE tbl_babysitter_profile ADD COLUMN IF NOT EXISTS longitude DECIMAL(10,7) NULL;
 
 -- KYI - 베이비시터 가능 요일/시간대
 CREATE TABLE IF NOT EXISTS tbl_babysitter_availability (
@@ -352,11 +356,16 @@ CREATE TABLE IF NOT EXISTS tbl_babysitter_availability (
 
 -- KYI - 부모(사용자) 내 동네 설정
 CREATE TABLE IF NOT EXISTS tbl_babysitter_parent_location (
-    email  VARCHAR(100) NOT NULL,
-    region VARCHAR(100) NOT NULL,
+    email     VARCHAR(100) NOT NULL,
+    region    VARCHAR(100) NOT NULL,
+    latitude  DECIMAL(10,7),
+    longitude DECIMAL(10,7),
     PRIMARY KEY (email),
     CONSTRAINT fk_babysitter_parent_location_email FOREIGN KEY (email) REFERENCES tbl_member (email)
 );
+
+ALTER TABLE tbl_babysitter_parent_location ADD COLUMN IF NOT EXISTS latitude DECIMAL(10,7) NULL;
+ALTER TABLE tbl_babysitter_parent_location ADD COLUMN IF NOT EXISTS longitude DECIMAL(10,7) NULL;
 
 -- KYI - 베이비시터 픽(찜)
 CREATE TABLE IF NOT EXISTS tbl_babysitter_pick (
@@ -394,6 +403,8 @@ CREATE TABLE IF NOT EXISTS tbl_babysitter_job_post (
     parent_email VARCHAR(100) NOT NULL,
     title        VARCHAR(200) NOT NULL,
     region       VARCHAR(100),
+    latitude     DECIMAL(10,7),
+    longitude    DECIMAL(10,7),
     desired_date DATE         NOT NULL,
     time_slot    VARCHAR(10)  NOT NULL,
     hourly_rate  INT,
@@ -406,6 +417,9 @@ CREATE TABLE IF NOT EXISTS tbl_babysitter_job_post (
     INDEX idx_babysitter_job_post_region_date (region, desired_date),
     INDEX idx_babysitter_job_post_status (status)
 );
+
+ALTER TABLE tbl_babysitter_job_post ADD COLUMN IF NOT EXISTS latitude DECIMAL(10,7) NULL;
+ALTER TABLE tbl_babysitter_job_post ADD COLUMN IF NOT EXISTS longitude DECIMAL(10,7) NULL;
 
 -- KYI - 베이비시터 구인글 지원
 CREATE TABLE IF NOT EXISTS tbl_babysitter_job_application (
@@ -438,11 +452,36 @@ CREATE TABLE IF NOT EXISTS tbl_babysitter_review (
     UNIQUE KEY uq_babysitter_review_request (request_no)
 );
 
+-- KYI - 베이비시터 채팅방 (부모-시터 1:1)
+CREATE TABLE IF NOT EXISTS tbl_babysitter_chat_room (
+    room_no      BIGINT AUTO_INCREMENT,
+    parent_email VARCHAR(100) NOT NULL,
+    sitter_email VARCHAR(100) NOT NULL,
+    reg_time     DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (room_no),
+    CONSTRAINT fk_babysitter_chat_room_parent FOREIGN KEY (parent_email) REFERENCES tbl_member (email),
+    CONSTRAINT fk_babysitter_chat_room_sitter FOREIGN KEY (sitter_email) REFERENCES tbl_babysitter_profile (email),
+    UNIQUE KEY uq_babysitter_chat_room (parent_email, sitter_email)
+);
+
+-- KYI - 베이비시터 채팅 메시지
+CREATE TABLE IF NOT EXISTS tbl_babysitter_chat_message (
+    msg_no       BIGINT AUTO_INCREMENT,
+    room_no      BIGINT       NOT NULL,
+    sender_email VARCHAR(100) NOT NULL,
+    content      VARCHAR(1000) NOT NULL,
+    reg_time     DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (msg_no),
+    CONSTRAINT fk_babysitter_chat_message_room FOREIGN KEY (room_no) REFERENCES tbl_babysitter_chat_room (room_no),
+    CONSTRAINT fk_babysitter_chat_message_sender FOREIGN KEY (sender_email) REFERENCES tbl_member (email)
+);
+
 -- KYI - 커뮤니티 게시글
 CREATE TABLE IF NOT EXISTS tbl_community_post (
     post_no       BIGINT AUTO_INCREMENT,
     writer_email  VARCHAR(100)  NOT NULL,
     nickname      VARCHAR(50)   NOT NULL,
+    category      VARCHAR(10)   NOT NULL DEFAULT '자유',
     title         VARCHAR(200)  NOT NULL,
     content       TEXT          NOT NULL,
     ai_summary    TEXT,
@@ -454,6 +493,8 @@ CREATE TABLE IF NOT EXISTS tbl_community_post (
     PRIMARY KEY (post_no),
     CONSTRAINT fk_community_post_email FOREIGN KEY (writer_email) REFERENCES tbl_member (email)
 );
+
+ALTER TABLE tbl_community_post ADD COLUMN IF NOT EXISTS category VARCHAR(10) NOT NULL DEFAULT '자유';
 
 -- KYI - 커뮤니티 게시글 첨부파일
 CREATE TABLE IF NOT EXISTS tbl_community_post_image (
@@ -600,6 +641,24 @@ CREATE TABLE IF NOT EXISTS tbl_baby_skin_check (
     PRIMARY KEY(checkNo),
     CONSTRAINT fk_skin_check_baby FOREIGN KEY (babyNo) REFERENCES tbl_baby_info (baby_no)
     );
+
+-- LMJ - 산책로 기본 정보 (현재위치 기반 산책로 추천용)
+CREATE TABLE IF NOT EXISTS tbl_walk_trail(
+    trail_no BIGINT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    description VARCHAR(500),
+    location_name VARCHAR(200),
+    latitude DECIMAL(10,7) NOT NULL,
+    longitude DECIMAL(10,7) NOT NULL ,
+    reg_time DATETIME NOT NULL DEFAULT current_timestamp
+);
+
+INSERT INTO tbl_walk_trail (name, description, location_name, latitude, longitude) VALUES
+    ('반포한강공원 산책로', '한강 뷰가 좋은 평지 코스, 유모차 이동 편함', '서울 서초구 반포동', 37.5107, 127.0021),
+    ('서리풀공원 산책로', '숲길 코스, 그늘이 많아 여름에 좋음', '서울 서초구 서초동', 37.4884, 127.0102),
+    ('양재천 산책로', '강변 산책로, 벚꽃 명소', '서울 서초구 양재동', 37.4779, 127.0387);
+
+-- LMJ 끝
 
 -- =========================================================
 -- YSJ - 퀘스트 (DAILY / URGENT)
@@ -912,6 +971,12 @@ CREATE TABLE IF NOT EXISTS tbl_review (
     CONSTRAINT fk_review_target FOREIGN KEY (target_email) REFERENCES tbl_member (email)
     );
 
+-- 거래완료된 채팅방 1건당 온도 평가 1건. rating(별점)은 이제 선택값이고, 매너온도는
+-- rating에서 환산하지 않고 temp_delta(-1.0~+1.0, 0.1 단위)를 구매자가 직접 골라서 그대로 반영
+ALTER TABLE tbl_review ADD COLUMN IF NOT EXISTS room_no BIGINT NULL;
+ALTER TABLE tbl_review ADD COLUMN IF NOT EXISTS temp_delta DECIMAL(3,1) NOT NULL DEFAULT 0;
+ALTER TABLE tbl_review MODIFY COLUMN rating INT NULL;
+
 CREATE TABLE IF NOT EXISTS tbl_cry_check (
                                              cry_check_no BIGINT AUTO_INCREMENT,
                                              baby_no BIGINT NOT NULL,
@@ -924,6 +989,9 @@ CREATE TABLE IF NOT EXISTS tbl_cry_check (
     PRIMARY KEY (cry_check_no),
     CONSTRAINT fk_cry_check_baby FOREIGN KEY (baby_no) REFERENCES tbl_baby_info (baby_no)
     );
+
+ALTER TABLE tbl_cry_check ADD COLUMN IF NOT EXISTS audio_file_name VARCHAR(300) NULL;
+ALTER TABLE tbl_cry_check ADD COLUMN IF NOT EXISTS user_feedback VARCHAR(50) NULL;
 
 -- LJW 끝
 -- YSJ 추가 정부지원금 3시 배치

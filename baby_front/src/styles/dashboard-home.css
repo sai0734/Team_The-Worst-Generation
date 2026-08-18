@@ -1,0 +1,252 @@
+.app .home-grid.home-grid-v2 {
+  align-items: start;
+  grid-template-areas:
+    "tip    tip"
+    "quest  side"
+    "assist assist";
+}
+
+.app .home-grid.home-grid-v2 .area-side {
+  grid-area: side;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.app .home-grid.home-grid-v2 .area-ledger,
+.app .home-grid.home-grid-v2 .area-recall {
+  height: auto;
+}
+
+.app .home-grid.home-grid-v2 .home-side-card {
+  height: auto;
+}
+
+.app .home-grid.home-grid-v2 .area-assist {
+  grid-area: assist;
+  align-self: stretch;
+}
+
+.app .home-grid.home-grid-v2 .support-panel.info {
+  min-height: 0;
+  height: auto;
+  justify-content: flex-start;
+}
+
+.app .assist-panel-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px 12px;
+  margin-bottom: 8px;
+}
+
+.app .assist-panel-copy {
+  flex: 1;
+  min-width: 180px;
+}
+
+.app .assist-panel-copy h3 {
+  margin: 0 0 4px;
+  font-size: 14px;
+}
+
+.app .assist-profile {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--ink);
+}
+
+.app .assist-hint {
+  margin: 2px 0 0;
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.app .assist-edit {
+  flex-shrink: 0;
+  border: 1px solid var(--line);
+  background: var(--glass);
+  border-radius: 99px;
+  padding: 5px 12px;
+  font-size: 10px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.app .assist-edit:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.app .assist-filters {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  margin: 0 0 10px;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--soft);
+}
+
+.app .assist-filter-btns {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 6px;
+  margin: 0 0 10px;
+}
+
+.app .assist-filter-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  border: 1px solid var(--line);
+  background: var(--glass);
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-size: 12px;
+  font-weight: 800;
+  font-family: inherit;
+  color: var(--ink);
+  cursor: pointer;
+  text-align: left;
+}
+
+.app .assist-filter-btn em {
+  font-style: normal;
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.app .assist-filter-btn.is-on {
+  border-color: var(--accent);
+  background: var(--hover, #fff);
+  color: var(--accent);
+}
+
+.app .assist-filter-btn.is-on em {
+  color: var(--accent);
+}
+
+.app .assist-filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.app .assist-filter-group label {
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--muted);
+}
+
+.app .assist-filter-group input {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 6px 8px;
+  font-size: 12px;
+  background: #fff;
+}
+
+.app .assist-sections {
+  display: grid;
+  gap: 12px;
+}
+
+.app .assist-section-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 6px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.app .assist-section-title span {
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--muted);
+}
+
+.app .assist-cards {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.app .assist-cards li {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--hover, #fff);
+}
+
+.app .assist-cards h4 {
+  margin: 0 0 2px;
+  font-size: 12px;
+}
+
+.app .assist-cards p {
+  margin: 0;
+  font-size: 10px;
+  color: var(--muted);
+}
+
+.app .assist-empty {
+  margin: 4px 0 0;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.app .assist-status {
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 800;
+  padding: 4px 8px;
+  border-radius: 99px;
+}
+
+.app .assist-status.apply {
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  text-decoration: none;
+}
+
+.app .assist-status.done {
+  color: var(--muted);
+  background: var(--soft);
+}
+
+@media (max-width: 860px) {
+  .app .home-grid.home-grid-v2 {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "tip"
+      "quest"
+      "side"
+      "assist";
+  }
+
+  .app .home-grid.home-grid-v2 {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "tip"
+      "quest"
+      "side"
+      "assist";
+  }
+}
