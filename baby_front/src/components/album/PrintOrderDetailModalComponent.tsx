@@ -20,8 +20,15 @@ const PrintOrderDetailModalComponent = ({
   const [order, setOrder] = useState<PrintOrder | null>(null);
 
   useEffect(() => {
-    printOrderApi.getDetail(orderId).then(setOrder);
-  }, [orderId]);
+    printOrderApi
+      .getDetail(orderId)
+      .then(setOrder)
+      .catch((err) => {
+        alert("주문 상세정보를 불러오지 못했습니다.");
+        console.error(err);
+        onClose();
+      });
+  }, [orderId, onClose]);
 
   return (
     <div

@@ -33,23 +33,32 @@ const DiaryListComponent = ({ reloadTrigger }: DiaryListProps) => {
 
   const [keyword, setKeyword] = useState("");
   const [searchKeyword, setSearchKeyword] = useState("");
+  const [loading, setLoading] = useState(true);
 
   const loadList = async () => {
     if (!currentBaby?.babyNo) return;
 
-    const result = await diaryApi.getList({
-      babyNo: currentBaby.babyNo,
-      page,
-      size: PAGE_SIZE,
-      keyword: searchKeyword || undefined,
-    });
+    setLoading(true);
+    try {
+      const result = await diaryApi.getList({
+        babyNo: currentBaby.babyNo,
+        page,
+        size: PAGE_SIZE,
+        keyword: searchKeyword || undefined,
+      });
 
-    setList(result.dtoList);
-    setPageNumList(result.pageNumList);
-    setPrev(result.prev);
-    setNext(result.next);
-    setPrevPage(result.prevPage);
-    setNextPage(result.nextPage);
+      setList(result.dtoList);
+      setPageNumList(result.pageNumList);
+      setPrev(result.prev);
+      setNext(result.next);
+      setPrevPage(result.prevPage);
+      setNextPage(result.nextPage);
+    } catch (err) {
+      alert("일기 목록을 불러오지 못했습니다.");
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -122,7 +131,7 @@ const DiaryListComponent = ({ reloadTrigger }: DiaryListProps) => {
           검색
         </button>
       </div>
-      {list.length === 0 && (
+      {!loading && list.length === 0 && (
         <div className="flex flex-col items-center justify-center gap-2 rounded-[20px] border border-dashed border-[rgba(42,41,38,0.15)] bg-white p-8 text-center">
           <span className="text-2xl">📔</span>
           <p className="text-sm font-bold text-[#2A2926]">

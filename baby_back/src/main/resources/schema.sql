@@ -117,7 +117,7 @@ CREATE TABLE IF NOT EXISTS tbl_baby_info (
     baby_no BIGINT AUTO_INCREMENT,
     email VARCHAR(100) NOT NULL,
     baby_name VARCHAR(100) NOT NULL,
-    birth_date DATE,
+    birth_date DATE NOT NULL,
     gender VARCHAR(100) NOT NULL,
     profile_image_file_name VARCHAR(500),
     blood_type VARCHAR(100),

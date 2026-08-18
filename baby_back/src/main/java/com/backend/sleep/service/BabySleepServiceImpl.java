@@ -61,6 +61,8 @@ public class BabySleepServiceImpl implements BabySleepService {
             throw new IllegalArgumentException("존재하지 않는 아이입니다: " + babySleepDTO.getBabyNo());
         }
 
+        validateSleepTimeRange(babySleepDTO.getStartTime(), babySleepDTO.getEndTime());
+
         BabySleep babySleep = modelMapper.map(babySleepDTO, BabySleep.class);
 
         babySleepMapper.insert(babySleep);
@@ -80,6 +82,8 @@ public class BabySleepServiceImpl implements BabySleepService {
             throw new IllegalArgumentException("존재하지 않는 수면기록입니다: " + babySleepDTO.getSleepNo());
         }
 
+        validateSleepTimeRange(babySleepDTO.getStartTime(), babySleepDTO.getEndTime());
+
         babySleep.changeSleepType(babySleepDTO.getSleepType());
         babySleep.changeStartTime(babySleepDTO.getStartTime());
         babySleep.changeEndTime(babySleepDTO.getEndTime());
@@ -92,6 +96,12 @@ public class BabySleepServiceImpl implements BabySleepService {
     public void remove(Long sleepNo, String email) {
 
         log.info("babySleep_Service_remove_실행~~~~~~~~~~~~");
+
+        BabySleep babySleep = babySleepMapper.selectBySleepNo(sleepNo, email);
+
+        if (babySleep == null) {
+            throw new IllegalArgumentException("존재하지 않는 수면기록입니다: " + sleepNo);
+        }
 
         babySleepMapper.delete(sleepNo, email);
 
@@ -171,6 +181,15 @@ public class BabySleepServiceImpl implements BabySleepService {
 
         return ollamaClient.chat(prompt);
 
+    }
+
+    private void validateSleepTimeRange(LocalDateTime startTime, LocalDateTime endTime) {
+        if (startTime == null) {
+            throw new IllegalArgumentException("시작 시간은 필수 입력 항목입니다.");
+        }
+        if (endTime != null && endTime.isBefore(startTime)) {
+            throw new IllegalArgumentException("종료 시간은 시작 시간보다 빠를 수 없습니다.");
+        }
     }
 
 }

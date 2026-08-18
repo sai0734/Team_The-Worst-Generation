@@ -123,7 +123,13 @@ public class BabyDiaryServiceImpl implements BabyDiaryService{
 
         log.info("babyDiary_Service_remove_실행~~~~~~~~~~~~");
 
+        BabyDiary babyDiary = babyDiaryMapper.selectByDiaryNo(diaryNo, email);
+
         babyDiaryMapper.delete(diaryNo, email);
+
+        if (babyDiary != null && babyDiary.getPhotoFileName() != null) {
+            customFileUtil.deleteFiles(List.of(babyDiary.getPhotoFileName()));
+        }
 
     }
 

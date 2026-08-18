@@ -26,10 +26,6 @@ const getTodayStr = () => {
   return `${year}-${month}-${day}`;
 };
 
-const labelClass = "text-[11px] font-bold tracking-wide text-[#7A756C]";
-const inputClass =
-  "w-full rounded-[14px] border border-[rgba(42,41,38,0.12)] bg-white px-4 py-2.5 text-sm text-[#2A2926] outline-none transition-colors focus:border-[#5AB2FF]";
-
 const readPhotoMeta = async (file: File) => {
   let takenDate: string | null = null;
   let latitude: number | null = null;
@@ -85,7 +81,8 @@ const AlbumUploadComponent = ({ onRegistered }: AlbumUploadProps) => {
     const newPhotos = await Promise.all(
       selectedFiles.map(async (file) => {
         const meta = await readPhotoMeta(file);
-        const resolvedDate = meta.takenDate ?? (defaultTakenDate || getTodayStr());
+        const resolvedDate =
+          meta.takenDate ?? (defaultTakenDate || getTodayStr());
         return {
           file,
           preview: URL.createObjectURL(file),

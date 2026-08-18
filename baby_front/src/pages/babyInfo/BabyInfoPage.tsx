@@ -11,14 +11,28 @@ const BabyInfoPage = () => {
   const navigate = useNavigate();
   const [babyInfo, setBabyInfo] = useState<BabyInfo | null>(null);
   const [babyList, setBabyList] = useState<BabyInfo[]>([]);
+  const [error, setError] = useState(false);
+  const [retryTrigger, setRetryTrigger] = useState(0);
 
   useEffect(() => {
     if (!babyNo) return;
-    babyInfoApi.getOne(babyNo).then((data: BabyInfo) => setBabyInfo(data));
-  }, [babyNo]);
+    setError(false);
+    babyInfoApi
+      .getOne(babyNo)
+      .then((data: BabyInfo) => setBabyInfo(data))
+      .catch((err) => {
+        console.error(err);
+        setError(true);
+      });
+  }, [babyNo, retryTrigger]);
 
   useEffect(() => {
-    babyInfoApi.getList().then((list: BabyInfo[]) => setBabyList(list));
+    babyInfoApi
+      .getList()
+      .then((list: BabyInfo[]) => setBabyList(list))
+      .catch((err) => {
+        console.error(err);
+      });
   }, []);
 
   const getAgeInMonths = (birthDate: string) => {
@@ -36,6 +50,23 @@ const BabyInfoPage = () => {
     return months;
   };
 
+  if (error) {
+    return (
+      <div className="flex flex-col items-center gap-3 py-10 text-center">
+        <p className="text-sm text-[#7A756C]">
+          아이 정보를 불러오지 못했습니다.
+        </p>
+        <button
+          type="button"
+          className="rounded-full bg-[#5AB2FF] px-5 py-2 text-sm font-bold text-white"
+          onClick={() => setRetryTrigger((prev) => prev + 1)}
+        >
+          다시 시도
+        </button>
+      </div>
+    );
+  }
+
   if (!babyInfo) {
     return <div>불러오는 중...</div>;
   }
@@ -44,7 +75,9 @@ const BabyInfoPage = () => {
     [
       { label: "생년월일", value: babyInfo.birthDate },
       { label: "성별", value: babyInfo.gender },
-      babyInfo.bloodType ? { label: "혈액형", value: `${babyInfo.bloodType}형` } : null,
+      babyInfo.bloodType
+        ? { label: "혈액형", value: `${babyInfo.bloodType}형` }
+        : null,
     ],
     [
       babyInfo.birthWeekCount != null

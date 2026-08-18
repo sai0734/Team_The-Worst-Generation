@@ -31,8 +31,13 @@ const BabyInfoInputComponent = () => {
   const [registeredList, setRegisteredList] = useState<BabyInfo[]>([]);
 
   const loadRegisteredList = async () => {
-    const list: BabyInfo[] = await babyInfoApi.getList();
-    setRegisteredList(list);
+    try {
+      const list: BabyInfo[] = await babyInfoApi.getList();
+      setRegisteredList(list);
+    } catch (err) {
+      alert("등록된 아이 목록을 불러오지 못했습니다.");
+      console.error(err);
+    }
   };
 
   useEffect(() => {
@@ -224,7 +229,7 @@ const BabyInfoInputComponent = () => {
 
       <div className="flex flex-col gap-4 rounded-[24px] border border-[rgba(42,41,38,0.1)] bg-[#FAF6F0] p-4 sm:p-6">
         <div>
-          <p className={labelClass}>이름</p>
+          <p className={labelClass}>이름 (필수)</p>
           <input
             className={inputClass}
             name="babyName"
@@ -236,7 +241,7 @@ const BabyInfoInputComponent = () => {
         </div>
         <div className="flex flex-col gap-4 sm:flex-row">
           <div className="flex-1 min-w-0">
-            <p className={labelClass}>생년월일</p>
+            <p className={labelClass}>생년월일 (필수)</p>
             <input
               className={inputClass}
               name="birthDate"
@@ -246,7 +251,7 @@ const BabyInfoInputComponent = () => {
             />
           </div>
           <div className="flex-1 min-w-0">
-            <p className={labelClass}>혈액형</p>
+            <p className={labelClass}>혈액형 (선택)</p>
             <select
               className={inputClass}
               value={bloodType}
@@ -260,7 +265,7 @@ const BabyInfoInputComponent = () => {
           </div>
         </div>
         <div>
-          <p className={labelClass}>성별</p>
+          <p className={labelClass}>성별 (필수)</p>
           <div className="flex gap-2">
             <button
               className={pillBtn(gender === "남자")}
@@ -282,7 +287,7 @@ const BabyInfoInputComponent = () => {
         </div>
         <div className="flex flex-col gap-4 sm:flex-row">
           <div className="flex-1 min-w-0">
-            <p className={labelClass}>출생 주수</p>
+            <p className={labelClass}>출생 주수 (선택)</p>
             <input
               className={inputClass}
               name="birthWeekCount"
@@ -293,7 +298,7 @@ const BabyInfoInputComponent = () => {
             />
           </div>
           <div className="flex-1 min-w-0">
-            <p className={labelClass}>머리둘레(cm)</p>
+            <p className={labelClass}>머리둘레(cm) (선택)</p>
             <input
               className={inputClass}
               name="head"
@@ -305,7 +310,7 @@ const BabyInfoInputComponent = () => {
         </div>
         <div className="flex flex-col gap-4 sm:flex-row">
           <div className="flex-1 min-w-0">
-            <p className={labelClass}>출생 시 체중(kg)</p>
+            <p className={labelClass}>출생 시 체중(kg) (선택)</p>
             <input
               className={inputClass}
               name="birthWeight"
@@ -315,7 +320,7 @@ const BabyInfoInputComponent = () => {
             />
           </div>
           <div className="flex-1 min-w-0">
-            <p className={labelClass}>출생 시 키(cm)</p>
+            <p className={labelClass}>출생 시 키(cm) (선택)</p>
             <input
               className={inputClass}
               name="birthHeight"
@@ -328,7 +333,7 @@ const BabyInfoInputComponent = () => {
         {!isEditMode && (
           <div className="flex flex-col gap-4 sm:flex-row">
             <div className="flex-1 min-w-0">
-              <p className={labelClass}>현재 체중(kg)</p>
+              <p className={labelClass}>현재 체중(kg) (선택)</p>
               <input
                 className={inputClass}
                 name="weight"
@@ -338,7 +343,7 @@ const BabyInfoInputComponent = () => {
               />
             </div>
             <div className="flex-1 min-w-0">
-              <p className={labelClass}>현재 키(cm)</p>
+              <p className={labelClass}>현재 키(cm) (선택)</p>
               <input
                 className={inputClass}
                 name="height"
