@@ -1,11 +1,19 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import * as communityApi from "../../api/communityApi";
+import { CATEGORY_BADGE_CLASS } from "../../api/communityApi";
 import type { CommunityPost } from "../../api/communityApi";
 import type { PageResponse } from "../../types/page";
 import type { MovePageParam } from "../../hooks/useCustomMove";
 import PageComponent from "../common/PageComponent";
 import useCustomLogin from "../../hooks/useCustomLogin";
+
+const EXCERPT_MAX_LENGTH = 60;
+
+const excerptOf = (content: string): string =>
+  content.length > EXCERPT_MAX_LENGTH
+    ? `${content.slice(0, EXCERPT_MAX_LENGTH)}…`
+    : content;
 
 const CommunityListComponent = () => {
   const navigate = useNavigate();
@@ -36,40 +44,57 @@ const CommunityListComponent = () => {
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-3">
-        <h2 className="text-xl font-bold">자유게시판</h2>
+      <div className="recall-header">
+        <h2>자유게시판</h2>
         {isLogin && (
-          <button onClick={() => navigate("/community/write")}>글쓰기</button>
+          <button
+            type="button"
+            className="btn"
+            onClick={() => navigate("/community/write")}
+          >
+            글쓰기
+          </button>
         )}
       </div>
 
-      <div className="flex gap-2 mb-3">
+      <div className="community-search">
         <input
           placeholder="제목/내용 검색"
           value={keyword}
           onChange={(e) => setKeyword(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && loadList(1)}
         />
-        <button onClick={() => loadList(1)}>검색</button>
+        <button type="button" className="btn ghost" onClick={() => loadList(1)}>
+          검색
+        </button>
       </div>
 
       {pageResponse && pageResponse.dtoList.length === 0 && (
-        <div>등록된 글이 없습니다.</div>
+        <div className="empty-hint">등록된 글이 없습니다.</div>
       )}
 
-      <ul>
+      <div className="community-list">
         {pageResponse?.dtoList.map((post) => (
-          <li
+          <article
             key={post.postNo}
-            className="border-b py-2 cursor-pointer"
+            className="card community-item"
             onClick={() => navigate(`/community/${post.postNo}`)}
           >
-            <div className="font-bold">{post.title}</div>
-            <div>
-              {post.nickname} · 조회 {post.viewCount} · 댓글 {post.commentCount}
+            <div className="title-row">
+              <span className={`community-badge ${CATEGORY_BADGE_CLASS[post.category]}`}>
+                {post.category}
+              </span>
+              <span className="title">{post.title}</span>
             </div>
-          </li>
+            <span className="excerpt">
+              {post.aiSummary ? `AI 한줄요약 · ${post.aiSummary}` : excerptOf(post.content)}
+            </span>
+            <span className="meta">
+              {post.nickname} · 조회 {post.viewCount} · 댓글 {post.commentCount}
+            </span>
+          </article>
         ))}
-      </ul>
+      </div>
 
       {pageResponse && (
         <PageComponent serverData={pageResponse} movePage={movePage} />

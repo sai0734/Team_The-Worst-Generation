@@ -22,6 +22,8 @@ public class CommunityPostDTO {
 
     private String nickname;
 
+    private String category;
+
     private String title;
 
     private String content;

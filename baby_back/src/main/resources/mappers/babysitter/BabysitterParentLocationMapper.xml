@@ -5,19 +5,21 @@
 <mapper namespace="com.backend.babysitter.mapper.BabysitterParentLocationMapper">
 
     <select id="selectByEmail" resultType="com.backend.babysitter.domain.BabysitterParentLocation">
-        SELECT email, region
+        SELECT email, region, latitude, longitude
         FROM tbl_babysitter_parent_location
         WHERE email = #{email}
     </select>
 
     <insert id="insert">
-        INSERT INTO tbl_babysitter_parent_location (email, region)
-        VALUES (#{email}, #{region})
+        INSERT INTO tbl_babysitter_parent_location (email, region, latitude, longitude)
+        VALUES (#{email}, #{region}, #{latitude}, #{longitude})
     </insert>
 
     <update id="update">
         UPDATE tbl_babysitter_parent_location
-        SET region = #{region}
+        SET region    = #{region},
+            latitude  = #{latitude},
+            longitude = #{longitude}
         WHERE email = #{email}
     </update>
 

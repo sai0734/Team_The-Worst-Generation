@@ -5,14 +5,14 @@
 <mapper namespace="com.backend.babysitter.mapper.BabysitterJobPostMapper">
 
     <select id="selectByJobNo" resultType="com.backend.babysitter.domain.BabysitterJobPost">
-        SELECT job_no, parent_email, title, region, desired_date, time_slot, hourly_rate, message,
+        SELECT job_no, parent_email, title, region, latitude, longitude, desired_date, time_slot, hourly_rate, message,
                status, reg_time, mod_time
         FROM tbl_babysitter_job_post
         WHERE job_no = #{jobNo}
     </select>
 
     <select id="selectListByParent" resultType="com.backend.babysitter.domain.BabysitterJobPost">
-        SELECT job_no, parent_email, title, region, desired_date, time_slot, hourly_rate, message,
+        SELECT job_no, parent_email, title, region, latitude, longitude, desired_date, time_slot, hourly_rate, message,
                status, reg_time, mod_time
         FROM tbl_babysitter_job_post
         WHERE parent_email = #{parentEmail}
@@ -21,9 +21,9 @@
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="jobNo" keyColumn="job_no">
         INSERT INTO tbl_babysitter_job_post
-            (parent_email, title, region, desired_date, time_slot, hourly_rate, message, status)
+            (parent_email, title, region, latitude, longitude, desired_date, time_slot, hourly_rate, message, status)
         VALUES
-            (#{parentEmail}, #{title}, #{region}, #{desiredDate}, #{timeSlot}, #{hourlyRate}, #{message}, #{status})
+            (#{parentEmail}, #{title}, #{region}, #{latitude}, #{longitude}, #{desiredDate}, #{timeSlot}, #{hourlyRate}, #{message}, #{status})
     </insert>
 
     <update id="updateStatus">
@@ -34,7 +34,7 @@
     </update>
 
     <select id="selectList" resultType="com.backend.babysitter.domain.BabysitterJobPost">
-        SELECT job_no, parent_email, title, region, desired_date, time_slot, hourly_rate, message,
+        SELECT job_no, parent_email, title, region, latitude, longitude, desired_date, time_slot, hourly_rate, message,
                status, reg_time, mod_time
         FROM tbl_babysitter_job_post
         <include refid="searchWhere"/>
@@ -48,10 +48,19 @@
         <include refid="searchWhere"/>
     </select>
 
+    <select id="selectNearbyCandidates" resultType="com.backend.babysitter.domain.BabysitterJobPost">
+        SELECT job_no, parent_email, title, region, latitude, longitude, desired_date, time_slot, hourly_rate, message,
+               status, reg_time, mod_time
+        FROM tbl_babysitter_job_post
+        WHERE status = 'OPEN'
+          AND latitude IS NOT NULL
+          AND longitude IS NOT NULL
+    </select>
+
     <sql id="searchWhere">
         WHERE status = 'OPEN'
         <if test="search.region != null and search.region != ''">
-            AND region = #{search.region}
+            AND region LIKE CONCAT('%', #{search.region}, '%')
         </if>
         <if test="search.desiredDate != null">
             AND desired_date = #{search.desiredDate}

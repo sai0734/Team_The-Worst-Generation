@@ -1,5 +1,7 @@
 package com.backend.babysitter.service;
 
+import java.math.BigDecimal;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,29 +20,32 @@ public class BabysitterParentLocationServiceImpl implements BabysitterParentLoca
     private final BabysitterParentLocationMapper babysitterParentLocationMapper;
 
     @Override
-    public String getRegion(String email) {
+    public BabysitterParentLocation get(String email) {
 
-        BabysitterParentLocation location = babysitterParentLocationMapper.selectByEmail(email);
-
-        return location != null ? location.getRegion() : null;
+        return babysitterParentLocationMapper.selectByEmail(email);
     }
 
     @Override
-    public void saveRegion(String email, String region) {
+    public void save(String email, String region, Double latitude, Double longitude) {
 
         BabysitterParentLocation location = babysitterParentLocationMapper.selectByEmail(email);
+
+        BigDecimal lat = latitude != null ? BigDecimal.valueOf(latitude) : null;
+        BigDecimal lng = longitude != null ? BigDecimal.valueOf(longitude) : null;
 
         if (location == null) {
             babysitterParentLocationMapper.insert(
                 BabysitterParentLocation.builder()
                     .email(email)
                     .region(region)
+                    .latitude(lat)
+                    .longitude(lng)
                     .build()
             );
             return;
         }
 
-        location.changeRegion(region);
+        location.changeRegion(region, lat, lng);
 
         babysitterParentLocationMapper.update(location);
     }

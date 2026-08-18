@@ -8,37 +8,36 @@ interface PageComponentProps {
 
 const PageComponent = ({ serverData, movePage }: PageComponentProps) => {
   return (
-    <div className="m-6 flex justify-center">
-      {serverData.prev ? (
-        <div
-          className="m-2 p-2 w-16 text-center  font-bold text-blue-400 "
+    <div className="ledger-pagination">
+      {serverData.prev && (
+        <button
+          type="button"
+          className="entry-action-btn"
           onClick={() => movePage({ page: serverData.prevPage })}
         >
-          Prev{" "}
-        </div>
-      ) : (
-        <></>
+          이전
+        </button>
       )}
 
       {serverData.pageNumList.map((pageNum) => (
-        <div
+        <button
+          type="button"
           key={pageNum}
-          className={`m-2 p-2 w-12  text-center rounded shadow-md text-white ${serverData.current === pageNum ? "bg-gray-500" : "bg-blue-400"}`}
+          className={`entry-action-btn${serverData.current === pageNum ? " active" : ""}`}
           onClick={() => movePage({ page: pageNum })}
         >
           {pageNum}
-        </div>
+        </button>
       ))}
 
-      {serverData.next ? (
-        <div
-          className="m-2 p-2 w-16 text-center font-bold text-blue-400"
+      {serverData.next && (
+        <button
+          type="button"
+          className="entry-action-btn"
           onClick={() => movePage({ page: serverData.nextPage })}
         >
-          Next
-        </div>
-      ) : (
-        <></>
+          다음
+        </button>
       )}
     </div>
   );

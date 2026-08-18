@@ -14,6 +14,8 @@ public interface BabysitterJobPostService {
 
     PageResponseDTO<BabysitterJobPostDTO> getList(BabysitterJobSearchDTO searchDTO);
 
+    List<BabysitterJobPostDTO> getNearby(double lat, double lng, double radiusKm);
+
     List<BabysitterJobPostDTO> getMyJobPosts(String parentEmail);
 
     void cancel(Long jobNo, String parentEmail);

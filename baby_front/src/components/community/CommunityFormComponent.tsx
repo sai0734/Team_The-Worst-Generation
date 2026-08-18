@@ -1,7 +1,8 @@
 import { ChangeEvent, FormEvent, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import * as communityApi from "../../api/communityApi";
-import type { CommunityImage } from "../../api/communityApi";
+import { COMMUNITY_CATEGORIES } from "../../api/communityApi";
+import type { CommunityCategory, CommunityImage } from "../../api/communityApi";
 
 const describeError = (err: any): string =>
   err?.response?.data?.error ||
@@ -14,9 +15,11 @@ const CommunityFormComponent = () => {
   const navigate = useNavigate();
   const isEdit = !!postNo;
 
+  const [category, setCategory] = useState<CommunityCategory>("자유");
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
   const [files, setFiles] = useState<File[]>([]);
+  const [previews, setPreviews] = useState<{ url: string; video: boolean }[]>([]);
   const [existingImages, setExistingImages] = useState<CommunityImage[]>([]);
 
   useEffect(() => {
@@ -25,14 +28,31 @@ const CommunityFormComponent = () => {
     }
 
     communityApi.getOne(Number(postNo)).then((post) => {
+      setCategory(post.category);
       setTitle(post.title);
       setContent(post.content);
       setExistingImages(post.imageList);
     });
   }, [isEdit, postNo]);
 
+  // 선택한 파일들을 서버 업로드 전에 로컬에서 미리보기용 URL로 변환
+  useEffect(() => {
+    const next = files.map((file) => ({
+      url: URL.createObjectURL(file),
+      video: file.type.startsWith("video/"),
+    }));
+    setPreviews(next);
+    return () => {
+      next.forEach((p) => URL.revokeObjectURL(p.url));
+    };
+  }, [files]);
+
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     setFiles(e.target.files ? Array.from(e.target.files) : []);
+  };
+
+  const handleRemoveNewFile = (index: number) => {
+    setFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleRemoveExistingImage = async (fileName: string) => {
@@ -61,9 +81,9 @@ const CommunityFormComponent = () => {
 
       if (isEdit && postNo) {
         targetPostNo = Number(postNo);
-        await communityApi.modify(targetPostNo, { title, content });
+        await communityApi.modify(targetPostNo, { category, title, content });
       } else {
-        const result = await communityApi.register({ title, content });
+        const result = await communityApi.register({ category, title, content });
         targetPostNo = result.postNo;
       }
 
@@ -79,57 +99,103 @@ const CommunityFormComponent = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <h2 className="text-xl font-bold">{isEdit ? "글 수정" : "글쓰기"}</h2>
+    <form onSubmit={handleSubmit} className="recall-form">
+      <h2 className="page-title" style={{ margin: 0 }}>
+        {isEdit ? "글 수정" : "글쓰기"}
+      </h2>
 
-      <p>제목</p>
-      <input value={title} onChange={(e) => setTitle(e.target.value)} required />
+      <div className="field">
+        <label>말머리</label>
+        <div className="seg">
+          {COMMUNITY_CATEGORIES.map((c) => (
+            <button
+              type="button"
+              key={c}
+              className={category === c ? "is-active" : ""}
+              onClick={() => setCategory(c)}
+            >
+              {c}
+            </button>
+          ))}
+        </div>
+      </div>
 
-      <p>내용</p>
-      <textarea
-        value={content}
-        onChange={(e) => setContent(e.target.value)}
-        rows={10}
-        required
-      />
+      <div className="field">
+        <label>제목</label>
+        <input value={title} onChange={(e) => setTitle(e.target.value)} required />
+      </div>
+
+      <div className="field">
+        <label>내용</label>
+        <textarea
+          className="bulk-input"
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
+          rows={10}
+          required
+        />
+      </div>
 
       {existingImages.length > 0 && (
-        <>
-          <p>기존 첨부 이미지/영상</p>
-          <div className="flex gap-2 flex-wrap mb-2">
+        <div className="field">
+          <label>기존 첨부 이미지/영상</label>
+          <div className="community-media">
             {existingImages.map((img) => (
-              <div key={img.fileName} className="relative">
+              <div key={img.fileName} className="community-media-item">
                 {img.video ? (
                   <video
                     src={communityApi.getFileUrl(img.fileName)}
                     controls
-                    className="h-24"
+                    style={{ maxHeight: 120 }}
                   />
                 ) : (
                   <img
                     src={communityApi.getFileUrl(img.fileName)}
-                    className="h-24"
+                    style={{ maxHeight: 120 }}
                   />
                 )}
                 <button
                   type="button"
                   onClick={() => handleRemoveExistingImage(img.fileName)}
-                  className="absolute top-0 right-0 bg-black/60 text-white px-1 text-xs"
+                  className="community-media-remove"
                 >
                   삭제
                 </button>
               </div>
             ))}
           </div>
-        </>
+        </div>
       )}
 
-      <p>이미지/영상 첨부</p>
-      <input type="file" accept="image/*,video/*" multiple onChange={handleFileChange} />
+      <div className="photo-upload">
+        <p>이미지/영상 첨부</p>
+        <input type="file" accept="image/*,video/*" multiple onChange={handleFileChange} />
 
-      <div className="mt-3">
-        <button type="submit">저장</button>
+        {previews.length > 0 && (
+          <div className="community-media" style={{ marginTop: 12 }}>
+            {previews.map((preview, index) => (
+              <div key={preview.url} className="community-media-item">
+                {preview.video ? (
+                  <video src={preview.url} controls style={{ maxHeight: 120 }} />
+                ) : (
+                  <img src={preview.url} style={{ maxHeight: 120 }} />
+                )}
+                <button
+                  type="button"
+                  onClick={() => handleRemoveNewFile(index)}
+                  className="community-media-remove"
+                >
+                  삭제
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
+
+      <button type="submit" className="submit-btn">
+        저장
+      </button>
     </form>
   );
 };

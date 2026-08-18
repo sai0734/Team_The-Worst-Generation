@@ -1,5 +1,7 @@
 package com.backend.babysitter.service;
 
+import java.math.BigDecimal;
+import java.util.Comparator;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -28,6 +30,9 @@ import lombok.extern.log4j.Log4j2;
 @RequiredArgsConstructor
 public class BabysitterJobPostServiceImpl implements BabysitterJobPostService {
 
+    // 하버사인 공식에서 각도 비율을 실제 km 거리로 환산할 때 곱하는 지구 반지름
+    private static final int EARTH_RADIUS_KM = 6371;
+
     private final BabysitterJobPostMapper babysitterJobPostMapper;
 
     private final BabysitterJobApplicationMapper babysitterJobApplicationMapper;
@@ -41,6 +46,8 @@ public class BabysitterJobPostServiceImpl implements BabysitterJobPostService {
             .parentEmail(jobPostDTO.getParentEmail())
             .title(jobPostDTO.getTitle())
             .region(jobPostDTO.getRegion())
+            .latitude(jobPostDTO.getLatitude() != null ? BigDecimal.valueOf(jobPostDTO.getLatitude()) : null)
+            .longitude(jobPostDTO.getLongitude() != null ? BigDecimal.valueOf(jobPostDTO.getLongitude()) : null)
             .desiredDate(jobPostDTO.getDesiredDate())
             .timeSlot(jobPostDTO.getTimeSlot())
             .hourlyRate(jobPostDTO.getHourlyRate())
@@ -78,6 +85,41 @@ public class BabysitterJobPostServiceImpl implements BabysitterJobPostService {
             .totalCount(totalCount)
             .pageRequestDTO(searchDTO)
             .build();
+    }
+
+    @Override
+    public List<BabysitterJobPostDTO> getNearby(double lat, double lng, double radiusKm) {
+
+        List<BabysitterJobPost> candidates = babysitterJobPostMapper.selectNearbyCandidates();
+
+        return candidates.stream()
+            .map(jobPost -> {
+                double distanceKm = haversineKm(
+                    lat, lng,
+                    jobPost.getLatitude().doubleValue(),
+                    jobPost.getLongitude().doubleValue()
+                );
+                BabysitterJobPostDTO dto = toDTO(jobPost);
+                dto.setDistanceKm(distanceKm);
+                return dto;
+            })
+            .filter(dto -> dto.getDistanceKm() <= radiusKm)
+            .sorted(Comparator.comparingDouble(BabysitterJobPostDTO::getDistanceKm))
+            .collect(Collectors.toList());
+    }
+
+    private double haversineKm(double lat1, double lon1, double lat2, double lon2) {
+
+        double dLat = Math.toRadians(lat2 - lat1);
+        double dLon = Math.toRadians(lon2 - lon1);
+
+        double a = Math.sin(dLat / 2) * Math.sin(dLat / 2)
+            + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2))
+            * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+
+        double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+        return EARTH_RADIUS_KM * c;
     }
 
     @Override
@@ -125,6 +167,8 @@ public class BabysitterJobPostServiceImpl implements BabysitterJobPostService {
             .parentNickname(parentNickname)
             .title(jobPost.getTitle())
             .region(jobPost.getRegion())
+            .latitude(jobPost.getLatitude() != null ? jobPost.getLatitude().doubleValue() : null)
+            .longitude(jobPost.getLongitude() != null ? jobPost.getLongitude().doubleValue() : null)
             .desiredDate(jobPost.getDesiredDate())
             .timeSlot(jobPost.getTimeSlot())
             .hourlyRate(jobPost.getHourlyRate())
