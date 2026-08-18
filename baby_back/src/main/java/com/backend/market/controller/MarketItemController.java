@@ -118,6 +118,21 @@ public class MarketItemController {
         return Map.of("result", "success");
     }
 
+    @PreAuthorize("hasAnyRole('ROLE_USER')")
+    @GetMapping("/mine")
+    public List<MarketItemDTO> mine(Principal principal) {
+        return marketItemService.getMine(principal.getName());
+    }
+
+    @PreAuthorize("hasAnyRole('ROLE_USER')")
+    @PutMapping("/{itemNo}/complete")
+    public Map<String, String> complete(@PathVariable Long itemNo, Principal principal) {
+
+        marketItemService.markAsCompleted(itemNo, principal.getName());
+
+        return Map.of("result", "success");
+    }
+
     @GetMapping("/files/{fileName}")
     public ResponseEntity<Resource> viewFile(@PathVariable String fileName) {
         return fileUtil.getFile(fileName);

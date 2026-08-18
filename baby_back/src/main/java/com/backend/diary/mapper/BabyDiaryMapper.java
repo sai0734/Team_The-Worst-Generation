@@ -10,9 +10,9 @@ import java.util.List;
 public interface BabyDiaryMapper {
 
     List<BabyDiary> selectList(@Param("babyNo") Long babyNo, @Param("email") String email,
-                               @Param("skip") int skip, @Param("size") int size);
+                               @Param("skip") int skip, @Param("size") int size, @Param("keyword") String keyword);
 
-    long selectListCount(@Param("babyNo") Long babyNo, @Param("email") String email);
+    long selectListCount(@Param("babyNo") Long babyNo, @Param("email") String email, @Param("keyword") String keyword);
 
     BabyDiary selectByDiaryNo(@Param("diaryNo") Long diaryNo, @Param("email") String email);
 

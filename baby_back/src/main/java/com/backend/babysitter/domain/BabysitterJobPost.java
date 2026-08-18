@@ -1,5 +1,6 @@
 package com.backend.babysitter.domain;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -19,6 +20,10 @@ public class BabysitterJobPost {
     private String title;
 
     private String region;
+
+    private BigDecimal latitude;
+
+    private BigDecimal longitude;
 
     private LocalDate desiredDate;
 

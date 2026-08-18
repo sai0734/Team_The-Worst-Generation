@@ -1,77 +1,56 @@
-import { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
-import type { RootState } from "../../store";
+import { useState } from "react";
+import { useDispatch } from "react-redux";
 import { setCurrentBaby } from "../../slices/babySlice";
-import * as babyInfoApi from "../../api/babyInfoApi";
-import { BabyInfo } from "../../api/babyInfoApi";
-import BasicLayout from "../../layouts/BasicLayout";
+import useCustomBabyGuard from "../../hooks/useCustomBabyGuard";
 import DiaryWriteComponent from "../../components/diary/DiaryWriteComponent";
 import DiaryListComponent from "../../components/diary/DiaryListComponent";
 
 const DiaryPage = () => {
   const dispatch = useDispatch();
-  const navigate = useNavigate();
-  const currentBaby = useSelector(
-    (state: RootState) => state.babySlice.currentBaby,
-  );
-  const [babyList, setBabyList] = useState<BabyInfo[]>([]);
+  const { currentBaby, babyList } = useCustomBabyGuard();
   const [reloadTrigger, setReloadTrigger] = useState(0);
-
-  useEffect(() => {
-    babyInfoApi.getList().then((list: BabyInfo[]) => {
-      setBabyList(list);
-
-      if (currentBaby) return;
-
-      if (list.length === 0) {
-        alert("등록된 아이가 없습니다. 먼저 아이를 등록해주세요.");
-        navigate("/babyInfo/input");
-        return;
-      }
-
-      dispatch(setCurrentBaby(list[0]));
-    });
-  }, []);
 
   const handleRegistered = () => {
     setReloadTrigger((prev) => prev + 1);
   };
 
   if (!currentBaby) {
-    return (
-      <BasicLayout>
-        <div>불러오는 중...</div>
-      </BasicLayout>
-    );
+    return <div>불러오는 중...</div>;
   }
 
   return (
-    <BasicLayout>
-      <div>
-        <span>{currentBaby.babyName}의 육아일기</span>
-      </div>
-      {babyList.length > 1 && (
+    <div className="max-w-[900px] mx-auto flex flex-col gap-6 py-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          {babyList.map((baby) => (
-            <button
-              key={baby.babyNo}
-              type="button"
-              onClick={() => dispatch(setCurrentBaby(baby))}
-              className={
-                baby.babyNo === currentBaby.babyNo
-                  ? "bg-black text-white"
-                  : "bg-white text-black"
-              }
-            >
-              {baby.babyName}
-            </button>
-          ))}
+          <p className="text-[11px] font-extrabold tracking-[3px] text-[#5AB2FF]">
+            DIARY
+          </p>
+          <h1 className="mt-1 text-[24px] font-bold text-[#2A2926]">
+            {currentBaby.babyName}의 육아일기
+          </h1>
         </div>
-      )}
+        {babyList.length > 1 && (
+          <div className="flex flex-wrap gap-2">
+            {babyList.map((baby) => (
+              <button
+                key={baby.babyNo}
+                type="button"
+                onClick={() => dispatch(setCurrentBaby(baby))}
+                className={`rounded-full px-4 py-2 text-sm font-bold transition-colors ${
+                  baby.babyNo === currentBaby.babyNo
+                    ? "bg-[#5AB2FF] text-white"
+                    : "border border-[rgba(42,41,38,0.15)] bg-white text-[#2A2926]"
+                }`}
+              >
+                {baby.babyName}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
       <DiaryWriteComponent onRegistered={handleRegistered} />
       <DiaryListComponent reloadTrigger={reloadTrigger} />
-    </BasicLayout>
+    </div>
   );
 };
 

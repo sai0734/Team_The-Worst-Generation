@@ -2,7 +2,9 @@ import { FormEvent, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import * as babysitterApi from "../../api/babysitterApi";
 import {
+  JOB_APPLICATION_STATUS_BADGE_CLASS,
   JOB_APPLICATION_STATUS_LABELS,
+  JOB_STATUS_BADGE_CLASS,
   JOB_STATUS_LABELS,
   TIME_SLOT_LABELS,
 } from "../../api/babysitterApi";
@@ -108,67 +110,89 @@ const BabysitterJobDetailComponent = () => {
 
   return (
     <div>
-      <h2 className="text-xl font-bold">{job.title}</h2>
-      <div className="text-sm text-gray-500">
-        {job.parentNickname ?? "익명"} · {JOB_STATUS_LABELS[job.status]}
-      </div>
+      <span className={`badge ${JOB_STATUS_BADGE_CLASS[job.status]}`} style={{ marginBottom: 6, display: "inline-flex" }}>
+        {JOB_STATUS_LABELS[job.status]}
+      </span>
+      <h2 className="community-detail-title">{job.title}</h2>
+      <div className="community-detail-meta">{job.parentNickname ?? "익명"}</div>
 
-      <div className="my-2">
+      <div className="sitter-detail-meta" style={{ margin: "0 0 14px" }}>
         {job.desiredDate} ({TIME_SLOT_LABELS[job.timeSlot]}) · {job.region ?? "지역 미입력"}
+        <br />
+        {job.hourlyRate ? `시급 ${job.hourlyRate.toLocaleString()}원` : "시급 협의"}
       </div>
-      <div>{job.hourlyRate ? `시급 ${job.hourlyRate.toLocaleString()}원` : "시급 협의"}</div>
-      {job.message && <p className="whitespace-pre-wrap my-2">{job.message}</p>}
+      {job.message && <p className="sitter-detail-intro">{job.message}</p>}
 
       {isMine && job.status === "OPEN" && (
-        <button onClick={handleCancelJob} className="my-2">
+        <button type="button" className="btn ghost" style={{ marginBottom: 8 }} onClick={handleCancelJob}>
           구인글 취소
         </button>
       )}
 
       {isLogin && !isMine && job.status === "OPEN" && (
-        <div className="my-3">
+        <div className="card" style={{ margin: "14px 0" }}>
           {myApplication ? (
-            <div>
-              내 지원 상태: {JOB_APPLICATION_STATUS_LABELS[myApplication.status]}
+            <div className="meta">
+              내 지원 상태:{" "}
+              <span className={`badge ${JOB_APPLICATION_STATUS_BADGE_CLASS[myApplication.status]}`}>
+                {JOB_APPLICATION_STATUS_LABELS[myApplication.status]}
+              </span>
             </div>
           ) : (
-            <form onSubmit={handleApply} className="flex flex-col gap-2 max-w-xs">
-              <textarea
-                placeholder="지원 메시지 (선택)"
-                value={applyMessage}
-                onChange={(e) => setApplyMessage(e.target.value)}
-              />
-              <button type="submit">지원하기</button>
+            <form onSubmit={handleApply} className="recall-form">
+              <div className="field">
+                <label>지원 메시지 (선택)</label>
+                <textarea
+                  className="bulk-input"
+                  style={{ minHeight: 80 }}
+                  value={applyMessage}
+                  onChange={(e) => setApplyMessage(e.target.value)}
+                />
+              </div>
+              <button type="submit" className="btn">
+                지원하기
+              </button>
             </form>
           )}
         </div>
       )}
 
       {isMine && (
-        <div className="my-3">
-          <h3 className="font-bold">지원자 {applications.length}명</h3>
-          <ul>
+        <div className="card" style={{ margin: "14px 0" }}>
+          <h3 style={{ fontSize: 14, fontWeight: 800, margin: "0 0 10px" }}>
+            지원자 {applications.length}명
+          </h3>
+          <div className="sitter-review-list">
             {applications.map((a) => (
-              <li key={a.applicationNo} className="border-b py-2">
-                <div className="font-bold">
-                  {a.sitterName ?? "탈퇴한 시터"} · {JOB_APPLICATION_STATUS_LABELS[a.status]}
+              <div key={a.applicationNo} className="sitter-review">
+                <div className="head">
+                  <span>{a.sitterName ?? "탈퇴한 시터"}</span>
+                  <span className={`badge ${JOB_APPLICATION_STATUS_BADGE_CLASS[a.status]}`}>
+                    {JOB_APPLICATION_STATUS_LABELS[a.status]}
+                  </span>
                 </div>
-                {a.message && <div>{a.message}</div>}
+                {a.message && <div className="content">{a.message}</div>}
                 {a.status === "PENDING" && job.status === "OPEN" && (
-                  <div className="flex gap-2 mt-1">
-                    <button onClick={() => handleAccept(a.applicationNo)}>수락</button>
-                    <button onClick={() => handleReject(a.applicationNo)}>거절</button>
+                  <div className="sitter-actions" style={{ margin: "6px 0 0" }}>
+                    <button type="button" className="btn" onClick={() => handleAccept(a.applicationNo)}>
+                      수락
+                    </button>
+                    <button type="button" className="btn ghost" onClick={() => handleReject(a.applicationNo)}>
+                      거절
+                    </button>
                   </div>
                 )}
-              </li>
+              </div>
             ))}
-          </ul>
+          </div>
         </div>
       )}
 
-      <button onClick={() => navigate("/community/babysitter/jobs")}>
-        구인글 목록으로
-      </button>
+      <div className="sitter-back-link">
+        <button type="button" className="btn ghost" onClick={() => navigate("/community/babysitter/jobs")}>
+          구인글 목록으로
+        </button>
+      </div>
     </div>
   );
 };

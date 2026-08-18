@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.backend.babysitter.mapper.BabysitterChatMessageMapper">
+
+    <select id="selectListByRoom" resultType="com.backend.babysitter.domain.BabysitterChatMessage">
+        SELECT msg_no, room_no, sender_email, content, reg_time
+        FROM tbl_babysitter_chat_message
+        WHERE room_no = #{roomNo}
+        ORDER BY reg_time ASC
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="msgNo" keyColumn="msg_no">
+        INSERT INTO tbl_babysitter_chat_message (room_no, sender_email, content)
+        VALUES (#{roomNo}, #{senderEmail}, #{content})
+    </insert>
+
+</mapper>

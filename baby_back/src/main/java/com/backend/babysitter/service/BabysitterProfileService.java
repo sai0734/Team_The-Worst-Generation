@@ -18,6 +18,8 @@ public interface BabysitterProfileService {
 
     PageResponseDTO<BabysitterProfileDTO> getList(BabysitterSearchDTO searchDTO);
 
+    List<BabysitterProfileDTO> getNearby(double lat, double lng, double radiusKm);
+
     List<BabysitterProfileDTO> getMyPicks(String email);
 
     String changeProfileImage(String email, MultipartFile file);

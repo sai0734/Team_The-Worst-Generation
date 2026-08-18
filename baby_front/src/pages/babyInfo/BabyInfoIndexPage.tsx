@@ -1,8 +1,14 @@
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import BasicLayout from "../../layouts/BasicLayout";
+import SideMenuLayout from "../../layouts/SideMenuLayout";
 import { useCallback, useEffect } from "react";
 import * as babyInfoApi from "../../api/babyInfoApi";
 import { BabyInfo } from "../../api/babyInfoApi";
+
+const BABY_INFO_SIDE_ITEMS = [
+  { label: "아이등록", to: "/babyInfo/input" },
+  { label: "대시보드", to: "/babyInfo" },
+];
 
 const BabyInfoIndexPage = () => {
   const navigate = useNavigate();
@@ -31,7 +37,9 @@ const BabyInfoIndexPage = () => {
 
   return (
     <BasicLayout>
-      <Outlet />
+      <SideMenuLayout items={BABY_INFO_SIDE_ITEMS}>
+        <Outlet />
+      </SideMenuLayout>
     </BasicLayout>
   );
 };

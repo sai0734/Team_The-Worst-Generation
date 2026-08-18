@@ -8,6 +8,8 @@ public interface MyProductService {
 
     MyProductDTO register(String memberEmail, MyProductDTO dto);
 
+    MyProductDTO update(Long productNo, String memberEmail, MyProductDTO dto);
+
     List<MyProductDTO> listMine(String memberEmail);
 
     void remove(Long productNo, String memberEmail);

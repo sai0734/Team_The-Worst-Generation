@@ -21,4 +21,8 @@ public interface MemberRefreshTokenMapper {
 
     // 이미 사용된 refreshToken이 다시 들어오면 같은 세션 계열 전체 폐기
     void revokeAllBySessionId(@Param("sessionId") String sessionId);
+
+    int updateSelectedProfileBySessionId(
+            @Param("sessionId") String sessionId,
+            @Param("selectedProfileId") Long selectedProfileId);
 }

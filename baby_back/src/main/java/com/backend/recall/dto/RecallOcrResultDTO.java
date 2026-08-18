@@ -20,4 +20,6 @@ public class RecallOcrResultDTO {
     private String certNum;
 
     private String rawText;
+
+    private String imageName;
 }

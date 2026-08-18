@@ -40,6 +40,16 @@ public class BabysitterJobPostController {
         return babysitterJobPostService.getList(searchDTO);
     }
 
+    // 내 위치(lat, lng) 기준 반경 radiusKm(기본 5km) 안의 모집중인 구인글, 가까운 순
+    @GetMapping("/nearby")
+    public List<BabysitterJobPostDTO> nearby(
+        @RequestParam double lat,
+        @RequestParam double lng,
+        @RequestParam(defaultValue = "5") double radiusKm
+    ) {
+        return babysitterJobPostService.getNearby(lat, lng, radiusKm);
+    }
+
     @GetMapping("/mine")
     public List<BabysitterJobPostDTO> mine(Principal principal) {
 

@@ -1,8 +1,10 @@
 package com.backend.babysitter.service;
 
+import com.backend.babysitter.domain.BabysitterParentLocation;
+
 public interface BabysitterParentLocationService {
 
-    String getRegion(String email);
+    BabysitterParentLocation get(String email);
 
-    void saveRegion(String email, String region);
+    void save(String email, String region, Double latitude, Double longitude);
 }

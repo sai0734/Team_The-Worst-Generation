@@ -3,6 +3,9 @@ import type { RouteObject } from "react-router-dom";
 
 const Loading = <div>Loading....</div>;
 const List = lazy(() => import("../pages/community/CommunityListPage"));
+const BabysitterLayout = lazy(
+  () => import("../pages/babysitter/BabysitterLayoutPage"),
+);
 const Form = lazy(() => import("../pages/community/CommunityFormPage"));
 const Detail = lazy(() => import("../pages/community/CommunityDetailPage"));
 
@@ -38,6 +41,12 @@ const BabysitterMyJobPosts = lazy(
 );
 const BabysitterMyApplications = lazy(
   () => import("../pages/babysitter/BabysitterMyApplicationsPage"),
+);
+const BabysitterChatRoomList = lazy(
+  () => import("../pages/babysitter/BabysitterChatRoomListPage"),
+);
+const BabysitterChatRoom = lazy(
+  () => import("../pages/babysitter/BabysitterChatRoomPage"),
 );
 
 const communityRouter = (): RouteObject[] => {
@@ -76,6 +85,11 @@ const communityRouter = (): RouteObject[] => {
     },
     {
       path: "babysitter",
+      element: (
+        <Suspense fallback={Loading}>
+          <BabysitterLayout />
+        </Suspense>
+      ),
       children: [
         {
           index: true,
@@ -161,6 +175,22 @@ const communityRouter = (): RouteObject[] => {
               ),
             },
           ],
+        },
+        {
+          path: "chat",
+          element: (
+            <Suspense fallback={Loading}>
+              <BabysitterChatRoomList />
+            </Suspense>
+          ),
+        },
+        {
+          path: "chat/:roomNo",
+          element: (
+            <Suspense fallback={Loading}>
+              <BabysitterChatRoom />
+            </Suspense>
+          ),
         },
         {
           path: ":email",

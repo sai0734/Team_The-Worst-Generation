@@ -15,6 +15,8 @@ public class AssistRecommendRequest {
     @Data
     public static class ChildContext {
         private Integer babyMonths;
+        private String babyName;
+        private String gender;
         private String regionSido;
         private String regionSigungu;
     }

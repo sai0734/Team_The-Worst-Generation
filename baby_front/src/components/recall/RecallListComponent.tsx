@@ -1,13 +1,117 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import * as recallApi from "../../api/recallApi";
-import type { MyProduct } from "../../api/recallApi";
+import type {
+  CertificationDetail,
+  DomesticRecallDetail,
+  ForeignRecallDetail,
+  MyProduct,
+} from "../../api/recallApi";
 import useCustomLogin from "../../hooks/useCustomLogin";
 
 const RECALL_TYPE_LABELS: Record<string, string> = {
   CERT: "인증취소",
   DOMESTIC: "국내 리콜",
   FOREIGN: "해외 리콜",
+};
+
+type DetailState =
+  | { type: "CERT"; data: CertificationDetail }
+  | { type: "DOMESTIC"; data: DomesticRecallDetail }
+  | { type: "FOREIGN"; data: ForeignRecallDetail };
+
+const RecallDetailModal = ({
+  product,
+  detail,
+  loading,
+  onClose,
+}: {
+  product: MyProduct;
+  detail: DetailState | null;
+  loading: boolean;
+  onClose: () => void;
+}) => {
+  return (
+    <div className="modal-backdrop" onClick={onClose}>
+      <div className="card modal-content" onClick={(e) => e.stopPropagation()}>
+        <div className="recall-header">
+          <h3>{product.productName}</h3>
+          <button type="button" className="icon-btn-ghost" onClick={onClose} aria-label="닫기">
+            ✕
+          </button>
+        </div>
+
+        {loading && <p>불러오는 중...</p>}
+
+        {!loading && !detail && <p>상세정보를 불러오지 못했습니다.</p>}
+
+        {!loading && detail?.type === "CERT" && (
+          <dl className="detail-list">
+            <dt>인증기관</dt>
+            <dd>{detail.data.certOrganName || "-"}</dd>
+            <dt>인증상태</dt>
+            <dd>{detail.data.certState || "-"}</dd>
+            <dt>변경사유</dt>
+            <dd>{detail.data.certChgReason || "-"}</dd>
+            <dt>제조자</dt>
+            <dd>{detail.data.makerName || "-"}</dd>
+            <dt>수입자</dt>
+            <dd>{detail.data.importerName || "-"}</dd>
+            <dt>비고</dt>
+            <dd>{detail.data.remark || "-"}</dd>
+          </dl>
+        )}
+
+        {!loading && detail?.type === "DOMESTIC" && (
+          <dl className="detail-list">
+            <dt>리콜 사유</dt>
+            <dd>{detail.data.harmDscr || "-"}</dd>
+            <dt>사고 사례</dt>
+            <dd>{detail.data.accidentCaseDscr || "-"}</dd>
+            <dt>조치 사항</dt>
+            <dd>{detail.data.publishActionDscr || "-"}</dd>
+            <dt>공표일</dt>
+            <dd>{detail.data.publishDate || "-"}</dd>
+            <dt>제조/판매사</dt>
+            <dd>{detail.data.recallCmpnyName || "-"}</dd>
+            <dt>문의처</dt>
+            <dd>{detail.data.recallInqryTel || "-"}</dd>
+          </dl>
+        )}
+
+        {!loading && detail?.type === "FOREIGN" && (
+          <dl className="detail-list">
+            <dt>위반 사유</dt>
+            <dd>{detail.data.violateDscr || "-"}</dd>
+            <dt>사고 사례</dt>
+            <dd>{detail.data.accidentCaseDscr || "-"}</dd>
+            <dt>조치 사항</dt>
+            <dd>{detail.data.publishActionDscr || "-"}</dd>
+            <dt>제품 설명</dt>
+            <dd>{detail.data.recallProductDscr || "-"}</dd>
+            <dt>공표국가/기관</dt>
+            <dd>
+              {[detail.data.recallPblshCntryName, detail.data.recallPblshOrgnName]
+                .filter(Boolean)
+                .join(" · ") || "-"}
+            </dd>
+            <dt>공표일</dt>
+            <dd>{detail.data.publishDate || "-"}</dd>
+            {detail.data.recallUrl && (
+              <>
+                <dt>원문 링크</dt>
+                <dd>
+                  <a href={detail.data.recallUrl} target="_blank" rel="noreferrer">
+                    바로가기
+                  </a>
+                </dd>
+              </>
+            )}
+          </dl>
+        )}
+      </div>
+    </div>
+  );
 };
 
 const RecallStatusBadge = ({ product }: { product: MyProduct }) => {
@@ -28,13 +132,27 @@ const RecallListComponent = () => {
   const { exceptionHandle } = useCustomLogin();
 
   const [productList, setProductList] = useState<MyProduct[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const [detailProduct, setDetailProduct] = useState<MyProduct | null>(null);
+  const [detail, setDetail] = useState<DetailState | null>(null);
+  const [detailLoading, setDetailLoading] = useState(false);
 
   const loadList = async () => {
+    setLoading(true);
+    setError(null);
     try {
       const list = await recallApi.getMyProductList();
       setProductList(list);
-    } catch (err) {
-      exceptionHandle(err);
+    } catch (err: any) {
+      console.error(err);
+      if (err?.response) {
+        exceptionHandle(err);
+      }
+      setError("제품 목록을 불러오지 못했습니다.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -56,6 +174,30 @@ const RecallListComponent = () => {
     }
   };
 
+  const handleShowDetail = async (product: MyProduct) => {
+    if (!product.recallType || !product.recallUid) return;
+
+    setDetailProduct(product);
+    setDetail(null);
+    setDetailLoading(true);
+    try {
+      if (product.recallType === "CERT") {
+        const data = await recallApi.getCertificationDetail(product.recallUid);
+        setDetail({ type: "CERT", data });
+      } else if (product.recallType === "DOMESTIC") {
+        const data = await recallApi.getDomesticRecallDetail(product.recallUid);
+        setDetail({ type: "DOMESTIC", data });
+      } else if (product.recallType === "FOREIGN") {
+        const data = await recallApi.getForeignRecallDetail(product.recallUid);
+        if (data) setDetail({ type: "FOREIGN", data });
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setDetailLoading(false);
+    }
+  };
+
   return (
     <section className="recall-page">
       <p className="eyebrow">MY PRODUCTS</p>
@@ -67,7 +209,24 @@ const RecallListComponent = () => {
         </button>
       </div>
 
-      {productList.length === 0 && (
+      {loading && <div className="card recall-empty">불러오는 중...</div>}
+
+      {!loading && error && (
+        <div className="card recall-empty">
+          {error}
+          <br />
+          <button
+            type="button"
+            className="ghost-btn"
+            onClick={loadList}
+            style={{ marginTop: 12 }}
+          >
+            다시 시도
+          </button>
+        </div>
+      )}
+
+      {!loading && !error && productList.length === 0 && (
         <div className="card recall-empty">
           등록된 제품이 없어요.
           <br />
@@ -78,7 +237,15 @@ const RecallListComponent = () => {
       <div className="recall-list">
         {productList.map((product) => (
           <div className="card recall-item" key={product.productNo}>
-            <div>
+            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+              {product.imageName && (
+                <img
+                  src={recallApi.getMyProductThumbnailUrl(product.imageName)}
+                  alt={product.productName}
+                  className="recall-item-thumb"
+                />
+              )}
+              <div>
               <div className="name">{product.productName}</div>
               <div className="meta">
                 {[product.brandName, product.modelName].filter(Boolean).join(" · ") ||
@@ -87,9 +254,27 @@ const RecallListComponent = () => {
               {product.recallMatched && product.recallTitle && (
                 <div className="title">{product.recallTitle}</div>
               )}
+              </div>
             </div>
             <div className="recall-actions">
               <RecallStatusBadge product={product} />
+              {product.recallMatched && (
+                <button
+                  type="button"
+                  className="ghost-btn"
+                  onClick={() => handleShowDetail(product)}
+                >
+                  상세보기
+                </button>
+              )}
+              <button
+                type="button"
+                className="icon-btn-ghost"
+                onClick={() => navigate(`/recall/edit/${product.productNo}`)}
+                aria-label="수정"
+              >
+                ✎
+              </button>
               <button
                 type="button"
                 className="icon-btn-ghost"
@@ -102,6 +287,15 @@ const RecallListComponent = () => {
           </div>
         ))}
       </div>
+
+      {detailProduct && (
+        <RecallDetailModal
+          product={detailProduct}
+          detail={detail}
+          loading={detailLoading}
+          onClose={() => setDetailProduct(null)}
+        />
+      )}
     </section>
   );
 };

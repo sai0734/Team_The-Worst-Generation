@@ -6,6 +6,7 @@ import com.backend.album.mapper.BabyAlbumMapper;
 import com.backend.babyInfo.mapper.BabyInfoMapper;
 import com.backend.global.dto.PageRequestDTO;
 import com.backend.global.dto.PageResponseDTO;
+import com.backend.printorder.mapper.PrintOrderMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.modelmapper.ModelMapper;
@@ -24,6 +25,8 @@ public class BabyAlbumServiceImpl implements BabyAlbumService {
     private final BabyAlbumMapper babyAlbumMapper;
 
     private final BabyInfoMapper babyInfoMapper;
+
+    private final PrintOrderMapper printOrderMapper;
 
     private final ModelMapper modelMapper;
 
@@ -77,6 +80,8 @@ public class BabyAlbumServiceImpl implements BabyAlbumService {
     public void remove(Long albumNo, String email) {
 
         log.info("babyAlbum_Service_remove_실행~~~~~~~~~~~~");
+
+        printOrderMapper.deleteItemsByAlbumNo(albumNo);
 
         babyAlbumMapper.delete(albumNo, email);
 

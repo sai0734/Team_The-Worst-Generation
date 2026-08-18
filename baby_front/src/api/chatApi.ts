@@ -37,7 +37,7 @@ export const getOrCreateRoom = async (itemNo: number): Promise<ChatRoom> => {
 };
 
 export const getMessages = async (roomNo: number): Promise<ChatMessage[]> => {
-  const res = await jwtAxios.get(`${roomPrefix}/${roomNo}/message`);
+  const res = await jwtAxios.get(`${roomPrefix}/${roomNo}/messages`);
   return res.data;
 };
 

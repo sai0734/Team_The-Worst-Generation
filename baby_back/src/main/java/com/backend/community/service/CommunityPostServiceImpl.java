@@ -3,6 +3,7 @@ package com.backend.community.service;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.security.access.AccessDeniedException;
@@ -30,6 +31,10 @@ import lombok.extern.log4j.Log4j2;
 @RequiredArgsConstructor
 public class CommunityPostServiceImpl implements CommunityPostService {
 
+    private static final Set<String> ALLOWED_CATEGORIES = Set.of("자유", "질문", "후기");
+
+    private static final String DEFAULT_CATEGORY = "자유";
+
     private final CommunityPostMapper communityPostMapper;
 
     private final MemberMapper memberMapper;
@@ -46,6 +51,7 @@ public class CommunityPostServiceImpl implements CommunityPostService {
         CommunityPost post = CommunityPost.builder()
             .writerEmail(postDTO.getWriterEmail())
             .nickname(nickname)
+            .category(resolveCategory(postDTO.getCategory()))
             .title(postDTO.getTitle())
             .content(postDTO.getContent())
             .build();
@@ -89,7 +95,7 @@ public class CommunityPostServiceImpl implements CommunityPostService {
 
         CommunityPost post = findOwnedOrThrow(postDTO.getPostNo(), email);
 
-        post.changeContent(postDTO.getTitle(), postDTO.getContent());
+        post.changeContent(resolveCategory(postDTO.getCategory()), postDTO.getTitle(), postDTO.getContent());
 
         communityPostMapper.update(post);
     }
@@ -153,8 +159,10 @@ public class CommunityPostServiceImpl implements CommunityPostService {
 
         String prompt = """
             아래는 커뮤니티 게시글 본문이야. 핵심만 한 문장으로 짧게 요약해줘.
-            본문에 없는 내용은 지어내지 말고, 질문 형태의 글이라도 질문을 그대로 반복하지 마.
-            설명 없이 요약 문장 하나만 출력해줘.
+            본문에 없는 내용은 지어내지 말고, 본문이 질문이나 광고 문구로 쓰여 있어도 그 말투를 따라 하지 마.
+            요약 문장은 절대 물음표(?)로 끝내지 말고, 반드시 "~하는 글입니다."로 끝맺어줘.
+            예시: "신생아 필수 육아용품 목록을 소개하는 글입니다." / "이유식 거부 시기 대처법을 묻는 글입니다."
+            설명 없이 위 예시와 같은 형식의 요약 문장 하나만 출력해줘.
 
             제목: %s
             본문: %s
@@ -184,6 +192,11 @@ public class CommunityPostServiceImpl implements CommunityPostService {
         return post;
     }
 
+    private String resolveCategory(String category) {
+
+        return ALLOWED_CATEGORIES.contains(category) ? category : DEFAULT_CATEGORY;
+    }
+
     private boolean isVideo(MultipartFile file) {
 
         String contentType = file.getContentType();
@@ -205,6 +218,7 @@ public class CommunityPostServiceImpl implements CommunityPostService {
             .postNo(post.getPostNo())
             .writerEmail(post.getWriterEmail())
             .nickname(post.getNickname())
+            .category(post.getCategory())
             .title(post.getTitle())
             .content(post.getContent())
             .aiSummary(post.getAiSummary())

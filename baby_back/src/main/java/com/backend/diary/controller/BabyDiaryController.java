@@ -29,13 +29,14 @@ public class BabyDiaryController {
 
     @PreAuthorize("hasAnyRole('ROLE_USER')")
     @GetMapping("/list")
-    public PageResponseDTO<BabyDiaryDTO> list(@RequestParam("babyNo") Long babyNo, PageRequestDTO pageRequestDTO, Principal principal) {
+    public PageResponseDTO<BabyDiaryDTO> list(@RequestParam("babyNo") Long babyNo, @RequestParam(value = "keyword", required = false) String keyword,
+                                              PageRequestDTO pageRequestDTO, Principal principal) {
 
         log.info("babyDiary_Controller_list_실행~~~~~~~~~~~~");
 
         String email = principal.getName();
 
-        PageResponseDTO<BabyDiaryDTO> babyDiaryDTOPageResponseDTO = babyDiaryService.getList(babyNo, email, pageRequestDTO);
+        PageResponseDTO<BabyDiaryDTO> babyDiaryDTOPageResponseDTO = babyDiaryService.getList(babyNo, email, pageRequestDTO, keyword);
 
         return babyDiaryDTOPageResponseDTO;
 
@@ -111,6 +112,18 @@ public class BabyDiaryController {
         babyDiaryService.remove(diaryNo, email);
 
         return Map.of("diaryNo", diaryNo);
+
+    }
+
+    @PreAuthorize("hasAnyRole('ROLE_USER')")
+    @PostMapping("/generate")
+    public Map<String, String> generate(@RequestParam("file") MultipartFile file) {
+
+        log.info("babyDiary_Controller_generate_실행~~~~~~~~~~~~");
+
+        String content = babyDiaryService.generateDiaryContent(file);
+
+        return Map.of("content", content);
 
     }
 }

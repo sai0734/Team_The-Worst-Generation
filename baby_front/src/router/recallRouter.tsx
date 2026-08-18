@@ -23,6 +23,14 @@ const recallRouter = (): RouteObject[] => {
         </Suspense>
       ),
     },
+    {
+      path: "edit/:productNo",
+      element: (
+        <Suspense fallback={Loading}>
+          <Form />
+        </Suspense>
+      ),
+    },
   ];
 };
 

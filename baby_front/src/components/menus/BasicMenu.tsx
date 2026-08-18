@@ -1,8 +1,8 @@
-import { useState, type MouseEvent } from "react";
+import { useRef, useState } from "react";
 import { useSelector } from "react-redux";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
+import useCurrentProfile from "../../hooks/useCurrentProfile";
 import type { RootState } from "../../store";
-import { triggerWipe } from "../../utils/pageTransition";
 
 interface SubItem {
   label: string;
@@ -18,14 +18,21 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   {
+    code: "home",
+    label: "홈",
+    to: "/main",
+    subItems: [
+      { label: "메인", to: "/main" },
+      { label: "대시보드", to: "/dashboard" },
+    ],
+  },
+  {
     code: "baby",
     label: "응애관리",
     to: "/babyInfo",
     subItems: [
-      { label: "아이등록", to: "/babyInfo/input" },
-      { label: "대시보드", to: "/babyInfo" },
+      { label: "우리아이", to: "/babyInfo" },
       { label: "육아일기", to: "/diary" },
-      { label: "성장앨범", to: "/album" },
     ],
   },
   {
@@ -41,9 +48,8 @@ const NAV_ITEMS: NavItem[] = [
     subItems: [
       { label: "홈", to: "/market" },
       { label: "매물 등록", to: "/market/write" },
-      { label: "내 찜", to: "/market/wish" },
+      { label: "내 매물", to: "/market/my-items" },
       { label: "채팅목록", to: "/market/chat" },
-      { label: "마이페이지", to: "/market/mypage" },
     ],
   },
   {
@@ -74,22 +80,35 @@ const NAV_ITEMS: NavItem[] = [
 
 const BasicMenu = () => {
   const loginState = useSelector((state: RootState) => state.loginSlice);
+  const currentProfile = useCurrentProfile();
   const [hovered, setHovered] = useState<string | null>(null);
-  const navigate = useNavigate();
+  const [subnavLeft, setSubnavLeft] = useState<number | undefined>(undefined);
+  const topWrapRef = useRef<HTMLElement | null>(null);
+  const tabRefs = useRef<Record<string, HTMLAnchorElement | null>>({});
 
   const activeItem = NAV_ITEMS.find((item) => item.code === hovered);
+  const closeSubnav = () => setHovered(null);
 
-  const wipeTo = (to: string) => (e: MouseEvent) => {
-    e.preventDefault();
-    setHovered(null);
-    triggerWipe(() => navigate(to));
+  const handleTabEnter = (code: string) => {
+    setHovered(code);
+    const tabEl = tabRefs.current[code];
+    const wrapEl = topWrapRef.current;
+    if (tabEl && wrapEl) {
+      const tabRect = tabEl.getBoundingClientRect();
+      const wrapRect = wrapEl.getBoundingClientRect();
+      setSubnavLeft(tabRect.left - wrapRect.left);
+    }
   };
 
   return (
     <>
-      <header className="top-wrap" onMouseLeave={() => setHovered(null)}>
+      <header
+        className="top-wrap"
+        ref={topWrapRef}
+        onMouseLeave={() => setHovered(null)}
+      >
         <div className="top">
-          <Link className="logo" to="/" onClick={wipeTo("/")}>
+          <Link className="logo" to="/main" onClick={closeSubnav}>
             <b>아이봄</b>
           </Link>
 
@@ -99,8 +118,11 @@ const BasicMenu = () => {
                 key={item.code}
                 to={item.to}
                 className="nav-tab"
-                onMouseEnter={() => setHovered(item.code)}
-                onClick={wipeTo(item.to)}
+                ref={(el) => {
+                  tabRefs.current[item.code] = el;
+                }}
+                onMouseEnter={() => handleTabEnter(item.code)}
+                onClick={closeSubnav}
               >
                 {item.label}
               </Link>
@@ -109,21 +131,33 @@ const BasicMenu = () => {
 
           <div className="top-right">
             <div className="account">
-              <Link to="/mypage">마이페이지</Link>
               {loginState.email ? (
-                <Link to="/member/logout">로그아웃</Link>
+                <>
+                  <Link className="current-profile-link" to="/member/profiles" aria-label="현재 프로필 변경">
+                    <span className="current-profile-dot" aria-hidden="true" />
+                    <span className="current-profile-copy">
+                      <small>현재 프로필</small>
+                      <strong>{currentProfile?.profileName ?? "프로필 선택"}</strong>
+                    </span>
+                  </Link>
+                  <Link className="account-link" to="/mypage">마이페이지</Link>
+                  <Link className="account-primary" to="/member/logout">로그아웃</Link>
+                </>
               ) : (
-                <Link to="/member/login">로그인</Link>
+                <Link className="account-primary" to="/member/login">로그인</Link>
               )}
             </div>
           </div>
         </div>
 
-        <div className={`subnav${activeItem ? " open" : ""}`}>
+        <div
+          className={`subnav${activeItem ? " open" : ""}`}
+          style={{ paddingLeft: subnavLeft }}
+        >
           {activeItem?.subItems.map((sub, idx) => (
             <span className="subnav-item" key={sub.to}>
               {idx > 0 && <i className="subnav-divider" />}
-              <Link to={sub.to} onClick={wipeTo(sub.to)}>
+              <Link to={sub.to} onClick={closeSubnav}>
                 {sub.label}
               </Link>
             </span>
