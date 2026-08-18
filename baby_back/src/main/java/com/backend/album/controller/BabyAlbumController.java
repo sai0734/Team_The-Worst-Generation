@@ -1,10 +1,14 @@
 package com.backend.album.controller;
 
+import com.backend.album.dto.AlbumPhotoMetaDTO;
 import com.backend.album.dto.BabyAlbumDTO;
 import com.backend.album.service.BabyAlbumService;
 import com.backend.global.dto.PageRequestDTO;
 import com.backend.global.dto.PageResponseDTO;
 import com.backend.global.util.CustomFileUtil;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.core.io.Resource;
@@ -14,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.security.Principal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -26,6 +31,8 @@ public class BabyAlbumController {
     private final BabyAlbumService babyAlbumService;
 
     private final CustomFileUtil customFileUtil;
+
+    private final ObjectMapper objectMapper;
 
     @PreAuthorize("hasAnyRole('ROLE_USER')")
     @GetMapping("/list")
@@ -44,7 +51,11 @@ public class BabyAlbumController {
 
     @PreAuthorize("hasAnyRole('ROLE_USER')")
     @PostMapping("/")
-    public Map<String, Long> register(BabyAlbumDTO babyAlbumDTO, Principal principal) {
+    public Map<String, Object> register(
+            BabyAlbumDTO babyAlbumDTO,
+            @RequestParam(value = "metaJson", required = false) String metaJson,
+            Principal principal
+    ) {
 
         log.info("babyAlbum_Controller_register_실행~~~~~~~~~~~~");
 
@@ -54,13 +65,32 @@ public class BabyAlbumController {
 
         List<String> uploadNames = customFileUtil.saveFiles(files);
 
-        if (uploadNames != null && !uploadNames.isEmpty()) {
-            babyAlbumDTO.setPhotoFileName(uploadNames.get(0));
+        List<AlbumPhotoMetaDTO> metaList;
+        try {
+            metaList = metaJson != null
+                    ? objectMapper.readValue(metaJson, new TypeReference<List<AlbumPhotoMetaDTO>>() {})
+                    : List.of();
+        } catch (JsonProcessingException e) {
+            throw new IllegalArgumentException("사진 정보 형식이 올바르지 않습니다.");
         }
 
-        Long albumNo = babyAlbumService.register(babyAlbumDTO, email);
+        List<Long> albumNoList = new ArrayList<>();
 
-        return Map.of("albumNo", albumNo);
+        for (int i = 0; i < uploadNames.size(); i++) {
+            babyAlbumDTO.setPhotoFileName(uploadNames.get(i));
+
+            if (i < metaList.size()) {
+                AlbumPhotoMetaDTO meta = metaList.get(i);
+                babyAlbumDTO.setTakenDate(meta.getTakenDate());
+                babyAlbumDTO.setLatitude(meta.getLatitude());
+                babyAlbumDTO.setLongitude(meta.getLongitude());
+            }
+
+            Long albumNo = babyAlbumService.register(babyAlbumDTO, email);
+            albumNoList.add(albumNo);
+        }
+
+        return Map.of("albumNoList", albumNoList);
 
     }
 

@@ -9,6 +9,9 @@
         FROM tbl_baby_diary bd
         JOIN tbl_baby_info bi ON bd.baby_no = bi.baby_no
         WHERE bd.baby_no = #{babyNo} AND bi.email = #{email}
+        <if test="keyword != null and keyword != ''">
+            AND bd.content LIKE CONCAT('%', #{keyword}, '%')
+        </if>
         ORDER BY bd.diary_date DESC, bd.diary_no DESC
         LIMIT #{size} OFFSET #{skip}
     </select>
@@ -17,6 +20,9 @@
         SELECT COUNT(*)
         FROM tbl_baby_diary bd
         JOIN tbl_baby_info bi ON bd.baby_no = bi.baby_no
+        <if test="keyword != null and keyword != ''">
+            AND bd.content LIKE CONCAT('%', #{keyword}, '%')
+        </if>
         WHERE bd.baby_no = #{babyNo} AND bi.email = #{email}
     </select>
 

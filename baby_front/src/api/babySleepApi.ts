@@ -38,3 +38,11 @@ export const remove = async (sleepNo: number | string) => {
 
   return res.data;
 };
+
+export const getAdvice = async (
+  babyNo: number | string,
+): Promise<{ advice: string }> => {
+  const res = await jwtAxios.get(`${host}/${babyNo}/advice`);
+
+  return res.data;
+};

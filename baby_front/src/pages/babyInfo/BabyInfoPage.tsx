@@ -40,41 +40,101 @@ const BabyInfoPage = () => {
     return <div>불러오는 중...</div>;
   }
 
+  const infoGroups = [
+    [
+      { label: "생년월일", value: babyInfo.birthDate },
+      { label: "성별", value: babyInfo.gender },
+      babyInfo.bloodType ? { label: "혈액형", value: `${babyInfo.bloodType}형` } : null,
+    ],
+    [
+      babyInfo.birthWeekCount != null
+        ? { label: "출생 주수", value: `${babyInfo.birthWeekCount}주` }
+        : null,
+      babyInfo.birthWeight != null
+        ? { label: "출생 시 체중", value: `${babyInfo.birthWeight}kg` }
+        : null,
+      babyInfo.birthHeight != null
+        ? { label: "출생 시 키", value: `${babyInfo.birthHeight}cm` }
+        : null,
+      babyInfo.headCircumference != null
+        ? { label: "머리둘레", value: `${babyInfo.headCircumference}cm` }
+        : null,
+    ],
+  ].map((group) =>
+    group.filter(
+      (item): item is { label: string; value: string } => item !== null,
+    ),
+  );
+
   return (
-    <div>
-      <div>
-        {babyList.map((baby) => (
-          <button
-            key={baby.babyNo}
-            type="button"
-            onClick={() => navigate(`/babyInfo/dashboard/${baby.babyNo}`)}
-            className={
-              baby.babyNo === babyInfo.babyNo
-                ? "bg-black text-white"
-                : "bg-white text-black"
-            }
-          >
-            {baby.babyName}
-          </button>
-        ))}
-      </div>
-      {babyInfo.profileImageFileName ? (
-        <img
-          className="w-[64px] h-[64px] rounded-full object-cover"
-          src={babyInfoApi.getViewUrl(babyInfo.profileImageFileName)}
-          alt={babyInfo.babyName}
-        />
-      ) : (
-        <div className="w-[64px] h-[64px] rounded-full bg-gray-200 flex items-center justify-center text-xs">
-          응애
+    <div className="max-w-[900px] mx-auto flex flex-col gap-4 py-4">
+      {babyList.length > 1 && (
+        <div className="flex flex-wrap gap-2">
+          {babyList.map((baby) => (
+            <button
+              key={baby.babyNo}
+              type="button"
+              onClick={() => navigate(`/babyInfo/dashboard/${baby.babyNo}`)}
+              className={`rounded-full px-4 py-2 text-sm font-bold transition-colors ${
+                baby.babyNo === babyInfo.babyNo
+                  ? "bg-[#5AB2FF] text-white"
+                  : "border border-[rgba(42,41,38,0.15)] bg-white text-[#2A2926]"
+              }`}
+            >
+              {baby.babyName}
+            </button>
+          ))}
         </div>
       )}
-      <p>
-        {babyInfo.babyName} ({getAgeInMonths(babyInfo.birthDate)}개월)
-      </p>
-      <p>{babyInfo.birthDate}</p>
-      <p>{babyInfo.gender}</p>
-      <p>{babyInfo.bloodType}</p>
+
+      <div className="flex flex-col items-center gap-4 rounded-[24px] border border-[rgba(42,41,38,0.1)] bg-[#FAF6F0] p-4 sm:flex-row sm:p-6">
+        {babyInfo.profileImageFileName ? (
+          <img
+            className="h-[140px] w-[140px] flex-shrink-0 rounded-full object-cover border-4 border-[#CAF4FF]"
+            src={babyInfoApi.getViewUrl(babyInfo.profileImageFileName)}
+            alt={babyInfo.babyName}
+          />
+        ) : (
+          <div className="flex h-[140px] w-[140px] flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[#A0DEFF] to-[#5AB2FF] text-sm font-bold text-white">
+            응애
+          </div>
+        )}
+        <div className="min-w-0 text-center sm:text-left">
+          <p className="text-[11px] font-extrabold tracking-[3px] text-[#5AB2FF]">
+            BABY BOM
+          </p>
+          <h1 className="mt-1 text-[24px] font-bold text-[#2A2926]">
+            {babyInfo.babyName} ({getAgeInMonths(babyInfo.birthDate)}개월)
+          </h1>
+          <div className="mt-3 flex flex-col gap-2">
+            {infoGroups.map((group, groupIdx) =>
+              group.length > 0 ? (
+                <div
+                  key={groupIdx}
+                  className={`flex flex-wrap justify-center gap-2 sm:justify-start ${
+                    groupIdx > 0
+                      ? "border-t border-[rgba(42,41,38,0.1)] pt-2"
+                      : ""
+                  }`}
+                >
+                  {group.map((item) => (
+                    <span
+                      key={item.label}
+                      className="flex items-center gap-1.5 rounded-full border border-[rgba(42,41,38,0.12)] bg-white px-3 py-1.5 text-xs shadow-sm"
+                    >
+                      <span className="text-[#7A756C]">{item.label}</span>
+                      <span className="font-bold text-[#2A2926]">
+                        {item.value}
+                      </span>
+                    </span>
+                  ))}
+                </div>
+              ) : null,
+            )}
+          </div>
+        </div>
+      </div>
+
       {babyInfo.babyNo && <BabyGrowthCardComponent babyNo={babyInfo.babyNo} />}
       {babyInfo.babyNo && (
         <BabyVaccinationCardComponent

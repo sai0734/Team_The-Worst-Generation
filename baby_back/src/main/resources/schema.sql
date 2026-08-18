@@ -208,7 +208,7 @@ FROM (
          UNION ALL SELECT '폴리오', '3차', 6, 10
          UNION ALL SELECT 'MMR', '1차', 12, 11
          UNION ALL SELECT '수두', '1회', 12, 12
-     ) AS t
+                   ) AS t
 WHERE (SELECT COUNT(*) FROM tbl_vaccine_schedule) = 0;
 
 CREATE TABLE IF NOT EXISTS tbl_baby_vaccination (
@@ -225,7 +225,8 @@ CREATE TABLE IF NOT EXISTS tbl_baby_vaccination (
     reg_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (vaccination_no),
     CONSTRAINT fk_baby_vaccination_baby FOREIGN KEY (baby_no) REFERENCES tbl_baby_info (baby_no),
-    CONSTRAINT fk_baby_vaccination_schedule FOREIGN KEY (schedule_no) REFERENCES tbl_vaccine_schedule (schedule_no)
+    CONSTRAINT fk_baby_vaccination_schedule FOREIGN KEY (schedule_no) REFERENCES tbl_vaccine_schedule (schedule_no),
+    CONSTRAINT uq_baby_vaccination_schedule UNIQUE (baby_no, schedule_no)
     );
 
 CREATE TABLE IF NOT EXISTS tbl_baby_sleep (
@@ -237,7 +238,7 @@ CREATE TABLE IF NOT EXISTS tbl_baby_sleep (
     reg_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (sleep_no),
     CONSTRAINT fk_baby_sleep_baby FOREIGN KEY (baby_no) REFERENCES tbl_baby_info (baby_no)
-);
+    );
 
 CREATE TABLE IF NOT EXISTS tbl_baby_diary (
     diary_no BIGINT AUTO_INCREMENT,
@@ -249,7 +250,7 @@ CREATE TABLE IF NOT EXISTS tbl_baby_diary (
     mod_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     PRIMARY KEY (diary_no),
     CONSTRAINT fk_baby_diary FOREIGN KEY (baby_no) REFERENCES tbl_baby_info (baby_no)
-);
+    );
 
 CREATE TABLE IF NOT EXISTS tbl_baby_album (
     album_no BIGINT AUTO_INCREMENT,
@@ -262,6 +263,39 @@ CREATE TABLE IF NOT EXISTS tbl_baby_album (
     PRIMARY KEY (album_no),
     CONSTRAINT fk_baby_album FOREIGN KEY (baby_no) REFERENCES tbl_baby_info (baby_no)
     );
+
+CREATE TABLE IF NOT EXISTS tbl_print_order (
+    order_no BIGINT AUTO_INCREMENT,
+    email VARCHAR(100) NOT NULL,
+    baby_no BIGINT NOT NULL,
+    order_id VARCHAR(100) NOT NULL,
+    payment_key VARCHAR(200),
+    status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
+    total_amount INT NOT NULL,
+    receiver_name VARCHAR(50) NOT NULL,
+    receiver_phone VARCHAR(20) NOT NULL,
+    zipcode VARCHAR(10) NOT NULL,
+    address VARCHAR(200) NOT NULL,
+    address_detail VARCHAR(200),
+    reg_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    mod_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (order_no),
+    CONSTRAINT uq_print_order_order_id UNIQUE (order_id),
+    CONSTRAINT fk_print_order_email FOREIGN KEY (email) REFERENCES tbl_member (email),
+    CONSTRAINT fk_print_order_baby FOREIGN KEY (baby_no) REFERENCES tbl_baby_info (baby_no)
+    );
+
+CREATE TABLE IF NOT EXISTS tbl_print_order_item (
+    item_no BIGINT AUTO_INCREMENT,
+    order_no BIGINT NOT NULL,
+    album_no BIGINT NOT NULL,
+    quantity INT NOT NULL DEFAULT 1,
+    unit_price INT NOT NULL,
+    PRIMARY KEY (item_no),
+    CONSTRAINT fk_print_order_item_order FOREIGN KEY (order_no) REFERENCES tbl_print_order (order_no),
+    CONSTRAINT fk_print_order_item_album FOREIGN KEY (album_no) REFERENCES tbl_baby_album (album_no)
+    );
+
 -- HWH 끝
 
 -- KYI - 가계부 내역

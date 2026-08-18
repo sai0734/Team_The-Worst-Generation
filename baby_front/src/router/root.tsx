@@ -3,7 +3,6 @@ import { createBrowserRouter } from "react-router-dom";
 import memberRouter from "./memberRouter";
 import babyInfoRouter from "./babyInfoRouter";
 import diaryRouter from "./diaryRouter";
-import albumRouter from "./albumRouter";
 import communityRouter from "./communityRouter";
 import marketRouter from "./marketRouter";
 import recallRouter from "./recallRouter";
@@ -19,6 +18,7 @@ const Dashboard = lazy(() => import("../pages/DashboardPage"));
 const MainOnly = lazy(() => import("../pages/landing/MainOnlyPage"));
 const About = lazy(() => import("../pages/AboutPage"));
 const BabyInfoIndex = lazy(() => import("../pages/babyInfo/BabyInfoIndexPage"));
+const DiaryIndex = lazy(() => import("../pages/diary/DiaryIndexPage"));
 const CommunityIndex = lazy(
   () => import("../pages/community/CommunityIndexPage"),
 );
@@ -79,11 +79,12 @@ const root = createBrowserRouter([
   },
   {
     path: "diary",
+    element: (
+      <Suspense fallback={Loading}>
+        <DiaryIndex />
+      </Suspense>
+    ),
     children: diaryRouter(),
-  },
-  {
-    path: "album",
-    children: albumRouter(),
   },
   {
     path: "community",

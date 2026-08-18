@@ -8,6 +8,7 @@ import com.backend.babyInfo.mapper.BabyInfoMapper;
 import com.backend.diary.mapper.BabyDiaryMapper;
 import com.backend.vaccination.mapper.BabyVaccinationMapper;
 import com.backend.sleep.mapper.BabySleepMapper;
+import com.backend.printorder.mapper.PrintOrderMapper;
 import com.backend.global.util.CustomFileUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -36,6 +37,8 @@ public class BabyInfoServiceImpl implements BabyInfoService{
     private final BabyDiaryMapper babyDiaryMapper;
 
     private final BabyAlbumMapper babyAlbumMapper;
+
+    private final PrintOrderMapper printOrderMapper;
 
     private final ModelMapper modelMapper;
 
@@ -136,6 +139,10 @@ public class BabyInfoServiceImpl implements BabyInfoService{
         babyDiaryMapper.deleteByBabyNo(babyNo, email);
 
         babyAlbumMapper.deleteByBabyNo(babyNo, email);
+
+        printOrderMapper.deleteItemsByBabyNo(babyNo);
+
+        printOrderMapper.deleteByBabyNo(babyNo);
 
         customFileUtil.deleteFiles(photoFileNames);
 

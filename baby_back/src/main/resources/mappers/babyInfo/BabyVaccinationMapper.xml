@@ -10,6 +10,7 @@
         FROM tbl_baby_vaccination bv
         JOIN tbl_baby_info bi ON bv.baby_no = bi.baby_no
         WHERE bv.baby_no = #{babyNo} AND bi.email = #{email}
+        ORDER BY bv.recommended_month, bv.vaccination_no
     </select>
 
     <select id="selectByVaccinationNo" resultType="com.backend.vaccination.domain.BabyVaccination">
@@ -21,14 +22,15 @@
     </select>
 
     <insert id="insertScheduleList">
-        INSERT INTO tbl_baby_vaccination (baby_no, schedule_no, vaccine_name, dose_label, recommended_month, completed, is_custom)
+        INSERT IGNORE INTO tbl_baby_vaccination (baby_no, schedule_no, vaccine_name, dose_label, recommended_month, completed, is_custom)
         SELECT #{babyNo}, schedule_no, vaccine_name, dose_label, recommended_month, false, false
         FROM tbl_vaccine_schedule
+        ORDER BY display_order
     </insert>
 
     <insert id="insertCustom" useGeneratedKeys="true" keyProperty="vaccinationNo" keyColumn="vaccination_no">
-        INSERT INTO tbl_baby_vaccination (baby_no, vaccine_name, completed, completed_date, hospital_name, is_custom)
-        VALUES (#{babyNo}, #{vaccineName}, #{completed}, #{completedDate}, #{hospitalName}, true)
+        INSERT INTO tbl_baby_vaccination (baby_no, vaccine_name, recommended_month, completed, completed_date, hospital_name, is_custom)
+        VALUES (#{babyNo}, #{vaccineName}, #{recommendedMonth}, #{completed}, #{completedDate}, #{hospitalName}, true)
     </insert>
 
     <update id="updateComplete">

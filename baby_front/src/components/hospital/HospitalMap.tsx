@@ -41,9 +41,9 @@ const HospitalMap = ({
       await loadKakaoMapScript();
       if (cancelled || !containerRef.current) return;
 
-      const center = new window.kakao.maps.LatLng(focusCenter.lat, focusCenter.lng);
+      const center = new (window as any).kakao.maps.LatLng(focusCenter.lat, focusCenter.lng);
       if (!mapRef.current) {
-        mapRef.current = new window.kakao.maps.Map(containerRef.current, {
+        mapRef.current = new (window as any).kakao.maps.Map(containerRef.current, {
           center,
           level: 5,
           draggable: true,
@@ -51,7 +51,7 @@ const HospitalMap = ({
         });
         mapRef.current.setDraggable(true);
         mapRef.current.setZoomable(true);
-        window.kakao.maps.event.addListener(mapRef.current, "idle", () => {
+        (window as any).kakao.maps.event.addListener(mapRef.current, "idle", () => {
           const nextCenter = mapRef.current.getCenter();
           onCenterChange({ lat: nextCenter.getLat(), lng: nextCenter.getLng() });
         });
@@ -67,9 +67,9 @@ const HospitalMap = ({
       markersRef.current = [];
 
       if (userLocation) {
-        const userMarker = new window.kakao.maps.CustomOverlay({
+        const userMarker = new (window as any).kakao.maps.CustomOverlay({
           map: mapRef.current,
-          position: new window.kakao.maps.LatLng(userLocation.lat, userLocation.lng),
+          position: new (window as any).kakao.maps.LatLng(userLocation.lat, userLocation.lng),
           content: '<div class="hospital-user-marker"><span></span></div>',
           zIndex: 5,
         });
@@ -80,18 +80,18 @@ const HospitalMap = ({
         const isSelected = hospital.hospitalId === selectedId;
         const markerWidth = isSelected ? 42 : 34;
         const markerHeight = isSelected ? 50 : 42;
-        const marker = new window.kakao.maps.Marker({
+        const marker = new (window as any).kakao.maps.Marker({
           map: mapRef.current,
-          position: new window.kakao.maps.LatLng(hospital.latitude, hospital.longitude),
-          image: new window.kakao.maps.MarkerImage(
+          position: new (window as any).kakao.maps.LatLng(hospital.latitude, hospital.longitude),
+          image: new (window as any).kakao.maps.MarkerImage(
             markerSvg(isSelected),
-            new window.kakao.maps.Size(markerWidth, markerHeight),
-            { offset: new window.kakao.maps.Point(markerWidth / 2, markerHeight) },
+            new (window as any).kakao.maps.Size(markerWidth, markerHeight),
+            { offset: new (window as any).kakao.maps.Point(markerWidth / 2, markerHeight) },
           ),
           zIndex: isSelected ? 4 : 2,
         });
 
-        window.kakao.maps.event.addListener(marker, "click", () => onSelect(hospital));
+        (window as any).kakao.maps.event.addListener(marker, "click", () => onSelect(hospital));
         markersRef.current.push(marker);
       });
     };
