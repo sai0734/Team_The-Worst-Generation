@@ -8,6 +8,7 @@
         <id property="id" column="id"/>
         <result property="memberEmail" column="member_email"/>
         <result property="sessionId" column="session_id"/>
+        <result property="selectedProfileId" column="selected_profile_id"/>
         <result property="tokenHash" column="token_hash"/>
         <result property="expiresAt" column="expires_at"/>
         <result property="revoked" column="revoked"/>
@@ -20,6 +21,7 @@
         SELECT id,
         member_email,
         session_id,
+        selected_profile_id,
         token_hash,
         expires_at,
         revoked,
@@ -34,6 +36,7 @@
         INSERT INTO tbl_member_refresh_token (
         member_email,
         session_id,
+        selected_profile_id,
         token_hash,
         expires_at,
         user_agent
@@ -41,6 +44,7 @@
         VALUES (
         #{memberEmail},
         #{sessionId},
+        #{selectedProfileId},
         #{tokenHash},
         #{expiresAt},
         #{userAgent}
@@ -65,6 +69,13 @@
         UPDATE tbl_member_refresh_token
         SET revoked = TRUE
         WHERE session_id = #{sessionId}
+    </update>
+
+    <update id="updateSelectedProfileBySessionId">
+        UPDATE tbl_member_refresh_token
+        SET selected_profile_id = #{selectedProfileId}
+        WHERE session_id = #{sessionId}
+          AND revoked = FALSE
     </update>
 
 </mapper>

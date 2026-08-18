@@ -1,10 +1,11 @@
 import LoginComponent from "../../components/member/LoginComponent";
 import BasicLayout from "../../layouts/BasicLayout";
+import "../../styles/member.css";
 
 const LoginPage = () => {
   return (
     <BasicLayout>
-      <div className="flex min-h-[70vh] items-center justify-center">
+      <div className="member-login-page">
         <LoginComponent />
       </div>
     </BasicLayout>

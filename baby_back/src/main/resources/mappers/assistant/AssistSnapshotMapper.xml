@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.backend.assistant.mapper.AssistSnapshotMapper">
+
+    <select id="selectBabies" resultType="com.backend.babyInfo.domain.BabyInfo">
+        SELECT baby_no, email, baby_name, birth_date, gender
+        FROM tbl_baby_info
+    </select>
+
+    <delete id="deleteByBaby">
+        DELETE FROM tbl_assist_snapshot
+        WHERE email = #{email} AND baby_no = #{babyNo}
+    </delete>
+
+    <insert id="insert">
+        INSERT INTO tbl_assist_snapshot
+        (email, baby_no, item_id, category, title, summary, link, status, source)
+        VALUES
+        (#{email}, #{babyNo}, #{itemId}, #{category}, #{title}, #{summary}, #{link}, #{status}, #{source})
+    </insert>
+
+    <select id="selectByEmail" resultType="com.backend.assistant.domain.AssistSnapshot">
+        SELECT snapshot_no, email, baby_no, item_id, category, title, summary, link, status, source
+        FROM tbl_assist_snapshot
+        WHERE email = #{email}
+        ORDER BY updated_at DESC, snapshot_no DESC
+    </select>
+
+    <select id="selectRegion" resultType="com.backend.assistant.domain.AssistRegion">
+        SELECT email, region_sido, region_sigungu
+        FROM tbl_assist_region
+        WHERE email = #{email}
+    </select>
+
+    <insert id="upsertRegion">
+        INSERT INTO tbl_assist_region (email, region_sido, region_sigungu)
+        VALUES (#{email}, #{regionSido}, #{regionSigungu})
+        ON DUPLICATE KEY UPDATE
+            region_sido = #{regionSido},
+            region_sigungu = #{regionSigungu}
+    </insert>
+</mapper>

@@ -39,33 +39,37 @@ const LoginComponent = () => {
 
       if (socialLoginState?.socialLinkToken) {
         await linkKakaoMember(socialLoginState.socialLinkToken);
-        alert("카카오 계정 연동 성공");
-        moveToPath("/");
+        alert("카카오 계정 연동이 완료되었습니다.");
+        moveToPath("/member/profiles");
         return;
       }
 
-      alert("로그인 성공");
-      moveToPath("/");
+      moveToPath("/member/profiles");
     } catch (error: unknown) {
       if (isAuthError(error) && error.error === "ERROR_LOGIN") {
-        alert("이메일과 패스워드를 다시 확인하세요");
+        alert("이메일과 비밀번호를 다시 확인해주세요.");
         return;
       }
 
-      alert("로그인 중 오류가 발생했습니다");
+      alert("로그인 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.");
     }
   };
 
   return (
-    <div className="w-full max-w-md border border-neutral-300 bg-white p-8">
-      <div className="mb-6 text-center text-2xl font-bold">로그인</div>
+    <div className="member-login-shell">
+      <div className="member-login-intro">
+        <p className="eyebrow">WELCOME BACK</p>
+        <h1>우리 가족의 하루를<br />다시 이어가요.</h1>
+        <p className="desc">로그인하고 가족 프로필을 선택하면 아이의 기록과 가족 일정을 이어서 관리할 수 있어요.</p>
+        <div className="member-login-decoration"><span>아빠</span><span>아이</span><span>엄마</span></div>
+      </div>
 
-      <div className="mb-4">
-        <label className="mb-2 block" htmlFor="login-email">
-          이메일
-        </label>
+      <div className="card member-login-card">
+        <div className="member-login-card-heading"><p className="eyebrow">MEMBER LOGIN</p><h2>로그인</h2></div>
+
+      <label className="member-login-field" htmlFor="login-email">
+        <span>이메일</span>
         <input
-          className="w-full border border-neutral-300 p-3"
           id="login-email"
           name="email"
           type="email"
@@ -73,40 +77,38 @@ const LoginComponent = () => {
           onChange={handleChange}
           readOnly={Boolean(socialLoginState?.email)}
         />
-      </div>
+      </label>
 
-      <div className="mb-4">
-        <label className="mb-2 block" htmlFor="login-password">
-          비밀번호
-        </label>
+      <label className="member-login-field" htmlFor="login-password">
+        <span>비밀번호</span>
         <input
-          className="w-full border border-neutral-300 p-3"
           id="login-password"
           name="pw"
           type="password"
           value={loginParam.pw}
           onChange={handleChange}
         />
-      </div>
+      </label>
 
-      <div className="flex flex-col gap-3">
+      <div className="member-login-actions">
         <button
           type="button"
-          className="w-full border border-neutral-400 p-3"
+          className="submit-btn"
           onClick={handleClickLogin}
         >
-          로그인
+          로그인하기
         </button>
         <button
           type="button"
-          className="w-full border border-neutral-400 p-3"
+          className="ghost-btn"
           onClick={() => moveToPath("/member/signup")}
         >
-          회원가입
+          처음이신가요? 회원가입
         </button>
       </div>
 
       <KakaoLoginComponent />
+      </div>
     </div>
   );
 };

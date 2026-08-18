@@ -34,6 +34,7 @@ CREATE TABLE IF NOT EXISTS tbl_member_refresh_token (
                                                         id BIGINT AUTO_INCREMENT,
     member_email VARCHAR(100) NOT NULL,
     session_id VARCHAR(36) NOT NULL,
+    selected_profile_id BIGINT NULL,
     token_hash VARCHAR(64) NOT NULL,
     expires_at DATETIME NOT NULL,
     revoked BOOLEAN NOT NULL DEFAULT FALSE,
@@ -92,6 +93,22 @@ CREATE TABLE IF NOT EXISTS tbl_hospital_reservation (
     INDEX idx_hospital_reservation_member (member_email, status),
     INDEX idx_hospital_reservation_hospital (hospital_id, reservation_date)
 );
+
+CREATE TABLE IF NOT EXISTS tbl_member_profile (
+                                                  profile_id BIGINT AUTO_INCREMENT,
+                                                  member_email VARCHAR(100) NOT NULL,
+    profile_name VARCHAR(50) NOT NULL,
+    parent_type VARCHAR(20) NOT NULL,
+    profile_image_file_name VARCHAR(500),
+    active BOOLEAN NOT NULL DEFAULT TRUE,
+    reg_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    mod_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (profile_id),
+    CONSTRAINT fk_member_profile_member FOREIGN KEY (member_email) REFERENCES tbl_member (email),
+    INDEX idx_member_profile_member (member_email, active)
+    );
+
+ALTER TABLE tbl_member_refresh_token ADD COLUMN IF NOT EXISTS selected_profile_id BIGINT NULL;
 
 -- LDH 끝
 
@@ -496,6 +513,7 @@ CREATE TABLE IF NOT EXISTS tbl_my_product (
     CONSTRAINT fk_my_product_member FOREIGN KEY (member_email) REFERENCES tbl_member (email),
     INDEX idx_my_product_member (member_email, del_flag)
 );
+ALTER TABLE tbl_my_product ADD COLUMN IF NOT EXISTS image_name VARCHAR(300) NULL;
 -- KYI 끝
 
 -- LMJ - 알레르기 성분 목록
@@ -908,3 +926,25 @@ CREATE TABLE IF NOT EXISTS tbl_cry_check (
     );
 
 -- LJW 끝
+-- YSJ 추가 정부지원금 3시 배치
+CREATE TABLE IF NOT EXISTS tbl_assist_snapshot (
+    snapshot_no BIGINT AUTO_INCREMENT,
+    email VARCHAR(100) NOT NULL,
+    baby_no BIGINT NOT NULL,
+    item_id VARCHAR(200) NOT NULL,
+    category VARCHAR(50),
+    title VARCHAR(500),
+    summary VARCHAR(1000),
+    link VARCHAR(1000),
+    status VARCHAR(20),
+    source VARCHAR(200),
+    updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (snapshot_no)
+);
+-- 사용자 거주지
+CREATE TABLE IF NOT EXISTS tbl_assist_region (
+    email VARCHAR(100) NOT NULL,
+    region_sido VARCHAR(50),
+    region_sigungu VARCHAR(50),
+    PRIMARY KEY (email)
+);

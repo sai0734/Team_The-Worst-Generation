@@ -8,6 +8,9 @@ import marketRouter from "./marketRouter";
 import recallRouter from "./recallRouter";
 import ledgerRouter from "./ledgerRouter";
 import allergyRouter from "./allergyRouter";
+import cryCheckRouter from "./cryCheckRouter";
+import MyPage from "../pages/member/MyPage";
+import hospitalRouter from "./hospitalRouter";
 
 const Loading = <div>Loading....</div>;
 const Main = lazy(() => import("../pages/MainPage"));
@@ -54,6 +57,14 @@ const root = createBrowserRouter([
     ),
   },
   {
+    path: "/mypage",
+    element: (
+      <Suspense fallback={Loading}>
+        <MyPage />
+      </Suspense>
+    ),
+  },
+  {
     path: "member",
     children: memberRouter(),
   },
@@ -89,6 +100,10 @@ const root = createBrowserRouter([
     children: marketRouter(),
   },
   {
+    path: "hospital",
+    children: hospitalRouter(),
+  },
+  {
     path: "recall",
     children: recallRouter(),
   },
@@ -99,6 +114,10 @@ const root = createBrowserRouter([
   {
     path: "allergy",
     children: allergyRouter(),
+  },
+  {
+    path: "ai",
+    children: cryCheckRouter(),
   },
 ]);
 

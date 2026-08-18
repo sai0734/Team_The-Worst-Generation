@@ -17,6 +17,8 @@ public class MemberRefreshToken {
 
     private String sessionId;
 
+    private Long selectedProfileId;
+
     private String tokenHash;
 
     private LocalDateTime expiresAt;

@@ -20,5 +20,7 @@ public interface MyProductMapper {
 
     void updateRecallMatch(MyProduct product);
 
+    void update(MyProduct product);
+
     void delete(@Param("productNo") Long productNo);
 }

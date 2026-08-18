@@ -18,6 +18,8 @@ public interface AuthTokenService {
             HttpServletRequest request,
             HttpServletResponse response);
 
+    Map<String, Object> selectProfile(String refreshToken, Long profileId);
+
     void logout(String refreshToken, HttpServletResponse response);
 }
 

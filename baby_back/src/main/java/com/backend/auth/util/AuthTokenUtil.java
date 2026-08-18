@@ -38,6 +38,7 @@ public class AuthTokenUtil {
     public static Map<String, Object> createMemberClaims(Member member){
         Map<String, Object> claims = new HashMap<>();
         claims.put("email", member.getEmail());
+        claims.put("pw", member.getPw());
         claims.put("nickname", member.getNickname());
         claims.put("social", member.isSocial());
         claims.put("roleNames", member.getMemberRoleList()

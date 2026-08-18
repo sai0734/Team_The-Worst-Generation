@@ -1,13 +1,13 @@
 import BasicLayout from "../../layouts/BasicLayout";
 import MarketSubNav from "../../components/market/MarketSubNav";
-import MarketListComponent from "../../components/market/MarketListComponent";
+import MarketHomeComponent from "../../components/market/MarketHomeComponent";
 
 const MarketListPage = () => {
   return (
     <BasicLayout>
       <div>
         <MarketSubNav />
-        <MarketListComponent />
+        <MarketHomeComponent />
       </div>
     </BasicLayout>
   );
