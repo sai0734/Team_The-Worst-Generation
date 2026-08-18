@@ -11,6 +11,7 @@ import { questApi, type QuestHome } from "../api/questApi";
 import AssistantPanel from "../components/assistant/AssistantPanel";
 import heroBaby from "../assets/hero-baby.png";
 import { triggerWipe } from "../utils/pageTransition";
+import "../styles/dashboard-home.css";
 
 const MARQUEE_TEXT =
   "오늘도 함께, 잘 키워가요 ✦ 육아 기록 · 가계부 · AI 정부지원금 · 리콜 알림 ✦ ";
@@ -169,6 +170,26 @@ const DashboardPage = () => {
 
   return (
     <BasicLayout>
+      <div className="home-sky-bg" aria-hidden="true">
+        <span className="sky-emoji sky-sun">☀️</span>
+        <span className="sky-emoji sky-moon">🌙</span>
+        <span className="sky-emoji sky-star s1">⭐</span>
+        <span className="sky-emoji sky-star s2">✨</span>
+        <span className="sky-emoji sky-star s3">⭐</span>
+        <span className="sky-emoji sky-star s4">✨</span>
+        <span className="sky-emoji sky-cloud c1">☁️</span>
+        <span className="sky-emoji sky-cloud c2">☁️</span>
+        <span className="sky-emoji sky-cloud c3">☁️</span>
+        <span className="sky-emoji sky-cloud c4">☁️</span>
+        <img
+          src={heroBaby}
+          alt=""
+          className={`home-sky-baby${heroPlay ? " in-view" : ""}`}
+        />
+      </div>
+
+      <div className="home-content">
+      <div className="home-hero-group">
       <section className="home-hero">
         <div className="home-hero-blob a" />
         <div className="home-hero-blob b" />
@@ -194,22 +215,24 @@ const DashboardPage = () => {
             우리 아이 등록하기
           </Link>
         </div>
-        <img
-          src={heroBaby}
-          alt=""
-          className={`home-hero-art${heroPlay ? " in-view" : ""}`}
-        />
       </section>
 
-      <div className="home-marquee">
-        <div className="home-marquee-track">
-          <span>{MARQUEE_TEXT.repeat(2)}</span>
+      <div className="home-train">
+        <span className="home-train-engine" aria-hidden="true">🚂</span>
+        <div className="home-train-car">
+          <div className="home-marquee-track">
+            <span>{MARQUEE_TEXT.repeat(2)}</span>
+          </div>
+          <span className="home-train-wheel w1" aria-hidden="true" />
+          <span className="home-train-wheel w2" aria-hidden="true" />
+          <span className="home-train-wheel w3" aria-hidden="true" />
         </div>
       </div>
+      </div>
 
-      <div className="home-grid stagger">
+      <div className="home-grid home-grid-v2 stagger">
         <article
-          className={`card home-tip-card area-tip home-rise-up${cardsIn ? " in-view" : ""}`}
+          className={`card home-tip-card area-tip motif-star home-rise-up${cardsIn ? " in-view" : ""}`}
           style={{ "--i": 0 } as CSSProperties}
         >
           <p className="home-tip-label">💡 오늘의 꿀팁</p>
@@ -217,7 +240,7 @@ const DashboardPage = () => {
         </article>
 
         <article
-          className={`card area-quest home-rise-up${cardsIn ? " in-view" : ""}`}
+          className={`card area-quest motif-cloud home-rise-up${cardsIn ? " in-view" : ""}`}
           style={{ "--i": 1 } as CSSProperties}
         >
           <div className="head">
@@ -295,9 +318,10 @@ const DashboardPage = () => {
           )}
         </article>
 
+        <div className="home-side-col area-side">
         <Link
           to="/ledger"
-          className={`card home-side-card area-ledger home-rise-up${cardsIn ? " in-view" : ""}`}
+          className={`card home-side-card area-ledger motif-moon home-rise-up${cardsIn ? " in-view" : ""}`}
           style={{ "--i": 2 } as CSSProperties}
           onClick={(e) => {
             e.preventDefault();
@@ -344,15 +368,10 @@ const DashboardPage = () => {
           <span className="home-side-btn">가계부 상세 보기</span>
         </Link>
 
-        <AssistantPanel
-          className={`area-assist home-rise-up${cardsIn ? " in-view" : ""}`}
-          style={{ "--i": 3 } as CSSProperties}
-        />
-
         <Link
           to="/recall"
-          className={`card home-side-card area-recall home-rise-up${cardsIn ? " in-view" : ""}`}
-          style={{ "--i": 4 } as CSSProperties}
+          className={`card home-side-card area-recall motif-sparkle home-rise-up${cardsIn ? " in-view" : ""}`}
+          style={{ "--i": 3 } as CSSProperties}
           onClick={(e) => {
             e.preventDefault();
             triggerWipe(() => navigate("/recall"));
@@ -378,6 +397,13 @@ const DashboardPage = () => {
           )}
           <span className="home-side-btn">리콜 현황 보기</span>
         </Link>
+        </div>
+
+        <AssistantPanel
+          className={`area-assist home-rise-up${cardsIn ? " in-view" : ""}`}
+          style={{ "--i": 4 } as CSSProperties}
+        />
+      </div>
       </div>
     </BasicLayout>
   );

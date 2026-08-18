@@ -1,5 +1,6 @@
 package com.backend.babysitter.domain;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,6 +23,10 @@ public class BabysitterProfile {
 
     private String region;
 
+    private BigDecimal latitude;
+
+    private BigDecimal longitude;
+
     private String availableTime;
 
     private Integer hourlyRate;
@@ -40,11 +45,13 @@ public class BabysitterProfile {
     @Builder.Default
     private List<BabysitterAvailability> availabilityList = new ArrayList<>();
 
-    public void changeProfile(String name, int careerYears, String region, String availableTime,
-                               Integer hourlyRate, String intro) {
+    public void changeProfile(String name, int careerYears, String region, BigDecimal latitude,
+                               BigDecimal longitude, String availableTime, Integer hourlyRate, String intro) {
         this.name = name;
         this.careerYears = careerYears;
         this.region = region;
+        this.latitude = latitude;
+        this.longitude = longitude;
         this.availableTime = availableTime;
         this.hourlyRate = hourlyRate;
         this.intro = intro;

@@ -32,6 +32,9 @@ public interface BabysitterProfileMapper {
 
     long selectListCount(@Param("search") BabysitterSearchDTO search);
 
+    // 지도 (내 주변) 후보군: 좌표가 있고 활동중인 시터 전체. 거리 계산/반경 필터는 서비스단에서 처리
+    List<BabysitterProfile> selectNearbyCandidates();
+
     List<BabysitterAvailability> selectAvailability(@Param("email") String email);
 
     void insertAvailability(BabysitterAvailability availability);

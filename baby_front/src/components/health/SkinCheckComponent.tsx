@@ -1,20 +1,20 @@
 import { useCallback, useEffect, useState } from "react";
 import type { ChangeEvent, FormEvent } from "react";
 import * as healthApi from "../../api/healthApi";
-import type { BabyStoolCheck } from "../../types/health";
+import type { BabySkinCheck } from "../../types/health";
 
-interface StoolCheckComponentProps {
+interface SkinCheckComponentProps {
   babyNo: number;
 }
 
-const StoolCheckComponent = ({ babyNo }: StoolCheckComponentProps) => {
+const SkinCheckComponent = ({ babyNo }: SkinCheckComponentProps) => {
   const [image, setImage] = useState<File | null>(null);
-  const [result, setResult] = useState<BabyStoolCheck | null>(null);
-  const [history, setHistory] = useState<BabyStoolCheck[]>([]);
+  const [result, setResult] = useState<BabySkinCheck | null>(null);
+  const [history, setHistory] = useState<BabySkinCheck[]>([]);
   const [loading, setLoading] = useState(false);
 
   const loadHistory = useCallback(async () => {
-    const data = await healthApi.getStoolHistory(babyNo);
+    const data = await healthApi.getSkinHistory(babyNo);
     setHistory(data);
   }, [babyNo]);
 
@@ -30,17 +30,17 @@ const StoolCheckComponent = ({ babyNo }: StoolCheckComponentProps) => {
     e.preventDefault();
 
     if (!image) {
-      alert("대변 사진을 선택해주세요.");
+      alert("피부 사진을 선택해주세요.");
       return;
     }
 
     setLoading(true);
     try {
-      const checked = await healthApi.checkStool(babyNo, image);
+      const checked = await healthApi.checkSkin(babyNo, image);
       setResult(checked);
       await loadHistory();
     } catch (err) {
-      alert("대변 상태 분석에 실패했습니다.");
+      alert("피부 상태 분석에 실패했습니다.");
       console.error(err);
     } finally {
       setLoading(false);
@@ -48,50 +48,66 @@ const StoolCheckComponent = ({ babyNo }: StoolCheckComponentProps) => {
   };
 
   return (
-    <div className="space-y-4">
-      <form onSubmit={handleSubmit} className="space-y-3">
-        <p className="font-semibold text-gray-900">아기 대변 사진 등록</p>
-        <input type="file" accept="image/*" onChange={handleFileChange} />
+    <div className="card">
+      <div className="head">
+        <h2>아기 피부 사진 등록</h2>
+      </div>
+
+      <form onSubmit={handleSubmit}>
+        <div className="photo-upload">
+          <p>피부 사진 등록</p>
+          <input type="file" accept="image/*" onChange={handleFileChange} />
+          <p className="photo-hint">
+            증상이 잘 보이는 부위를 촬영해서 올려주세요.
+          </p>
+        </div>
+
         <button
           type="submit"
           disabled={loading}
-          className="rounded bg-sky-500 px-4 py-2 text-white disabled:opacity-60"
+          className="submit-btn"
+          style={{ marginTop: 14, width: "100%" }}
         >
-          {loading ? "분석 중..." : "대변 상태 분석"}
+          {loading ? "분석 중..." : "피부 상태 분석"}
         </button>
       </form>
 
       {result && (
-        <div className="rounded-xl border border-gray-200 bg-white p-4">
-          <p className="mb-2 font-semibold text-gray-900">분석 결과</p>
-          <p className="whitespace-pre-line text-sm text-gray-700">
+        <div className="card" style={{ marginTop: 16 }}>
+          <p className="eyebrow">분석 결과</p>
+          <p style={{ marginTop: 8, whiteSpace: "pre-line" }}>
             {result.aiResult}
           </p>
         </div>
       )}
 
-      <div className="space-y-2">
-        <p className="font-semibold text-gray-900">검사 이력</p>
+      <div style={{ marginTop: 20 }}>
+        <p className="eyebrow" style={{ marginBottom: 10 }}>
+          검사 이력
+        </p>
         {history.length === 0 ? (
-          <p className="text-sm text-gray-500">검사 이력이 없습니다.</p>
+          <p className="empty-hint">검사 이력이 없습니다.</p>
         ) : (
-          <ul className="space-y-2">
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {history.map((item) => (
-              <li
+              <div
                 key={item.checkNo}
-                className="rounded border border-gray-200 px-3 py-2"
+                className="card"
+                style={{ padding: "10px 14px" }}
               >
-                <p className="text-xs text-gray-400">{item.regTime}</p>
-                <p className="whitespace-pre-line text-sm text-gray-700">
+                <p style={{ fontSize: 11, color: "var(--muted)" }}>
+                  {item.regTime}
+                </p>
+                <p style={{ marginTop: 4, whiteSpace: "pre-line" }}>
                   {item.aiResult}
                 </p>
-              </li>
+              </div>
             ))}
-          </ul>
+          </div>
         )}
       </div>
     </div>
   );
 };
 
-export default StoolCheckComponent;
+export default SkinCheckComponent;

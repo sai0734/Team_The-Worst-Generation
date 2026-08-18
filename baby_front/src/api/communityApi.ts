@@ -12,10 +12,20 @@ export interface CommunityImage {
   video: boolean;
 }
 
+export const COMMUNITY_CATEGORIES = ["자유", "질문", "후기"] as const;
+export type CommunityCategory = (typeof COMMUNITY_CATEGORIES)[number];
+
+export const CATEGORY_BADGE_CLASS: Record<CommunityCategory, string> = {
+  자유: "free",
+  질문: "question",
+  후기: "review",
+};
+
 export interface CommunityPost {
   postNo: number;
   writerEmail: string;
   nickname: string;
+  category: CommunityCategory;
   title: string;
   content: string;
   aiSummary: string | null;
@@ -27,6 +37,7 @@ export interface CommunityPost {
 }
 
 export interface CommunityPostInput {
+  category: CommunityCategory;
   title: string;
   content: string;
 }

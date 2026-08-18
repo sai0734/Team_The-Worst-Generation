@@ -62,6 +62,7 @@ public class CustomSecurityConfig {
 
     http.authorizeHttpRequests(auth -> {
       auth.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll();
+      auth.requestMatchers(HttpMethod.POST, "/api/member/refresh", "/api/member/logout").permitAll();
       auth.requestMatchers(SecurityPaths.PUBLIC_URLS).permitAll();
       auth.anyRequest().authenticated();
     });

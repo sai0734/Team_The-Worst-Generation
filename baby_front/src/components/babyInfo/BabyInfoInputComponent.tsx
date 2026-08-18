@@ -163,23 +163,57 @@ const BabyInfoInputComponent = () => {
     }
   };
 
+  const labelClass = "block text-[11px] font-bold tracking-wide text-[#7A756C] mb-1.5";
+  const inputClass =
+    "w-full rounded-[14px] border border-[rgba(42,41,38,0.12)] bg-white px-4 py-2.5 text-sm text-[#2A2926] outline-none transition-colors focus:border-[#5AB2FF]";
+  const pillBtn = (active: boolean) =>
+    `flex-1 rounded-full border py-2.5 text-sm font-bold transition-colors ${
+      active
+        ? "bg-[#5AB2FF] border-[#5AB2FF] text-white"
+        : "bg-white border-[rgba(42,41,38,0.15)] text-[#2A2926]"
+    }`;
+
   return (
-    <form onSubmit={handleSubmit}>
-      <div>
+    <form
+      onSubmit={handleSubmit}
+      className="max-w-[720px] mx-auto flex flex-col gap-5 px-4 py-4 sm:gap-6 sm:px-0 sm:py-6"
+    >
+      {isEditMode && (
+        <button
+          type="button"
+          className="self-start text-xs font-bold text-[#7A756C]"
+          onClick={() => navigate("/babyInfo/input")}
+        >
+          ← 아이등록으로 돌아가기
+        </button>
+      )}
+
+      <div className="text-center">
+        <p className="text-[11px] font-extrabold tracking-[3px] text-[#5AB2FF]">
+          BABY BOM
+        </p>
+        <h1 className="mt-1 text-[22px] font-bold text-[#2A2926] sm:text-[26px]">
+          {isEditMode ? "아이 정보 수정" : "아이 등록하기"}
+        </h1>
+      </div>
+
+      <div className="relative mx-auto h-[96px] w-[96px] sm:h-[120px] sm:w-[120px]">
         {preview ? (
           <img
-            className="w-[88px] h-[88px] rounded-full object-cover"
+            className="h-[96px] w-[96px] rounded-full object-cover border-4 border-[#CAF4FF] sm:h-[120px] sm:w-[120px]"
             src={preview}
             alt="미리보기"
           />
         ) : (
-          <div className="w-[88px] h-[88px] rounded-full bg-gray-200 flex items-center justify-center text-gray-500 text-xs">
-            사진
+          <div className="h-[96px] w-[96px] rounded-full bg-gradient-to-br from-[#A0DEFF] to-[#5AB2FF] flex flex-col items-center justify-center gap-0.5 text-white sm:h-[120px] sm:w-[120px]">
+            <span className="text-2xl font-bold leading-none">+</span>
+            <span className="text-[10px] font-bold">사진 등록</span>
           </div>
         )}
         <input
           type="file"
           accept="image/*"
+          className="absolute inset-0 cursor-pointer rounded-full opacity-0"
           onChange={(e) => {
             const selected = e.target.files?.[0] ?? null;
             setFile(selected);
@@ -187,146 +221,191 @@ const BabyInfoInputComponent = () => {
           }}
         />
       </div>
-      <p>이름</p>
-      <input
-        name="babyName"
-        type="text"
-        value={babyName}
-        onChange={(e) => setBabyName(e.target.value)}
-        placeholder="이름"
-      />
-      <div>
-        <p>생년월일</p>
-        <input
-          name="birthDate"
-          type="date"
-          value={birthDate}
-          onChange={(e) => setBirthDate(e.target.value)}
-        />
-        <p>혈액형</p>
-        <select
-          value={bloodType}
-          onChange={(e) => setbloodType(e.target.value)}
-        >
-          <option value={"A"}>A형</option>
-          <option value={"B"}>B형</option>
-          <option value={"AB"}>AB형</option>
-          <option value={"O"}>O형</option>
-        </select>
-      </div>
-      <div>
-        <p>성별</p>
-        <button
-          className={
-            gender === "남자" ? "bg-black text-white" : "bg-white text-black"
-          }
-          type="button"
-          value={"남자"}
-          onClick={() => setGender("남자")}
-        >
-          남자
-        </button>
-        <button
-          className={
-            gender === "여자" ? "bg-black text-white" : "bg-white text-black"
-          }
-          type="button"
-          value={"여자"}
-          onClick={() => setGender("여자")}
-        >
-          여자
-        </button>
-      </div>
-      <p>출생 주수</p>
-      <input
-        name="birthWeekCount"
-        type="text"
-        value={birthWeekCount}
-        onChange={(e) => setBirthWeekCount(e.target.value)}
-        placeholder="출생 주수"
-      />
-      {!isEditMode && (
+
+      <div className="flex flex-col gap-4 rounded-[24px] border border-[rgba(42,41,38,0.1)] bg-[#FAF6F0] p-4 sm:p-6">
         <div>
-          <p>현재 체중(kg)</p>
+          <p className={labelClass}>이름</p>
           <input
-            name="weight"
-            value={weight}
-            onChange={(e) => setWeight(e.target.value)}
-            placeholder="현재 체중(kg)"
-          />
-          <p>현재 키(cm)</p>
-          <input
-            name="height"
-            value={height}
-            onChange={(e) => setHeight(e.target.value)}
-            placeholder="현재 키(cm)"
+            className={inputClass}
+            name="babyName"
+            type="text"
+            value={babyName}
+            onChange={(e) => setBabyName(e.target.value)}
+            placeholder="이름"
           />
         </div>
-      )}
-
-      <div>
-        <p>출생 시 체중(kg)</p>
-        <input
-          name="birthWeight"
-          value={birthWeight}
-          onChange={(e) => setBirthWeight(e.target.value)}
-          placeholder="출생 시 체중(kg)"
-        />
-        <p>출생 시 키(cm)</p>
-        <input
-          name="birthHeight"
-          value={birthHeight}
-          onChange={(e) => setBirthHeight(e.target.value)}
-          placeholder="출생 시 키(cm)"
-        />
+        <div className="flex flex-col gap-4 sm:flex-row">
+          <div className="flex-1 min-w-0">
+            <p className={labelClass}>생년월일</p>
+            <input
+              className={inputClass}
+              name="birthDate"
+              type="date"
+              value={birthDate}
+              onChange={(e) => setBirthDate(e.target.value)}
+            />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className={labelClass}>혈액형</p>
+            <select
+              className={inputClass}
+              value={bloodType}
+              onChange={(e) => setbloodType(e.target.value)}
+            >
+              <option value={"A"}>A형</option>
+              <option value={"B"}>B형</option>
+              <option value={"AB"}>AB형</option>
+              <option value={"O"}>O형</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <p className={labelClass}>성별</p>
+          <div className="flex gap-2">
+            <button
+              className={pillBtn(gender === "남자")}
+              type="button"
+              value={"남자"}
+              onClick={() => setGender("남자")}
+            >
+              남자
+            </button>
+            <button
+              className={pillBtn(gender === "여자")}
+              type="button"
+              value={"여자"}
+              onClick={() => setGender("여자")}
+            >
+              여자
+            </button>
+          </div>
+        </div>
+        <div className="flex flex-col gap-4 sm:flex-row">
+          <div className="flex-1 min-w-0">
+            <p className={labelClass}>출생 주수</p>
+            <input
+              className={inputClass}
+              name="birthWeekCount"
+              type="text"
+              value={birthWeekCount}
+              onChange={(e) => setBirthWeekCount(e.target.value)}
+              placeholder="출생 주수"
+            />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className={labelClass}>머리둘레(cm)</p>
+            <input
+              className={inputClass}
+              name="head"
+              value={head}
+              onChange={(e) => setHead(e.target.value)}
+              placeholder="머리둘레(cm)"
+            />
+          </div>
+        </div>
+        <div className="flex flex-col gap-4 sm:flex-row">
+          <div className="flex-1 min-w-0">
+            <p className={labelClass}>출생 시 체중(kg)</p>
+            <input
+              className={inputClass}
+              name="birthWeight"
+              value={birthWeight}
+              onChange={(e) => setBirthWeight(e.target.value)}
+              placeholder="출생 시 체중(kg)"
+            />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className={labelClass}>출생 시 키(cm)</p>
+            <input
+              className={inputClass}
+              name="birthHeight"
+              value={birthHeight}
+              onChange={(e) => setBirthHeight(e.target.value)}
+              placeholder="출생 시 키(cm)"
+            />
+          </div>
+        </div>
+        {!isEditMode && (
+          <div className="flex flex-col gap-4 sm:flex-row">
+            <div className="flex-1 min-w-0">
+              <p className={labelClass}>현재 체중(kg)</p>
+              <input
+                className={inputClass}
+                name="weight"
+                value={weight}
+                onChange={(e) => setWeight(e.target.value)}
+                placeholder="현재 체중(kg)"
+              />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className={labelClass}>현재 키(cm)</p>
+              <input
+                className={inputClass}
+                name="height"
+                value={height}
+                onChange={(e) => setHeight(e.target.value)}
+                placeholder="현재 키(cm)"
+              />
+            </div>
+          </div>
+        )}
       </div>
-      <p>머리둘레(cm)</p>
-      <input
-        name="head"
-        value={head}
-        onChange={(e) => setHead(e.target.value)}
-        placeholder="머리둘레(cm)"
-      />
-      <button type="submit">
+
+      <button
+        type="submit"
+        className="w-full rounded-full bg-[#5AB2FF] py-3.5 text-sm font-bold text-white transition-colors hover:bg-[#1E6FCC]"
+      >
         {isEditMode ? "정보 수정하기" : "아이 등록하기"}
       </button>
 
       {!isEditMode && (
-        <div>
-          <p>등록된 아이</p>
-          {registeredList.map((baby) => (
-            <div key={baby.babyNo}>
-              {baby.profileImageFileName ? (
-                <img
-                  className="w-[36px] h-[36px] rounded-full object-cover"
-                  src={babyInfoApi.getViewUrl(baby.profileImageFileName)}
-                  alt={baby.babyName}
-                />
-              ) : (
-                <div className="w-[36px] h-[36px] rounded-full bg-gray-200 flex items-center justify-center text-xs">
-                  응애
-                </div>
-              )}
-              <span>{baby.babyName}</span>
-              <button
-                type="button"
-                onClick={() => {
-                  navigate(`/babyInfo/input/${baby.babyNo}`);
-                }}
+        <div className="flex flex-col gap-3 border-t border-[rgba(42,41,38,0.1)] pt-5">
+          <p className={labelClass}>등록된 아이</p>
+          <div className="flex flex-col gap-2">
+            {registeredList.map((baby) => (
+              <div
+                key={baby.babyNo}
+                className="flex items-center gap-3 rounded-full border border-[rgba(42,41,38,0.1)] bg-white px-3 py-2"
               >
-                수정
-              </button>
-              <button
-                type="button"
-                onClick={() => handleClickRemove(baby.babyNo)}
-              >
-                X
-              </button>
+                {baby.profileImageFileName ? (
+                  <img
+                    className="h-[36px] w-[36px] rounded-full object-cover"
+                    src={babyInfoApi.getViewUrl(baby.profileImageFileName)}
+                    alt={baby.babyName}
+                  />
+                ) : (
+                  <div className="flex h-[36px] w-[36px] items-center justify-center rounded-full bg-[#A0DEFF] text-xs text-white">
+                    응애
+                  </div>
+                )}
+                <span className="flex-1 min-w-0 truncate text-sm font-bold text-[#2A2926]">
+                  {baby.babyName}
+                </span>
+                <button
+                  className="rounded-full bg-[#CAF4FF] px-3 py-1.5 text-xs font-bold text-[#1E6FCC] transition-colors hover:bg-[#A0DEFF]"
+                  type="button"
+                  onClick={() => {
+                    navigate(`/babyInfo/input/${baby.babyNo}`);
+                  }}
+                >
+                  수정
+                </button>
+                <button
+                  className="flex h-7 w-7 items-center justify-center rounded-full bg-[rgba(42,41,38,0.06)] text-xs font-bold text-[#7A756C] transition-colors hover:bg-[#f3d9d9] hover:text-[#c0392b]"
+                  type="button"
+                  onClick={() => handleClickRemove(baby.babyNo)}
+                >
+                  ✕
+                </button>
+              </div>
+            ))}
+            <div
+              className="flex cursor-pointer items-center justify-center gap-2 rounded-full border border-dashed border-[rgba(42,41,38,0.2)] py-2.5 text-sm font-bold text-[#7A756C]"
+              onClick={handleClickAddNew}
+            >
+              <span>+</span>
+              <span>새 아이 추가</span>
             </div>
-          ))}
-          <div onClick={handleClickAddNew}>
-            <span>+</span>
-            <span>새 아이 추가</span>
           </div>
         </div>
       )}

@@ -1,7 +1,11 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import * as babysitterApi from "../../api/babysitterApi";
-import { REQUEST_STATUS_LABELS, TIME_SLOT_LABELS } from "../../api/babysitterApi";
+import {
+  REQUEST_STATUS_BADGE_CLASS,
+  REQUEST_STATUS_LABELS,
+  TIME_SLOT_LABELS,
+} from "../../api/babysitterApi";
 import type { BabysitterRequest } from "../../api/babysitterApi";
 
 const describeError = (err: any): string =>
@@ -37,38 +41,53 @@ const BabysitterRequestsSentComponent = () => {
 
   return (
     <div>
-      <h2 className="text-xl font-bold mb-3">내가 보낸 요청</h2>
+      <h2 className="page-title">내가 보낸 요청</h2>
 
-      {list.length === 0 && <div>보낸 요청이 없습니다.</div>}
+      {list.length === 0 && <div className="empty-hint">보낸 요청이 없습니다.</div>}
 
-      <ul>
+      <div className="sitter-list">
         {list.map((r) => (
-          <li
+          <article
             key={r.requestNo}
-            className="border-b py-2 cursor-pointer"
+            className="card sitter-row"
             onClick={() => navigate(`/community/babysitter/${r.sitterEmail}`)}
           >
-            <div className="font-bold">{r.sitterName ?? "탈퇴한 시터"}</div>
-            <div>
-              {r.requestDate} ({TIME_SLOT_LABELS[r.timeSlot]}) · {REQUEST_STATUS_LABELS[r.status]}
-              {r.status === "ACCEPTED" && r.reviewed && " · 후기 작성 완료"}
+            <div className="sitter-row-body">
+              <div className="name-row">
+                {r.sitterName ?? "탈퇴한 시터"}
+                <span className={`badge ${REQUEST_STATUS_BADGE_CLASS[r.status]}`}>
+                  {REQUEST_STATUS_LABELS[r.status]}
+                </span>
+              </div>
+              <div className="meta">
+                {r.requestDate} ({TIME_SLOT_LABELS[r.timeSlot]})
+                {r.status === "ACCEPTED" && r.reviewed && " · 후기 작성 완료"}
+              </div>
+
+              {r.status === "PENDING" && (
+                <div className="sitter-actions">
+                  <button
+                    type="button"
+                    className="btn ghost"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleCancel(r.requestNo);
+                    }}
+                  >
+                    요청 취소
+                  </button>
+                </div>
+              )}
             </div>
-
-            {r.status === "PENDING" && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleCancel(r.requestNo);
-                }}
-              >
-                요청 취소
-              </button>
-            )}
-          </li>
+          </article>
         ))}
-      </ul>
+      </div>
 
-      <button onClick={() => navigate("/community/babysitter")}>목록으로</button>
+      <div className="sitter-back-link">
+        <button type="button" className="btn ghost" onClick={() => navigate("/community/babysitter")}>
+          목록으로
+        </button>
+      </div>
     </div>
   );
 };

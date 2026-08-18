@@ -86,16 +86,26 @@ const MarketMapComponent = ({ items, center }: MarketMapComponentProps) => {
       await loadKakaoMapScript();
       if (cancelled || !mapContainerRef.current) return;
 
-      const centerLatLng = new window.kakao.maps.LatLng(center.lat, center.lng);
+      const centerLatLng = new (window as any).kakao.maps.LatLng(
+        center.lat,
+        center.lng,
+      );
 
       if (!mapRef.current) {
-        mapRef.current = new window.kakao.maps.Map(mapContainerRef.current, {
-          center: centerLatLng,
-          level: 6,
-        });
+        mapRef.current = new (window as any).kakao.maps.Map(
+          mapContainerRef.current,
+          {
+            center: centerLatLng,
+            level: 6,
+          },
+        );
 
         // 지도 빈 곳 클릭하면 열려있던 팝업 닫기 (맵 인스턴스는 한 번만 생성되므로 여기서 한 번만 등록)
-        window.kakao.maps.event.addListener(mapRef.current, "click", closeItemPopup);
+        window.kakao.maps.event.addListener(
+          mapRef.current,
+          "click",
+          closeItemPopup,
+        );
       } else {
         mapRef.current.setCenter(centerLatLng);
       }
@@ -104,16 +114,16 @@ const MarketMapComponent = ({ items, center }: MarketMapComponentProps) => {
       overlaysRef.current = [];
       closeItemPopup();
 
-      const myLocationImage = new window.kakao.maps.MarkerImage(
+      const myLocationImage = new (window as any).kakao.maps.MarkerImage(
         "data:image/svg+xml;charset=UTF-8," +
           encodeURIComponent(
             '<svg xmlns="http://www.w3.org/2000/svg" width="36" height="46" viewBox="0 0 36 46"><path d="M18 0C8.1 0 0 8.1 0 18c0 13.5 18 28 18 28s18-14.5 18-28C36 8.1 27.9 0 18 0z" fill="#253e30"/><circle cx="18" cy="18" r="9" fill="#ffffff"/><circle cx="18" cy="18" r="5" fill="#5e9270"/></svg>',
           ),
-        new window.kakao.maps.Size(36, 46),
-        { offset: new window.kakao.maps.Point(18, 46) },
+        new (window as any).kakao.maps.Size(36, 46),
+        { offset: new (window as any).kakao.maps.Point(18, 46) },
       );
 
-      const myMarker = new window.kakao.maps.Marker({
+      const myMarker = new (window as any).kakao.maps.Marker({
         position: centerLatLng,
         map: mapRef.current,
         image: myLocationImage,
@@ -121,15 +131,18 @@ const MarketMapComponent = ({ items, center }: MarketMapComponentProps) => {
       });
       overlaysRef.current.push(myMarker);
 
+      const bounds = new (window as any).kakao.maps.LatLngBounds();
+      bounds.extend(centerLatLng);
+
       items.forEach((item) => {
         if (item.latitude == null || item.longitude == null) return;
 
-        const position = new window.kakao.maps.LatLng(
+        const position = new (window as any).kakao.maps.LatLng(
           item.latitude,
           item.longitude,
         );
 
-        const marker = new window.kakao.maps.Marker({
+        const marker = new (window as any).kakao.maps.Marker({
           position,
           map: mapRef.current,
         });
@@ -139,7 +152,12 @@ const MarketMapComponent = ({ items, center }: MarketMapComponentProps) => {
         });
 
         overlaysRef.current.push(marker);
+        bounds.extend(position);
       });
+
+      if (items.length > 0) {
+        mapRef.current.setBounds(bounds);
+      }
     };
 
     render().catch((err) => console.error(err));

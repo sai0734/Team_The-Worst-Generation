@@ -4,6 +4,7 @@ import com.backend.assistant.client.DataGoKrClient;
 import com.backend.assistant.domain.AssistCategory;
 import com.backend.assistant.dto.AssistItemDTO;
 import com.backend.assistant.dto.AssistRecommendRequest;
+import com.backend.assistant.util.AssistRegionNames;
 import com.google.gson.JsonObject;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -31,12 +32,19 @@ public class ChildcareInstitutionProvider implements AssistDataProvider {
     @Override
     public List<AssistItemDTO> search(AssistRecommendRequest request) {
         try {
-            String sido = request.getChild() != null ? request.getChild().getRegionSido() : "";
-            String sgg = request.getChild() != null ? request.getChild().getRegionSigungu() : "";
+            String sido = AssistRegionNames.sido(
+                    request.getChild() != null ? request.getChild().getRegionSido() : "");
+            String sgg = AssistRegionNames.sigungu(
+                    request.getChild() != null ? request.getChild().getRegionSigungu() : "");
+            if (sido.isBlank() && sgg.isBlank()) {
+                return List.of();
+            }
 
             Map<String, String> p = DataGoKrClient.page(1, 10);
             p.put("ctpvNm", sido);
-            p.put("sggNm", sgg);
+            if (!sgg.isBlank()) {
+                p.put("sggNm", sgg);
+            }
 
             List<AssistItemDTO> list = new ArrayList<>();
             for (JsonObject it : client.items(client.get(URL, p))) {

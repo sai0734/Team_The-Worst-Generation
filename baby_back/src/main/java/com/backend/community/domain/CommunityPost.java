@@ -19,6 +19,8 @@ public class CommunityPost {
 
     private String nickname;
 
+    private String category;
+
     private String title;
 
     private String content;
@@ -41,7 +43,8 @@ public class CommunityPost {
     @Builder.Default
     private List<CommunityPostImage> imageList = new ArrayList<>();
 
-    public void changeContent(String title, String content) {
+    public void changeContent(String category, String title, String content) {
+        this.category = category;
         this.title = title;
         this.content = content;
         this.aiSummary = null;

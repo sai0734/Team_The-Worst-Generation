@@ -62,6 +62,11 @@ public class JWTCheckFilter extends OncePerRequestFilter {
 
       MemberDTO memberDTO = new MemberDTO(email, pw, nickname, social, roleNames);
 
+      Long profileId = getLongClaim(claims.get("profileId"));
+      if (profileId != null) {
+        memberDTO.selectProfile(profileId, (String) claims.get("profileName"), (String) claims.get("parentType"));
+      }
+
       log.info("-----------------------------------");
       log.info(memberDTO);
       log.info(memberDTO.getAuthorities());
@@ -114,6 +119,10 @@ public class JWTCheckFilter extends OncePerRequestFilter {
       return roles.stream().map(String::valueOf).toList();
     }
     return List.of();
+  }
+
+  private Long getLongClaim(Object value) {
+    return value instanceof Number number ? number.longValue() : null;
   }
 }
 

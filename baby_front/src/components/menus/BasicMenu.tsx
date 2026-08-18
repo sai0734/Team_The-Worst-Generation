@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import { Link } from "react-router-dom";
+import useCurrentProfile from "../../hooks/useCurrentProfile";
 import type { RootState } from "../../store";
 
 interface SubItem {
@@ -30,10 +31,8 @@ const NAV_ITEMS: NavItem[] = [
     label: "응애관리",
     to: "/babyInfo",
     subItems: [
-      { label: "아이등록", to: "/babyInfo/input" },
-      { label: "대시보드", to: "/babyInfo" },
+      { label: "우리아이", to: "/babyInfo" },
       { label: "육아일기", to: "/diary" },
-      { label: "성장앨범", to: "/album" },
     ],
   },
   {
@@ -81,6 +80,7 @@ const NAV_ITEMS: NavItem[] = [
 
 const BasicMenu = () => {
   const loginState = useSelector((state: RootState) => state.loginSlice);
+  const currentProfile = useCurrentProfile();
   const [hovered, setHovered] = useState<string | null>(null);
   const [subnavLeft, setSubnavLeft] = useState<number | undefined>(undefined);
   const topWrapRef = useRef<HTMLElement | null>(null);
@@ -102,7 +102,11 @@ const BasicMenu = () => {
 
   return (
     <>
-      <header className="top-wrap" ref={topWrapRef} onMouseLeave={() => setHovered(null)}>
+      <header
+        className="top-wrap"
+        ref={topWrapRef}
+        onMouseLeave={() => setHovered(null)}
+      >
         <div className="top">
           <Link className="logo" to="/main" onClick={closeSubnav}>
             <b>아이봄</b>
@@ -127,11 +131,20 @@ const BasicMenu = () => {
 
           <div className="top-right">
             <div className="account">
-              <Link to="/mypage">마이페이지</Link>
               {loginState.email ? (
-                <Link to="/member/logout">로그아웃</Link>
+                <>
+                  <Link className="current-profile-link" to="/member/profiles" aria-label="현재 프로필 변경">
+                    <span className="current-profile-dot" aria-hidden="true" />
+                    <span className="current-profile-copy">
+                      <small>현재 프로필</small>
+                      <strong>{currentProfile?.profileName ?? "프로필 선택"}</strong>
+                    </span>
+                  </Link>
+                  <Link className="account-link" to="/mypage">마이페이지</Link>
+                  <Link className="account-primary" to="/member/logout">로그아웃</Link>
+                </>
               ) : (
-                <Link to="/member/login">로그인</Link>
+                <Link className="account-primary" to="/member/login">로그인</Link>
               )}
             </div>
           </div>

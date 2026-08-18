@@ -37,11 +37,13 @@ export interface AssistRecommendRequest {
 export interface AssistRecommendResponse {
   answer: string;
   items: AssistItem[];
+  updatedAt?: string;
 }
 
 export interface AssistRegion {
   regionSido: string;
   regionSigungu: string;
+  babyMonths?: number | null;
 }
 
 const prefix = "http://localhost:8080/api/assistant";
@@ -66,5 +68,10 @@ export const assistantApi = {
 
   saveRegion: async (payload: AssistRegion): Promise<void> => {
     await jwtAxios.put(`${prefix}/region`, payload);
+  },
+
+  refresh: async (): Promise<AssistRecommendResponse> => {
+    const res = await jwtAxios.post(`${prefix}/refresh`);
+    return res.data;
   },
 };

@@ -215,19 +215,36 @@
 }
 .app .account {
   display: flex;
+  align-items: center;
   justify-content: flex-end;
   gap: 8px;
   font-size: 12px;
   font-weight: 700;
 }
-.app .account a {
+.app .account > a {
   padding: 10px 13px;
   border-radius: 99px;
 }
-.app .account a:last-child {
+.app .account .account-primary {
   background: var(--accent);
   color: #fff;
 }
+.app .account .current-profile-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: rgba(255,255,255,.68);
+  transition: border-color .18s ease, background .18s ease;
+}
+.app .account .current-profile-link:hover { border-color: rgba(0,91,178,.3); background: #fff; }
+.app .current-profile-dot { width: 8px; height: 8px; border-radius: 50%; background: #34a574; box-shadow: 0 0 0 4px rgba(52,165,116,.12); }
+.app .current-profile-copy { display: flex; flex-direction: column; gap: 1px; line-height: 1.15; }
+.app .current-profile-copy small { color: var(--muted); font-size: 9px; font-weight: 700; }
+.app .current-profile-copy strong { max-width: 90px; overflow: hidden; color: var(--ink); font-size: 11px; font-weight: 900; text-overflow: ellipsis; white-space: nowrap; }
+.app .account > a:focus-visible { outline: 3px solid rgba(0,91,178,.2); outline-offset: 2px; }
 .app .stage {
   height: calc(100vh - 78px);
   min-height: 650px;
@@ -242,6 +259,48 @@
   justify-content: space-between;
   position: relative;
   overflow-y: auto;
+}
+.app input[type="date"]::-webkit-calendar-picker-indicator,
+.app input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  border-radius: 6px;
+  padding: 3px;
+  margin-right: -2px;
+  transition: background-color 0.15s ease;
+}
+.app input[type="date"]::-webkit-calendar-picker-indicator:hover,
+.app input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
+  background-color: rgba(90, 178, 255, 0.15);
+}
+.app .side-menu-layout {
+  display: flex;
+  gap: 32px;
+}
+.app .side-menu {
+  flex-shrink: 0;
+  width: 180px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.app .side-menu-item {
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--muted);
+}
+.app .side-menu-item:hover {
+  background: var(--hover);
+  color: var(--ink);
+}
+.app .side-menu-item.active {
+  background: var(--soft);
+  color: var(--accent);
+}
+.app .side-menu-content {
+  flex: 1;
+  min-width: 0;
 }
 .app .eyebrow {
   font-size: 11px;
@@ -404,20 +463,82 @@
   opacity: 1;
 }
 
+.app .home-hero-group {
+  width: min(1040px, 100%);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
 .app .home-hero {
   position: relative;
-  overflow: visible;
-  width: min(1040px, 100%);
+  overflow: hidden;
+  width: 100%;
+  min-height: clamp(160px, 24vh, 240px);
   margin: 0 auto;
   display: flex;
   align-items: center;
   justify-content: flex-start;
   gap: 28px;
-  padding: 4px clamp(18px, 3vw, 28px);
-  border-radius: 20px;
-  background: linear-gradient(172deg, #ebf4ff 0%, #fff9f5 100%);
-  border: 1px solid var(--line);
-  box-shadow: 0 4px 20px rgba(0, 91, 178, 0.05);
+  padding: clamp(20px, 3vh, 32px) clamp(24px, 3vw, 36px);
+  border-radius: 30px;
+  background: linear-gradient(
+    150deg,
+    rgba(255, 255, 255, 0.3) 0%,
+    rgba(255, 255, 255, 0.12) 55%,
+    rgba(255, 255, 255, 0.05) 100%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(24px) saturate(200%) brightness(1.1);
+  -webkit-backdrop-filter: blur(24px) saturate(200%) brightness(1.1);
+  box-shadow:
+    0 16px 40px rgba(90, 100, 160, 0.14),
+    inset 0 1.5px 0 rgba(255, 255, 255, 0.95),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.25),
+    inset 0 -14px 22px -16px rgba(90, 100, 160, 0.2),
+    inset 10px 10px 20px -18px rgba(255, 255, 255, 0.8);
+}
+.app .home-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: linear-gradient(
+    140deg,
+    rgba(255, 255, 255, 0.95) 0%,
+    rgba(255, 255, 255, 0.15) 28%,
+    rgba(255, 255, 255, 0) 55%,
+    rgba(255, 255, 255, 0.55) 100%
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  z-index: 1;
+}
+.app .home-hero::after {
+  content: "";
+  position: absolute;
+  inset: -25%;
+  background:
+    radial-gradient(circle at 22% 25%, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0) 38%),
+    linear-gradient(120deg, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0) 55%);
+  background-repeat: no-repeat;
+  background-size: 140% 140%, 90% 220%;
+  background-position:
+    0% 0%,
+    -10% -10%;
+  transform: rotate(18deg);
+  pointer-events: none;
+  z-index: 1;
+  animation: liquid-shine 9s ease-in-out infinite;
+}
+.app .home-hero-text {
+  position: relative;
+  z-index: 2;
 }
 .app .home-hero-blob {
   position: absolute;
@@ -454,10 +575,6 @@
     transform: translate(-10px, 10px) scale(0.97);
   }
 }
-.app .home-hero-text {
-  position: relative;
-  z-index: 1;
-}
 .app .home-hero-art {
   position: relative;
   z-index: 1;
@@ -479,6 +596,26 @@
   50% {
     transform: translateY(-10px);
   }
+}
+.app .home-sky-baby {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: clamp(240px, 22vw, 320px);
+  height: clamp(360px, 50vh, 460px);
+  object-fit: contain;
+  object-position: bottom left;
+  z-index: 1;
+  opacity: 0;
+  transform: translateY(20px) scale(0.94);
+  transition:
+    opacity 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.5s,
+    transform 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.5s;
+}
+.app .home-sky-baby.in-view {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  animation: home-art-bob 5s ease-in-out 1.4s infinite;
 }
 .app .home-hero--guest {
   margin-top: 4vh;
@@ -525,15 +662,30 @@
   flex-shrink: 0;
 }
 
-/* 마러크 텔리커 */
-.app .home-marquee {
-  width: min(1040px, 100%);
-  margin: 2px auto;
+/* 기차 모양 마퀴 텔리커 - 기관차가 끌고가는 객차 창문 안으로 글씨가 흘러감 */
+.app .home-train {
+  width: 100%;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.app .home-train-engine {
+  flex-shrink: 0;
+  font-size: 26px;
+  line-height: 1;
+  filter: drop-shadow(0 3px 6px rgba(0, 45, 90, 0.18));
+  animation: home-train-chug 1.4s ease-in-out infinite;
+}
+.app .home-train-car {
+  position: relative;
+  flex: 1;
+  min-width: 0;
   overflow: hidden;
-  border-top: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
+  border: 2px solid var(--accent);
+  border-radius: 14px;
   background: var(--soft);
-  padding: 3px 0;
+  padding: 5px 14px;
   white-space: nowrap;
 }
 .app .home-marquee-track {
@@ -546,6 +698,35 @@
   font-weight: 800;
   color: var(--accent);
   letter-spacing: 0.4px;
+}
+.app .home-train-wheel {
+  position: absolute;
+  bottom: -5px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 2px var(--bg);
+  animation: home-train-chug 1.4s ease-in-out infinite;
+}
+.app .home-train-wheel.w1 {
+  left: 12%;
+}
+.app .home-train-wheel.w2 {
+  left: 50%;
+  animation-delay: 0.1s;
+}
+.app .home-train-wheel.w3 {
+  left: 88%;
+  animation-delay: 0.2s;
+}
+@keyframes home-train-chug {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-2px);
+  }
 }
 @keyframes home-marquee {
   from {
@@ -565,7 +746,7 @@
     "tip    tip"
     "quest  ledger"
     "assist recall";
-  gap: 4px;
+  gap: 16px;
 }
 .app .area-tip {
   grid-area: tip;
@@ -586,7 +767,7 @@
 }
 
 .app .home-grid .card {
-  padding: 5px 10px;
+  padding: 18px 20px;
   transition:
     transform 0.3s cubic-bezier(0.16, 1, 0.3, 1),
     box-shadow 0.3s cubic-bezier(0.16, 1, 0.3, 1),
@@ -599,6 +780,210 @@
 }
 .app .home-grid .head {
   margin-bottom: 3px;
+}
+
+/* 구름 위 하늘 배경 (대시보드 전체 배경) - 랜딩페이지 낮/밤 타임라인과 어울리는 톤 */
+.app .home-sky-bg {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 0;
+  background: linear-gradient(180deg, #bfe0ff 0%, #dceeff 30%, #f6ecff 62%, #fff7ec 100%);
+}
+.app .home-content {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.app .sky-emoji {
+  position: absolute;
+  user-select: none;
+  filter: drop-shadow(0 4px 10px rgba(0, 45, 90, 0.12));
+}
+.app .sky-sun {
+  top: 5%;
+  left: 6%;
+  font-size: 36px;
+  animation: sky-bob 6s ease-in-out infinite;
+}
+.app .sky-moon {
+  top: 7%;
+  right: 8%;
+  font-size: 30px;
+  animation: sky-bob 7s ease-in-out infinite 0.6s;
+}
+.app .sky-star {
+  font-size: 14px;
+  animation: sky-twinkle 2.4s ease-in-out infinite;
+}
+.app .sky-star.s1 {
+  top: 16%;
+  left: 28%;
+}
+.app .sky-star.s2 {
+  top: 6%;
+  left: 48%;
+  font-size: 18px;
+  animation-delay: 0.6s;
+}
+.app .sky-star.s3 {
+  top: 20%;
+  right: 24%;
+  animation-delay: 1.2s;
+}
+.app .sky-star.s4 {
+  top: 60%;
+  right: 6%;
+  font-size: 16px;
+  animation-delay: 1.8s;
+}
+.app .sky-cloud {
+  top: 3%;
+  font-size: 46px;
+  opacity: 0.85;
+}
+.app .sky-cloud.c1 {
+  left: 40%;
+  animation: sky-drift 32s linear infinite;
+}
+.app .sky-cloud.c2 {
+  top: 22%;
+  left: -12%;
+  font-size: 60px;
+  opacity: 0.7;
+  animation: sky-drift 42s linear infinite -10s;
+}
+.app .sky-cloud.c3 {
+  top: 45%;
+  left: 12%;
+  font-size: 36px;
+  opacity: 0.55;
+  animation: sky-drift 50s linear infinite -24s;
+}
+.app .sky-cloud.c4 {
+  top: 70%;
+  left: 60%;
+  font-size: 42px;
+  opacity: 0.5;
+  animation: sky-drift 46s linear infinite -6s;
+}
+@keyframes sky-bob {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+@keyframes sky-twinkle {
+  0%, 100% {
+    opacity: 0.35;
+    transform: scale(0.9);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+}
+@keyframes sky-drift {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(130vw);
+  }
+}
+/* 리퀴드 글라스 카드 - 카드 자체엔 색을 넣지 않음. 뒤에 깔린 하늘 배경(구름/해/달)이
+   backdrop-filter로 블러/투과되면서 자연스럽게 색이 비쳐 보이는 방식 (진짜 유리처럼) */
+.app .home-content .home-grid .card {
+  position: relative;
+  overflow: hidden;
+  border-radius: 30px;
+  background: linear-gradient(
+    150deg,
+    rgba(255, 255, 255, 0.3) 0%,
+    rgba(255, 255, 255, 0.12) 55%,
+    rgba(255, 255, 255, 0.05) 100%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(24px) saturate(200%) brightness(1.1);
+  -webkit-backdrop-filter: blur(24px) saturate(200%) brightness(1.1);
+  box-shadow:
+    0 16px 40px rgba(90, 100, 160, 0.14),
+    inset 0 1.5px 0 rgba(255, 255, 255, 0.95),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.25),
+    inset 0 -14px 22px -16px rgba(90, 100, 160, 0.2),
+    inset 10px 10px 20px -18px rgba(255, 255, 255, 0.8);
+}
+.app .home-content .home-grid .card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1.5px;
+  background: linear-gradient(
+    140deg,
+    rgba(255, 255, 255, 0.95) 0%,
+    rgba(255, 255, 255, 0.15) 28%,
+    rgba(255, 255, 255, 0) 55%,
+    rgba(255, 255, 255, 0.55) 100%
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  z-index: 1;
+}
+.app .home-content .home-grid .card::after {
+  content: "";
+  position: absolute;
+  inset: -25%;
+  background:
+    radial-gradient(circle at 28% 22%, rgba(255, 255, 255, 0.5) 0%, rgba(255, 255, 255, 0) 38%),
+    linear-gradient(120deg, rgba(255, 255, 255, 0.4) 0%, rgba(255, 255, 255, 0) 55%);
+  background-repeat: no-repeat;
+  background-size: 140% 140%, 90% 220%;
+  background-position:
+    0% 0%,
+    -10% -10%;
+  transform: rotate(18deg);
+  pointer-events: none;
+  z-index: 1;
+  animation: liquid-shine 9s ease-in-out infinite;
+}
+@keyframes liquid-shine {
+  0%, 100% {
+    opacity: 0.3;
+    background-position:
+      0% 0%,
+      -10% -10%;
+  }
+  50% {
+    opacity: 0.55;
+    background-position:
+      30% 22%,
+      45% 20%;
+  }
+}
+.app .home-content .home-grid .card:hover {
+  border-color: rgba(255, 255, 255, 0.85);
+  box-shadow:
+    0 18px 42px rgba(90, 100, 160, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.3),
+    inset 0 -10px 18px -14px rgba(90, 100, 160, 0.16);
+}
+/* 카드 실제 내용은 항상 하이라이트/테두리 장식 레이어보다 위에 그려지도록 고정
+   (이게 없으면 반짝임이 밝아질 때마다 글씨가 가려져서 흐려졌다 진해졌다 하는 것처럼 보임) */
+.app .home-content .home-grid .card > * {
+  position: relative;
+  z-index: 2;
 }
 
 .app .home-progress-track {
@@ -733,21 +1118,22 @@
 }
 
 .app .home-tip-card {
-  background: var(--accent);
-  color: #fff;
+  color: var(--ink);
   position: relative;
   overflow: hidden;
 }
 .app .home-tip-label {
   font-size: 10px;
   font-weight: 800;
-  opacity: 0.85;
+  color: var(--accent);
+  opacity: 0.9;
   margin: 0 0 2px;
 }
 .app .home-tip-text {
   font-size: 11px;
   line-height: 1.4;
   margin: 0;
+  color: var(--ink);
 }
 .app .area-tip.card {
   padding: 5px 11px;
@@ -1319,6 +1705,11 @@
   opacity: 0.4;
   cursor: not-allowed;
 }
+.app .ledger-pagination .entry-action-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
 .app .ledger-pagination-status {
   font-size: 12px;
   font-weight: 800;
@@ -1436,6 +1827,562 @@
   color: #fff;
 }
 
+/* ===== 커뮤니티 (자유게시판) ===== */
+.app .community-page {
+  width: min(760px, 100%);
+  margin: 0 auto;
+}
+.app .community-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 20px;
+}
+.app .community-tab {
+  padding: 10px 18px;
+  border-radius: 99px;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--muted);
+}
+.app .community-tab:hover {
+  color: var(--accent);
+}
+.app .community-tab.active {
+  background: var(--accent);
+  color: #fff;
+}
+.app .community-search {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+.app .community-search input {
+  flex: 1;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--glass);
+  font-size: 13px;
+  color: var(--ink);
+  font-family: inherit;
+}
+.app .community-search input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.app .community-list {
+  display: grid;
+  gap: 10px;
+}
+.app .community-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease;
+}
+.app .community-item:hover {
+  transform: translateY(-2px);
+  border-color: rgba(0, 91, 178, 0.3);
+}
+.app .community-item .title {
+  font-size: 15px;
+  font-weight: 800;
+}
+.app .community-item .excerpt {
+  font-size: 12px;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.app .community-item .meta {
+  font-size: 11px;
+  color: var(--muted);
+}
+.app .community-item .title-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.app .community-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 9px;
+  border-radius: 99px;
+  font-size: 10px;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+.app .community-badge.free {
+  background: var(--soft);
+  color: var(--accent);
+}
+.app .community-badge.question {
+  background: #fff4d6;
+  color: #b8860b;
+}
+.app .community-badge.review {
+  background: #ffe1de;
+  color: #ef6262;
+}
+
+.app .community-detail-title {
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+  margin: 0 0 6px;
+}
+.app .community-detail-meta {
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 16px;
+}
+.app .community-media {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.app .community-media img,
+.app .community-media video {
+  max-height: 260px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+}
+.app .community-content {
+  font-size: 14px;
+  line-height: 1.75;
+  white-space: pre-wrap;
+  margin-bottom: 16px;
+}
+.app .community-summary {
+  background: var(--soft);
+  padding: 12px 14px;
+  border-radius: 14px;
+  font-size: 12px;
+  color: var(--ink);
+  margin-bottom: 16px;
+}
+.app .community-actions {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.app .community-comment-section h3 {
+  font-size: 14px;
+  font-weight: 800;
+  margin: 0 0 10px;
+}
+.app .community-comment-form {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.app .community-comment-form input[type="text"] {
+  flex: 1;
+  min-width: 160px;
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--glass);
+  font-size: 13px;
+  font-family: inherit;
+  color: var(--ink);
+}
+.app .community-comment-form input[type="text"]:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.app .community-comment-form input[type="file"] {
+  font-size: 11px;
+  max-width: 160px;
+}
+.app .community-comment-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+.app .community-comment {
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--hover);
+}
+.app .community-comment.reply {
+  margin-left: 26px;
+  background: transparent;
+  border-left: 2px solid var(--line);
+  border-radius: 0;
+  padding: 6px 0 6px 14px;
+}
+.app .community-comment.deleted {
+  color: var(--muted);
+  font-size: 12px;
+}
+.app .community-comment .nickname {
+  font-size: 12px;
+  font-weight: 800;
+}
+.app .community-comment .content {
+  font-size: 13px;
+  margin-top: 2px;
+  line-height: 1.5;
+}
+.app .community-comment .comment-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 6px;
+  font-size: 11px;
+}
+.app .community-comment .comment-actions button {
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  padding: 0;
+}
+.app .community-comment .comment-actions button:hover {
+  color: var(--accent);
+}
+.app .community-reply-form {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  flex-wrap: wrap;
+}
+.app .community-reply-form input[type="text"] {
+  flex: 1;
+  min-width: 140px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--glass);
+  font-size: 12px;
+  font-family: inherit;
+  color: var(--ink);
+}
+.app .community-media-item {
+  position: relative;
+}
+.app .community-media-remove {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  border: 0;
+  border-radius: 99px;
+  background: rgba(10, 20, 35, 0.6);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 8px;
+  cursor: pointer;
+}
+
+/* ===== 베이비시터 ===== */
+.app .sitter-tab-groups {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.app .sitter-tab-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 10px;
+  border-radius: 14px;
+  background: var(--glass);
+  border: 1px solid var(--line);
+}
+.app .sitter-tab-group-label {
+  font-size: 10px;
+  font-weight: 900;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  padding: 0 2px;
+}
+.app .sitter-tab-group-tabs {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+.app .sitter-tab-chip {
+  padding: 7px 12px;
+  border-radius: 99px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--ink);
+  background: var(--hover);
+  white-space: nowrap;
+}
+.app .sitter-tab-chip:hover {
+  color: var(--accent);
+}
+.app .sitter-tab-chip.active {
+  background: var(--accent);
+  color: #fff;
+}
+.app .sitter-filter-bar {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.app .sitter-filter-bar input,
+.app .sitter-filter-bar select {
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--glass);
+  font-size: 13px;
+  font-family: inherit;
+  color: var(--ink);
+}
+.app .sitter-filter-bar input:focus,
+.app .sitter-filter-bar select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.app .sitter-location-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.app .sitter-location-row input {
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--glass);
+  font-size: 12px;
+  font-family: inherit;
+  color: var(--ink);
+}
+.app .sitter-list {
+  display: grid;
+  gap: 10px;
+}
+.app .sitter-row {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease;
+}
+.app .sitter-row:hover {
+  transform: translateY(-2px);
+  border-color: rgba(0, 91, 178, 0.3);
+}
+.app .sitter-avatar {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 1px solid var(--line);
+}
+.app .sitter-row-body {
+  flex: 1;
+  min-width: 0;
+}
+.app .sitter-row .name-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 15px;
+  font-weight: 800;
+}
+.app .sitter-row .meta {
+  font-size: 12px;
+  color: var(--muted);
+  margin-top: 3px;
+}
+/* 시터 등급 Lv.1~Lv.10 (부모가 실제 선정한 횟수 기준) - 낮은 레벨은 차분한 색, 높은 레벨로 갈수록 선명해짐 */
+.app .community-badge.grade-lv-1 {
+  background: #eef0f2;
+  color: #6b7280;
+}
+.app .community-badge.grade-lv-2 {
+  background: #e9f6ee;
+  color: #2f9e44;
+}
+.app .community-badge.grade-lv-3 {
+  background: #dcf5e5;
+  color: #199156;
+}
+.app .community-badge.grade-lv-4 {
+  background: #d9f7f0;
+  color: #0f9488;
+}
+.app .community-badge.grade-lv-5 {
+  background: #ddeeff;
+  color: #1c64f2;
+}
+.app .community-badge.grade-lv-6 {
+  background: #e3e0ff;
+  color: #5b4fd1;
+}
+.app .community-badge.grade-lv-7 {
+  background: #f1e0ff;
+  color: #8b3fd1;
+}
+.app .community-badge.grade-lv-8 {
+  background: #ffe1f3;
+  color: #d1339e;
+}
+.app .community-badge.grade-lv-9 {
+  background: #ffe8d1;
+  color: #d97a15;
+}
+.app .community-badge.grade-lv-10 {
+  background: #fff0c2;
+  color: #a8710a;
+}
+.app .badge.pending {
+  background: var(--hover);
+  color: var(--muted);
+}
+
+.app .sitter-detail-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 8px;
+}
+.app .sitter-avatar-lg {
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--line);
+  flex-shrink: 0;
+}
+.app .sitter-detail-header h2 {
+  font-size: 20px;
+  font-weight: 900;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+}
+.app .sitter-detail-meta {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 10px 0;
+  line-height: 1.7;
+}
+.app .sitter-detail-intro {
+  font-size: 14px;
+  line-height: 1.75;
+  white-space: pre-wrap;
+  margin: 14px 0;
+}
+.app .sitter-availability-table {
+  border-collapse: collapse;
+  margin: 8px 0 16px;
+  font-size: 12px;
+}
+.app .sitter-availability-table th,
+.app .sitter-availability-table td {
+  padding: 6px 10px;
+  text-align: center;
+  border: 1px solid var(--line);
+}
+.app .sitter-availability-table th {
+  background: var(--soft);
+  color: var(--accent);
+  font-weight: 800;
+}
+.app .sitter-actions {
+  display: flex;
+  gap: 8px;
+  margin: 14px 0;
+  flex-wrap: wrap;
+}
+.app .sitter-review-list {
+  display: grid;
+  gap: 10px;
+}
+.app .sitter-review {
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--hover);
+}
+.app .sitter-review .head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 800;
+}
+.app .sitter-review .rating {
+  color: #f5a623;
+}
+.app .sitter-review .content {
+  font-size: 13px;
+  margin-top: 4px;
+  color: var(--ink);
+}
+.app .sitter-back-link {
+  margin-top: 18px;
+}
+.app .sitter-nearby-split {
+  display: grid;
+  grid-template-columns: minmax(320px, 420px) 1fr;
+  gap: 20px;
+  align-items: start;
+}
+.app .sitter-nearby-list-pane {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.app .sitter-map-canvas {
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+}
+@media (max-width: 980px) {
+  .app .sitter-nearby-split {
+    grid-template-columns: 1fr;
+  }
+}
+.app .sitter-toolbar-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.app .sitter-toolbar-row .sitter-location-row {
+  margin-bottom: 0;
+}
+.app .sitter-detail-card {
+  margin-bottom: 16px;
+}
+.app .sitter-detail-stats {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+
 @media (max-width: 900px) {
   .app .ledger-top-grid {
     grid-template-columns: 1fr;
@@ -1499,9 +2446,9 @@
     padding: 0;
     justify-content: center;
   }
-  .app .account a:first-child {
-    display: none;
-  }
+  .app .account-link { display: none; }
+  .app .current-profile-copy small { display: none; }
+  .app .account .current-profile-link { padding: 8px 10px; }
   .app .primary-nav {
     display: none;
   }

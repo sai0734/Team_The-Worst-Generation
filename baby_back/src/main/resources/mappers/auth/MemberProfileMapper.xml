@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.backend.auth.profile.mapper.MemberProfileMapper">
+
+    <select id="selectByProfileId" resultType="com.backend.auth.profile.domain.MemberProfile">
+        SELECT profile_id, member_email, profile_name, parent_type,
+        profile_image_file_name, active, reg_time, mod_time
+        FROM tbl_member_profile
+        WHERE profile_id = #{profileId}
+        AND active = TRUE
+    </select>
+
+    <select id="selectListByMemberEmail" resultType="com.backend.auth.profile.domain.MemberProfile">
+        SELECT profile_id, member_email, profile_name, parent_type,
+        profile_image_file_name, active, reg_time, mod_time
+        FROM tbl_member_profile
+        WHERE member_email = #{memberEmail}
+        AND active = TRUE
+        ORDER BY reg_time ASC
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="profileId" keyColumn="profile_id">
+        INSERT INTO tbl_member_profile (
+        member_email, profile_name, parent_type, profile_image_file_name, active
+        )
+        VALUES (
+        #{memberEmail}, #{profileName}, #{parentType}, #{profileImageFileName}, #{active}
+        )
+    </insert>
+
+    <update id="update">
+        UPDATE tbl_member_profile
+        SET profile_name = #{profileName},
+        parent_type = #{parentType},
+        profile_image_file_name = #{profileImageFileName},
+        mod_time = CURRENT_TIMESTAMP
+        WHERE profile_id = #{profileId}
+        AND member_email = #{memberEmail}
+        AND active = TRUE
+    </update>
+
+    <update id="deactivate">
+        UPDATE tbl_member_profile
+        SET active = FALSE,
+        mod_time = CURRENT_TIMESTAMP
+        WHERE profile_id = #{profileId}
+    </update>
+
+</mapper>

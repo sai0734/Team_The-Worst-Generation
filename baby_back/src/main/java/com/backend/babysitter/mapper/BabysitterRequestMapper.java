@@ -17,6 +17,8 @@ public interface BabysitterRequestMapper {
 
     List<BabysitterRequest> selectListByParent(@Param("parentEmail") String parentEmail);
 
+    long countAcceptedBySitter(@Param("sitterEmail") String sitterEmail);
+
     void insert(BabysitterRequest request);
 
     void updateStatus(@Param("requestNo") Long requestNo, @Param("status") BabysitterRequestStatus status);

@@ -16,6 +16,7 @@ export interface BabyDiary {
 
 export interface DiaryListParam extends PageRequestParam {
   babyNo: number;
+  keyword?: string;
 }
 
 export const getViewUrl = (fileName: string): string =>
@@ -55,6 +56,17 @@ export const modify = async (
 
 export const remove = async (diaryNo: number): Promise<{ diaryNo: number }> => {
   const res = await jwtAxios.delete(`${prefix}/${diaryNo}`);
+
+  return res.data;
+};
+
+export const generateContent = async (file: File): Promise<{ content: string }> => {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const res = await jwtAxios.post(`${prefix}/generate`, formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
 
   return res.data;
 };
