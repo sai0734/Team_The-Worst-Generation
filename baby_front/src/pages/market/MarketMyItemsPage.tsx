@@ -1,14 +1,16 @@
 import BasicLayout from "../../layouts/BasicLayout";
-import MarketSubNav from "../../components/market/MarketSubNav";
+import SideMenuLayout from "../../layouts/SideMenuLayout";
+import { LINKS } from "../../components/market/MarketSubNav";
 import MarketMyItemsComponent from "../../components/market/MarketMyItemsComponent";
+import SkyBackground from "../../components/common/SkyBackground";
 
 const MarketMyItemsPage = () => {
   return (
     <BasicLayout>
-      <div>
-        <MarketSubNav />
+      <SkyBackground />
+      <SideMenuLayout items={LINKS} className="page-sky-content">
         <MarketMyItemsComponent />
-      </div>
+      </SideMenuLayout>
     </BasicLayout>
   );
 };

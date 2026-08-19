@@ -25,6 +25,7 @@ const CommunityIndex = lazy(
 const AllergyIndex = lazy(() => import("../pages/allergy/AllergyIndexPage"));
 const HealthIndex = lazy(() => import("../pages/health/HealthIndexPage"));
 const MainOnly = lazy(() => import("../pages/landing/MainOnlyPage"));
+const AiIndex = lazy(() => import("../pages/ai/AiIndexPage"));
 
 const root = createBrowserRouter([
   {
@@ -130,6 +131,11 @@ const root = createBrowserRouter([
   },
   {
     path: "ai",
+    element: (
+      <Suspense fallback={Loading}>
+        <AiIndex />
+      </Suspense>
+    ),
     children: cryCheckRouter(),
   },
 ]);
