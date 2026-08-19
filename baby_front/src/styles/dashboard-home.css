@@ -12,6 +12,8 @@
   flex-direction: column;
   gap: 4px;
   min-width: 0;
+  /* 옆 "오늘의 할 일" 카드와 높이를 맞춰서, 카드 두 개(가계부/리콜)가 그 높이를 나눠 채우게 함 */
+  align-self: stretch;
 }
 
 .app .home-grid.home-grid-v2 .area-ledger,
@@ -21,6 +23,8 @@
 
 .app .home-grid.home-grid-v2 .home-side-card {
   height: auto;
+  /* 내용 크기부터 시작해서(auto), 남는 세로 공간은 두 카드가 나눠 가짐 */
+  flex: 1 1 auto;
 }
 
 .app .home-grid.home-grid-v2 .area-assist {

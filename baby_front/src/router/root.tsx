@@ -16,6 +16,7 @@ import hospitalRouter from "./hospitalRouter";
 
 const Loading = <div>Loading....</div>;
 const Dashboard = lazy(() => import("../pages/DashboardPage"));
+const MainOnly = lazy(() => import("../pages/landing/MainOnlyPage"));
 const About = lazy(() => import("../pages/AboutPage"));
 const BabyInfoIndex = lazy(() => import("../pages/babyInfo/BabyInfoIndexPage"));
 const DiaryIndex = lazy(() => import("../pages/diary/DiaryIndexPage"));
@@ -24,7 +25,6 @@ const CommunityIndex = lazy(
 );
 const AllergyIndex = lazy(() => import("../pages/allergy/AllergyIndexPage"));
 const HealthIndex = lazy(() => import("../pages/health/HealthIndexPage"));
-const MainOnly = lazy(() => import("../pages/landing/MainOnlyPage"));
 const AiIndex = lazy(() => import("../pages/ai/AiIndexPage"));
 
 const root = createBrowserRouter([

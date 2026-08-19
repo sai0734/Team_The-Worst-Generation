@@ -119,7 +119,7 @@ const BabysitterLayoutPage = () => {
             지원내역
           </NavLink>
           <NavLink to="/community/babysitter/requests/received" className={subtabClass}>
-            받은 요청
+            요청내역
           </NavLink>
         </div>
       )}
