@@ -17,6 +17,7 @@ import hospitalRouter from "./hospitalRouter";
 const Loading = <div>Loading....</div>;
 const Main = lazy(() => import("../pages/MainPage"));
 const Dashboard = lazy(() => import("../pages/DashboardPage"));
+const MainOnly = lazy(() => import("../pages/landing/MainOnlyPage"));
 const About = lazy(() => import("../pages/AboutPage"));
 const BabyInfoIndex = lazy(() => import("../pages/babyInfo/BabyInfoIndexPage"));
 const DiaryIndex = lazy(() => import("../pages/diary/DiaryIndexPage"));
@@ -37,7 +38,11 @@ const root = createBrowserRouter([
   },
   {
     path: "/main",
-    element: <Suspense fallback={Loading}></Suspense>,
+    element: (
+      <Suspense fallback={Loading}>
+        <MainOnly />
+      </Suspense>
+    ),
   },
   {
     path: "/dashboard",

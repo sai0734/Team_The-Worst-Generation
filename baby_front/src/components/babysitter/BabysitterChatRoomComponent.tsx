@@ -9,6 +9,7 @@ import { TIME_SLOT_LABELS, REQUEST_STATUS_LABELS } from "../../api/babysitterApi
 import type { TimeSlot, DayOfWeek, BabysitterProfile, BabysitterRequest } from "../../api/babysitterApi";
 import useCustomLogin from "../../hooks/useCustomLogin";
 import { getAccessToken } from "../../util/accessTokenStore";
+import MiniCalendar from "../common/MiniCalendar";
 import "../../styles/market.css";
 
 const API_SERVER_HOST = "http://localhost:8080";
@@ -162,6 +163,10 @@ const BabysitterChatRoomComponent = () => {
   const dateHasNoSlot = !isSitterHere && !!requestDate && currentSlots.length === 0;
   const dateIsBooked = !isSitterHere && !!requestDate && bookedDates.includes(requestDate);
   const canSubmitRequest = !!requestDate && !dateHasNoSlot && !dateIsBooked;
+
+  // 달력에서 회색으로 막을 날짜: 시터가 그 요일엔 아예 가능 시간이 없거나, 이미 예약이 찬 날짜
+  const isDateBlocked = (dateStr: string): boolean =>
+    availableSlotsForDate(dateStr).length === 0 || bookedDates.includes(dateStr);
 
   const handleSend = () => {
     if (!input.trim() || !clientRef.current || !connected) return;
@@ -351,12 +356,14 @@ const BabysitterChatRoomComponent = () => {
             <form onSubmit={handleSubmitRequest} className="recall-form" style={{ marginTop: 10 }}>
               <div className="field">
                 <label>희망 날짜</label>
-                <input
-                  type="date"
+                <MiniCalendar
                   value={requestDate}
-                  onChange={(e) => handleDateChange(e.target.value)}
-                  required
+                  onChange={handleDateChange}
+                  isDateDisabled={isDateBlocked}
                 />
+                {requestDate && (
+                  <p className="field-hint">선택한 날짜: {requestDate}</p>
+                )}
                 {dateHasNoSlot && (
                   <p className="field-hint" style={{ color: "#ef6262" }}>
                     이 날짜엔 시터가 가능한 시간이 없어요.
