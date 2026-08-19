@@ -3,6 +3,7 @@ import {
   ObjectDetector,
   type ObjectDetectorResult,
 } from "@mediapipe/tasks-vision";
+import * as homeCamApi from "../api/homeCamApi";
 
 // MediaPipe wasm 런타임 + 모델 파일은 최초 1회만 CDN에서 받아오고(브라우저 캐시됨),
 // 그 이후 실제 프레임 인식은 전부 로컬(WASM)에서 돌아감 - 프레임마다 네트워크/과금 없음.
@@ -15,7 +16,6 @@ const DETECTION_SCORE_THRESHOLD = 0.5;
 // 사람이 안전영역 밖(또는 아예 인식 안 됨) 상태로 이만큼 연속 프레임 유지되면 알림
 // (대략 초당 20~30프레임 기준 0.3~0.5초 정도 - 순간적인 오탐/미인식은 무시)
 const OUT_OF_ZONE_FRAME_THRESHOLD = 15;
-const SAFE_ZONE_STORAGE_KEY = "homecam-safe-zone";
 
 export interface HomeCamDetection {
   categoryName: string;
@@ -49,21 +49,12 @@ export interface HomeCamSnapshot {
 
 type Listener = () => void;
 
-const loadStoredSafeZone = (): SafeZoneRatio | null => {
-  try {
-    const raw = localStorage.getItem(SAFE_ZONE_STORAGE_KEY);
-    return raw ? (JSON.parse(raw) as SafeZoneRatio) : null;
-  } catch {
-    return null;
-  }
-};
-
 let snapshot: HomeCamSnapshot = {
   isMonitoring: false,
   isViewing: false,
   stream: null,
   detections: [],
-  safeZone: loadStoredSafeZone(),
+  safeZone: null,
   isAlertActive: false,
   error: null,
 };
@@ -72,6 +63,23 @@ const listeners = new Set<Listener>();
 let viewerCount = 0;
 let acquiring: Promise<MediaStream> | null = null;
 let outOfZoneStreak = 0;
+let safeZoneFetched = false;
+
+// 서버에 저장된 안전영역을 최초 1회만 불러옴 (로그인 안 된 상태로 호출되면 그냥 무시하고
+// 다음에 감시/보기를 시작할 때 다시 시도함)
+const fetchSafeZoneFromServer = async () => {
+  if (safeZoneFetched) return;
+
+  try {
+    const zone = await homeCamApi.getSafeZone();
+    safeZoneFetched = true;
+    if (zone) {
+      setSnapshot({ safeZone: zone });
+    }
+  } catch {
+    // 로그인 전이거나 네트워크 오류 - 안전영역 없이 진행, 다음 시작 시 재시도
+  }
+};
 
 // 감지용 내부 video 엘리먼트 - 화면에 안 보여도 되고, 모달이 닫혀있어도 계속 프레임을 흘려보냄
 const detectionVideo = document.createElement("video");
@@ -289,6 +297,7 @@ export const homeCamMonitor = {
     if (snapshot.isMonitoring) return;
 
     unlockAlarmContext();
+    fetchSafeZoneFromServer();
 
     try {
       await acquireStream();
@@ -318,6 +327,7 @@ export const homeCamMonitor = {
   startViewing: async (): Promise<void> => {
     viewerCount += 1;
     setSnapshot({ isViewing: true });
+    fetchSafeZoneFromServer();
 
     try {
       await acquireStream();
@@ -337,21 +347,20 @@ export const homeCamMonitor = {
     releaseStreamIfUnused();
   },
 
-  // 화면 드래그로 그린 안전영역(침대 범위) 저장. null 넘기면 안전영역 해제
-  setSafeZone: (zone: SafeZoneRatio | null): void => {
+  // 화면 드래그로 그린 안전영역(침대 범위) 저장 - 계정에 묶여서 서버(DB)에 저장되고,
+  // 다시 그리면 이전 값을 덮어쓸 뿐 쌓이지 않음(email당 항상 1행). 다른 기기/브라우저에서
+  // 로그인해도 같은 범위가 그대로 불러와짐.
+  setSafeZone: (zone: SafeZoneRatio): void => {
     outOfZoneStreak = 0;
     stopAlarmSound();
+    safeZoneFetched = true;
     setSnapshot({ safeZone: zone, isAlertActive: false });
 
-    try {
-      if (zone) {
-        localStorage.setItem(SAFE_ZONE_STORAGE_KEY, JSON.stringify(zone));
-      } else {
-        localStorage.removeItem(SAFE_ZONE_STORAGE_KEY);
-      }
-    } catch {
-      // localStorage 못 쓰는 환경이면 그냥 이번 세션에서만 유지
-    }
+    homeCamApi.saveSafeZone(zone).catch(() => {
+      setSnapshot({
+        error: "침대 범위 저장에 실패했어요. 다시 시도해주세요.",
+      });
+    });
   },
 
   // 지금 감지 프레임의 비디오 실제 해상도 (안전영역 그릴 때 화면 좌표 -> 비율 환산용)

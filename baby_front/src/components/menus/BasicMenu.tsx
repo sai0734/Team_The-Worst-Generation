@@ -25,9 +25,9 @@ const NAV_ITEMS: NavItem[] = [
   {
     code: "home",
     label: "홈",
-    to: "/main",
+    to: "/",
     subItems: [
-      { label: "메인", to: "/main" },
+      { label: "메인", to: "/" },
       { label: "대시보드", to: "/dashboard" },
     ],
   },
@@ -161,7 +161,7 @@ const BasicMenu = () => {
         onMouseLeave={() => setHovered(null)}
       >
         <div className="top">
-          <Link className="logo" to="/main" onClick={closeSubnav}>
+          <Link className="logo" to="/" onClick={closeSubnav}>
             <b>아이봄</b>
           </Link>
 

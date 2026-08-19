@@ -15,7 +15,6 @@ import MyPage from "../pages/member/MyPage";
 import hospitalRouter from "./hospitalRouter";
 
 const Loading = <div>Loading....</div>;
-const Main = lazy(() => import("../pages/MainPage"));
 const Dashboard = lazy(() => import("../pages/DashboardPage"));
 const MainOnly = lazy(() => import("../pages/landing/MainOnlyPage"));
 const About = lazy(() => import("../pages/AboutPage"));
@@ -26,18 +25,11 @@ const CommunityIndex = lazy(
 );
 const AllergyIndex = lazy(() => import("../pages/allergy/AllergyIndexPage"));
 const HealthIndex = lazy(() => import("../pages/health/HealthIndexPage"));
+const AiIndex = lazy(() => import("../pages/ai/AiIndexPage"));
 
 const root = createBrowserRouter([
   {
     path: "/",
-    element: (
-      <Suspense fallback={Loading}>
-        <Main />
-      </Suspense>
-    ),
-  },
-  {
-    path: "/main",
     element: (
       <Suspense fallback={Loading}>
         <MainOnly />
@@ -139,6 +131,11 @@ const root = createBrowserRouter([
   },
   {
     path: "ai",
+    element: (
+      <Suspense fallback={Loading}>
+        <AiIndex />
+      </Suspense>
+    ),
     children: cryCheckRouter(),
   },
 ]);
