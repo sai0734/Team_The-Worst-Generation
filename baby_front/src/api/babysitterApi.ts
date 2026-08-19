@@ -206,8 +206,8 @@ export type RequestStatus = "PENDING" | "ACCEPTED" | "REJECTED" | "CANCELED";
 
 export const REQUEST_STATUS_LABELS: Record<RequestStatus, string> = {
   PENDING: "대기중",
-  ACCEPTED: "수락됨",
-  REJECTED: "거절됨",
+  ACCEPTED: "수락",
+  REJECTED: "거절",
   CANCELED: "취소됨",
 };
 

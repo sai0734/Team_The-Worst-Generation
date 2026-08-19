@@ -25,9 +25,9 @@ const NAV_ITEMS: NavItem[] = [
   {
     code: "home",
     label: "홈",
-    to: "/main",
+    to: "/",
     subItems: [
-      { label: "메인", to: "/main" },
+      { label: "메인", to: "/" },
       { label: "대시보드", to: "/dashboard" },
     ],
   },
@@ -95,6 +95,18 @@ const BasicMenu = () => {
   const activeItem = NAV_ITEMS.find((item) => item.code === hovered);
   const closeSubnav = () => setHovered(null);
 
+  // 좁은 화면에서는 상단 탭(.primary-nav)이 숨겨지므로 햄버거 버튼으로 대체 메뉴를 연다.
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [mobileExpanded, setMobileExpanded] = useState<string | null>(null);
+
+  const closeMobileNav = () => {
+    setMobileNavOpen(false);
+    setMobileExpanded(null);
+  };
+  const toggleMobileNav = () => setMobileNavOpen((prev) => !prev);
+  const toggleMobileExpand = (code: string) =>
+    setMobileExpanded((prev) => (prev === code ? null : code));
+
   const handleLogout = () => {
     doLogout();
     moveToPath("/");
@@ -149,7 +161,7 @@ const BasicMenu = () => {
         onMouseLeave={() => setHovered(null)}
       >
         <div className="top">
-          <Link className="logo" to="/main" onClick={closeSubnav}>
+          <Link className="logo" to="/" onClick={closeSubnav}>
             <b>아이봄</b>
           </Link>
 
@@ -171,6 +183,19 @@ const BasicMenu = () => {
           </nav>
 
           <div className="top-right">
+            <button
+              type="button"
+              className="hamburger-btn"
+              aria-label="메뉴 열기"
+              aria-haspopup="true"
+              aria-expanded={mobileNavOpen}
+              onClick={toggleMobileNav}
+            >
+              <span />
+              <span />
+              <span />
+            </button>
+
             <div className="account">
               {loginState.email ? (
                 <>
@@ -221,6 +246,47 @@ const BasicMenu = () => {
           ))}
         </div>
       </header>
+
+      {mobileNavOpen && (
+        <>
+          <div className="mobile-nav-backdrop" onClick={closeMobileNav} />
+          <nav className="mobile-nav-panel" aria-label="모바일 메뉴">
+            {NAV_ITEMS.map((item) => (
+              <div className="mobile-nav-item" key={item.code}>
+                <div className="mobile-nav-row">
+                  <Link
+                    to={item.to}
+                    className="mobile-nav-label"
+                    onClick={closeMobileNav}
+                  >
+                    {item.label}
+                  </Link>
+                  {item.subItems.length > 1 && (
+                    <button
+                      type="button"
+                      className={`mobile-nav-toggle${mobileExpanded === item.code ? " open" : ""}`}
+                      aria-label={`${item.label} 하위 메뉴 펼치기`}
+                      aria-expanded={mobileExpanded === item.code}
+                      onClick={() => toggleMobileExpand(item.code)}
+                    >
+                      ▾
+                    </button>
+                  )}
+                </div>
+                {item.subItems.length > 1 && mobileExpanded === item.code && (
+                  <div className="mobile-nav-sub">
+                    {item.subItems.map((sub) => (
+                      <Link key={sub.to} to={sub.to} onClick={closeMobileNav}>
+                        {sub.label}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </nav>
+        </>
+      )}
 
       <div className="floating-tools">
         <button

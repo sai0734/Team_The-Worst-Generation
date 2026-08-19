@@ -1012,6 +1012,19 @@ CREATE TABLE IF NOT EXISTS tbl_cry_check (
 ALTER TABLE tbl_cry_check ADD COLUMN IF NOT EXISTS audio_file_name VARCHAR(300) NULL;
 ALTER TABLE tbl_cry_check ADD COLUMN IF NOT EXISTS user_feedback VARCHAR(50) NULL;
 
+-- 홈캠 침대(안전영역) - 화면 비율(0~1) 저장, email당 1행만 유지(재설정 시 덮어씀)
+CREATE TABLE IF NOT EXISTS tbl_homecam_safe_zone (
+                                                     email    VARCHAR(100)  NOT NULL,
+    x_ratio  DECIMAL(6,5)  NOT NULL,
+    y_ratio  DECIMAL(6,5)  NOT NULL,
+    w_ratio  DECIMAL(6,5)  NOT NULL,
+    h_ratio  DECIMAL(6,5)  NOT NULL,
+    reg_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    mod_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (email),
+    CONSTRAINT fk_homecam_safe_zone_email FOREIGN KEY (email) REFERENCES tbl_member (email)
+    );
+
 -- LJW 끝
 -- YSJ 추가 정부지원금 3시 배치
 CREATE TABLE IF NOT EXISTS tbl_assist_snapshot (

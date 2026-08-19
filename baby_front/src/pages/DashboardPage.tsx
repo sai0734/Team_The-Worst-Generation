@@ -15,7 +15,7 @@ import { triggerWipe } from "../utils/pageTransition";
 import "../styles/dashboard-home.css";
 
 const MARQUEE_TEXT =
-  "오늘도 함께, 잘 키워가요 ✦ 육아 기록 · 가계부 · AI 정부지원금 · 리콜 알림 ✦ ";
+  "오늘의 육아일기 남겨보세요 ✦ AI로 우리 동네 지원금 찾아보세요 ✦ 가계부로 육아비 한눈에 정리해보세요 ✦ 육아용품 리콜 알림 받아보세요 ✦ 홈캠으로 낮잠시간 안심하게 지켜보세요 ✦ 감자마켓에서 육아템 거래해보세요 ✦ 믿을 수 있는 베이비시터 찾아보세요 ✦ AI 울음소리 분석 써보세요 ✦ ";
 
 const SplitHeading = ({
   text,
@@ -229,29 +229,31 @@ const DashboardPage = () => {
 
   return (
     <BasicLayout>
+      <div className="home-page-inner">
       <div className="home-sky-bg" aria-hidden="true">
-        <span className="sky-emoji sky-sun">☀️</span>
-        <span className="sky-emoji sky-moon">🌙</span>
-        <span className="sky-emoji sky-star s1">⭐</span>
-        <span className="sky-emoji sky-star s2">✨</span>
-        <span className="sky-emoji sky-star s3">⭐</span>
-        <span className="sky-emoji sky-star s4">✨</span>
-        <span className="sky-emoji sky-cloud c1">☁️</span>
-        <span className="sky-emoji sky-cloud c2">☁️</span>
-        <span className="sky-emoji sky-cloud c3">☁️</span>
-        <span className="sky-emoji sky-cloud c4">☁️</span>
-        <img
-          src={heroBaby}
-          alt=""
-          className={`home-sky-baby${heroPlay ? " in-view" : ""}`}
-        />
+        <div className="home-sky-scene">
+          <span className="sky-emoji sky-sun">☀️</span>
+          <span className="sky-emoji sky-moon">🌙</span>
+          <span className="sky-emoji sky-star s1">⭐</span>
+          <span className="sky-emoji sky-star s2">✨</span>
+          <span className="sky-emoji sky-star s3">⭐</span>
+          <span className="sky-emoji sky-star s4">✨</span>
+          <span className="sky-emoji sky-cloud c1">☁️</span>
+          <span className="sky-emoji sky-cloud c2">☁️</span>
+          <span className="sky-emoji sky-cloud c3">☁️</span>
+          <span className="sky-emoji sky-cloud c4">☁️</span>
+          <span className="sky-emoji sky-cloud c5">☁️</span>
+          <span className="sky-emoji sky-cloud c6">☁️</span>
+          <span className="sky-emoji sky-cloud c7">☁️</span>
+          <span className="sky-emoji sky-star s5">✨</span>
+          <span className="sky-emoji sky-star s6">⭐</span>
+          <span className="sky-emoji sky-star s7">✨</span>
+        </div>
       </div>
 
       <div className="home-content">
       <div className="home-hero-group">
       <section className="home-hero">
-        <div className="home-hero-blob a" />
-        <div className="home-hero-blob b" />
         <div className="home-hero-text">
           <RevealLine play={heroPlay}>
             <span className="chip home-hero-chip">환영합니다!</span>
@@ -274,6 +276,11 @@ const DashboardPage = () => {
             우리 아이 등록하기
           </Link>
         </div>
+        <img
+          src={heroBaby}
+          alt=""
+          className={`home-hero-art${heroPlay ? " in-view" : ""}`}
+        />
       </section>
 
       <div className="home-train">
@@ -494,6 +501,7 @@ const DashboardPage = () => {
           className={`area-assist home-rise-up${cardsIn ? " in-view" : ""}`}
           style={{ "--i": 4 } as CSSProperties}
         />
+      </div>
       </div>
       </div>
     </BasicLayout>
