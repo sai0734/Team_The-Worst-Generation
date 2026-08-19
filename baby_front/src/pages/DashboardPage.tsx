@@ -10,6 +10,7 @@ import * as recallApi from "../api/recallApi";
 import type { MyProduct } from "../api/recallApi";
 import { questApi, type MemberQuest, type QuestHome } from "../api/questApi";
 import AssistantPanel from "../components/assistant/AssistantPanel";
+import SkyBackground from "../components/common/SkyBackground";
 import heroBaby from "../assets/hero-baby.png";
 import { triggerWipe } from "../utils/pageTransition";
 import "../styles/dashboard-home.css";
@@ -230,26 +231,7 @@ const DashboardPage = () => {
   return (
     <BasicLayout>
       <div className="home-page-inner">
-      <div className="home-sky-bg" aria-hidden="true">
-        <div className="home-sky-scene">
-          <span className="sky-emoji sky-sun">☀️</span>
-          <span className="sky-emoji sky-moon">🌙</span>
-          <span className="sky-emoji sky-star s1">⭐</span>
-          <span className="sky-emoji sky-star s2">✨</span>
-          <span className="sky-emoji sky-star s3">⭐</span>
-          <span className="sky-emoji sky-star s4">✨</span>
-          <span className="sky-emoji sky-cloud c1">☁️</span>
-          <span className="sky-emoji sky-cloud c2">☁️</span>
-          <span className="sky-emoji sky-cloud c3">☁️</span>
-          <span className="sky-emoji sky-cloud c4">☁️</span>
-          <span className="sky-emoji sky-cloud c5">☁️</span>
-          <span className="sky-emoji sky-cloud c6">☁️</span>
-          <span className="sky-emoji sky-cloud c7">☁️</span>
-          <span className="sky-emoji sky-star s5">✨</span>
-          <span className="sky-emoji sky-star s6">⭐</span>
-          <span className="sky-emoji sky-star s7">✨</span>
-        </div>
-      </div>
+      <SkyBackground />
 
       <div className="home-content">
       <div className="home-hero-group">

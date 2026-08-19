@@ -1,5 +1,6 @@
 import { NavLink, Outlet } from "react-router-dom";
 import BasicLayout from "../../layouts/BasicLayout";
+import SkyBackground from "../../components/common/SkyBackground";
 
 const tabClass = ({ isActive }: { isActive: boolean }) =>
   `community-tab${isActive ? " active" : ""}`;
@@ -8,7 +9,7 @@ const CommunityIndexPage = () => {
   return (
     <BasicLayout>
       <div className="home-page-inner">
-        <div className="home-sky-bg" aria-hidden="true" />
+        <SkyBackground />
         <section className="community-page">
           <h1 className="page-title">커뮤니티</h1>
           <nav className="community-tabs">
