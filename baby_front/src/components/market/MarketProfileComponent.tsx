@@ -25,7 +25,7 @@ const MarketProfileComponent = () => {
 
   return (
     <div className="card" style={{ maxWidth: 560 }}>
-      <h2 style={{ marginTop: 0 }}>{email}</h2>
+      <h2 style={{ marginTop: 0 }}>{profile.nickname || email}</h2>
       <div className="detail-meta">매너온도: {profile.mannerTemp}°C</div>
       <div className="detail-meta">
         동네: {profile.locationName ?? "미인증"}

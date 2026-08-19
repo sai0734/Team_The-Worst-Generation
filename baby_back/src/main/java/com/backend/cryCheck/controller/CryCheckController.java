@@ -1,7 +1,7 @@
-package com.backend.cryCheck.controller;
+package com.backend.crycheck.controller;
 
-import com.backend.cryCheck.dto.CryCheckDTO;
-import com.backend.cryCheck.service.CryCheckService;
+import com.backend.crycheck.dto.CryCheckDTO;
+import com.backend.crycheck.service.CryCheckService;
 import com.backend.global.util.CustomFileUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;

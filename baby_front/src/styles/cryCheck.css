@@ -1,5 +1,14 @@
 /* ===== AI 울음소리 분석 (다른 기능 페이지와 파일 충돌 방지 위해 별도 파일) ===== */
 
+/* AI 기능 사이드바 옆에 들어가도록 폭 제한 (감자마켓 .market-page-centered와 동일 패턴) */
+.app .cry-check-page {
+  max-width: 720px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
 .app .cry-check-recorder {
   margin-bottom: 18px;
 }

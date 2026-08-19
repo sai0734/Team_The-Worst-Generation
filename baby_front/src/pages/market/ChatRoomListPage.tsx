@@ -1,14 +1,16 @@
 import BasicLayout from "../../layouts/BasicLayout";
-import MarketSubNav from "../../components/market/MarketSubNav";
+import SideMenuLayout from "../../layouts/SideMenuLayout";
+import { LINKS } from "../../components/market/MarketSubNav";
 import ChatRoomListComponent from "../../components/market/ChatRoomListComponent";
+import SkyBackground from "../../components/common/SkyBackground";
 
 const ChatRoomListPage = () => {
   return (
     <BasicLayout>
-      <div>
-        <MarketSubNav />
+      <SkyBackground />
+      <SideMenuLayout items={LINKS} className="page-sky-content">
         <ChatRoomListComponent />
-      </div>
+      </SideMenuLayout>
     </BasicLayout>
   );
 };

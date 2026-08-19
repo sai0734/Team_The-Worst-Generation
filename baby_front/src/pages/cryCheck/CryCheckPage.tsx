@@ -5,7 +5,6 @@ import type { RootState } from "../../store";
 import { setCurrentBaby } from "../../slices/babySlice";
 import * as babyInfoApi from "../../api/babyInfoApi";
 import { BabyInfo } from "../../api/babyInfoApi";
-import BasicLayout from "../../layouts/BasicLayout";
 import CryCheckRecorderComponent from "../../components/cryCheck/CryCheckRecorderComponent";
 import CryCheckHistoryComponent from "../../components/cryCheck/CryCheckHistoryComponent";
 import "../../styles/cryCheck.css";
@@ -40,35 +39,29 @@ const CryCheckPage = () => {
   };
 
   if (!currentBaby) {
-    return (
-      <BasicLayout>
-        <div>불러오는 중...</div>
-      </BasicLayout>
-    );
+    return <div>불러오는 중...</div>;
   }
 
   return (
-    <BasicLayout>
-      <div className="cry-check-page">
-        {babyList.length > 1 && (
-          <div className="cry-check-mode-tabs">
-            {babyList.map((baby) => (
-              <button
-                key={baby.babyNo}
-                type="button"
-                onClick={() => dispatch(setCurrentBaby(baby))}
-                className={`chip${baby.babyNo === currentBaby.babyNo ? " is-active" : ""}`}
-              >
-                {baby.babyName}
-              </button>
-            ))}
-          </div>
-        )}
+    <div className="cry-check-page">
+      {babyList.length > 1 && (
+        <div className="cry-check-mode-tabs">
+          {babyList.map((baby) => (
+            <button
+              key={baby.babyNo}
+              type="button"
+              onClick={() => dispatch(setCurrentBaby(baby))}
+              className={`chip${baby.babyNo === currentBaby.babyNo ? " is-active" : ""}`}
+            >
+              {baby.babyName}
+            </button>
+          ))}
+        </div>
+      )}
 
-        <CryCheckRecorderComponent onAnalyzed={handleAnalyzed} />
-        <CryCheckHistoryComponent reloadTrigger={reloadTrigger} />
-      </div>
-    </BasicLayout>
+      <CryCheckRecorderComponent onAnalyzed={handleAnalyzed} />
+      <CryCheckHistoryComponent reloadTrigger={reloadTrigger} />
+    </div>
   );
 };
 

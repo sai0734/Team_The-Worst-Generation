@@ -1,6 +1,6 @@
-package com.backend.cryCheck.service;
+package com.backend.crycheck.service;
 
-import com.backend.cryCheck.dto.CryCheckDTO;
+import com.backend.crycheck.dto.CryCheckDTO;
 
 import java.util.List;
 

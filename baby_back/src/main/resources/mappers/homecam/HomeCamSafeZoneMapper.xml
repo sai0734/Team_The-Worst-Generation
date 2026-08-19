@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.backend.homecam.mapper.HomeCamSafeZoneMapper">
+
+    <select id="selectByEmail" resultType="com.backend.homecam.domain.HomeCamSafeZone">
+        SELECT email, x_ratio, y_ratio, w_ratio, h_ratio
+        FROM tbl_homecam_safe_zone
+        WHERE email = #{email}
+    </select>
+
+    <insert id="insert">
+        INSERT INTO tbl_homecam_safe_zone (email, x_ratio, y_ratio, w_ratio, h_ratio)
+        VALUES (#{email}, #{xRatio}, #{yRatio}, #{wRatio}, #{hRatio})
+    </insert>
+
+    <update id="update">
+        UPDATE tbl_homecam_safe_zone
+        SET x_ratio = #{xRatio},
+        y_ratio = #{yRatio},
+        w_ratio = #{wRatio},
+        h_ratio = #{hRatio}
+        WHERE email = #{email}
+    </update>
+
+</mapper>

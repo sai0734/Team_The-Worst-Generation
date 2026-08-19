@@ -9,9 +9,14 @@ interface SideMenuItem {
 interface SideMenuLayoutProps {
   items: SideMenuItem[];
   children: ReactNode;
+  className?: string;
 }
 
-const SideMenuLayout = ({ items, children }: SideMenuLayoutProps) => {
+const SideMenuLayout = ({
+  items,
+  children,
+  className,
+}: SideMenuLayoutProps) => {
   const { pathname } = useLocation();
 
   const activeTo = items
@@ -19,7 +24,7 @@ const SideMenuLayout = ({ items, children }: SideMenuLayoutProps) => {
     .sort((a, b) => b.to.length - a.to.length)[0]?.to;
 
   return (
-    <div className="side-menu-layout">
+    <div className={`side-menu-layout${className ? ` ${className}` : ""}`}>
       <nav className="side-menu">
         {items.map((item) => (
           <Link
