@@ -2,14 +2,14 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.backend.cryCheck.mapper.CryCheckMapper">
+<mapper namespace="com.backend.crycheck.mapper.CryCheckMapper">
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="cryCheckNo" keyColumn="cry_check_no">
         INSERT INTO tbl_cry_check (baby_no, avg_pitch, avg_volume, duration_seconds, pattern, ai_result_json, audio_file_name)
         VALUES (#{babyNo}, #{avgPitch}, #{avgVolume}, #{durationSeconds}, #{pattern}, #{aiResultJson}, #{audioFileName})
     </insert>
 
-    <select id="selectByCheckNo" resultType="com.backend.cryCheck.domain.CryCheck">
+    <select id="selectByCheckNo" resultType="com.backend.crycheck.domain.CryCheck">
         SELECT c.cry_check_no, c.baby_no, c.avg_pitch, c.avg_volume, c.duration_seconds, c.pattern,
         c.ai_result_json, c.audio_file_name, c.user_feedback, c.reg_time
         FROM tbl_cry_check c
@@ -17,7 +17,7 @@
         WHERE c.cry_check_no = #{cryCheckNo} AND b.email = #{email}
     </select>
 
-    <select id="selectListByBaby" resultType="com.backend.cryCheck.domain.CryCheck">
+    <select id="selectListByBaby" resultType="com.backend.crycheck.domain.CryCheck">
         SELECT c.cry_check_no, c.baby_no, c.avg_pitch, c.avg_volume, c.duration_seconds, c.pattern,
         c.ai_result_json, c.audio_file_name, c.user_feedback, c.reg_time
         FROM tbl_cry_check c
