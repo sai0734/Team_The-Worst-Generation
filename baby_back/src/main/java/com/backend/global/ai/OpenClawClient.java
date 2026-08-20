@@ -1,6 +1,7 @@
 package com.backend.global.ai;
 
 import com.backend.assistant.dto.AssistItemDTO;
+import com.backend.quest.dto.DailyQuestDraft;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -72,6 +73,101 @@ public class OpenClawClient {
             return parseItems(res.body());
         } catch (Exception e) {
             log.warn("OpenClaw 연결 실패: {}", e.getMessage());
+            return null;
+        }
+    }
+
+    public List<DailyQuestDraft> generateDailyQuests(int months, String parentType, String weekday) {
+        String message = buildDailyQuestPrompt(months, parentType, weekday);
+
+        JsonObject user = new JsonObject();
+        user.addProperty("role", "user");
+        user.addProperty("content", message);
+        JsonArray messages = new JsonArray();
+        messages.add(user);
+
+        JsonObject body = new JsonObject();
+        body.addProperty("model", "openclaw/default");
+        body.add("messages", messages);
+
+        try {
+            String root = baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
+            String token = resolveToken();
+            HttpRequest.Builder builder = HttpRequest.newBuilder()
+                    .uri(URI.create(root + "/v1/chat/completions"))
+                    .header("Content-Type", "application/json")
+                    .timeout(Duration.ofSeconds(12))
+                    .POST(HttpRequest.BodyPublishers.ofString(body.toString()));
+            if (!token.isBlank()) {
+                builder.header("Authorization", "Bearer " + token);
+            }
+            HttpResponse<String> res = http.send(builder.build(), HttpResponse.BodyHandlers.ofString());
+            if (res.statusCode() != 200) {
+                log.warn("OpenClaw 일일퀘 HTTP {} body={}", res.statusCode(), res.body());
+                return null;
+            }
+            return parseDailyQuests(res.body());
+        } catch (Exception e) {
+            log.warn("OpenClaw 일일퀘 연결 실패: {}", e.getMessage());
+            return null;
+        }
+    }
+
+    static String buildDailyQuestPrompt(int months, String parentType, String weekday) {
+        String parent = (parentType == null || parentType.isBlank()) ? "미입력" : parentType.trim();
+        String day = (weekday == null || weekday.isBlank()) ? "미입력" : weekday.trim();
+        return """
+                너는 육아 할 일 생성기다. 상담사처럼 설명하지 마라.
+
+                [프로필]
+                - 아이 월령: %d개월
+                - 담당: %s
+                - 요일: %s
+
+                [할 일]
+                오늘 이 담당자가 할 짧은 육아 할 일 3개를 만든다.
+                1번째는 돌봄(CARE), 2번째는 활동(ACTIVITY), 3번째는 잡일(CHORE).
+                월령에 안 맞는 일은 만들지 마라.
+                다른 담당자와 겹치는 일은 만들지 마라.
+                제목은 15자 안팎의 한국어 명령형.
+
+                [금지]
+                - 마크다운, 코드펜스, 주석, 앞뒤 설명
+                - JSON 배열 이외의 문자
+                - 3개가 아닌 개수
+
+                [출력]
+                [{"title":"","description":"","theme":"CARE"}]
+                """.formatted(months, parent, day);
+    }
+
+    private List<DailyQuestDraft> parseDailyQuests(String raw) {
+        try {
+            String content = extractAssistantText(raw);
+            String json = extractJsonArray(content);
+            if (json == null) {
+                return null;
+            }
+            JsonArray arr = JsonParser.parseString(json).getAsJsonArray();
+            List<DailyQuestDraft> out = new ArrayList<>();
+            for (JsonElement el : arr) {
+                if (!el.isJsonObject()) {
+                    continue;
+                }
+                JsonObject o = el.getAsJsonObject();
+                String title = str(o, "title");
+                if (title.isBlank()) {
+                    continue;
+                }
+                out.add(DailyQuestDraft.builder()
+                        .title(title)
+                        .description(str(o, "description"))
+                        .theme(str(o, "theme"))
+                        .build());
+            }
+            return out.size() == 3 ? out : null;
+        } catch (Exception e) {
+            log.warn("OpenClaw 일일퀘 파싱 실패", e);
             return null;
         }
     }

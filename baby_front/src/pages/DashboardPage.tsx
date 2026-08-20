@@ -1,4 +1,10 @@
-import { useEffect, useState, type CSSProperties, type FormEvent, type ReactNode } from "react";
+import {
+  useEffect,
+  useState,
+  type CSSProperties,
+  type FormEvent,
+  type ReactNode,
+} from "react";
 import { Link, useNavigate } from "react-router-dom";
 import BasicLayout from "../layouts/BasicLayout";
 import useCustomLogin from "../hooks/useCustomLogin";
@@ -27,7 +33,9 @@ const SplitHeading = ({
   inView: boolean;
   className?: string;
 }) => (
-  <h2 className={`split-heading${inView ? " in-view" : ""}${className ? ` ${className}` : ""}`}>
+  <h2
+    className={`split-heading${inView ? " in-view" : ""}${className ? ` ${className}` : ""}`}
+  >
     {[...text].map((ch, i) => (
       <span key={i} className="char" style={{ transitionDelay: `${i * 30}ms` }}>
         {ch === " " ? " " : ch}
@@ -36,7 +44,13 @@ const SplitHeading = ({
   </h2>
 );
 
-const RevealLine = ({ play, children }: { play: boolean; children: ReactNode }) => (
+const RevealLine = ({
+  play,
+  children,
+}: {
+  play: boolean;
+  children: ReactNode;
+}) => (
   <span className={`reveal-line${play ? " play" : ""}`}>
     <span className="reveal-inner">{children}</span>
   </span>
@@ -83,8 +97,12 @@ const DashboardPage = () => {
   const { isLogin, loginState } = useCustomLogin();
   const navigate = useNavigate();
 
-  const [ledgerSummary, setLedgerSummary] = useState<LedgerSummary | null>(null);
-  const [recallProducts, setRecallProducts] = useState<MyProduct[] | null>(null);
+  const [ledgerSummary, setLedgerSummary] = useState<LedgerSummary | null>(
+    null,
+  );
+  const [recallProducts, setRecallProducts] = useState<MyProduct[] | null>(
+    null,
+  );
 
   const [home, setHome] = useState<QuestHome>(emptyHome);
   const [completingId, setCompletingId] = useState<number | null>(null);
@@ -114,7 +132,16 @@ const DashboardPage = () => {
         point: data.point ?? 0,
       });
     } catch {
-      setHome(emptyHome);
+      try {
+        const data = await questApi.getHome();
+        setHome({
+          dailyQuests: data.dailyQuests ?? [],
+          urgentQuests: data.urgentQuests ?? [],
+          point: data.point ?? 0,
+        });
+      } catch {
+        setHome(emptyHome);
+      }
     }
   };
 
@@ -215,7 +242,12 @@ const DashboardPage = () => {
     : 0;
 
   const topCategories = ledgerSummary
-    ? (Object.entries(ledgerSummary.categoryBreakdown) as [LedgerCategory, number][])
+    ? (
+        Object.entries(ledgerSummary.categoryBreakdown) as [
+          LedgerCategory,
+          number,
+        ][]
+      )
         .sort((a, b) => b[1] - a[1])
         .slice(0, 2)
     : [];
