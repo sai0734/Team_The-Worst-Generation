@@ -39,7 +39,8 @@ const DiaryListComponent = ({ reloadTrigger }: DiaryListProps) => {
   const [searchKeyword, setSearchKeyword] = useState("");
   const [loading, setLoading] = useState(true);
 
-  const [selectedVideoDiary, setSelectedVideoDiary] = useState<BabyDiary | null>(null);
+  const [selectedVideoDiary, setSelectedVideoDiary] =
+    useState<BabyDiary | null>(null);
 
   const loadList = async (): Promise<BabyDiary[]> => {
     if (!currentBaby?.babyNo) return [];
@@ -84,7 +85,9 @@ const DiaryListComponent = ({ reloadTrigger }: DiaryListProps) => {
     setEditContent(diary.content);
     setEditFile(null);
     setEditPreview(
-      diary.photoFileName ? diaryApi.getThumbnailUrl(diary.photoFileName) : null,
+      diary.photoFileName
+        ? diaryApi.getThumbnailUrl(diary.photoFileName)
+        : null,
     );
     setEditRemovePhoto(false);
   };
@@ -114,7 +117,9 @@ const DiaryListComponent = ({ reloadTrigger }: DiaryListProps) => {
 
       const updatedList = await loadList();
       const updated = updatedList.find((d) => d.diaryNo === diaryNo);
-      setSelectedVideoDiary((prev) => (prev?.diaryNo === diaryNo ? (updated ?? null) : prev));
+      setSelectedVideoDiary((prev) =>
+        prev?.diaryNo === diaryNo ? (updated ?? null) : prev,
+      );
     } catch (err) {
       alert("수정에 실패했습니다.");
       console.error(err);
@@ -126,7 +131,9 @@ const DiaryListComponent = ({ reloadTrigger }: DiaryListProps) => {
 
     try {
       await diaryApi.remove(diaryNo);
-      setSelectedVideoDiary((prev) => (prev?.diaryNo === diaryNo ? null : prev));
+      setSelectedVideoDiary((prev) =>
+        prev?.diaryNo === diaryNo ? null : prev,
+      );
       await loadList();
     } catch (err) {
       alert("삭제에 실패했습니다.");
@@ -285,7 +292,9 @@ const DiaryListComponent = ({ reloadTrigger }: DiaryListProps) => {
                     >
                       <span
                         className={`flex h-3.5 w-3.5 flex-shrink-0 items-center justify-center rounded-full border-[1.5px] ${
-                          isVideoSelected ? "border-[#7F77DD]" : "border-[#B7B2EE]"
+                          isVideoSelected
+                            ? "border-[#7F77DD]"
+                            : "border-[#B7B2EE]"
                         }`}
                       >
                         {isVideoSelected && (
@@ -325,8 +334,6 @@ const DiaryListComponent = ({ reloadTrigger }: DiaryListProps) => {
         );
       })}
 
-      <AiVideoGenerateComponent diary={selectedVideoDiary} />
-
       <div className="flex items-center justify-center gap-1.5">
         {prev && (
           <button
@@ -362,6 +369,8 @@ const DiaryListComponent = ({ reloadTrigger }: DiaryListProps) => {
           </button>
         )}
       </div>
+
+      <AiVideoGenerateComponent diary={selectedVideoDiary} />
 
       {selectedDiary && (
         <DiaryDetailModalComponent
