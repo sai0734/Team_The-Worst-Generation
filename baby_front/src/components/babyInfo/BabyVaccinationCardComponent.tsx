@@ -47,7 +47,7 @@ const BabyVaccinationCardComponent = ({
   const [customDate, setCustomDate] = useState(getTodayStr());
   const [listFilter, setListFilter] = useState<
     "all" | "completed" | "pending" | null
-  >("all");
+  >(null);
 
   const loadList = async () => {
     const result: BabyVaccination[] = await babyVaccinationApi.getList(babyNo);
