@@ -9,8 +9,13 @@ interface CryCheckResultViewProps {
 }
 
 // 분석 직후 결과 화면 / 히스토리 펼친 화면 공용 (특징 칩 + 다시듣기 + 순위별 확신도 + 경고문구 + 피드백 칩)
-const CryCheckResultView = ({ item, onFeedbackSubmit }: CryCheckResultViewProps) => {
-  const [feedback, setFeedback] = useState<string | null>(item.userFeedback ?? null);
+const CryCheckResultView = ({
+  item,
+  onFeedbackSubmit,
+}: CryCheckResultViewProps) => {
+  const [feedback, setFeedback] = useState<string | null>(
+    item.userFeedback ?? null,
+  );
   const [submitting, setSubmitting] = useState(false);
 
   const parsed = parseAiResult(item.aiResultJson);
@@ -57,11 +62,16 @@ const CryCheckResultView = ({ item, onFeedbackSubmit }: CryCheckResultViewProps)
                 <span className="cause">
                   {c.rank}. {c.cause}
                 </span>
-                {c.confidence != null && <span className="pct">{c.confidence}%</span>}
+                {c.confidence != null && (
+                  <span className="pct">{c.confidence}%</span>
+                )}
               </div>
               {c.confidence != null && (
                 <div className="prob-track">
-                  <div className="prob-fill" style={{ width: `${c.confidence}%` }} />
+                  <div
+                    className="prob-fill"
+                    style={{ width: `${c.confidence}%` }}
+                  />
                 </div>
               )}
               <div className="reason">{c.reason}</div>
@@ -75,7 +85,8 @@ const CryCheckResultView = ({ item, onFeedbackSubmit }: CryCheckResultViewProps)
       )}
 
       <div className="cry-check-disclaimer">
-        AI 추정 결과로 100% 정확하지 않을 수 있어요. 실제 원인을 알려주시면 다음 분석이 더 정확해져요.
+        AI 추정 결과로 100% 정확하지 않을 수 있어요. 실제 원인을 알려주시면 향후
+        분석 개선을 위한 자료로 활용할 수 있어요.
       </div>
 
       {parsed.candidates.length > 0 && (

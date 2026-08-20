@@ -77,6 +77,7 @@ public class BabyDiaryController {
     @PutMapping("/{diaryNo}")
     public Map<String, Long> modify(@PathVariable("diaryNo") Long diaryNo,
                                     BabyDiaryDTO babyDiaryDTO,
+                                    @RequestParam(value = "removePhoto", required = false) Boolean removePhoto,
                                     Principal principal) {
 
         log.info("babyDiary_Controller_modify_실행~~~~~~~~~~~~");
@@ -91,6 +92,8 @@ public class BabyDiaryController {
 
         if (uploadNames != null && !uploadNames.isEmpty()) {
             babyDiaryDTO.setPhotoFileName(uploadNames.get(0));
+        } else if (Boolean.TRUE.equals(removePhoto)) {
+            babyDiaryDTO.setPhotoFileName("");
         } else {
             babyDiaryDTO.setPhotoFileName(null);
         }

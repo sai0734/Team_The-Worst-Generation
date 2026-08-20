@@ -37,6 +37,7 @@ const AlbumGridComponent = ({
   const [selectedYear, setSelectedYear] = useState<string | null>(null);
   const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
   const [selectedAlbum, setSelectedAlbum] = useState<BabyAlbum | null>(null);
+  const [loading, setLoading] = useState(true);
 
   const observerRef = useRef<IntersectionObserver | null>(null);
 
@@ -55,14 +56,22 @@ const AlbumGridComponent = ({
   const loadPage = async (pageToLoad: number, reset: boolean) => {
     if (!currentBaby?.babyNo) return;
 
-    const result = await albumApi.getList({
-      babyNo: currentBaby.babyNo,
-      page: pageToLoad,
-      size: PAGE_SIZE,
-    });
+    if (reset) setLoading(true);
+    try {
+      const result = await albumApi.getList({
+        babyNo: currentBaby.babyNo,
+        page: pageToLoad,
+        size: PAGE_SIZE,
+      });
 
-    setList((prev) => (reset ? result.dtoList : [...prev, ...result.dtoList]));
-    setHasMore(result.next);
+      setList((prev) => (reset ? result.dtoList : [...prev, ...result.dtoList]));
+      setHasMore(result.next);
+    } catch (err) {
+      alert("앨범을 불러오지 못했습니다.");
+      console.error(err);
+    } finally {
+      if (reset) setLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -120,7 +129,9 @@ const AlbumGridComponent = ({
       await albumApi.remove(albumNo);
       setList((prev) => prev.filter((album) => album.albumNo !== albumNo));
     } catch (err) {
-      alert("삭제에 실패했습니다.");
+      const message =
+        (err as any)?.response?.data?.msg ?? "삭제에 실패했습니다.";
+      alert(message);
       console.error(err);
     }
   };
@@ -193,7 +204,7 @@ const AlbumGridComponent = ({
         </div>
       </div>
 
-      {filteredList.length === 0 && (
+      {!loading && filteredList.length === 0 && (
         <div className="flex flex-col items-center justify-center gap-2 rounded-[20px] border border-dashed border-[rgba(42,41,38,0.15)] bg-white p-8 text-center">
           <span className="text-2xl">🖼️</span>
           <p className="text-sm font-bold text-[#2A2926]">

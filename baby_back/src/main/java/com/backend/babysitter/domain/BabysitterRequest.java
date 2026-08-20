@@ -34,4 +34,10 @@ public class BabysitterRequest {
     public void changeStatus(BabysitterRequestStatus status) {
         this.status = status;
     }
+
+    public void changeDetails(LocalDate requestDate, TimeSlotType timeSlot, String message) {
+        this.requestDate = requestDate;
+        this.timeSlot = timeSlot;
+        this.message = message;
+    }
 }

@@ -49,7 +49,9 @@ const MarketDetailSidebar = ({ item }: MarketDetailSidebarProps) => {
     if (!item.sellerEmail) return;
     marketApi
       .getItemsBySeller(item.sellerEmail)
-      .then((list) => setSellerItems(list.filter((i) => i.itemNo !== item.itemNo)))
+      .then((list) =>
+        setSellerItems(list.filter((i) => i.itemNo !== item.itemNo)),
+      )
       .catch((err) => console.error(err));
   }, [item.sellerEmail, item.itemNo]);
 
@@ -75,16 +77,20 @@ const MarketDetailSidebar = ({ item }: MarketDetailSidebarProps) => {
       .then(() => {
         if (cancelled) return;
 
-        const geocoder = new window.kakao.maps.services.Geocoder();
+        const geocoder = new (window as any).kakao.maps.services.Geocoder();
         geocoder.coord2RegionCode(
           item.longitude,
           item.latitude,
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (result: any[], status: string) => {
-            if (cancelled || status !== window.kakao.maps.services.Status.OK) {
+            if (
+              cancelled ||
+              status !== (window as any).kakao.maps.services.Status.OK
+            ) {
               return;
             }
-            const region = result.find((r) => r.region_type === "H") ?? result[0];
+            const region =
+              result.find((r) => r.region_type === "H") ?? result[0];
             if (region) {
               setDongLabel(
                 `${region.region_1depth_name} ${region.region_2depth_name} ${region.region_3depth_name}`,

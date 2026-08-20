@@ -119,29 +119,6 @@ const BabysitterJobListComponent = () => {
     <div>
       <div className="recall-header">
         <h2>돌봄 구인글</h2>
-        <div className="sitter-header-actions">
-          <button
-            type="button"
-            className="btn ghost"
-            onClick={() => navigate("/community/babysitter/jobs/mine")}
-          >
-            내가 올린 구인글
-          </button>
-          <button
-            type="button"
-            className="btn ghost"
-            onClick={() => navigate("/community/babysitter/jobs/applications/mine")}
-          >
-            내가 지원한 구인글
-          </button>
-          <button
-            type="button"
-            className="btn"
-            onClick={() => navigate("/community/babysitter/jobs/write")}
-          >
-            구인글 작성
-          </button>
-        </div>
       </div>
 
       <div className="seg" style={{ marginBottom: 16 }}>

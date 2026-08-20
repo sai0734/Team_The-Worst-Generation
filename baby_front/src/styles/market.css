@@ -240,6 +240,17 @@
   overflow: hidden;
   border: 1px solid var(--line);
 }
+.app .detail-quickinfo-directions {
+  flex: none;
+  width: 100%;
+  height: 34px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  font-size: 12px;
+}
 .app .detail-info-full {
   margin-top: 24px;
 }
@@ -413,6 +424,30 @@
 }
 
 /* ---- 감자마켓 홈(좌측 리스트+우측 지도) : 대시보드 톤(블롭 그라데이션 히어로) 재사용 ---- */
+.app .market-search-bar {
+  margin-bottom: 14px;
+  display: flex;
+  gap: 8px;
+}
+.app .market-search-input {
+  flex: 1;
+  padding: 12px 16px;
+  border: 1px solid var(--line);
+  border-radius: 99px;
+  background: var(--glass);
+  font-size: 13px;
+  font-family: inherit;
+  color: var(--ink);
+}
+.app .market-search-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+.app .market-search-btn {
+  flex: none;
+  padding: 0 20px;
+}
+
 .app .market-category-bar {
   display: flex;
   gap: 8px;
@@ -492,6 +527,23 @@
 .app .market-profile-widget .head b {
   color: var(--accent);
   font-size: 17px;
+}
+.app .market-profile-widget .head h2 {
+  font-size: 15px;
+}
+.app .market-profile-widget .profile-nickname-btn {
+  height: 26px;
+  padding: 0 10px;
+  font-size: 10.5px;
+  flex-shrink: 0;
+}
+.app .market-profile-widget .profile-manner-row {
+  margin-top: 2px;
+}
+.app .market-profile-widget .profile-manner-label {
+  font-size: 11px;
+  color: var(--muted);
+  font-weight: 700;
 }
 .app .market-profile-widget .temp-bar {
   height: 6px;

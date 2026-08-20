@@ -17,6 +17,8 @@ const describeError = (err: any): string =>
 // 본문이 이 길이 미만이면 AI 요약 API 자체를 호출하지 않는다 (짧은 글은 요약할 필요가 없음).
 const AI_SUMMARY_MIN_CONTENT_LENGTH = 150;
 
+const formatDateTime = (iso: string): string => iso.slice(0, 16).replace("T", " ");
+
 // 댓글/답글에 첨부한 파일을 서버 업로드 전에 로컬에서 미리보기로 보여준다.
 const AttachmentPreview = ({
   files,
@@ -127,6 +129,23 @@ const CommunityDetailComponent = () => {
   }
 
   const isMine = loginState.email === post.writerEmail;
+
+  const handleToggleLike = async () => {
+    if (!isLogin || !post) {
+      return;
+    }
+    try {
+      const { liked } = await communityApi.toggleLike(Number(postNo));
+      setPost({
+        ...post,
+        liked,
+        likeCount: post.likeCount + (liked ? 1 : -1),
+      });
+    } catch (err) {
+      console.error(err);
+      alert(`처리에 실패했습니다.\n(${describeError(err)})`);
+    }
+  };
 
   const handleDeletePost = async () => {
     if (!confirm("게시글을 삭제할까요?")) {
@@ -382,7 +401,18 @@ const CommunityDetailComponent = () => {
       </span>
       <h2 className="community-detail-title">{post.title}</h2>
       <div className="community-detail-meta">
-        {post.nickname} · 조회 {post.viewCount}
+        {post.nickname} · {formatDateTime(post.regTime)} · 조회 {post.viewCount}
+      </div>
+
+      <div className="community-actions">
+        <button
+          type="button"
+          className={`btn ghost${post.liked ? " is-active" : ""}`}
+          onClick={handleToggleLike}
+          disabled={!isLogin}
+        >
+          👍 공감 {post.likeCount}
+        </button>
       </div>
 
       {post.imageList.length > 0 && (

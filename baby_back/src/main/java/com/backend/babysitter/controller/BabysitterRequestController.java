@@ -1,6 +1,7 @@
 package com.backend.babysitter.controller;
 
 import java.security.Principal;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
@@ -66,5 +67,22 @@ public class BabysitterRequestController {
         babysitterRequestService.cancel(requestNo, principal.getName());
 
         return Map.of("RESULT", "SUCCESS");
+    }
+
+    @PutMapping("/{requestNo}")
+    public Map<String, String> modify(
+            @PathVariable Long requestNo,
+            @RequestBody BabysitterRequestDTO requestDTO,
+            Principal principal) {
+
+        babysitterRequestService.modify(requestNo, requestDTO, principal.getName());
+
+        return Map.of("RESULT", "SUCCESS");
+    }
+
+    @GetMapping("/sitter/{email}/booked-dates")
+    public List<LocalDate> bookedDates(@PathVariable String email) {
+
+        return babysitterRequestService.getBookedDates(email);
     }
 }

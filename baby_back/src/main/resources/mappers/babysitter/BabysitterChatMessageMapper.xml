@@ -3,15 +3,27 @@
 <mapper namespace="com.backend.babysitter.mapper.BabysitterChatMessageMapper">
 
     <select id="selectListByRoom" resultType="com.backend.babysitter.domain.BabysitterChatMessage">
-        SELECT msg_no, room_no, sender_email, content, reg_time
+        SELECT msg_no, room_no, sender_email, msg_type, content, request_no, request_status, reg_time
         FROM tbl_babysitter_chat_message
         WHERE room_no = #{roomNo}
         ORDER BY reg_time ASC
     </select>
 
+    <select id="selectOne" resultType="com.backend.babysitter.domain.BabysitterChatMessage">
+        SELECT msg_no, room_no, sender_email, msg_type, content, request_no, request_status, reg_time
+        FROM tbl_babysitter_chat_message
+        WHERE msg_no = #{msgNo}
+    </select>
+
     <insert id="insert" useGeneratedKeys="true" keyProperty="msgNo" keyColumn="msg_no">
-        INSERT INTO tbl_babysitter_chat_message (room_no, sender_email, content)
-        VALUES (#{roomNo}, #{senderEmail}, #{content})
+        INSERT INTO tbl_babysitter_chat_message (room_no, sender_email, msg_type, content, request_no, request_status)
+        VALUES (#{roomNo}, #{senderEmail}, #{msgType}, #{content}, #{requestNo}, #{requestStatus})
     </insert>
+
+    <update id="updateRequestStatus">
+        UPDATE tbl_babysitter_chat_message
+        SET request_status = #{requestStatus}
+        WHERE msg_no = #{msgNo}
+    </update>
 
 </mapper>

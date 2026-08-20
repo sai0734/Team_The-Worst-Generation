@@ -1,6 +1,6 @@
-package com.backend.cryCheck.mapper;
+package com.backend.crycheck.mapper;
 
-import com.backend.cryCheck.domain.CryCheck;
+import com.backend.crycheck.domain.CryCheck;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 

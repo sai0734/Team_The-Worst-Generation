@@ -77,13 +77,16 @@ const MarketFormComponent = () => {
   // 건물명이 있으면(관공서 등) 건물명 우선, 없으면 도로명/지번 주소로 대체.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const reverseGeocodeLocationName = (position: any) => {
-    const geocoder = new window.kakao.maps.services.Geocoder();
+    const geocoder = new (window as any).kakao.maps.services.Geocoder();
     geocoder.coord2Address(
       position.getLng(),
       position.getLat(),
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (result: any[], status: string) => {
-        if (status !== window.kakao.maps.services.Status.OK || result.length === 0) {
+        if (
+          status !== (window as any).kakao.maps.services.Status.OK ||
+          result.length === 0
+        ) {
           return;
         }
         const road = result[0].road_address;
@@ -105,28 +108,38 @@ const MarketFormComponent = () => {
     loadKakaoMapScript().then(() => {
       if (cancelled || !mapContainerRef.current) return;
 
-      const position = new window.kakao.maps.LatLng(latitude, longitude);
+      const position = new (window as any).kakao.maps.LatLng(
+        latitude,
+        longitude,
+      );
 
       if (!mapObjRef.current) {
-        mapObjRef.current = new window.kakao.maps.Map(mapContainerRef.current, {
-          center: position,
-          level: 4,
-        });
+        mapObjRef.current = new (window as any).kakao.maps.Map(
+          mapContainerRef.current,
+          {
+            center: position,
+            level: 4,
+          },
+        );
 
-        markerRef.current = new window.kakao.maps.Marker({
+        markerRef.current = new (window as any).kakao.maps.Marker({
           position,
           map: mapObjRef.current,
           draggable: true,
         });
 
-        window.kakao.maps.event.addListener(markerRef.current, "dragend", () => {
-          const pos = markerRef.current.getPosition();
-          setLatitude(pos.getLat());
-          setLongitude(pos.getLng());
-          reverseGeocodeLocationName(pos);
-        });
+        (window as any).kakao.maps.event.addListener(
+          markerRef.current,
+          "dragend",
+          () => {
+            const pos = markerRef.current.getPosition();
+            setLatitude(pos.getLat());
+            setLongitude(pos.getLng());
+            reverseGeocodeLocationName(pos);
+          },
+        );
 
-        window.kakao.maps.event.addListener(
+        (window as any).kakao.maps.event.addListener(
           mapObjRef.current,
           "click",
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -167,12 +180,15 @@ const MarketFormComponent = () => {
     setLocationNotFound(false);
     await loadKakaoMapScript();
 
-    const geocoder = new window.kakao.maps.services.Geocoder();
+    const geocoder = new (window as any).kakao.maps.services.Geocoder();
     geocoder.addressSearch(
       locationName,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (result: any[], status: string) => {
-        if (status !== window.kakao.maps.services.Status.OK || result.length === 0) {
+        if (
+          status !== (window as any).kakao.maps.services.Status.OK ||
+          result.length === 0
+        ) {
           setLocationNotFound(true);
           return;
         }
@@ -319,7 +335,8 @@ const MarketFormComponent = () => {
           <>
             <div ref={mapContainerRef} className="market-form-location-map" />
             <p className="cry-check-hint" style={{ marginTop: 6 }}>
-              지도의 마커를 드래그하거나 클릭해서 정확한 거래 위치로 조정할 수 있어요.
+              지도의 마커를 드래그하거나 클릭해서 정확한 거래 위치로 조정할 수
+              있어요.
             </p>
           </>
         )}

@@ -12,6 +12,10 @@ interface MarketSellerQuickInfoProps {
 const MarketSellerQuickInfo = ({ item }: MarketSellerQuickInfoProps) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const [profile, setProfile] = useState<MarketProfile | null>(null);
+  const [userLocation, setUserLocation] = useState<{
+    lat: number;
+    lng: number;
+  } | null>(null);
 
   const hasCoords = item.latitude != null && item.longitude != null;
 
@@ -23,6 +27,22 @@ const MarketSellerQuickInfo = ({ item }: MarketSellerQuickInfoProps) => {
       .catch((err) => console.error(err));
   }, [item.sellerEmail]);
 
+  // 길찾기 링크에 "현재 위치"를 출발지로 같이 넣어주기 위한 위치 확인 (실패해도 도착지만으로 링크는 동작함)
+  useEffect(() => {
+    if (!navigator.geolocation) return;
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setUserLocation({
+          lat: pos.coords.latitude,
+          lng: pos.coords.longitude,
+        });
+      },
+      () => {
+        // 위치 권한 거부/실패 시 출발지 없이 도착지만으로 길찾기 링크 구성
+      },
+    );
+  }, []);
+
   useEffect(() => {
     if (!hasCoords) return;
     let cancelled = false;
@@ -31,19 +51,22 @@ const MarketSellerQuickInfo = ({ item }: MarketSellerQuickInfoProps) => {
       .then(() => {
         if (cancelled || !mapContainerRef.current) return;
 
-        const position = new window.kakao.maps.LatLng(
+        const position = new (window as any).kakao.maps.LatLng(
           item.latitude,
           item.longitude,
         );
 
-        const map = new window.kakao.maps.Map(mapContainerRef.current, {
-          center: position,
-          level: 4,
-        });
+        const map = new (window as any).kakao.maps.Map(
+          mapContainerRef.current,
+          {
+            center: position,
+            level: 4,
+          },
+        );
         map.setDraggable(false);
         map.setZoomable(false);
 
-        new window.kakao.maps.Marker({ position, map });
+        new (window as any).kakao.maps.Marker({ position, map });
       })
       .catch((err) => console.error(err));
 
@@ -52,6 +75,12 @@ const MarketSellerQuickInfo = ({ item }: MarketSellerQuickInfoProps) => {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [hasCoords, item.latitude, item.longitude]);
+
+  const directionsUrl = hasCoords
+    ? userLocation
+      ? `https://map.kakao.com/link/from/${encodeURIComponent("현재 위치")},${userLocation.lat},${userLocation.lng}/to/${encodeURIComponent(item.title)},${item.latitude},${item.longitude}`
+      : `https://map.kakao.com/link/to/${encodeURIComponent(item.title)},${item.latitude},${item.longitude}`
+    : null;
 
   return (
     <div className="detail-quickinfo">
@@ -72,7 +101,20 @@ const MarketSellerQuickInfo = ({ item }: MarketSellerQuickInfoProps) => {
         </div>
       )}
 
-      {hasCoords && <div ref={mapContainerRef} className="detail-quickinfo-map" />}
+      {hasCoords && (
+        <div ref={mapContainerRef} className="detail-quickinfo-map" />
+      )}
+
+      {directionsUrl && (
+        <a
+          href={directionsUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="btn detail-quickinfo-directions"
+        >
+          길찾기
+        </a>
+      )}
     </div>
   );
 };

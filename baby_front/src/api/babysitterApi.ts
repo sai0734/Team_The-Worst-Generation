@@ -206,8 +206,8 @@ export type RequestStatus = "PENDING" | "ACCEPTED" | "REJECTED" | "CANCELED";
 
 export const REQUEST_STATUS_LABELS: Record<RequestStatus, string> = {
   PENDING: "대기중",
-  ACCEPTED: "수락됨",
-  REJECTED: "거절됨",
+  ACCEPTED: "수락",
+  REJECTED: "거절",
   CANCELED: "취소됨",
 };
 
@@ -280,6 +280,23 @@ export const cancelRequest = async (
   requestNo: number,
 ): Promise<{ RESULT: string }> => {
   const res = await jwtAxios.put(`${requestPrefix}/${requestNo}/cancel`);
+
+  return res.data;
+};
+
+// 대기중인 내 요청의 날짜/시간대/메시지 수정
+export const modifyRequest = async (
+  requestNo: number,
+  input: BabysitterRequestInput,
+): Promise<{ RESULT: string }> => {
+  const res = await jwtAxios.put(`${requestPrefix}/${requestNo}`, input);
+
+  return res.data;
+};
+
+// 이미 예약이 잡힌(수락된) 날짜 목록 - 새 요청 폼에서 중복 예약 방지용
+export const getBookedDates = async (sitterEmail: string): Promise<string[]> => {
+  const res = await jwtAxios.get(`${requestPrefix}/sitter/${sitterEmail}/booked-dates`);
 
   return res.data;
 };

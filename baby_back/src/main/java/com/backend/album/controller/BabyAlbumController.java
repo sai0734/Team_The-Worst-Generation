@@ -74,6 +74,10 @@ public class BabyAlbumController {
             throw new IllegalArgumentException("사진 정보 형식이 올바르지 않습니다.");
         }
 
+        if (metaList.size() != uploadNames.size()) {
+            throw new IllegalArgumentException("사진 정보 개수가 업로드한 사진 개수와 일치하지 않습니다.");
+        }
+
         List<Long> albumNoList = new ArrayList<>();
 
         for (int i = 0; i < uploadNames.size(); i++) {

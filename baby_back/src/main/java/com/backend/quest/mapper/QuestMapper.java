@@ -12,9 +12,12 @@ import java.util.List;
 // YSJ - MyBatis QuestMapper 인터페이스 복구
 public interface QuestMapper {
 
+    void ensureProfileIdColumn();
+
     List<MemberQuest> selectTodayByMember(
             @Param("email") String email,
-            @Param("date") LocalDate date);
+            @Param("date") LocalDate date,
+            @Param("profileId") Long profileId);
 
     MemberQuest selectMemberQuest(
             @Param("id") Long id,
@@ -67,12 +70,16 @@ public interface QuestMapper {
     //긴급퀘 마스터 생성
     void insertUrgentQuest(Quest quest);
 
-    void expireOverdue(@Param("email") String email, @Param("today") LocalDate today);
+    void expireOverdue(
+            @Param("email") String email,
+            @Param("today") LocalDate today,
+            @Param("profileId") Long profileId);
 
     List<Quest> selectRandomDaily(@Param("limit") int limit);
 
     int countAssignedTodayByType(@Param("email") String email,
                                  @Param("date") LocalDate date,
-                                 @Param("type") String type);
+                                 @Param("type") String type,
+                                 @Param("profileId") Long profileId);
 
 }

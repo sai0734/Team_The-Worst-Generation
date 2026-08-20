@@ -10,7 +10,6 @@ const PrintPaymentSuccess = lazy(
 const PrintPaymentFail = lazy(
   () => import("../pages/album/PrintPaymentFailPage"),
 );
-const AiVideo = lazy(() => import("../pages/aiVideo/AiVideoPage"));
 
 const diaryRouter = (): RouteObject[] => {
   return [
@@ -43,14 +42,6 @@ const diaryRouter = (): RouteObject[] => {
       element: (
         <Suspense fallback={Loading}>
           <PrintPaymentFail />
-        </Suspense>
-      ),
-    },
-    {
-      path: "ai-video",
-      element: (
-        <Suspense fallback={Loading}>
-          <AiVideo />
         </Suspense>
       ),
     },

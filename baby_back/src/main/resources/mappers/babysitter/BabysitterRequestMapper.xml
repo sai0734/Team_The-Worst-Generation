@@ -30,10 +30,25 @@
         WHERE sitter_email = #{sitterEmail} AND status = 'ACCEPTED'
     </select>
 
+    <select id="selectAcceptedDatesBySitter" resultType="java.time.LocalDate">
+        SELECT request_date
+        FROM tbl_babysitter_request
+        WHERE sitter_email = #{sitterEmail} AND status = 'ACCEPTED'
+    </select>
+
     <insert id="insert" useGeneratedKeys="true" keyProperty="requestNo" keyColumn="request_no">
         INSERT INTO tbl_babysitter_request (sitter_email, parent_email, request_date, time_slot, message, status)
         VALUES (#{sitterEmail}, #{parentEmail}, #{requestDate}, #{timeSlot}, #{message}, #{status})
     </insert>
+
+    <update id="update">
+        UPDATE tbl_babysitter_request
+        SET request_date = #{requestDate},
+            time_slot    = #{timeSlot},
+            message      = #{message},
+            mod_time     = CURRENT_TIMESTAMP
+        WHERE request_no = #{requestNo}
+    </update>
 
     <update id="updateStatus">
         UPDATE tbl_babysitter_request
