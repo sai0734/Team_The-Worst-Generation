@@ -37,12 +37,14 @@ const BabysitterLayoutPage = () => {
   // null = 아직 확인 전, true = 시터로 등록됨, false = 미등록(부모 입장)
   const [isSitter, setIsSitter] = useState<boolean | null>(null);
 
+  // 프로필을 등록/삭제해도 이 레이아웃은 리마운트되지 않으므로(중첩 라우트),
+  // 경로가 바뀔 때마다 다시 확인해서 역할 판단이 옛날 값으로 굳어있지 않게 함
   useEffect(() => {
     babysitterApi
       .getMine()
       .then(() => setIsSitter(true))
       .catch(() => setIsSitter(false));
-  }, []);
+  }, [pathname]);
 
   // 채팅 아이콘의 안읽음 배지: 전체 방의 안읽은 메시지 수 합. 실시간 push는 아니라
   // 일정 주기로 다시 불러와서 갱신함(방 안에서 보고 나오면 자연히 줄어듦).

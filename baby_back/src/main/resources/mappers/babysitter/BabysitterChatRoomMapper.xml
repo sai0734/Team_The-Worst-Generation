@@ -17,6 +17,7 @@
                    FROM tbl_babysitter_chat_message m
                    WHERE m.room_no = r.room_no
                      AND m.sender_email &lt;&gt; #{memberEmail}
+                     AND m.msg_type = 'TEXT'
                      AND m.msg_no > (
                          CASE WHEN r.parent_email = #{memberEmail}
                               THEN r.parent_last_read_msg_no

@@ -20,6 +20,11 @@ type DetailState =
   | { type: "DOMESTIC"; data: DomesticRecallDetail }
   | { type: "FOREIGN"; data: ForeignRecallDetail };
 
+// SafetyKorea API는 값이 없는 텍스트 필드를 문자열 "0"으로 내려줄 때가 있어서
+// (null/빈 문자열이 아니라 "0" 그대로) 이걸 실제 값처럼 보여주거나 링크로 걸지 않도록 걸러냄
+const displayValue = (v?: string | null): string => (v && v !== "0" ? v : "-");
+const isRealValue = (v?: string | null): boolean => !!v && v !== "0";
+
 const RecallDetailModal = ({
   product,
   detail,
@@ -48,56 +53,56 @@ const RecallDetailModal = ({
         {!loading && detail?.type === "CERT" && (
           <dl className="detail-list">
             <dt>인증기관</dt>
-            <dd>{detail.data.certOrganName || "-"}</dd>
+            <dd>{displayValue(detail.data.certOrganName)}</dd>
             <dt>인증상태</dt>
-            <dd>{detail.data.certState || "-"}</dd>
+            <dd>{displayValue(detail.data.certState)}</dd>
             <dt>변경사유</dt>
-            <dd>{detail.data.certChgReason || "-"}</dd>
+            <dd>{displayValue(detail.data.certChgReason)}</dd>
             <dt>제조자</dt>
-            <dd>{detail.data.makerName || "-"}</dd>
+            <dd>{displayValue(detail.data.makerName)}</dd>
             <dt>수입자</dt>
-            <dd>{detail.data.importerName || "-"}</dd>
+            <dd>{displayValue(detail.data.importerName)}</dd>
             <dt>비고</dt>
-            <dd>{detail.data.remark || "-"}</dd>
+            <dd>{displayValue(detail.data.remark)}</dd>
           </dl>
         )}
 
         {!loading && detail?.type === "DOMESTIC" && (
           <dl className="detail-list">
             <dt>리콜 사유</dt>
-            <dd>{detail.data.harmDscr || "-"}</dd>
+            <dd>{displayValue(detail.data.harmDscr)}</dd>
             <dt>사고 사례</dt>
-            <dd>{detail.data.accidentCaseDscr || "-"}</dd>
+            <dd>{displayValue(detail.data.accidentCaseDscr)}</dd>
             <dt>조치 사항</dt>
-            <dd>{detail.data.publishActionDscr || "-"}</dd>
+            <dd>{displayValue(detail.data.publishActionDscr)}</dd>
             <dt>공표일</dt>
-            <dd>{detail.data.publishDate || "-"}</dd>
+            <dd>{displayValue(detail.data.publishDate)}</dd>
             <dt>제조/판매사</dt>
-            <dd>{detail.data.recallCmpnyName || "-"}</dd>
+            <dd>{displayValue(detail.data.recallCmpnyName)}</dd>
             <dt>문의처</dt>
-            <dd>{detail.data.recallInqryTel || "-"}</dd>
+            <dd>{displayValue(detail.data.recallInqryTel)}</dd>
           </dl>
         )}
 
         {!loading && detail?.type === "FOREIGN" && (
           <dl className="detail-list">
             <dt>위반 사유</dt>
-            <dd>{detail.data.violateDscr || "-"}</dd>
+            <dd>{displayValue(detail.data.violateDscr)}</dd>
             <dt>사고 사례</dt>
-            <dd>{detail.data.accidentCaseDscr || "-"}</dd>
+            <dd>{displayValue(detail.data.accidentCaseDscr)}</dd>
             <dt>조치 사항</dt>
-            <dd>{detail.data.publishActionDscr || "-"}</dd>
+            <dd>{displayValue(detail.data.publishActionDscr)}</dd>
             <dt>제품 설명</dt>
-            <dd>{detail.data.recallProductDscr || "-"}</dd>
+            <dd>{displayValue(detail.data.recallProductDscr)}</dd>
             <dt>공표국가/기관</dt>
             <dd>
               {[detail.data.recallPblshCntryName, detail.data.recallPblshOrgnName]
-                .filter(Boolean)
+                .filter((v) => isRealValue(v))
                 .join(" · ") || "-"}
             </dd>
             <dt>공표일</dt>
-            <dd>{detail.data.publishDate || "-"}</dd>
-            {detail.data.recallUrl && (
+            <dd>{displayValue(detail.data.publishDate)}</dd>
+            {isRealValue(detail.data.recallUrl) && (
               <>
                 <dt>원문 링크</dt>
                 <dd>
@@ -251,7 +256,7 @@ const RecallListComponent = () => {
                 {[product.brandName, product.modelName].filter(Boolean).join(" · ") ||
                   "브랜드/모델 정보 없음"}
               </div>
-              {product.recallMatched && product.recallTitle && (
+              {product.recallMatched && isRealValue(product.recallTitle) && (
                 <div className="title">{product.recallTitle}</div>
               )}
               </div>
