@@ -151,8 +151,11 @@ const DiaryWriteComponent = ({ onRegistered }: DiaryWriteProps) => {
           type="button"
           onClick={handleGenerateContent}
           disabled={!file || aiLoading}
-          className="rounded-[12px] bg-[#5AB2FF] px-3 py-2 text-xs font-bold text-white transition-colors hover:bg-[#1E6FCC] disabled:cursor-not-allowed disabled:bg-[#CBD5E1]"
+          className="flex items-center gap-2 rounded-[12px] bg-[#5AB2FF] px-3 py-2 text-xs font-bold text-white transition-colors hover:bg-[#1E6FCC] disabled:cursor-not-allowed disabled:bg-[#CBD5E1]"
         >
+          {aiLoading && (
+            <span className="h-3 w-3 flex-shrink-0 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+          )}
           {aiLoading ? "AI가 작성중..." : "AI로 일기 쓰기"}
         </button>
         <div className="flex items-center gap-3">

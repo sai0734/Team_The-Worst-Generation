@@ -351,10 +351,13 @@ const BabySleepCardComponent = ({ babyNo }: BabySleepCardProps) => {
               <p className={labelClass}>AI 수면 조언</p>
               <button
                 type="button"
-                className="flex-shrink-0 rounded-full bg-[#5AB2FF] px-4 py-2 text-xs font-bold text-white transition-colors hover:bg-[#1E6FCC] disabled:opacity-50"
+                className="flex flex-shrink-0 items-center gap-1.5 rounded-full bg-[#5AB2FF] px-4 py-2 text-xs font-bold text-white transition-colors hover:bg-[#1E6FCC] disabled:opacity-50"
                 onClick={handleGetAdvice}
                 disabled={adviceLoading}
               >
+                {adviceLoading && (
+                  <span className="h-3 w-3 flex-shrink-0 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                )}
                 {adviceLoading ? "분석 중..." : "조언 받기"}
               </button>
             </div>
