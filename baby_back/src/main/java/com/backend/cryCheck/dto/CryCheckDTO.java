@@ -1,4 +1,4 @@
-package com.backend.cryCheck.dto;
+package com.backend.crycheck.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

@@ -1,9 +1,11 @@
 import { FormEvent, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import * as babysitterApi from "../../api/babysitterApi";
-import { TIME_SLOT_LABELS } from "../../api/babysitterApi";
-import type { TimeSlot } from "../../api/babysitterApi";
+import { DAY_OF_WEEK_LABELS, TIME_SLOT_LABELS } from "../../api/babysitterApi";
+import type { DayOfWeek, TimeSlot } from "../../api/babysitterApi";
 import { loadKakaoMapScript } from "../../util/kakaoMapLoader";
+
+const DAYS = Object.keys(DAY_OF_WEEK_LABELS) as DayOfWeek[];
 
 const describeError = (err: any): string =>
   err?.response?.data?.error ||
@@ -34,7 +36,7 @@ const BabysitterJobFormComponent = () => {
   const [latitude, setLatitude] = useState<number | undefined>(undefined);
   const [longitude, setLongitude] = useState<number | undefined>(undefined);
   const [locating, setLocating] = useState(false);
-  const [desiredDate, setDesiredDate] = useState("");
+  const [desiredDays, setDesiredDays] = useState<Set<DayOfWeek>>(new Set());
   const [timeSlot, setTimeSlot] = useState<TimeSlot>("MORNING");
   const [hourlyRate, setHourlyRate] = useState("");
   const [message, setMessage] = useState("");
@@ -70,11 +72,28 @@ const BabysitterJobFormComponent = () => {
     );
   };
 
+  const toggleDay = (day: DayOfWeek) => {
+    setDesiredDays((prev) => {
+      const next = new Set(prev);
+      if (next.has(day)) {
+        next.delete(day);
+      } else {
+        next.add(day);
+      }
+      return next;
+    });
+  };
+
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (!region || latitude == null || longitude == null) {
       alert("지역은 위치 설정 버튼으로만 등록할 수 있어요. 먼저 '현재 위치로 설정'을 눌러주세요.");
+      return;
+    }
+
+    if (desiredDays.size === 0) {
+      alert("희망 요일을 하나 이상 선택해주세요.");
       return;
     }
 
@@ -84,7 +103,7 @@ const BabysitterJobFormComponent = () => {
         region,
         latitude,
         longitude,
-        desiredDate,
+        desiredDays: Array.from(desiredDays),
         timeSlot,
         hourlyRate: hourlyRate ? Number(hourlyRate) : undefined,
         message: message || undefined,
@@ -137,13 +156,19 @@ const BabysitterJobFormComponent = () => {
       </div>
 
       <div className="field">
-        <label>희망 날짜</label>
-        <input
-          type="date"
-          value={desiredDate}
-          onChange={(e) => setDesiredDate(e.target.value)}
-          required
-        />
+        <label>희망 요일 (여러 개 선택 가능)</label>
+        <div className="seg">
+          {DAYS.map((day) => (
+            <button
+              key={day}
+              type="button"
+              className={desiredDays.has(day) ? "is-active" : ""}
+              onClick={() => toggleDay(day)}
+            >
+              {DAY_OF_WEEK_LABELS[day]}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="field">

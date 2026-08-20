@@ -3,7 +3,6 @@ import type { PageRequestParam, PageResponse } from "../types/page";
 
 const API_SERVER_HOST = "http://localhost:8080";
 const prefix = `${API_SERVER_HOST}/api/babysitter/profiles`;
-const locationPrefix = `${API_SERVER_HOST}/api/babysitter/location`;
 const pickPrefix = `${API_SERVER_HOST}/api/babysitter/picks`;
 const requestPrefix = `${API_SERVER_HOST}/api/babysitter/requests`;
 const reviewPrefix = `${API_SERVER_HOST}/api/babysitter/reviews`;
@@ -38,7 +37,7 @@ export const TIME_SLOT_LABELS: Record<TimeSlot, string> = {
   EVENING: "저녁",
 };
 
-export type SortOption = "recent" | "pick" | "career";
+export type SortOption = "recent" | "pick" | "career" | "rating";
 
 export interface BabysitterAvailability {
   dayOfWeek: DayOfWeek;
@@ -85,10 +84,27 @@ export interface BabysitterSearchParam extends PageRequestParam {
   region?: string;
   keyword?: string;
   minCareerYears?: number;
-  dayOfWeek?: DayOfWeek;
+  dayOfWeek?: DayOfWeek[];
   timeSlot?: TimeSlot;
   sort?: SortOption;
 }
+
+// 배열 필드(dayOfWeek)는 axios 기본 직렬화(key[]=..)가 아니라 스프링이 기대하는
+// key=v1&key=v2 형태로 직접 만들어줘야 함
+const toSearchParams = (
+  obj: object,
+): URLSearchParams => {
+  const params = new URLSearchParams();
+  Object.entries(obj as Record<string, unknown>).forEach(([key, value]) => {
+    if (value == null || value === "") return;
+    if (Array.isArray(value)) {
+      value.forEach((v) => params.append(key, String(v)));
+    } else {
+      params.append(key, String(value));
+    }
+  });
+  return params;
+};
 
 export const getMine = async (): Promise<BabysitterProfile> => {
   const res = await jwtAxios.get(`${prefix}/me`);
@@ -119,7 +135,9 @@ export const remove = async (): Promise<{ RESULT: string }> => {
 export const getList = async (
   searchParam: BabysitterSearchParam,
 ): Promise<PageResponse<BabysitterProfile>> => {
-  const res = await jwtAxios.get(`${prefix}/list`, { params: searchParam });
+  const res = await jwtAxios.get(`${prefix}/list`, {
+    params: toSearchParams(searchParam),
+  });
 
   return res.data;
 };
@@ -156,36 +174,6 @@ export const uploadPhoto = async (
   return res.data;
 };
 
-export interface BabysitterParentLocation {
-  region: string;
-  latitude: number | null;
-  longitude: number | null;
-}
-
-export const getMyLocation = async (): Promise<BabysitterParentLocation> => {
-  const res = await jwtAxios.get(`${locationPrefix}/`);
-
-  return {
-    region: res.data.region ?? "",
-    latitude: res.data.latitude ?? null,
-    longitude: res.data.longitude ?? null,
-  };
-};
-
-export const saveMyLocation = async (
-  region: string,
-  latitude?: number,
-  longitude?: number,
-): Promise<{ RESULT: string }> => {
-  const res = await jwtAxios.put(`${locationPrefix}/`, {
-    region,
-    latitude,
-    longitude,
-  });
-
-  return res.data;
-};
-
 export const togglePick = async (
   email: string,
 ): Promise<{ picked: boolean }> => {
@@ -206,8 +194,8 @@ export type RequestStatus = "PENDING" | "ACCEPTED" | "REJECTED" | "CANCELED";
 
 export const REQUEST_STATUS_LABELS: Record<RequestStatus, string> = {
   PENDING: "대기중",
-  ACCEPTED: "수락됨",
-  REJECTED: "거절됨",
+  ACCEPTED: "수락",
+  REJECTED: "거절",
   CANCELED: "취소됨",
 };
 
@@ -280,6 +268,23 @@ export const cancelRequest = async (
   requestNo: number,
 ): Promise<{ RESULT: string }> => {
   const res = await jwtAxios.put(`${requestPrefix}/${requestNo}/cancel`);
+
+  return res.data;
+};
+
+// 대기중인 내 요청의 날짜/시간대/메시지 수정
+export const modifyRequest = async (
+  requestNo: number,
+  input: BabysitterRequestInput,
+): Promise<{ RESULT: string }> => {
+  const res = await jwtAxios.put(`${requestPrefix}/${requestNo}`, input);
+
+  return res.data;
+};
+
+// 이미 예약이 잡힌(수락된) 날짜 목록 - 새 요청 폼에서 중복 예약 방지용
+export const getBookedDates = async (sitterEmail: string): Promise<string[]> => {
+  const res = await jwtAxios.get(`${requestPrefix}/sitter/${sitterEmail}/booked-dates`);
 
   return res.data;
 };
@@ -364,7 +369,7 @@ export interface BabysitterJobPost {
   longitude: number | null;
   // /nearby 조회 시에만 채워짐 - 기준 좌표로부터 거리(km)
   distanceKm?: number;
-  desiredDate: string;
+  desiredDays: DayOfWeek[];
   timeSlot: TimeSlot;
   hourlyRate: number | null;
   message: string | null;
@@ -379,7 +384,7 @@ export interface BabysitterJobPostInput {
   region?: string;
   latitude?: number;
   longitude?: number;
-  desiredDate: string;
+  desiredDays: DayOfWeek[];
   timeSlot: TimeSlot;
   hourlyRate?: number;
   message?: string;
@@ -387,7 +392,6 @@ export interface BabysitterJobPostInput {
 
 export interface BabysitterJobSearchParam extends PageRequestParam {
   region?: string;
-  desiredDate?: string;
   timeSlot?: TimeSlot;
   keyword?: string;
 }

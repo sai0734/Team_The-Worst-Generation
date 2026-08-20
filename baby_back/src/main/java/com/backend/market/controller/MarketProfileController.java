@@ -48,4 +48,13 @@ public class MarketProfileController {
 
         return Map.of("result", "success");
     }
+
+    @PreAuthorize("hasAnyRole('ROLE_USER')")
+    @PutMapping("/nickname")
+    public Map<String, String> changeNickname(@RequestBody Map<String, String> body, Principal principal) {
+
+        marketProfileService.changeNickname(principal.getName(), body.get("nickname"));
+
+        return Map.of("result", "success");
+    }
 }

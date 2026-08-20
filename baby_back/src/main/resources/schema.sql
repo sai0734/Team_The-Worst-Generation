@@ -117,7 +117,7 @@ CREATE TABLE IF NOT EXISTS tbl_baby_info (
     baby_no BIGINT AUTO_INCREMENT,
     email VARCHAR(100) NOT NULL,
     baby_name VARCHAR(100) NOT NULL,
-    birth_date DATE,
+    birth_date DATE NOT NULL,
     gender VARCHAR(100) NOT NULL,
     profile_image_file_name VARCHAR(500),
     blood_type VARCHAR(100),
@@ -405,7 +405,6 @@ CREATE TABLE IF NOT EXISTS tbl_babysitter_job_post (
     region       VARCHAR(100),
     latitude     DECIMAL(10,7),
     longitude    DECIMAL(10,7),
-    desired_date DATE         NOT NULL,
     time_slot    VARCHAR(10)  NOT NULL,
     hourly_rate  INT,
     message      VARCHAR(1000),
@@ -414,8 +413,19 @@ CREATE TABLE IF NOT EXISTS tbl_babysitter_job_post (
     mod_time     DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (job_no),
     CONSTRAINT fk_babysitter_job_post_parent FOREIGN KEY (parent_email) REFERENCES tbl_member (email),
-    INDEX idx_babysitter_job_post_region_date (region, desired_date),
+    INDEX idx_babysitter_job_post_region (region),
     INDEX idx_babysitter_job_post_status (status)
+);
+
+-- 특정 날짜(desired_date) 대신 반복적으로 필요한 요일 여러 개를 고를 수 있게 함
+DROP INDEX IF EXISTS idx_babysitter_job_post_region_date ON tbl_babysitter_job_post;
+ALTER TABLE tbl_babysitter_job_post DROP COLUMN IF EXISTS desired_date;
+
+CREATE TABLE IF NOT EXISTS tbl_babysitter_job_desired_day (
+    job_no      BIGINT      NOT NULL,
+    day_of_week VARCHAR(10) NOT NULL,
+    PRIMARY KEY (job_no, day_of_week),
+    CONSTRAINT fk_babysitter_job_desired_day_job FOREIGN KEY (job_no) REFERENCES tbl_babysitter_job_post (job_no)
 );
 
 ALTER TABLE tbl_babysitter_job_post ADD COLUMN IF NOT EXISTS latitude DECIMAL(10,7) NULL;
@@ -463,17 +473,24 @@ CREATE TABLE IF NOT EXISTS tbl_babysitter_chat_room (
     CONSTRAINT fk_babysitter_chat_room_sitter FOREIGN KEY (sitter_email) REFERENCES tbl_babysitter_profile (email),
     UNIQUE KEY uq_babysitter_chat_room (parent_email, sitter_email)
 );
+-- 안읽음 배지용: 각자(부모/시터)가 마지막으로 읽은 메시지 번호
+ALTER TABLE tbl_babysitter_chat_room ADD COLUMN IF NOT EXISTS parent_last_read_msg_no BIGINT NOT NULL DEFAULT 0;
+ALTER TABLE tbl_babysitter_chat_room ADD COLUMN IF NOT EXISTS sitter_last_read_msg_no BIGINT NOT NULL DEFAULT 0;
 
 -- KYI - 베이비시터 채팅 메시지
 CREATE TABLE IF NOT EXISTS tbl_babysitter_chat_message (
-    msg_no       BIGINT AUTO_INCREMENT,
-    room_no      BIGINT       NOT NULL,
-    sender_email VARCHAR(100) NOT NULL,
-    content      VARCHAR(1000) NOT NULL,
-    reg_time     DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    msg_no         BIGINT AUTO_INCREMENT,
+    room_no        BIGINT       NOT NULL,
+    sender_email   VARCHAR(100) NOT NULL,
+    msg_type       VARCHAR(10)  NOT NULL DEFAULT 'TEXT', -- TEXT | REQUEST
+    content        VARCHAR(1000),
+    request_no     BIGINT,                               -- REQUEST 타입일 때만: 채팅 안에서 보낸 시터 요청 카드가 가리키는 실제 요청
+    request_status VARCHAR(20),                           -- REQUEST 타입 카드 렌더링용 스냅샷(PENDING/ACCEPTED/REJECTED) - 진실은 tbl_babysitter_request.status
+    reg_time       DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (msg_no),
     CONSTRAINT fk_babysitter_chat_message_room FOREIGN KEY (room_no) REFERENCES tbl_babysitter_chat_room (room_no),
-    CONSTRAINT fk_babysitter_chat_message_sender FOREIGN KEY (sender_email) REFERENCES tbl_member (email)
+    CONSTRAINT fk_babysitter_chat_message_sender FOREIGN KEY (sender_email) REFERENCES tbl_member (email),
+    CONSTRAINT fk_babysitter_chat_message_request FOREIGN KEY (request_no) REFERENCES tbl_babysitter_request (request_no)
 );
 
 -- KYI - 커뮤니티 게시글
@@ -495,6 +512,19 @@ CREATE TABLE IF NOT EXISTS tbl_community_post (
 );
 
 ALTER TABLE tbl_community_post ADD COLUMN IF NOT EXISTS category VARCHAR(10) NOT NULL DEFAULT '자유';
+ALTER TABLE tbl_community_post ADD COLUMN IF NOT EXISTS like_count INT NOT NULL DEFAULT 0;
+
+-- KYI - 커뮤니티 게시글 공감(좋아요)
+CREATE TABLE IF NOT EXISTS tbl_community_post_like (
+    like_no      BIGINT AUTO_INCREMENT,
+    post_no      BIGINT       NOT NULL,
+    member_email VARCHAR(100) NOT NULL,
+    reg_time     DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (like_no),
+    CONSTRAINT fk_community_post_like_post FOREIGN KEY (post_no) REFERENCES tbl_community_post (post_no),
+    CONSTRAINT fk_community_post_like_member FOREIGN KEY (member_email) REFERENCES tbl_member (email),
+    CONSTRAINT uq_community_post_like UNIQUE (post_no, member_email)
+);
 
 -- KYI - 커뮤니티 게시글 첨부파일
 CREATE TABLE IF NOT EXISTS tbl_community_post_image (
@@ -911,6 +941,8 @@ CREATE TABLE IF NOT EXISTS tbl_market_profile (
     CONSTRAINT fk_market_profile_email FOREIGN KEY (email) REFERENCES tbl_member (email)
     );
 
+ALTER TABLE tbl_market_profile ADD COLUMN IF NOT EXISTS nickname VARCHAR(50) NULL;
+
 CREATE TABLE IF NOT EXISTS tbl_rental_detail (
                                                  item_no  BIGINT NOT NULL,
                                                  deposit  INT    NOT NULL DEFAULT 0,
@@ -992,6 +1024,19 @@ CREATE TABLE IF NOT EXISTS tbl_cry_check (
 
 ALTER TABLE tbl_cry_check ADD COLUMN IF NOT EXISTS audio_file_name VARCHAR(300) NULL;
 ALTER TABLE tbl_cry_check ADD COLUMN IF NOT EXISTS user_feedback VARCHAR(50) NULL;
+
+-- 홈캠 침대(안전영역) - 화면 비율(0~1) 저장, email당 1행만 유지(재설정 시 덮어씀)
+CREATE TABLE IF NOT EXISTS tbl_homecam_safe_zone (
+                                                     email    VARCHAR(100)  NOT NULL,
+    x_ratio  DECIMAL(6,5)  NOT NULL,
+    y_ratio  DECIMAL(6,5)  NOT NULL,
+    w_ratio  DECIMAL(6,5)  NOT NULL,
+    h_ratio  DECIMAL(6,5)  NOT NULL,
+    reg_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    mod_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    PRIMARY KEY (email),
+    CONSTRAINT fk_homecam_safe_zone_email FOREIGN KEY (email) REFERENCES tbl_member (email)
+    );
 
 -- LJW 끝
 -- YSJ 추가 정부지원금 3시 배치

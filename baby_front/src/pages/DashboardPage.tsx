@@ -1,20 +1,28 @@
-import { useEffect, useState, type CSSProperties, type ReactNode } from "react";
+import {
+  useEffect,
+  useState,
+  type CSSProperties,
+  type FormEvent,
+  type ReactNode,
+} from "react";
 import { Link, useNavigate } from "react-router-dom";
 import BasicLayout from "../layouts/BasicLayout";
 import useCustomLogin from "../hooks/useCustomLogin";
+import useQuestRealtime from "../hooks/useQuestRealtime";
 import * as ledgerApi from "../api/ledgerApi";
 import { CATEGORY_LABELS } from "../api/ledgerApi";
 import type { LedgerCategory, LedgerSummary } from "../api/ledgerApi";
 import * as recallApi from "../api/recallApi";
 import type { MyProduct } from "../api/recallApi";
-import { questApi, type QuestHome } from "../api/questApi";
+import { questApi, type MemberQuest, type QuestHome } from "../api/questApi";
 import AssistantPanel from "../components/assistant/AssistantPanel";
+import SkyBackground from "../components/common/SkyBackground";
 import heroBaby from "../assets/hero-baby.png";
 import { triggerWipe } from "../utils/pageTransition";
 import "../styles/dashboard-home.css";
 
 const MARQUEE_TEXT =
-  "오늘도 함께, 잘 키워가요 ✦ 육아 기록 · 가계부 · AI 정부지원금 · 리콜 알림 ✦ ";
+  "오늘의 육아일기 남겨보세요 ✦ AI로 우리 동네 지원금 찾아보세요 ✦ 가계부로 육아비 한눈에 정리해보세요 ✦ 육아용품 리콜 알림 받아보세요 ✦ 홈캠으로 낮잠시간 안심하게 지켜보세요 ✦ 감자마켓에서 육아템 거래해보세요 ✦ 믿을 수 있는 베이비시터 찾아보세요 ✦ AI 울음소리 분석 써보세요 ✦ ";
 
 const SplitHeading = ({
   text,
@@ -25,7 +33,9 @@ const SplitHeading = ({
   inView: boolean;
   className?: string;
 }) => (
-  <h2 className={`split-heading${inView ? " in-view" : ""}${className ? ` ${className}` : ""}`}>
+  <h2
+    className={`split-heading${inView ? " in-view" : ""}${className ? ` ${className}` : ""}`}
+  >
     {[...text].map((ch, i) => (
       <span key={i} className="char" style={{ transitionDelay: `${i * 30}ms` }}>
         {ch === " " ? " " : ch}
@@ -34,7 +44,13 @@ const SplitHeading = ({
   </h2>
 );
 
-const RevealLine = ({ play, children }: { play: boolean; children: ReactNode }) => (
+const RevealLine = ({
+  play,
+  children,
+}: {
+  play: boolean;
+  children: ReactNode;
+}) => (
   <span className={`reveal-line${play ? " play" : ""}`}>
     <span className="reveal-inner">{children}</span>
   </span>
@@ -66,15 +82,34 @@ const getTodayTip = () => {
   return DAILY_TIPS[dayOfYear % DAILY_TIPS.length];
 };
 
+const questErrorMsg = (err: unknown) => {
+  if (typeof err === "object" && err && "response" in err) {
+    const data = (err as { response?: { data?: { msg?: string } } }).response
+      ?.data;
+    if (data?.msg) {
+      return data.msg;
+    }
+  }
+  return "보내지 못했습니다.";
+};
+
 const DashboardPage = () => {
-  const { isLogin } = useCustomLogin();
+  const { isLogin, loginState } = useCustomLogin();
   const navigate = useNavigate();
 
-  const [ledgerSummary, setLedgerSummary] = useState<LedgerSummary | null>(null);
-  const [recallProducts, setRecallProducts] = useState<MyProduct[] | null>(null);
+  const [ledgerSummary, setLedgerSummary] = useState<LedgerSummary | null>(
+    null,
+  );
+  const [recallProducts, setRecallProducts] = useState<MyProduct[] | null>(
+    null,
+  );
 
   const [home, setHome] = useState<QuestHome>(emptyHome);
   const [completingId, setCompletingId] = useState<number | null>(null);
+  const [urgentTitle, setUrgentTitle] = useState("");
+  const [urgentDesc, setUrgentDesc] = useState("");
+  const [sendingUrgent, setSendingUrgent] = useState(false);
+  const [urgentMsg, setUrgentMsg] = useState("");
 
   const [heroPlay, setHeroPlay] = useState(false);
   const [cardsIn, setCardsIn] = useState(false);
@@ -97,7 +132,16 @@ const DashboardPage = () => {
         point: data.point ?? 0,
       });
     } catch {
-      setHome(emptyHome);
+      try {
+        const data = await questApi.getHome();
+        setHome({
+          dailyQuests: data.dailyQuests ?? [],
+          urgentQuests: data.urgentQuests ?? [],
+          point: data.point ?? 0,
+        });
+      } catch {
+        setHome(emptyHome);
+      }
     }
   };
 
@@ -118,10 +162,28 @@ const DashboardPage = () => {
       .getMyProductList()
       .then(setRecallProducts)
       .catch(() => setRecallProducts(null));
+  }, [isLogin]);
 
+  useEffect(() => {
+    if (!isLogin) {
+      setHome(emptyHome);
+      return;
+    }
     loadQuests();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLogin]);
+  }, [isLogin, loginState.profileId]);
+
+  useQuestRealtime(loginState.profileId, (quest: MemberQuest) => {
+    setHome((prev) => {
+      if (prev.urgentQuests.some((item) => item.id === quest.id)) {
+        return prev;
+      }
+      return {
+        ...prev,
+        urgentQuests: [quest, ...prev.urgentQuests],
+      };
+    });
+  });
 
   const handleToggle = async (id: number, done: boolean) => {
     setCompletingId(id);
@@ -134,6 +196,31 @@ const DashboardPage = () => {
       await loadQuests();
     } finally {
       setCompletingId(null);
+    }
+  };
+
+  const handleSendUrgent = async (event: FormEvent) => {
+    event.preventDefault();
+    const title = urgentTitle.trim();
+    if (!title || sendingUrgent) {
+      return;
+    }
+    setSendingUrgent(true);
+    setUrgentMsg("");
+    try {
+      await questApi.createUrgent({
+        title,
+        description: urgentDesc.trim(),
+        reward: 10,
+        urgency: 8,
+      });
+      setUrgentTitle("");
+      setUrgentDesc("");
+      setUrgentMsg("상대 프로필에 보냈습니다.");
+    } catch (err) {
+      setUrgentMsg(questErrorMsg(err));
+    } finally {
+      setSendingUrgent(false);
     }
   };
 
@@ -155,7 +242,12 @@ const DashboardPage = () => {
     : 0;
 
   const topCategories = ledgerSummary
-    ? (Object.entries(ledgerSummary.categoryBreakdown) as [LedgerCategory, number][])
+    ? (
+        Object.entries(ledgerSummary.categoryBreakdown) as [
+          LedgerCategory,
+          number,
+        ][]
+      )
         .sort((a, b) => b[1] - a[1])
         .slice(0, 2)
     : [];
@@ -164,35 +256,18 @@ const DashboardPage = () => {
     recallProducts?.filter((product) => product.recallMatched).length ?? 0;
 
   const daily = home.dailyQuests;
-  const urgent = home.urgentQuests[0];
+  const openUrgents = home.urgentQuests.filter((q) => q.status !== "DONE");
   const done = daily.filter((q) => q.status === "DONE").length;
   const dailyPct = daily.length ? (done / daily.length) * 100 : 0;
 
   return (
     <BasicLayout>
-      <div className="home-sky-bg" aria-hidden="true">
-        <span className="sky-emoji sky-sun">☀️</span>
-        <span className="sky-emoji sky-moon">🌙</span>
-        <span className="sky-emoji sky-star s1">⭐</span>
-        <span className="sky-emoji sky-star s2">✨</span>
-        <span className="sky-emoji sky-star s3">⭐</span>
-        <span className="sky-emoji sky-star s4">✨</span>
-        <span className="sky-emoji sky-cloud c1">☁️</span>
-        <span className="sky-emoji sky-cloud c2">☁️</span>
-        <span className="sky-emoji sky-cloud c3">☁️</span>
-        <span className="sky-emoji sky-cloud c4">☁️</span>
-        <img
-          src={heroBaby}
-          alt=""
-          className={`home-sky-baby${heroPlay ? " in-view" : ""}`}
-        />
-      </div>
+      <div className="home-page-inner">
+      <SkyBackground />
 
       <div className="home-content">
       <div className="home-hero-group">
       <section className="home-hero">
-        <div className="home-hero-blob a" />
-        <div className="home-hero-blob b" />
         <div className="home-hero-text">
           <RevealLine play={heroPlay}>
             <span className="chip home-hero-chip">환영합니다!</span>
@@ -215,6 +290,11 @@ const DashboardPage = () => {
             우리 아이 등록하기
           </Link>
         </div>
+        <img
+          src={heroBaby}
+          alt=""
+          className={`home-hero-art${heroPlay ? " in-view" : ""}`}
+        />
       </section>
 
       <div className="home-train">
@@ -257,8 +337,8 @@ const DashboardPage = () => {
             />
           </div>
 
-          {urgent && urgent.status !== "DONE" && (
-            <div className="home-urgent-banner">
+          {openUrgents.map((urgent) => (
+            <div className="home-urgent-banner" key={urgent.id}>
               <span className="alert">긴급</span>
               <div className="home-urgent-body">
                 <strong>{urgent.quest?.title ?? "긴급 퀘스트"}</strong>
@@ -276,7 +356,39 @@ const DashboardPage = () => {
                 {completingId === urgent.id ? "처리 중..." : "완료"}
               </button>
             </div>
-          )}
+          ))}
+
+          <form className="home-urgent-send" onSubmit={handleSendUrgent}>
+            <p className="home-urgent-send-label">상대에게 긴급 할 일 보내기</p>
+            <input
+              type="text"
+              value={urgentTitle}
+              onChange={(e) => setUrgentTitle(e.target.value)}
+              placeholder="예: 기저귀 사다 주세요"
+              maxLength={40}
+              disabled={!loginState.profileId || sendingUrgent}
+            />
+            <input
+              type="text"
+              value={urgentDesc}
+              onChange={(e) => setUrgentDesc(e.target.value)}
+              placeholder="설명 (선택)"
+              maxLength={80}
+              disabled={!loginState.profileId || sendingUrgent}
+            />
+            <button
+              type="submit"
+              className="ghost-btn"
+              disabled={!loginState.profileId || sendingUrgent || !urgentTitle.trim()}
+            >
+              {sendingUrgent ? "보내는 중..." : "보내기"}
+            </button>
+            <small>
+              {loginState.profileId
+                ? urgentMsg
+                : "프로필을 선택한 뒤 보낼 수 있어요."}
+            </small>
+          </form>
 
           {daily.length === 0 ? (
             <p className="empty-hint">배정된 일일 퀘스트가 없습니다.</p>
@@ -403,6 +515,7 @@ const DashboardPage = () => {
           className={`area-assist home-rise-up${cardsIn ? " in-view" : ""}`}
           style={{ "--i": 4 } as CSSProperties}
         />
+      </div>
       </div>
       </div>
     </BasicLayout>

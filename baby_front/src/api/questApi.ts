@@ -24,6 +24,7 @@ export interface MemberQuest {
   assignedDate: string;
   completedAt: string | null;
   dueDate?: string | null;
+  profileId?: number | null;
   quest: Quest;
 }
 

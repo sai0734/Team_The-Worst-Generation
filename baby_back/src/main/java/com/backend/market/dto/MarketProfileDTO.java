@@ -22,4 +22,6 @@ public class MarketProfileDTO {
 
     private boolean locationVerified;
 
+    private String nickname;
+
 }

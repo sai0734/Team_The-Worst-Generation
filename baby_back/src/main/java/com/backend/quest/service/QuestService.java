@@ -6,14 +6,15 @@ import com.backend.quest.dto.UrgentQuestCreateDTO;
 
 public interface QuestService {
 
-    QuestHomeDTO getHome(String email);
+    QuestHomeDTO getHome(String email, Long profileId, String parentType);
 
     MemberQuestDTO complete(String email, Long id);
 
     MemberQuestDTO uncomplete(String email, Long id);
 
-    void ensureDailyQuests(String email);
+    void ensureDailyQuests(String email, Long profileId, String parentType);
 
-    MemberQuestDTO createUrgentBySpouse(String creatorEmail, UrgentQuestCreateDTO dto);
+    MemberQuestDTO createUrgentForOtherProfile(
+            String creatorEmail, Long creatorProfileId, UrgentQuestCreateDTO dto);
 
 }

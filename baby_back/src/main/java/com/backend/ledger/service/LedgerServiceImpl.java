@@ -349,11 +349,15 @@ public class LedgerServiceImpl implements LedgerService {
             .sum();
     }
 
+    // "카테고리별 지출" 위젯 전용 - 수입(급여 등)이 지출 항목에 섞여 들어가지 않도록 지출만 집계
     private Map<LedgerCategory, Integer> breakdownByCategory(List<Ledger> entries) {
 
         Map<LedgerCategory, Integer> result = new EnumMap<>(LedgerCategory.class);
 
         for (Ledger entry : entries) {
+            if (entry.getType() != LedgerType.EXPENSE) {
+                continue;
+            }
             result.merge(entry.getCategory(), entry.getAmount(), Integer::sum);
         }
 

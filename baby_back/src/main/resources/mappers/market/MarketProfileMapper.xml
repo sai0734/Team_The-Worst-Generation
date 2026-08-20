@@ -5,14 +5,14 @@
 <mapper namespace="com.backend.market.mapper.MarketProfileMapper">
 
     <select id="selectByEmail" resultType="com.backend.market.domain.MarketProfile">
-        SELECT email, manner_temp, location_name, latitude, longitude, location_verified
+        SELECT email, manner_temp, location_name, latitude, longitude, location_verified, nickname
         FROM tbl_market_profile
         WHERE email = #{email}
     </select>
 
     <insert id="insert">
-        INSERT INTO tbl_market_profile (email, manner_temp, location_name, latitude, longitude, location_verified)
-        VALUES (#{email}, #{mannerTemp}, #{locationName}, #{latitude}, #{longitude}, #{locationVerified})
+        INSERT INTO tbl_market_profile (email, manner_temp, location_name, latitude, longitude, location_verified, nickname)
+        VALUES (#{email}, #{mannerTemp}, #{locationName}, #{latitude}, #{longitude}, #{locationVerified}, #{nickname})
     </insert>
 
     <update id="update">
@@ -21,7 +21,8 @@
         location_name = #{locationName},
         latitude = #{latitude},
         longitude = #{longitude},
-        location_verified = #{locationVerified}
+        location_verified = #{locationVerified},
+        nickname = #{nickname}
         WHERE email = #{email}
     </update>
 

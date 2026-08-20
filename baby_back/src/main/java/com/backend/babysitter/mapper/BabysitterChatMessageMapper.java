@@ -11,6 +11,10 @@ public interface BabysitterChatMessageMapper {
 
     List<BabysitterChatMessage> selectListByRoom(@Param("roomNo") Long roomNo);
 
+    BabysitterChatMessage selectOne(@Param("msgNo") Long msgNo);
+
     void insert(BabysitterChatMessage chatMessage);
+
+    void updateRequestStatus(@Param("msgNo") Long msgNo, @Param("requestStatus") String requestStatus);
 
 }

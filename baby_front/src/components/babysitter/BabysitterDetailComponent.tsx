@@ -13,12 +13,10 @@ import type {
   BabysitterRequest,
   BabysitterReview,
   DayOfWeek,
-  TimeSlot,
 } from "../../api/babysitterApi";
 import useCustomLogin from "../../hooks/useCustomLogin";
 
 const DAYS = Object.keys(DAY_OF_WEEK_LABELS) as DayOfWeek[];
-const SLOTS = Object.keys(TIME_SLOT_LABELS) as TimeSlot[];
 
 const describeError = (err: any): string =>
   err?.response?.data?.error ||
@@ -36,11 +34,6 @@ const BabysitterDetailComponent = () => {
   const [pickCount, setPickCount] = useState(0);
   const [reviews, setReviews] = useState<BabysitterReview[]>([]);
   const [reviewableRequests, setReviewableRequests] = useState<BabysitterRequest[]>([]);
-
-  const [showRequestForm, setShowRequestForm] = useState(false);
-  const [requestDate, setRequestDate] = useState("");
-  const [requestTimeSlot, setRequestTimeSlot] = useState<TimeSlot>("MORNING");
-  const [requestMessage, setRequestMessage] = useState("");
 
   const [reviewTargetRequestNo, setReviewTargetRequestNo] = useState<number | null>(null);
   const [reviewRating, setReviewRating] = useState(5);
@@ -102,30 +95,6 @@ const BabysitterDetailComponent = () => {
     } catch (err) {
       console.error(err);
       alert(describeError(err));
-    }
-  };
-
-  const handleSendRequest = async (e: FormEvent) => {
-    e.preventDefault();
-    if (!requestDate) {
-      alert("희망 날짜를 선택해주세요.");
-      return;
-    }
-
-    try {
-      await babysitterApi.registerRequest({
-        sitterEmail: email,
-        requestDate,
-        timeSlot: requestTimeSlot,
-        message: requestMessage || undefined,
-      });
-      alert("선정 요청을 보냈습니다. 시터가 수락하면 알 수 있어요.");
-      setShowRequestForm(false);
-      setRequestDate("");
-      setRequestMessage("");
-    } catch (err) {
-      console.error(err);
-      alert(`요청에 실패했습니다.\n(${describeError(err)})`);
     }
   };
 
@@ -244,53 +213,6 @@ const BabysitterDetailComponent = () => {
           </div>
         )}
       </div>
-
-      {isLogin && !isMine && (
-        <div className="card" style={{ marginBottom: 16 }}>
-          <button type="button" className="btn" onClick={() => setShowRequestForm((v) => !v)}>
-            선정하기
-          </button>
-
-          {showRequestForm && (
-            <form onSubmit={handleSendRequest} className="recall-form" style={{ maxWidth: 360, marginTop: 14 }}>
-              <div className="field">
-                <label>희망 날짜</label>
-                <input
-                  type="date"
-                  value={requestDate}
-                  onChange={(e) => setRequestDate(e.target.value)}
-                  required
-                />
-              </div>
-              <div className="field">
-                <label>시간대</label>
-                <select
-                  value={requestTimeSlot}
-                  onChange={(e) => setRequestTimeSlot(e.target.value as TimeSlot)}
-                >
-                  {SLOTS.map((slot) => (
-                    <option key={slot} value={slot}>
-                      {TIME_SLOT_LABELS[slot]}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="field">
-                <label>시터에게 남길 메시지 (선택)</label>
-                <textarea
-                  className="bulk-input"
-                  style={{ minHeight: 80 }}
-                  value={requestMessage}
-                  onChange={(e) => setRequestMessage(e.target.value)}
-                />
-              </div>
-              <button type="submit" className="submit-btn">
-                요청 보내기
-              </button>
-            </form>
-          )}
-        </div>
-      )}
 
       {reviewableRequests.length > 0 && (
         <div className="card" style={{ margin: "14px 0" }}>

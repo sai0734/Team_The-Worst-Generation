@@ -1,4 +1,4 @@
-package com.backend.cryCheck.domain;
+package com.backend.crycheck.domain;
 
 import lombok.*;
 

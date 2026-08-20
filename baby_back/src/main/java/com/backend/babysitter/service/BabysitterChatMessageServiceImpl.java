@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -26,6 +27,8 @@ public class BabysitterChatMessageServiceImpl implements BabysitterChatMessageSe
 
     private final BabysitterChatRoomMapper babysitterChatRoomMapper;
 
+    private final BabysitterRequestService babysitterRequestService;
+
     private final ModelMapper modelMapper;
 
     @Override
@@ -35,6 +38,16 @@ public class BabysitterChatMessageServiceImpl implements BabysitterChatMessageSe
         checkParticipant(room, requesterEmail);
 
         List<BabysitterChatMessage> result = babysitterChatMessageMapper.selectListByRoom(roomNo);
+
+        // 방에 들어와서 목록을 불러간 시점 = 그때까지의 메시지는 읽은 것으로 표시
+        if (!result.isEmpty()) {
+            Long lastMsgNo = result.get(result.size() - 1).getMsgNo();
+            if (room.getParentEmail().equals(requesterEmail)) {
+                babysitterChatRoomMapper.updateParentLastRead(roomNo, lastMsgNo);
+            } else {
+                babysitterChatRoomMapper.updateSitterLastRead(roomNo, lastMsgNo);
+            }
+        }
 
         return result.stream()
                 .map(chatMessage -> modelMapper.map(chatMessage, BabysitterChatMessageDTO.class))
@@ -52,6 +65,30 @@ public class BabysitterChatMessageServiceImpl implements BabysitterChatMessageSe
         babysitterChatMessageMapper.insert(chatMessage);
 
         return modelMapper.map(chatMessage, BabysitterChatMessageDTO.class);
+    }
+
+    @Override
+    public void respondToRequestCard(Long msgNo, String action, String requesterEmail) {
+
+        BabysitterChatMessage message = Optional.ofNullable(babysitterChatMessageMapper.selectOne(msgNo))
+                .orElseThrow(() -> new NoSuchElementException("존재하지 않는 메시지입니다: " + msgNo));
+
+        if (!"REQUEST".equals(message.getMsgType()) || message.getRequestNo() == null) {
+            throw new IllegalArgumentException("요청 카드가 아닙니다.");
+        }
+
+        String newStatus;
+        if ("accept".equals(action)) {
+            babysitterRequestService.accept(message.getRequestNo(), requesterEmail);
+            newStatus = "ACCEPTED";
+        } else if ("reject".equals(action)) {
+            babysitterRequestService.reject(message.getRequestNo(), requesterEmail);
+            newStatus = "REJECTED";
+        } else {
+            throw new IllegalArgumentException("알 수 없는 action입니다: " + action);
+        }
+
+        babysitterChatMessageMapper.updateRequestStatus(msgNo, newStatus);
     }
 
     private BabysitterChatRoom getRoomOrThrow(Long roomNo) {

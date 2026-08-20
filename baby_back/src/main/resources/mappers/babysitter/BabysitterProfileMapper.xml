@@ -93,6 +93,10 @@
             <when test="search.sort == 'career'">
                 ORDER BY career_years DESC, reg_time DESC
             </when>
+            <when test="search.sort == 'rating'">
+                ORDER BY IFNULL((SELECT AVG(rating) FROM tbl_babysitter_review r
+                                  WHERE r.sitter_email = tbl_babysitter_profile.email), 0) DESC, reg_time DESC
+            </when>
             <otherwise>
                 ORDER BY reg_time DESC
             </otherwise>
@@ -127,12 +131,17 @@
             AND (name LIKE CONCAT('%', #{search.keyword}, '%')
                  OR intro LIKE CONCAT('%', #{search.keyword}, '%'))
         </if>
-        <if test="search.dayOfWeek != null and search.timeSlot != null">
+        <if test="search.dayOfWeek != null and !search.dayOfWeek.isEmpty()">
             AND EXISTS (
                 SELECT 1 FROM tbl_babysitter_availability a
                 WHERE a.email = tbl_babysitter_profile.email
-                  AND a.day_of_week = #{search.dayOfWeek}
-                  AND a.time_slot = #{search.timeSlot}
+                  AND a.day_of_week IN
+                  <foreach item="d" collection="search.dayOfWeek" open="(" separator="," close=")">
+                      #{d}
+                  </foreach>
+                  <if test="search.timeSlot != null">
+                      AND a.time_slot = #{search.timeSlot}
+                  </if>
             )
         </if>
     </sql>

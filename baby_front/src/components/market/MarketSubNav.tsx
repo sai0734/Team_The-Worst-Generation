@@ -2,7 +2,7 @@ import { Link, useLocation } from "react-router-dom";
 import useCustomLogin from "../../hooks/useCustomLogin";
 import "../../styles/market.css";
 
-const LINKS = [
+export const LINKS = [
   { label: "홈", to: "/market" },
   { label: "매물 등록", to: "/market/write" },
   { label: "내 매물", to: "/market/my-items" },

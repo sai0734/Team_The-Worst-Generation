@@ -12,6 +12,8 @@
   flex-direction: column;
   gap: 4px;
   min-width: 0;
+  /* 옆 "오늘의 할 일" 카드와 높이를 맞춰서, 카드 두 개(가계부/리콜)가 그 높이를 나눠 채우게 함 */
+  align-self: stretch;
 }
 
 .app .home-grid.home-grid-v2 .area-ledger,
@@ -21,6 +23,8 @@
 
 .app .home-grid.home-grid-v2 .home-side-card {
   height: auto;
+  /* 내용 크기부터 시작해서(auto), 남는 세로 공간은 두 카드가 나눠 가짐 */
+  flex: 1 1 auto;
 }
 
 .app .home-grid.home-grid-v2 .area-assist {
@@ -229,6 +233,42 @@
 .app .assist-status.done {
   color: var(--muted);
   background: var(--soft);
+}
+
+.app .home-urgent-send {
+  display: grid;
+  gap: 6px;
+  margin: 0 0 10px;
+  padding: 8px 10px;
+  border: 1px dashed var(--line);
+  border-radius: 12px;
+  background: var(--soft);
+}
+
+.app .home-urgent-send-label {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.app .home-urgent-send input {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 6px 8px;
+  font-size: 12px;
+  font-family: inherit;
+  background: #fff;
+}
+
+.app .home-urgent-send button {
+  justify-self: start;
+}
+
+.app .home-urgent-send small {
+  font-size: 10px;
+  color: var(--muted);
 }
 
 @media (max-width: 860px) {

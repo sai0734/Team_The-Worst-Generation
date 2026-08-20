@@ -41,16 +41,22 @@ const PrintOrderListComponent = ({ onBack }: PrintOrderListProps) => {
   }, []);
 
   const loadPage = async (pageToLoad: number, reset: boolean) => {
-    const result = await printOrderApi.getList({
-      page: pageToLoad,
-      size: PAGE_SIZE,
-    });
+    try {
+      const result = await printOrderApi.getList({
+        page: pageToLoad,
+        size: PAGE_SIZE,
+      });
 
-    setOrders((prev) =>
-      reset ? result.dtoList : [...prev, ...result.dtoList],
-    );
-    setHasMore(result.next);
-    setLoading(false);
+      setOrders((prev) =>
+        reset ? result.dtoList : [...prev, ...result.dtoList],
+      );
+      setHasMore(result.next);
+    } catch (err) {
+      alert("주문내역을 불러오지 못했습니다.");
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {

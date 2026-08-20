@@ -57,6 +57,10 @@ public class PrintOrderServiceImpl implements PrintOrderService{
             if (babyAlbumMapper.countByAlbumNoAndBabyNo(itemReq.getAlbumNo(), requestDTO.getBabyNo()) == 0) {
                 throw new IllegalArgumentException("존재하지 않는 사진입니다: " + itemReq.getAlbumNo());
             }
+
+            if (itemReq.getQuantity() == null || itemReq.getQuantity() < 1) {
+                throw new IllegalArgumentException("수량은 1장 이상이어야 합니다.");
+            }
         }
 
         int totalAmount = requestDTO.getItems().stream()

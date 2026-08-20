@@ -41,8 +41,6 @@ const BabysitterRequestsSentComponent = () => {
 
   return (
     <div>
-      <h2 className="page-title">내가 보낸 요청</h2>
-
       {list.length === 0 && <div className="empty-hint">보낸 요청이 없습니다.</div>}
 
       <div className="sitter-list">

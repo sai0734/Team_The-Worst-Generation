@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
@@ -22,5 +23,17 @@ public class BabysitterChatMessageController {
     @GetMapping("/rooms/{roomNo}/messages")
     public List<BabysitterChatMessageDTO> getMessages(@PathVariable Long roomNo, Principal principal) {
         return babysitterChatMessageService.getListByRoom(roomNo, principal.getName());
+    }
+
+    // 채팅 안 요청 카드 수락/거절. action: "accept" | "reject"
+    @PutMapping("/messages/{msgNo}/respond")
+    public Map<String, String> respond(
+            @PathVariable Long msgNo,
+            @RequestParam String action,
+            Principal principal) {
+
+        babysitterChatMessageService.respondToRequestCard(msgNo, action, principal.getName());
+
+        return Map.of("result", "success");
     }
 }

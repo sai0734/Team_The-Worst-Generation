@@ -6,6 +6,7 @@ import com.backend.album.mapper.BabyAlbumMapper;
 import com.backend.babyInfo.mapper.BabyInfoMapper;
 import com.backend.global.dto.PageRequestDTO;
 import com.backend.global.dto.PageResponseDTO;
+import com.backend.global.util.CustomFileUtil;
 import com.backend.printorder.mapper.PrintOrderMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -13,6 +14,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -29,6 +31,8 @@ public class BabyAlbumServiceImpl implements BabyAlbumService {
     private final PrintOrderMapper printOrderMapper;
 
     private final ModelMapper modelMapper;
+
+    private final CustomFileUtil customFileUtil;
 
     @Override
     public PageResponseDTO<BabyAlbumDTO> getList(Long babyNo, String email, String sort, PageRequestDTO pageRequestDTO) {
@@ -81,9 +85,19 @@ public class BabyAlbumServiceImpl implements BabyAlbumService {
 
         log.info("babyAlbum_Service_remove_실행~~~~~~~~~~~~");
 
+        if (printOrderMapper.countPaidItemsByAlbumNo(albumNo) > 0) {
+            throw new IllegalArgumentException("이미 인화 결제가 완료된 사진은 삭제할 수 없습니다.");
+        }
+
+        String photoFileName = babyAlbumMapper.selectPhotoFileNameByAlbumNo(albumNo, email);
+
         printOrderMapper.deleteItemsByAlbumNo(albumNo);
 
         babyAlbumMapper.delete(albumNo, email);
+
+        if(photoFileName != null) {
+            customFileUtil.deleteFiles(Collections.singletonList(photoFileName));
+        }
 
     }
 
