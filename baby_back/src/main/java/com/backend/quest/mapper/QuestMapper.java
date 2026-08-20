@@ -64,9 +64,6 @@ public interface QuestMapper {
     //    일퀘 배정 insert
     void insertMemberQuest(MemberQuest memberQuest);
 
-    //배우자 이메일 조회
-    String selectPartnerEmail(@Param("email") String email);
-
     //긴급퀘 마스터 생성
     void insertUrgentQuest(Quest quest);
 
@@ -75,11 +72,26 @@ public interface QuestMapper {
             @Param("today") LocalDate today,
             @Param("profileId") Long profileId);
 
-    List<Quest> selectRandomDaily(@Param("limit") int limit);
-
     int countAssignedTodayByType(@Param("email") String email,
                                  @Param("date") LocalDate date,
                                  @Param("type") String type,
                                  @Param("profileId") Long profileId);
+
+    List<Quest> selectRandomDailyExceptOtherProfile(
+            @Param("email") String email,
+            @Param("date") LocalDate date,
+            @Param("profileId") Long profileId,
+            @Param("rowCount") int rowCount);
+
+    int countTodayDailyByCreatedBy(
+            @Param("email") String email,
+            @Param("date") LocalDate date,
+            @Param("profileId") Long profileId,
+            @Param("createdBy") String createdBy);
+
+    void deleteTodayDaily(
+            @Param("email") String email,
+            @Param("date") LocalDate date,
+            @Param("profileId") Long profileId);
 
 }

@@ -20,7 +20,8 @@ public class QuestController {
     @PreAuthorize("hasAnyRole('ROLE_USER')")
     @GetMapping("/home")
     public QuestHomeDTO home(@AuthenticationPrincipal MemberDTO member) {
-        return questService.getHome(member.getEmail(), member.getProfileId());
+        return questService.getHome(
+                member.getEmail(), member.getProfileId(), member.getParentType());
     }
 
     @PreAuthorize("hasAnyRole('ROLE_USER')")
