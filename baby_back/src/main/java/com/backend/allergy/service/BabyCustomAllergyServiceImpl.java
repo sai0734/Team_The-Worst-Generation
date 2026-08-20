@@ -6,11 +6,11 @@ import java.util.List;
 
 public interface BabyCustomAllergyServiceImpl {
 
-    List<BabyCustomAllergy> getCustomAllergies(Long babyNo);
+    List<BabyCustomAllergy> getCustomAllergies(Long babyNo, String email);
 
-    void addCustomAllergy(Long babyNo, String ingredientName);
+    void addCustomAllergy(Long babyNo, String ingredientName, String email);
 
-    void removeCustomAllergy(Long customAllergyNo);
+    void removeCustomAllergy(Long customAllergyNo, String email);
 
-    void updateCustomAllergy(Long customAllergyNo, String ingredientName);
+    void updateCustomAllergy(Long customAllergyNo, String ingredientName, String email);
 }

@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
 import java.util.List;
 
 @RestController
@@ -18,9 +19,10 @@ public class BabyCustomAllergyController {
 
     @GetMapping
     public ResponseEntity<List<BabyCustomAllergy>> getCustomAllergies(
-            @RequestParam("babyNo") Long babyNo){
+            @RequestParam("babyNo") Long babyNo,
+            Principal principal){
 
-        List<BabyCustomAllergy> result = babyCustomAllergyServiceImpl.getCustomAllergies(babyNo);
+        List<BabyCustomAllergy> result = babyCustomAllergyServiceImpl.getCustomAllergies(babyNo, principal.getName());
 
         return ResponseEntity.ok(result);
     }
@@ -29,18 +31,20 @@ public class BabyCustomAllergyController {
     @PostMapping
     public ResponseEntity<Void> addCustomAllergy(
             @RequestParam("babyNo") Long babyNo,
-            @RequestParam("ingredientName") String ingredientName){
+            @RequestParam("ingredientName") String ingredientName,
+            Principal principal){
 
-        babyCustomAllergyServiceImpl.addCustomAllergy(babyNo,ingredientName);
+        babyCustomAllergyServiceImpl.addCustomAllergy(babyNo, ingredientName, principal.getName());
 
         return ResponseEntity.ok().build();
     }
 
     @DeleteMapping("/{customAllergyNo}")
     public ResponseEntity<Void> removeCustomAllergy(
-            @PathVariable("customAllergyNo") Long customAllergyNo){
+            @PathVariable("customAllergyNo") Long customAllergyNo,
+            Principal principal){
 
-        babyCustomAllergyServiceImpl.removeCustomAllergy(customAllergyNo);
+        babyCustomAllergyServiceImpl.removeCustomAllergy(customAllergyNo, principal.getName());
 
         return ResponseEntity.ok().build();
     }
@@ -48,9 +52,10 @@ public class BabyCustomAllergyController {
     @PutMapping("/{customAllergyNo}")
     public ResponseEntity<Void> updateCustomAllergy(
             @PathVariable("customAllergyNo") Long customAllergyNo,
-            @RequestParam("ingredientName") String ingredientName){
+            @RequestParam("ingredientName") String ingredientName,
+            Principal principal){
 
-        babyCustomAllergyServiceImpl.updateCustomAllergy(customAllergyNo, ingredientName);
+        babyCustomAllergyServiceImpl.updateCustomAllergy(customAllergyNo, ingredientName, principal.getName());
 
         return ResponseEntity.ok().build();
     }

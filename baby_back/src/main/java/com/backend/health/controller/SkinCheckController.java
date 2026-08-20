@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.security.Principal;
 import java.util.List;
 
 @RestController
@@ -19,15 +20,17 @@ public class SkinCheckController {
     @PostMapping
     public ResponseEntity<BabySkinCheck> checkSkin(
             @RequestParam("babyNo") Long babyNo,
-            @RequestParam("image") MultipartFile image) {
+            @RequestParam("image") MultipartFile image,
+            Principal principal) {
 
-        return ResponseEntity.ok(babySkinCheckServiceImpl.checkSkin(babyNo, image));
+        return ResponseEntity.ok(babySkinCheckServiceImpl.checkSkin(babyNo, image, principal.getName()));
     }
 
     @GetMapping
     public ResponseEntity<List<BabySkinCheck>> getHistory(
-            @RequestParam("babyNo") Long babyNo) {
+            @RequestParam("babyNo") Long babyNo,
+            Principal principal) {
 
-        return ResponseEntity.ok(babySkinCheckServiceImpl.getHistory(babyNo));
+        return ResponseEntity.ok(babySkinCheckServiceImpl.getHistory(babyNo, principal.getName()));
     }
 }

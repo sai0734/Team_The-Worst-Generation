@@ -1,5 +1,6 @@
 package com.backend.health.service;
 
+import com.backend.babyInfo.mapper.BabyInfoMapper;
 import com.backend.global.ai.OllamaClient;
 import com.backend.health.domain.BabyStoolCheck;
 import com.backend.health.mapper.BabyStoolCheckMapper;
@@ -16,6 +17,7 @@ public class BabyStoolCheckService implements BabyStoolCheckServiceImpl {
 
     private final OllamaClient ollamaClient;
     private final BabyStoolCheckMapper babyStoolCheckMapper;
+    private final BabyInfoMapper babyInfoMapper;
 
     private static final String PROMPT =
             "너는 아기 대변 사진을 보고 상태를 짧게 알려주는 역할이야. "
@@ -29,7 +31,9 @@ public class BabyStoolCheckService implements BabyStoolCheckServiceImpl {
                     + "다른 설명, 배경 이야기, 의학적 진단 단정은 절대 하지 마.";
 
     @Override
-    public BabyStoolCheck checkStool(Long babyNo, MultipartFile image) {
+    public BabyStoolCheck checkStool(Long babyNo, MultipartFile image, String email) {
+
+        verifyOwner(babyNo, email);
 
         byte[] imageBytes = readImageBytes(image);
 
@@ -46,8 +50,15 @@ public class BabyStoolCheckService implements BabyStoolCheckServiceImpl {
     }
 
     @Override
-    public List<BabyStoolCheck> getHistory(Long babyNo) {
+    public List<BabyStoolCheck> getHistory(Long babyNo, String email) {
+        verifyOwner(babyNo, email);
         return babyStoolCheckMapper.selectByBabyNo(babyNo);
+    }
+
+    private void verifyOwner(Long babyNo, String email) {
+        if (babyInfoMapper.selectByBabyNo(babyNo, email) == null) {
+            throw new IllegalArgumentException("존재하지 않는 아이입니다: " + babyNo);
+        }
     }
 
     private byte[] readImageBytes(MultipartFile image) {

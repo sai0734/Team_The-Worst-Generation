@@ -1,11 +1,15 @@
-export interface WalkTrail {
-  trailNo?: number;
+export interface WalkPlace {
   name: string;
-  description?: string;
-  locationName?: string;
+  address: string;
   latitude: number;
   longitude: number;
-  // /nearby 조회 시에만 채워짐 - 기준 좌표로부터의 거리 (km)
-  distanceKm?: number;
-  regTime?: string;
+  distanceM: number;
+}
+
+export interface WalkAiRecommendation {
+  answer: string;
+  places: WalkPlace[];
+  temperature?: string;
+  precipitationType?: string;
+  humidity?: string;
 }

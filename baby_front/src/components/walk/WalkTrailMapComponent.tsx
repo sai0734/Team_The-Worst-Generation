@@ -1,17 +1,31 @@
 import { useEffect, useRef, useState } from "react";
 import * as walkApi from "../../api/walkApi";
-import type { WalkTrail } from "../../types/walk";
+import type { WalkAiRecommendation, WalkPlace } from "../../types/walk";
 import { loadKakaoMapScript } from "../../util/kakaoMapLoader";
 
 const DEFAULT_CENTER = { lat: 37.566826, lng: 126.9786567 }; // 서울시청 (위치 정보 없을 때 기본값)
-const RADIUS_KM = 5;
-const LIMIT = 5;
 
 const formatDistance = (distanceKm?: number): string | null => {
   if (distanceKm === undefined) return null;
   return distanceKm < 1
     ? `${Math.round(distanceKm * 1000)}m`
     : `${distanceKm.toFixed(1)}km`;
+};
+
+const buildDirectionsUrl = (
+  origin: { lat: number; lng: number },
+  place: WalkPlace,
+) => {
+  const destination = `${encodeURIComponent(place.name)},${place.latitude},${place.longitude}`;
+  return `https://map.kakao.com/link/from/${encodeURIComponent("출발지")},${origin.lat},${origin.lng}/to/${destination}`;
+};
+
+const openRouteWindow = (
+  origin: { lat: number; lng: number },
+  place: WalkPlace,
+) => {
+  const url = buildDirectionsUrl(origin, place);
+  window.open(url, "walkRoute", "width=480,height=760,noopener,noreferrer");
 };
 
 type LocationSource = "gps" | "manual" | "default";
@@ -29,9 +43,13 @@ const WalkTrailMapComponent = () => {
     useState<LocationSource>("default");
   const [locating, setLocating] = useState(false);
   const [pickMode, setPickMode] = useState(false);
-  const [trails, setTrails] = useState<WalkTrail[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [mapLoading, setMapLoading] = useState(true);
+  const [mapError, setMapError] = useState<string | null>(null);
+  const [locationHint, setLocationHint] = useState<string | null>(null);
+
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiResult, setAiResult] = useState<WalkAiRecommendation | null>(null);
+  const [aiError, setAiError] = useState<string | null>(null);
 
   useEffect(() => {
     pickModeRef.current = pickMode;
@@ -70,8 +88,13 @@ const WalkTrailMapComponent = () => {
         setCenter({ lat: pos.coords.latitude, lng: pos.coords.longitude });
         setLocationSource("gps");
       },
-      () => {
-        // 기본 좌표(서울시청) 유지 - 사용자가 직접 클릭으로 설정 가능
+      (err) => {
+        if (cancelled) return;
+        if (err.code === err.PERMISSION_DENIED) {
+          setLocationHint(
+            "위치 권한이 차단되어 있어요. 주소창의 자물쇠 아이콘 → 위치 → 허용으로 바꾸면 자동으로 인식됩니다.",
+          );
+        }
       },
     );
 
@@ -80,31 +103,34 @@ const WalkTrailMapComponent = () => {
     };
   }, []);
 
-  // center가 바뀔 때마다(최초 마운트 + 위치 확인/선택 완료 시) 지도 초기화/이동 + 주변 산책로 재조회
+  // center가 바뀔 때마다(최초 마운트 + 위치 확인/선택 완료 시) 지도 초기화/이동
   useEffect(() => {
     let cancelled = false;
 
     const init = async () => {
-      setLoading(true);
-      setError(null);
+      setMapLoading(true);
+      setMapError(null);
 
       try {
         await loadKakaoMapScript();
         if (cancelled || !mapContainerRef.current) return;
 
-        const centerLatLng = new window.kakao.maps.LatLng(
+        const centerLatLng = new (window as any).kakao.maps.LatLng(
           center.lat,
           center.lng,
         );
 
         if (!mapRef.current) {
-          mapRef.current = new window.kakao.maps.Map(mapContainerRef.current, {
-            center: centerLatLng,
-            level: 6,
-          });
+          mapRef.current = new (window as any).kakao.maps.Map(
+            mapContainerRef.current,
+            {
+              center: centerLatLng,
+              level: 6,
+            },
+          );
 
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          window.kakao.maps.event.addListener(
+          (window as any).kakao.maps.event.addListener(
             mapRef.current,
             "click",
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -120,62 +146,30 @@ const WalkTrailMapComponent = () => {
           mapRef.current.setCenter(centerLatLng);
         }
 
-        const nearbyTrails = await walkApi.getNearbyTrails(
-          center.lat,
-          center.lng,
-          RADIUS_KM,
-          LIMIT,
-        );
-        if (cancelled) return;
-        setTrails(nearbyTrails);
-
         overlaysRef.current.forEach((overlay) => overlay.setMap(null));
         overlaysRef.current = [];
 
-        const myLocationImage = new window.kakao.maps.MarkerImage(
+        const myLocationImage = new (window as any).kakao.maps.MarkerImage(
           "data:image/svg+xml;charset=UTF-8," +
             encodeURIComponent(
               '<svg xmlns="http://www.w3.org/2000/svg" width="36" height="46" viewBox="0 0 36 46"><path d="M18 0C8.1 0 0 8.1 0 18c0 13.5 18 28 18 28s18-14.5 18-28C36 8.1 27.9 0 18 0z" fill="#005bb2"/><circle cx="18" cy="18" r="9" fill="#ffffff"/><circle cx="18" cy="18" r="5" fill="#7fb2e6"/></svg>',
             ),
-          new window.kakao.maps.Size(36, 46),
-          { offset: new window.kakao.maps.Point(18, 46) },
+          new (window as any).kakao.maps.Size(36, 46),
+          { offset: new (window as any).kakao.maps.Point(18, 46) },
         );
 
-        const myMarker = new window.kakao.maps.Marker({
+        const myMarker = new (window as any).kakao.maps.Marker({
           position: centerLatLng,
           map: mapRef.current,
           image: myLocationImage,
           zIndex: 10,
         });
         overlaysRef.current.push(myMarker);
-
-        nearbyTrails.forEach((trail) => {
-          const marker = new window.kakao.maps.Marker({
-            position: new window.kakao.maps.LatLng(
-              trail.latitude,
-              trail.longitude,
-            ),
-            map: mapRef.current,
-          });
-
-          const infowindow = new window.kakao.maps.InfoWindow({
-            content: `<div style="padding:6px 10px;font-size:12px;">${trail.name}</div>`,
-          });
-
-          window.kakao.maps.event.addListener(marker, "mouseover", () => {
-            infowindow.open(mapRef.current, marker);
-          });
-          window.kakao.maps.event.addListener(marker, "mouseout", () => {
-            infowindow.close();
-          });
-
-          overlaysRef.current.push(marker);
-        });
       } catch (err) {
         console.error(err);
-        if (!cancelled) setError("지도를 불러오지 못했습니다.");
+        if (!cancelled) setMapError("지도를 불러오지 못했습니다.");
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled) setMapLoading(false);
       }
     };
 
@@ -187,6 +181,20 @@ const WalkTrailMapComponent = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [center.lat, center.lng]);
 
+  const fetchAiRecommendation = async () => {
+    setAiLoading(true);
+    setAiError(null);
+    try {
+      const result = await walkApi.getAiRecommendation(center.lat, center.lng);
+      setAiResult(result);
+    } catch (err) {
+      console.error(err);
+      setAiError("AI 추천을 불러오지 못했습니다.");
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
   const sourceLabel =
     locationSource === "gps"
       ? "현재 위치 기준"
@@ -197,7 +205,7 @@ const WalkTrailMapComponent = () => {
   return (
     <div className="card">
       <div className="head">
-        <h2>내 주변 산책로</h2>
+        <h2>AI 산책로 추천</h2>
         <div
           style={{
             display: "flex",
@@ -207,7 +215,7 @@ const WalkTrailMapComponent = () => {
           }}
         >
           <span style={{ fontSize: 11, color: "var(--muted)" }}>
-            {sourceLabel} 반경 {RADIUS_KM}km
+            {sourceLabel}
           </span>
           <button
             type="button"
@@ -224,10 +232,15 @@ const WalkTrailMapComponent = () => {
           >
             {pickMode ? "지도를 클릭하세요" : "지도 클릭으로 위치 설정"}
           </button>
+          {locationHint && (
+            <p style={{ color: "#ef6262", fontSize: 12, width: "100%" }}>
+              {locationHint}
+            </p>
+          )}
         </div>
       </div>
 
-      {error && <p style={{ color: "#ef6262", fontSize: 13 }}>{error}</p>}
+      {mapError && <p style={{ color: "#ef6262", fontSize: 13 }}>{mapError}</p>}
 
       <div
         style={{
@@ -255,52 +268,100 @@ const WalkTrailMapComponent = () => {
           style={{
             display: "flex",
             flexDirection: "column",
-            gap: 8,
+            gap: 12,
             maxHeight: 460,
             overflowY: "auto",
           }}
         >
-          {loading && <p className="empty-hint">불러오는 중...</p>}
+          <button
+            type="button"
+            className="btn"
+            onClick={fetchAiRecommendation}
+            disabled={aiLoading || mapLoading}
+          >
+            {aiLoading ? "추천 받는 중..." : "AI 추천받기"}
+          </button>
 
-          {!loading && trails.length === 0 && !error && (
-            <p className="empty-hint">주변에 등록된 산책로가 없습니다.</p>
+          {aiError && (
+            <p style={{ color: "#ef6262", fontSize: 13 }}>{aiError}</p>
           )}
 
-          {trails.map((trail) => (
-            <div
-              key={trail.trailNo}
-              className="card"
-              style={{ padding: "12px 14px" }}
-            >
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "flex-start",
-                  gap: 8,
-                }}
-              >
-                <strong style={{ fontSize: 14 }}>{trail.name}</strong>
-                {formatDistance(trail.distanceKm) && (
-                  <span className="status-badge available">
-                    {formatDistance(trail.distanceKm)}
-                  </span>
-                )}
-              </div>
-              {trail.locationName && (
-                <p
-                  style={{ fontSize: 12, color: "var(--muted)", marginTop: 4 }}
+          {!aiResult && !aiLoading && !aiError && (
+            <p className="empty-hint">
+              위치를 선택하고 "AI 추천받기"를 눌러보세요.
+            </p>
+          )}
+
+          {aiResult && (
+            <>
+              {(aiResult.temperature || aiResult.humidity) && (
+                <div
+                  style={{
+                    display: "flex",
+                    gap: 10,
+                    flexWrap: "wrap",
+                    fontSize: 12,
+                    color: "var(--muted)",
+                  }}
                 >
-                  {trail.locationName}
-                </p>
+                  {aiResult.temperature && (
+                    <span>🌡 {aiResult.temperature}°C</span>
+                  )}
+                  {aiResult.precipitationType && (
+                    <span>☔ {aiResult.precipitationType}</span>
+                  )}
+                  {aiResult.humidity && (
+                    <span>💧 습도 {aiResult.humidity}%</span>
+                  )}
+                </div>
               )}
-              {trail.description && (
-                <p style={{ fontSize: 13, marginTop: 6 }}>
-                  {trail.description}
-                </p>
-              )}
-            </div>
-          ))}
+              <p style={{ fontSize: 13, lineHeight: 1.5 }}>{aiResult.answer}</p>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                {aiResult.places.map((place) => (
+                  <div
+                    key={place.name + place.address}
+                    className="card"
+                    style={{ padding: "12px 14px" }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "flex-start",
+                        gap: 8,
+                      }}
+                    >
+                      <strong style={{ fontSize: 14 }}>{place.name}</strong>
+                      <span className="status-badge available">
+                        {formatDistance(place.distanceM / 1000)}
+                      </span>
+                    </div>
+                    <p
+                      style={{
+                        fontSize: 12,
+                        color: "var(--muted)",
+                        marginTop: 4,
+                      }}
+                    >
+                      {place.address}
+                    </p>
+                    <button
+                      type="button"
+                      className="ghost-btn"
+                      onClick={() => openRouteWindow(center, place)}
+                      style={{
+                        display: "inline-block",
+                        marginTop: 8,
+                        fontSize: 12,
+                      }}
+                    >
+                      경로보기 (새 창)
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>

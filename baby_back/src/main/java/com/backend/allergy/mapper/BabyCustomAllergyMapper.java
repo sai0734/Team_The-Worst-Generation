@@ -12,6 +12,10 @@ public interface BabyCustomAllergyMapper {
             + "FROM tbl_baby_custom_allergy WHERE babyNo = #{babyNo}")
     List<BabyCustomAllergy> selectByBabyNo(@Param("babyNo") Long babyNo);
 
+    @Select("SELECT customAllergyNo, babyNo, ingredientName, regTime "
+            + "FROM tbl_baby_custom_allergy WHERE customAllergyNo = #{customAllergyNo}")
+    BabyCustomAllergy selectByCustomAllergyNo(@Param("customAllergyNo") Long customAllergyNo);
+
     @Insert("INSERT INTO tbl_baby_custom_allergy (babyNo, ingredientName) "
             + "VALUES (#{babyNo}, #{ingredientName})")
     void insert(BabyCustomAllergy babyCustomAllergy);

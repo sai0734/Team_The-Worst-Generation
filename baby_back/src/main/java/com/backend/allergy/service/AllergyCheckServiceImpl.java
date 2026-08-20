@@ -5,5 +5,5 @@ import org.springframework.web.multipart.MultipartFile;
 
 public interface AllergyCheckServiceImpl {
 
-    BabyAllergyCheck checkAllergy(Long babyNo, MultipartFile image);
+    BabyAllergyCheck checkAllergy(Long babyNo, MultipartFile image, String email);
 }
