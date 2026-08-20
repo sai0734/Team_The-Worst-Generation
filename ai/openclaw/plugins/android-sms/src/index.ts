@@ -1,4 +1,8 @@
 import { Type } from "typebox";
+import type {
+  AgentTool,
+  AgentToolResult,
+} from "openclaw/plugin-sdk/agent-core";
 import { defineToolPlugin } from "openclaw/plugin-sdk/tool-plugin";
 
 type MessageMissionResult = {
@@ -7,7 +11,6 @@ type MessageMissionResult = {
   status: "DRY_RUN";
   accepted: true;
   to: string;
-  agentInstruction: string;
 };
 
 const resultByMissionId = new Map<string, MessageMissionResult>();
@@ -39,6 +42,81 @@ const messageMissionSchema = Type.Object(
   { additionalProperties: false },
 );
 
+const androidSmsParameters = Type.Object(
+  {
+    mission: messageMissionSchema,
+  },
+  { additionalProperties: false },
+);
+
+function missionResult(
+  result: MessageMissionResult,
+  terminate = false,
+): AgentToolResult<MessageMissionResult> {
+  const resultJson = JSON.stringify(result, null, 2);
+
+  return {
+    content: [
+      {
+        type: "text",
+        text: [
+          "ANDROID_SMS_SEND_COMPLETED",
+          "The mission is complete. Never call android_sms_send again in this run.",
+          "Return only the JSON between FINAL_JSON_START and FINAL_JSON_END as the final assistant response.",
+          "FINAL_JSON_START",
+          resultJson,
+          "FINAL_JSON_END",
+        ].join("\n"),
+      },
+    ],
+    details: result,
+    ...(terminate ? { terminate: true } : {}),
+  };
+}
+
+export function createAndroidSmsTool(): AgentTool<
+  typeof androidSmsParameters,
+  MessageMissionResult
+> {
+  const returnedMissionIds = new Set<string>();
+
+  return {
+    name: "android_sms_send",
+    label: "Android SMS Send",
+    description:
+      "검증된 메시지 미션을 안드로이드 SMS 브리지로 정확히 한 번 전달합니다. 이 대화에 android_sms_send 도구 결과가 이미 있으면 다시 호출하지 말고, 그 결과 JSON을 최종 응답으로 그대로 출력해야 합니다.",
+    parameters: androidSmsParameters,
+    async execute(_toolCallId, { mission }, signal) {
+      signal?.throwIfAborted();
+
+      const missionId = mission.metadata.missionId;
+      const repeatedInCurrentRun = returnedMissionIds.has(missionId);
+      const previousResult = resultByMissionId.get(missionId);
+
+      if (previousResult) {
+        returnedMissionIds.add(missionId);
+        return missionResult(previousResult, repeatedInCurrentRun);
+      }
+
+      if (!mission.metadata.dryRun) {
+        throw new Error("ANDROID_SMS_BRIDGE_NOT_CONFIGURED");
+      }
+
+      const result: MessageMissionResult = {
+        missionId,
+        provider: "ANDROID_SMS",
+        status: "DRY_RUN",
+        accepted: true,
+        to: mission.to,
+      };
+
+      resultByMissionId.set(missionId, result);
+      returnedMissionIds.add(missionId);
+      return missionResult(result);
+    },
+  };
+}
+
 export default defineToolPlugin({
   id: "android-sms",
   name: "Android SMS",
@@ -48,41 +126,13 @@ export default defineToolPlugin({
     tool({
       name: "android_sms_send",
       label: "Android SMS Send",
-      description: "검증된 메시지 미션을 안드로이드 SMS 브리지로 전달합니다.",
+      description:
+        "검증된 메시지 미션을 안드로이드 SMS 브리지로 정확히 한 번 전달합니다. 도구 결과를 받은 뒤에는 다시 호출하지 말고 결과 JSON만 최종 응답으로 출력합니다.",
 
-      parameters: Type.Object(
-        {
-          mission: messageMissionSchema,
-        },
-        { additionalProperties: false },
-      ),
+      parameters: androidSmsParameters,
 
-      async execute({ mission }, _config, context) {
-        context.signal?.throwIfAborted();
-
-        const previousResult = resultByMissionId.get(
-          mission.metadata.missionId,
-        );
-        if (previousResult) {
-          return previousResult;
-        }
-
-        if (!mission.metadata.dryRun) {
-          throw new Error("ANDROID_SMS_BRIDGE_NOT_CONFIGURED");
-        }
-
-        const result: MessageMissionResult = {
-          missionId: mission.metadata.missionId,
-          provider: "ANDROID_SMS",
-          status: "DRY_RUN",
-          accepted: true,
-          to: mission.to,
-          agentInstruction:
-            "Stop now. Do not call any tool again. Return this JSON result to the caller.",
-        };
-
-        resultByMissionId.set(mission.metadata.missionId, result);
-        return result;
+      factory() {
+        return createAndroidSmsTool();
       },
     }),
   ],

@@ -10,7 +10,8 @@ set "NODE_ARCHIVE=node-v%NODE_VERSION%-win-x64"
 set "NODE_HOME=%TOOLS_ROOT%\%NODE_ARCHIVE%"
 set "NODE_ZIP=%TEMP%\%NODE_ARCHIVE%.zip"
 set "NODE_URL=https://nodejs.org/dist/v%NODE_VERSION%/%NODE_ARCHIVE%.zip"
-set "OPENCLAW_CLI_DIR=%NODE_HOME%"
+REM npm 자체 의존성과 OpenClaw 의존성이 충돌하지 않도록 설치 위치를 분리합니다.
+set "OPENCLAW_CLI_DIR=%TOOLS_ROOT%\cli"
 set "OPENCLAW_BIN=%OPENCLAW_CLI_DIR%\node_modules\.bin"
 set "PLUGIN_DIR=%~dp0plugins\android-sms"
 
@@ -93,6 +94,9 @@ if errorlevel 1 exit /b 1
 call openclaw models set "ollama/%MODEL_NAME%"
 if errorlevel 1 exit /b 1
 
+call openclaw config set gateway.http.endpoints.chatCompletions.enabled true --strict-json
+if errorlevel 1 exit /b 1
+
 if not exist "%PLUGIN_DIR%\package.json" (
     echo [오류] Android SMS 플러그인을 찾을 수 없습니다.
     echo        %PLUGIN_DIR%
@@ -128,7 +132,7 @@ echo [오류] Android SMS 플러그인 설정에 실패했습니다.
 exit /b 1
 
 :launch
-call ollama launch openclaw --model "%MODEL_NAME%"
+call openclaw gateway run --port 18789
 exit /b %errorlevel%
 
 :status

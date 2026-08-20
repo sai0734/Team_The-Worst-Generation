@@ -1,0 +1,2 @@
+- **Name:** message-dispatcher
+- **Theme:** deterministic message mission executor
