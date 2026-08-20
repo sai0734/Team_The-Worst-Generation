@@ -2,6 +2,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import * as babysitterApi from "../../api/babysitterApi";
 import {
+  DAY_OF_WEEK_LABELS,
   JOB_APPLICATION_STATUS_BADGE_CLASS,
   JOB_APPLICATION_STATUS_LABELS,
   JOB_STATUS_BADGE_CLASS,
@@ -117,7 +118,7 @@ const BabysitterJobDetailComponent = () => {
       <div className="community-detail-meta">{job.parentNickname ?? "익명"}</div>
 
       <div className="sitter-detail-meta" style={{ margin: "0 0 14px" }}>
-        {job.desiredDate} ({TIME_SLOT_LABELS[job.timeSlot]}) · {job.region ?? "지역 미입력"}
+        {job.desiredDays.map((d) => DAY_OF_WEEK_LABELS[d]).join(", ")} ({TIME_SLOT_LABELS[job.timeSlot]}) · {job.region ?? "지역 미입력"}
         <br />
         {job.hourlyRate ? `시급 ${job.hourlyRate.toLocaleString()}원` : "시급 협의"}
       </div>

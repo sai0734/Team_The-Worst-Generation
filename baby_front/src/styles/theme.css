@@ -1476,6 +1476,31 @@
   letter-spacing: -0.5px;
   margin: 10px 0 22px;
 }
+/* 하늘 배경 위에 바로 얹힌 제목/탭은 구름이 뒤로 지나가면 글자와 겹쳐 시인성이 떨어지므로,
+   다른 카드들과 같은 톤의 유리 패널을 하나 더 깔아준다 */
+.app .page-header-card {
+  position: relative;
+  z-index: 1;
+  padding: 16px 20px 8px;
+  border-radius: 24px;
+  background: linear-gradient(
+    150deg,
+    rgba(255, 255, 255, 0.6) 0%,
+    rgba(255, 255, 255, 0.38) 55%,
+    rgba(255, 255, 255, 0.26) 100%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(24px) saturate(100%) brightness(1.1);
+  -webkit-backdrop-filter: blur(24px) saturate(100%) brightness(1.1);
+  box-shadow: 0 16px 40px rgba(90, 100, 160, 0.14);
+  margin-bottom: 20px;
+}
+.app .page-header-card .page-title {
+  margin: 0 0 14px;
+}
+.app .page-header-card .community-tabs {
+  margin-bottom: 0;
+}
 .app .recall-header {
   display: flex;
   align-items: center;
@@ -2562,6 +2587,38 @@
 }
 .app .sitter-common-icon .icon {
   font-size: 18px;
+}
+.app .sitter-common-icon .icon-wrap {
+  position: relative;
+  display: inline-flex;
+}
+.app .sitter-unread-badge {
+  position: absolute;
+  top: -4px;
+  right: -9px;
+  min-width: 15px;
+  height: 15px;
+  padding: 0 3px;
+  border-radius: 99px;
+  background: #e0455c;
+  color: #fff;
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 15px;
+  text-align: center;
+}
+.app .chat-unread-badge {
+  flex-shrink: 0;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 99px;
+  background: #e0455c;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 20px;
+  text-align: center;
 }
 .app .sitter-common-icon:hover,
 .app .sitter-common-icon.active {

@@ -7,12 +7,17 @@ import org.apache.ibatis.annotations.Param;
 
 import com.backend.babysitter.domain.BabysitterJobPost;
 import com.backend.babysitter.domain.BabysitterJobStatus;
+import com.backend.babysitter.domain.DayOfWeekType;
 import com.backend.babysitter.dto.BabysitterJobSearchDTO;
 
 @Mapper
 public interface BabysitterJobPostMapper {
 
     BabysitterJobPost selectByJobNo(@Param("jobNo") Long jobNo);
+
+    List<DayOfWeekType> selectDesiredDays(@Param("jobNo") Long jobNo);
+
+    void insertDesiredDay(@Param("jobNo") Long jobNo, @Param("dayOfWeek") DayOfWeekType dayOfWeek);
 
     List<BabysitterJobPost> selectList(
         @Param("search") BabysitterJobSearchDTO search,

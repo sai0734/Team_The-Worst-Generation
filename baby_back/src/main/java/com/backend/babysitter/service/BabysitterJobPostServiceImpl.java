@@ -42,13 +42,16 @@ public class BabysitterJobPostServiceImpl implements BabysitterJobPostService {
     @Override
     public Long register(BabysitterJobPostDTO jobPostDTO) {
 
+        if (jobPostDTO.getDesiredDays() == null || jobPostDTO.getDesiredDays().isEmpty()) {
+            throw new IllegalArgumentException("희망 요일을 하나 이상 선택해주세요.");
+        }
+
         BabysitterJobPost jobPost = BabysitterJobPost.builder()
             .parentEmail(jobPostDTO.getParentEmail())
             .title(jobPostDTO.getTitle())
             .region(jobPostDTO.getRegion())
             .latitude(jobPostDTO.getLatitude() != null ? BigDecimal.valueOf(jobPostDTO.getLatitude()) : null)
             .longitude(jobPostDTO.getLongitude() != null ? BigDecimal.valueOf(jobPostDTO.getLongitude()) : null)
-            .desiredDate(jobPostDTO.getDesiredDate())
             .timeSlot(jobPostDTO.getTimeSlot())
             .hourlyRate(jobPostDTO.getHourlyRate())
             .message(jobPostDTO.getMessage())
@@ -56,6 +59,9 @@ public class BabysitterJobPostServiceImpl implements BabysitterJobPostService {
             .build();
 
         babysitterJobPostMapper.insert(jobPost);
+
+        jobPostDTO.getDesiredDays().forEach(day ->
+            babysitterJobPostMapper.insertDesiredDay(jobPost.getJobNo(), day));
 
         return jobPost.getJobNo();
     }
@@ -169,7 +175,7 @@ public class BabysitterJobPostServiceImpl implements BabysitterJobPostService {
             .region(jobPost.getRegion())
             .latitude(jobPost.getLatitude() != null ? jobPost.getLatitude().doubleValue() : null)
             .longitude(jobPost.getLongitude() != null ? jobPost.getLongitude().doubleValue() : null)
-            .desiredDate(jobPost.getDesiredDate())
+            .desiredDays(jobPost.getDesiredDays())
             .timeSlot(jobPost.getTimeSlot())
             .hourlyRate(jobPost.getHourlyRate())
             .message(jobPost.getMessage())

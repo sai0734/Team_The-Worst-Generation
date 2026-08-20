@@ -20,4 +20,9 @@ public interface BabysitterChatRoomMapper {
 
     void insert(BabysitterChatRoom chatRoom);
 
+    // 방 입장(메시지 목록 조회) 시 그 시점까지 읽은 걸로 표시
+    void updateParentLastRead(@Param("roomNo") Long roomNo, @Param("lastMsgNo") Long lastMsgNo);
+
+    void updateSitterLastRead(@Param("roomNo") Long roomNo, @Param("lastMsgNo") Long lastMsgNo);
+
 }

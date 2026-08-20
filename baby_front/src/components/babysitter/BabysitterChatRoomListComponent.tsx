@@ -37,7 +37,7 @@ const BabysitterChatRoomListComponent = () => {
         <div
           className="list-row"
           key={room.roomNo}
-          style={{ cursor: "pointer" }}
+          style={{ cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between" }}
           onClick={() => navigate(`/community/babysitter/chat/${room.roomNo}`)}
         >
           <span>
@@ -45,6 +45,11 @@ const BabysitterChatRoomListComponent = () => {
               ? room.sitterEmail
               : room.parentEmail}
           </span>
+          {!!room.unreadCount && (
+            <span className="chat-unread-badge">
+              {room.unreadCount > 99 ? "99+" : room.unreadCount}
+            </span>
+          )}
         </div>
       ))}
     </div>
