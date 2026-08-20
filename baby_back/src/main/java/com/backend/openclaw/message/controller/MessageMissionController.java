@@ -1,7 +1,9 @@
 package com.backend.openclaw.message.controller;
 
 import com.backend.openclaw.message.dto.MessageMissionDTO;
+import com.backend.openclaw.message.dto.MessageMissionResultDTO;
 import com.backend.openclaw.message.dto.MessageRequestDTO;
+import com.backend.openclaw.message.service.MessageMissionDispatchService;
 import com.backend.openclaw.message.service.MessageMissionService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -19,13 +21,33 @@ import java.security.Principal;
 public class MessageMissionController {
 
     private final MessageMissionService messageMissionService;
+    private final MessageMissionDispatchService dispatchService;
 
     @PostMapping
-    public MessageMissionDTO createMessageMission(Principal principal, @RequestBody MessageRequestDTO request){
-        String requestedBy = principal == null ? null : principal.getName();
+    public MessageMissionResultDTO createMessageMission(
+            Principal principal,
+            @RequestBody MessageRequestDTO request
+    ) {
+        String requestedBy =
+                principal == null
+                        ? null
+                        : principal.getName();
 
-        MessageMissionDTO mission = messageMissionService.createMission(request, requestedBy);
+        MessageMissionDTO mission =
+                messageMissionService.createMission(
+                        request,
+                        requestedBy
+                );
 
-        return mission;
+        MessageMissionResultDTO result =
+                dispatchService.dispatch(mission);
+
+        log.info(
+                "Message mission completed: missionId={}, status={}",
+                result.getMissionId(),
+                result.getStatus()
+        );
+
+        return result;
     }
 }

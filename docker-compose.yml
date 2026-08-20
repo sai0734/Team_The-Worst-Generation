@@ -60,6 +60,8 @@ services:
     build: ./ai/openclaw
     depends_on:
       - ollama
+    environment:
+      OPENCLAW_INTERNAL_KEY: ${OPENCLAW_INTERNAL_KEY}
     volumes:
       - openclaw_data:/root/.openclaw
 

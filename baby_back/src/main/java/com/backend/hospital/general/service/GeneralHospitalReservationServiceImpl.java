@@ -4,6 +4,7 @@ import com.backend.hospital.general.domain.GeneralHospitalReservation;
 import com.backend.hospital.general.domain.GeneralHospitalReservationStatus;
 import com.backend.hospital.general.dto.GeneralHospitalReservationDTO;
 import com.backend.hospital.general.mapper.GeneralHospitalReservationMapper;
+import com.backend.openclaw.message.utils.PhoneNumberUtils;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
@@ -24,6 +25,8 @@ public class GeneralHospitalReservationServiceImpl implements GeneralHospitalRes
     public Long register(GeneralHospitalReservationDTO reservationDTO) {
         validateReservationRequest(reservationDTO);
 
+        String notificationPhone = PhoneNumberUtils.normalize(reservationDTO.getNotificationPhone());
+
         GeneralHospitalReservation reservation = GeneralHospitalReservation.builder()
                 .memberEmail(reservationDTO.getMemberEmail())
                 .hospitalId(reservationDTO.getHospitalId())
@@ -31,6 +34,7 @@ public class GeneralHospitalReservationServiceImpl implements GeneralHospitalRes
                 .hospitalType(reservationDTO.getHospitalType())
                 .hospitalAddress(reservationDTO.getHospitalAddress())
                 .hospitalPhone(reservationDTO.getHospitalPhone())
+                .notificationPhone(notificationPhone)
                 .reservationDate(reservationDTO.getReservationDate())
                 .reservationTime(reservationDTO.getReservationTime())
                 .patientName(reservationDTO.getPatientName())
@@ -92,6 +96,25 @@ public class GeneralHospitalReservationServiceImpl implements GeneralHospitalRes
         if (reservationDTO.getReservationTime() == null || reservationDTO.getReservationTime().isBlank()) {
             throw new IllegalArgumentException("예약 시간이 필요합니다.");
         }
+        String notificationPhone =
+                PhoneNumberUtils.normalize(
+                        reservationDTO.getNotificationPhone()
+                );
+
+        if (notificationPhone == null
+                || notificationPhone.isBlank()) {
+            throw new IllegalArgumentException(
+                    "문자 수신 번호가 필요합니다."
+            );
+        }
+
+        if (!notificationPhone.matches(
+                "^01[016789][0-9]{7,8}$"
+        )) {
+            throw new IllegalArgumentException(
+                    "올바른 휴대전화 번호가 필요합니다."
+            );
+        }
     }
 
     private GeneralHospitalReservationDTO toDTO(GeneralHospitalReservation reservation) {
@@ -103,6 +126,7 @@ public class GeneralHospitalReservationServiceImpl implements GeneralHospitalRes
                 .hospitalType(reservation.getHospitalType())
                 .hospitalAddress(reservation.getHospitalAddress())
                 .hospitalPhone(reservation.getHospitalPhone())
+                .notificationPhone(reservation.getNotificationPhone())
                 .reservationDate(reservation.getReservationDate())
                 .reservationTime(reservation.getReservationTime())
                 .patientName(reservation.getPatientName())

@@ -81,6 +81,7 @@ CREATE TABLE IF NOT EXISTS tbl_hospital_reservation (
     hospital_type VARCHAR(100),
     hospital_address VARCHAR(300),
     hospital_phone VARCHAR(50),
+    notification_phone VARCHAR(20),
     reservation_date DATE NOT NULL,
     reservation_time VARCHAR(10) NOT NULL,
     patient_name VARCHAR(50),

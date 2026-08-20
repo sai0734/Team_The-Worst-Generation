@@ -1,0 +1,19 @@
+{
+  "id": "android-sms",
+  "name": "Android SMS",
+  "description": "안드로이드 SMS 브리지를 통해 문자를 발송합니다.",
+  "version": "0.1.0",
+  "configSchema": {
+    "type": "object",
+    "properties": {},
+    "additionalProperties": false
+  },
+  "activation": {
+    "onStartup": true
+  },
+  "contracts": {
+    "tools": [
+      "android_sms_send"
+    ]
+  }
+}

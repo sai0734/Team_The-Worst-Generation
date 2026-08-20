@@ -5,6 +5,9 @@ public enum MissionStatus {
     // 전달됐지만 아직 실행 이전
     PENDING,
 
+    // 연결 테스트용
+    DRY_RUN,
+
     // 전체 성공
     SUCCESS,
 
