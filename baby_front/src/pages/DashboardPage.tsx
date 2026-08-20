@@ -16,12 +16,13 @@ import * as recallApi from "../api/recallApi";
 import type { MyProduct } from "../api/recallApi";
 import { questApi, type MemberQuest, type QuestHome } from "../api/questApi";
 import AssistantPanel from "../components/assistant/AssistantPanel";
+import SkyBackground from "../components/common/SkyBackground";
 import heroBaby from "../assets/hero-baby.png";
 import { triggerWipe } from "../utils/pageTransition";
 import "../styles/dashboard-home.css";
 
 const MARQUEE_TEXT =
-  "오늘도 함께, 잘 키워가요 ✦ 육아 기록 · 가계부 · AI 정부지원금 · 리콜 알림 ✦ ";
+  "오늘의 육아일기 남겨보세요 ✦ AI로 우리 동네 지원금 찾아보세요 ✦ 가계부로 육아비 한눈에 정리해보세요 ✦ 육아용품 리콜 알림 받아보세요 ✦ 홈캠으로 낮잠시간 안심하게 지켜보세요 ✦ 감자마켓에서 육아템 거래해보세요 ✦ 믿을 수 있는 베이비시터 찾아보세요 ✦ AI 울음소리 분석 써보세요 ✦ ";
 
 const SplitHeading = ({
   text,
@@ -261,283 +262,261 @@ const DashboardPage = () => {
 
   return (
     <BasicLayout>
-      <div className="home-sky-bg" aria-hidden="true">
-        <span className="sky-emoji sky-sun">☀️</span>
-        <span className="sky-emoji sky-moon">🌙</span>
-        <span className="sky-emoji sky-star s1">⭐</span>
-        <span className="sky-emoji sky-star s2">✨</span>
-        <span className="sky-emoji sky-star s3">⭐</span>
-        <span className="sky-emoji sky-star s4">✨</span>
-        <span className="sky-emoji sky-cloud c1">☁️</span>
-        <span className="sky-emoji sky-cloud c2">☁️</span>
-        <span className="sky-emoji sky-cloud c3">☁️</span>
-        <span className="sky-emoji sky-cloud c4">☁️</span>
+      <div className="home-page-inner">
+      <SkyBackground />
+
+      <div className="home-content">
+      <div className="home-hero-group">
+      <section className="home-hero">
+        <div className="home-hero-text">
+          <RevealLine play={heroPlay}>
+            <span className="chip home-hero-chip">환영합니다!</span>
+          </RevealLine>
+          <h1>
+            <RevealLine play={heroPlay}>오늘도 함께,</RevealLine>
+            <RevealLine play={heroPlay}>
+              <b>잘 키워가요.</b>
+            </RevealLine>
+          </h1>
+          <p className="desc">아이봄과 함께하는 똑똑하고 편안한 육아 일기.</p>
+          <Link
+            to="/babyInfo/input"
+            className="submit-btn home-hero-cta"
+            onClick={(e) => {
+              e.preventDefault();
+              triggerWipe(() => navigate("/babyInfo/input"));
+            }}
+          >
+            우리 아이 등록하기
+          </Link>
+        </div>
         <img
           src={heroBaby}
           alt=""
-          className={`home-sky-baby${heroPlay ? " in-view" : ""}`}
+          className={`home-hero-art${heroPlay ? " in-view" : ""}`}
         />
+      </section>
+
+      <div className="home-train">
+        <span className="home-train-engine" aria-hidden="true">🚂</span>
+        <div className="home-train-car">
+          <div className="home-marquee-track">
+            <span>{MARQUEE_TEXT.repeat(2)}</span>
+          </div>
+          <span className="home-train-wheel w1" aria-hidden="true" />
+          <span className="home-train-wheel w2" aria-hidden="true" />
+          <span className="home-train-wheel w3" aria-hidden="true" />
+        </div>
+      </div>
       </div>
 
-      <div className="home-content">
-        <div className="home-hero-group">
-          <section className="home-hero">
-            <div className="home-hero-blob a" />
-            <div className="home-hero-blob b" />
-            <div className="home-hero-text">
-              <RevealLine play={heroPlay}>
-                <span className="chip home-hero-chip">환영합니다!</span>
-              </RevealLine>
-              <h1>
-                <RevealLine play={heroPlay}>오늘도 함께,</RevealLine>
-                <RevealLine play={heroPlay}>
-                  <b>잘 키워가요.</b>
-                </RevealLine>
-              </h1>
-              <p className="desc">
-                아이봄과 함께하는 똑똑하고 편안한 육아 일기.
-              </p>
-              <Link
-                to="/babyInfo/input"
-                className="submit-btn home-hero-cta"
-                onClick={(e) => {
-                  e.preventDefault();
-                  triggerWipe(() => navigate("/babyInfo/input"));
-                }}
-              >
-                우리 아이 등록하기
-              </Link>
-            </div>
-          </section>
+      <div className="home-grid home-grid-v2 stagger">
+        <article
+          className={`card home-tip-card area-tip motif-star home-rise-up${cardsIn ? " in-view" : ""}`}
+          style={{ "--i": 0 } as CSSProperties}
+        >
+          <p className="home-tip-label">💡 오늘의 꿀팁</p>
+          <p className="home-tip-text">{getTodayTip()}</p>
+        </article>
 
-          <div className="home-train">
-            <span className="home-train-engine" aria-hidden="true">
-              🚂
-            </span>
-            <div className="home-train-car">
-              <div className="home-marquee-track">
-                <span>{MARQUEE_TEXT.repeat(2)}</span>
-              </div>
-              <span className="home-train-wheel w1" aria-hidden="true" />
-              <span className="home-train-wheel w2" aria-hidden="true" />
-              <span className="home-train-wheel w3" aria-hidden="true" />
-            </div>
+        <article
+          className={`card area-quest motif-cloud home-rise-up${cardsIn ? " in-view" : ""}`}
+          style={{ "--i": 1 } as CSSProperties}
+        >
+          <div className="head">
+            <SplitHeading text="오늘의 할 일" inView={cardsIn} />
+            <b>
+              {done} / {daily.length} 완료
+            </b>
           </div>
-        </div>
 
-        <div className="home-grid home-grid-v2 stagger">
-          <article
-            className={`card home-tip-card area-tip motif-star home-rise-up${cardsIn ? " in-view" : ""}`}
-            style={{ "--i": 0 } as CSSProperties}
-          >
-            <p className="home-tip-label">💡 오늘의 꿀팁</p>
-            <p className="home-tip-text">{getTodayTip()}</p>
-          </article>
+          <div className="home-progress-track">
+            <div
+              className="home-progress-fill"
+              style={{ width: `${dailyPct}%` }}
+            />
+          </div>
 
-          <article
-            className={`card area-quest motif-cloud home-rise-up${cardsIn ? " in-view" : ""}`}
-            style={{ "--i": 1 } as CSSProperties}
-          >
-            <div className="head">
-              <SplitHeading text="오늘의 할 일" inView={cardsIn} />
-              <b>
-                {done} / {daily.length} 완료
-              </b>
-            </div>
-
-            <div className="home-progress-track">
-              <div
-                className="home-progress-fill"
-                style={{ width: `${dailyPct}%` }}
-              />
-            </div>
-
-            {openUrgents.map((urgent) => (
-              <div className="home-urgent-banner" key={urgent.id}>
-                <span className="alert">긴급</span>
-                <div className="home-urgent-body">
-                  <strong>{urgent.quest?.title ?? "긴급 퀘스트"}</strong>
-                  <p>
-                    {urgent.quest?.description?.trim() ||
-                      "확인이 필요한 긴급 할 일이에요."}
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  className="ghost-btn"
-                  disabled={completingId === urgent.id}
-                  onClick={() => handleToggle(urgent.id, false)}
-                >
-                  {completingId === urgent.id ? "처리 중..." : "완료"}
-                </button>
+          {openUrgents.map((urgent) => (
+            <div className="home-urgent-banner" key={urgent.id}>
+              <span className="alert">긴급</span>
+              <div className="home-urgent-body">
+                <strong>{urgent.quest?.title ?? "긴급 퀘스트"}</strong>
+                <p>
+                  {urgent.quest?.description?.trim() ||
+                    "확인이 필요한 긴급 할 일이에요."}
+                </p>
               </div>
-            ))}
-
-            <form className="home-urgent-send" onSubmit={handleSendUrgent}>
-              <p className="home-urgent-send-label">
-                상대에게 긴급 할 일 보내기
-              </p>
-              <input
-                type="text"
-                value={urgentTitle}
-                onChange={(e) => setUrgentTitle(e.target.value)}
-                placeholder="예: 기저귀 사다 주세요"
-                maxLength={40}
-                disabled={!loginState.profileId || sendingUrgent}
-              />
-              <input
-                type="text"
-                value={urgentDesc}
-                onChange={(e) => setUrgentDesc(e.target.value)}
-                placeholder="설명 (선택)"
-                maxLength={80}
-                disabled={!loginState.profileId || sendingUrgent}
-              />
               <button
-                type="submit"
+                type="button"
                 className="ghost-btn"
-                disabled={
-                  !loginState.profileId || sendingUrgent || !urgentTitle.trim()
-                }
+                disabled={completingId === urgent.id}
+                onClick={() => handleToggle(urgent.id, false)}
               >
-                {sendingUrgent ? "보내는 중..." : "보내기"}
+                {completingId === urgent.id ? "처리 중..." : "완료"}
               </button>
-              <small>
-                {loginState.profileId
-                  ? urgentMsg
-                  : "프로필을 선택한 뒤 보낼 수 있어요."}
-              </small>
-            </form>
+            </div>
+          ))}
 
-            {daily.length === 0 ? (
-              <p className="empty-hint">배정된 일일 퀘스트가 없습니다.</p>
-            ) : (
-              <div className="home-task-grid">
-                {daily.map((mq) => {
-                  const isDone = mq.status === "DONE";
-                  return (
-                    <div
-                      className={`home-task-tile${isDone ? " done" : ""}`}
-                      key={mq.id}
-                      role="button"
-                      tabIndex={0}
-                      onClick={() => {
+          <form className="home-urgent-send" onSubmit={handleSendUrgent}>
+            <p className="home-urgent-send-label">상대에게 긴급 할 일 보내기</p>
+            <input
+              type="text"
+              value={urgentTitle}
+              onChange={(e) => setUrgentTitle(e.target.value)}
+              placeholder="예: 기저귀 사다 주세요"
+              maxLength={40}
+              disabled={!loginState.profileId || sendingUrgent}
+            />
+            <input
+              type="text"
+              value={urgentDesc}
+              onChange={(e) => setUrgentDesc(e.target.value)}
+              placeholder="설명 (선택)"
+              maxLength={80}
+              disabled={!loginState.profileId || sendingUrgent}
+            />
+            <button
+              type="submit"
+              className="ghost-btn"
+              disabled={!loginState.profileId || sendingUrgent || !urgentTitle.trim()}
+            >
+              {sendingUrgent ? "보내는 중..." : "보내기"}
+            </button>
+            <small>
+              {loginState.profileId
+                ? urgentMsg
+                : "프로필을 선택한 뒤 보낼 수 있어요."}
+            </small>
+          </form>
+
+          {daily.length === 0 ? (
+            <p className="empty-hint">배정된 일일 퀘스트가 없습니다.</p>
+          ) : (
+            <div className="home-task-grid">
+              {daily.map((mq) => {
+                const isDone = mq.status === "DONE";
+                return (
+                  <div
+                    className={`home-task-tile${isDone ? " done" : ""}`}
+                    key={mq.id}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => {
+                      if (completingId === mq.id) return;
+                      handleToggle(mq.id, isDone);
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
                         if (completingId === mq.id) return;
                         handleToggle(mq.id, isDone);
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter" || e.key === " ") {
-                          e.preventDefault();
-                          if (completingId === mq.id) return;
-                          handleToggle(mq.id, isDone);
-                        }
-                      }}
-                      style={{
-                        cursor: completingId === mq.id ? "wait" : "pointer",
-                        opacity: completingId === mq.id ? 0.6 : 1,
-                      }}
-                    >
-                      <i>{isDone ? "✓" : "○"}</i>
-                      <div className="home-task-tile-text">
-                        <span>{mq.quest?.title ?? "제목 없음"}</span>
-                        <small>{mq.quest?.reward ?? 0}P</small>
-                      </div>
+                      }
+                    }}
+                    style={{
+                      cursor: completingId === mq.id ? "wait" : "pointer",
+                      opacity: completingId === mq.id ? 0.6 : 1,
+                    }}
+                  >
+                    <i>{isDone ? "✓" : "○"}</i>
+                    <div className="home-task-tile-text">
+                      <span>{mq.quest?.title ?? "제목 없음"}</span>
+                      <small>{mq.quest?.reward ?? 0}P</small>
                     </div>
-                  );
-                })}
-              </div>
-            )}
-          </article>
-
-          <div className="home-side-col area-side">
-            <Link
-              to="/ledger"
-              className={`card home-side-card area-ledger motif-moon home-rise-up${cardsIn ? " in-view" : ""}`}
-              style={{ "--i": 2 } as CSSProperties}
-              onClick={(e) => {
-                e.preventDefault();
-                triggerWipe(() => navigate("/ledger"));
-              }}
-            >
-              <small className="eyebrow">우리집 가계부</small>
-              <strong className="home-side-amount">
-                {ledgerSummary
-                  ? formatWon(ledgerSummary.totalExpense)
-                  : "기록 시작하기"}
-              </strong>
-
-              {ledgerSummary ? (
-                <>
-                  <div className="home-progress-track thin">
-                    <div
-                      className="home-progress-fill"
-                      style={{ width: `${budgetPct}%` }}
-                    />
                   </div>
-                  <p className="meta">
-                    {expenseDelta === 0
-                      ? "지난달과 지출이 같아요"
-                      : expenseDelta > 0
-                        ? `지난달보다 ${formatWon(expenseDelta)} 더 썼어요`
-                        : `지난달보다 ${formatWon(-expenseDelta)} 아꼈어요`}
-                  </p>
-                  {topCategories.length > 0 && (
-                    <ul className="home-expense-list">
-                      {topCategories.map(([cat, amt]) => (
-                        <li key={cat}>
-                          <span>{CATEGORY_LABELS[cat]}</span>
-                          <span>{formatWon(amt)}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  )}
-                </>
-              ) : (
-                <p className="meta">아직 이번 달 기록이 없어요.</p>
+                );
+              })}
+            </div>
+          )}
+        </article>
+
+        <div className="home-side-col area-side">
+        <Link
+          to="/ledger"
+          className={`card home-side-card area-ledger motif-moon home-rise-up${cardsIn ? " in-view" : ""}`}
+          style={{ "--i": 2 } as CSSProperties}
+          onClick={(e) => {
+            e.preventDefault();
+            triggerWipe(() => navigate("/ledger"));
+          }}
+        >
+          <small className="eyebrow">우리집 가계부</small>
+          <strong className="home-side-amount">
+            {ledgerSummary
+              ? formatWon(ledgerSummary.totalExpense)
+              : "기록 시작하기"}
+          </strong>
+
+          {ledgerSummary ? (
+            <>
+              <div className="home-progress-track thin">
+                <div
+                  className="home-progress-fill"
+                  style={{ width: `${budgetPct}%` }}
+                />
+              </div>
+              <p className="meta">
+                {expenseDelta === 0
+                  ? "지난달과 지출이 같아요"
+                  : expenseDelta > 0
+                    ? `지난달보다 ${formatWon(expenseDelta)} 더 썼어요`
+                    : `지난달보다 ${formatWon(-expenseDelta)} 아꼈어요`}
+              </p>
+              {topCategories.length > 0 && (
+                <ul className="home-expense-list">
+                  {topCategories.map(([cat, amt]) => (
+                    <li key={cat}>
+                      <span>{CATEGORY_LABELS[cat]}</span>
+                      <span>{formatWon(amt)}</span>
+                    </li>
+                  ))}
+                </ul>
               )}
+            </>
+          ) : (
+            <p className="meta">아직 이번 달 기록이 없어요.</p>
+          )}
 
-              <span className="home-side-btn">가계부 상세 보기</span>
-            </Link>
+          <span className="home-side-btn">가계부 상세 보기</span>
+        </Link>
 
-            <Link
-              to="/recall"
-              className={`card home-side-card area-recall motif-sparkle home-rise-up${cardsIn ? " in-view" : ""}`}
-              style={{ "--i": 3 } as CSSProperties}
-              onClick={(e) => {
-                e.preventDefault();
-                triggerWipe(() => navigate("/recall"));
-              }}
-            >
-              <small className="eyebrow">AI 육아용품 리콜</small>
-              {recallProducts && recallProducts.length > 0 ? (
-                <>
-                  <strong className="home-side-amount">
-                    {matchedCount > 0
-                      ? `안전 확인 필요 ${matchedCount}건`
-                      : "모두 안전해요"}
-                  </strong>
-                  <p className="meta">
-                    등록한 제품 {recallProducts.length}건과 최신 공고를
-                    대조했어요.
-                  </p>
-                </>
-              ) : (
-                <>
-                  <strong className="home-side-amount">
-                    내 제품 등록해보기
-                  </strong>
-                  <p className="meta">등록된 제품이 없어요.</p>
-                </>
-              )}
-              <span className="home-side-btn">리콜 현황 보기</span>
-            </Link>
-          </div>
-
-          <AssistantPanel
-            className={`area-assist home-rise-up${cardsIn ? " in-view" : ""}`}
-            style={{ "--i": 4 } as CSSProperties}
-          />
+        <Link
+          to="/recall"
+          className={`card home-side-card area-recall motif-sparkle home-rise-up${cardsIn ? " in-view" : ""}`}
+          style={{ "--i": 3 } as CSSProperties}
+          onClick={(e) => {
+            e.preventDefault();
+            triggerWipe(() => navigate("/recall"));
+          }}
+        >
+          <small className="eyebrow">AI 육아용품 리콜</small>
+          {recallProducts && recallProducts.length > 0 ? (
+            <>
+              <strong className="home-side-amount">
+                {matchedCount > 0
+                  ? `안전 확인 필요 ${matchedCount}건`
+                  : "모두 안전해요"}
+              </strong>
+              <p className="meta">
+                등록한 제품 {recallProducts.length}건과 최신 공고를 대조했어요.
+              </p>
+            </>
+          ) : (
+            <>
+              <strong className="home-side-amount">내 제품 등록해보기</strong>
+              <p className="meta">등록된 제품이 없어요.</p>
+            </>
+          )}
+          <span className="home-side-btn">리콜 현황 보기</span>
+        </Link>
         </div>
+
+        <AssistantPanel
+          className={`area-assist home-rise-up${cardsIn ? " in-view" : ""}`}
+          style={{ "--i": 4 } as CSSProperties}
+        />
+      </div>
+      </div>
       </div>
     </BasicLayout>
   );

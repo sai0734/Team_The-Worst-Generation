@@ -10,6 +10,8 @@ export interface BabysitterChatRoom {
   parentEmail: string;
   sitterEmail: string;
   regTime: string;
+  // getMyRoomList()에서만 채워짐: 이 방에서 내가 아직 안 읽은 상대방 메시지 수
+  unreadCount?: number;
 }
 
 // BabysitterChatMessageDTO

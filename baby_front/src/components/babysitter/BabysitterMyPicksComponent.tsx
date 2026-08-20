@@ -14,8 +14,6 @@ const BabysitterMyPicksComponent = () => {
 
   return (
     <div>
-      <h2 className="page-title">내가 찜한 시터</h2>
-
       {list.length === 0 && <div className="empty-hint">찜한 시터가 없습니다.</div>}
 
       <div className="sitter-list">

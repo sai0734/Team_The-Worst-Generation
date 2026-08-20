@@ -17,8 +17,6 @@ const BabysitterMyApplicationsComponent = () => {
 
   return (
     <div>
-      <h2 className="page-title">내가 지원한 구인글</h2>
-
       {list.length === 0 && <div className="empty-hint">지원한 구인글이 없습니다.</div>}
 
       <div className="sitter-list">

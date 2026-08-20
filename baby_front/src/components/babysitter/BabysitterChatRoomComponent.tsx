@@ -44,7 +44,6 @@ const BabysitterChatRoomComponent = () => {
   const [editingRequestNo, setEditingRequestNo] = useState<number | null>(null);
   const [requestDate, setRequestDate] = useState("");
   const [requestTimeSlot, setRequestTimeSlot] = useState<TimeSlot>("MORNING");
-  const [requestMessage, setRequestMessage] = useState("");
 
   const clientRef = useRef<Client | null>(null);
 
@@ -197,12 +196,10 @@ const BabysitterChatRoomComponent = () => {
         setEditingRequestNo(myPendingRequest.requestNo);
         setRequestDate(myPendingRequest.requestDate);
         setRequestTimeSlot(myPendingRequest.timeSlot);
-        setRequestMessage(myPendingRequest.message ?? "");
       } else {
         setEditingRequestNo(null);
         setRequestDate("");
         setRequestTimeSlot(SLOTS[0]);
-        setRequestMessage("");
       }
     }
     setShowRequestForm((v) => !v);
@@ -232,14 +229,12 @@ const BabysitterChatRoomComponent = () => {
           sitterEmail: room.sitterEmail,
           requestDate,
           timeSlot: requestTimeSlot,
-          message: requestMessage || undefined,
         });
       } else {
         const { requestNo } = await babysitterApi.registerRequest({
           sitterEmail: room.sitterEmail,
           requestDate,
           timeSlot: requestTimeSlot,
-          message: requestMessage || undefined,
         });
 
         clientRef.current?.publish({
@@ -258,7 +253,6 @@ const BabysitterChatRoomComponent = () => {
       setShowRequestForm(false);
       setEditingRequestNo(null);
       setRequestDate("");
-      setRequestMessage("");
     } catch (err) {
       console.error(err);
       alert(`요청에 실패했습니다.\n(${describeError(err)})`);
@@ -388,15 +382,6 @@ const BabysitterChatRoomComponent = () => {
                     </option>
                   ))}
                 </select>
-              </div>
-              <div className="field">
-                <label>시터에게 남길 메시지 (선택)</label>
-                <textarea
-                  className="bulk-input"
-                  style={{ minHeight: 60 }}
-                  value={requestMessage}
-                  onChange={(e) => setRequestMessage(e.target.value)}
-                />
               </div>
               <button type="submit" className="submit-btn" disabled={!canSubmitRequest}>
                 {editingRequestNo ? "수정하기" : "요청 보내기"}

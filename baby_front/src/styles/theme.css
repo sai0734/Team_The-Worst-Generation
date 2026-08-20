@@ -1025,6 +1025,9 @@
 .app .home-page-inner {
   position: relative;
   min-height: 100%;
+  /* .main이 flex 컨테이너라 콘텐츠가 길면 flex-shrink로 다시 눌려서
+     home-sky-bg가 실제 콘텐츠보다 짧게 잘리는 걸 막음 */
+  flex-shrink: 0;
 }
 
 /* 구름 위 하늘 배경 (대시보드 전체 배경) - 랜딩페이지 낮/밤 타임라인과 어울리는 톤
@@ -1039,12 +1042,14 @@
   overflow: hidden;
   pointer-events: none;
   z-index: 0;
+  /* %가 아니라 px로 고정: 페이지 길이(스크롤 높이)에 따라 색 전환 속도가
+     압축/확대되지 않고, 항상 같은 속도로 이어지게 함(짧은 페이지는 위쪽만 잘려 보임) */
   background: linear-gradient(
     180deg,
-    #d7ebff 0%,
-    #e3e4f9 30%,
-    #f0e1f6 62%,
-    #fae9d6 100%
+    #d7ebff 0px,
+    #e3e4f9 400px,
+    #f0e1f6 800px,
+    #fae9d6 1300px
   );
 }
 /* 해/달/별/구름은 이제 배경(그라데이션)과 같이 콘텐츠 전체 높이만큼 펼쳐져서,
@@ -1072,14 +1077,16 @@
   user-select: none;
   filter: drop-shadow(0 4px 10px rgba(0, 45, 90, 0.12));
 }
+/* top 값은 그라데이션과 동일하게 1300px 기준 px 고정값 - 페이지 길이와 무관하게
+   항상 같은 "깊이"에 떠 있게 함(짧은 페이지는 위쪽 몇 개만 보이는 게 자연스러움) */
 .app .sky-sun {
-  top: 5%;
+  top: 65px;
   left: 6%;
   font-size: 44px;
   animation: sky-bob 6s ease-in-out infinite;
 }
 .app .sky-moon {
-  top: 7%;
+  top: 91px;
   right: 8%;
   font-size: 38px;
   animation: sky-bob 7s ease-in-out infinite 0.6s;
@@ -1089,46 +1096,46 @@
   animation: sky-twinkle 2.4s ease-in-out infinite;
 }
 .app .sky-star.s1 {
-  top: 16%;
+  top: 208px;
   left: 28%;
 }
 .app .sky-star.s2 {
-  top: 6%;
+  top: 78px;
   left: 48%;
   font-size: 22px;
   animation-delay: 0.6s;
 }
 .app .sky-star.s3 {
-  top: 20%;
+  top: 260px;
   right: 24%;
   animation-delay: 1.2s;
 }
 .app .sky-star.s4 {
-  top: 34%;
+  top: 442px;
   right: 6%;
   font-size: 20px;
   animation-delay: 1.8s;
 }
 .app .sky-star.s5 {
-  top: 48%;
+  top: 624px;
   left: 8%;
   font-size: 22px;
   animation-delay: 0.3s;
 }
 .app .sky-star.s6 {
-  top: 66%;
+  top: 858px;
   left: 38%;
   font-size: 18px;
   animation-delay: 1s;
 }
 .app .sky-star.s7 {
-  top: 84%;
+  top: 1092px;
   right: 18%;
   font-size: 26px;
   animation-delay: 1.5s;
 }
 .app .sky-cloud {
-  top: 3%;
+  top: 39px;
   font-size: 56px;
   opacity: 0.85;
 }
@@ -1137,42 +1144,42 @@
   animation: sky-drift 32s linear infinite;
 }
 .app .sky-cloud.c2 {
-  top: 22%;
+  top: 286px;
   left: -12%;
   font-size: 72px;
   opacity: 0.7;
   animation: sky-drift 42s linear infinite -10s;
 }
 .app .sky-cloud.c3 {
-  top: 42%;
+  top: 546px;
   left: 12%;
   font-size: 44px;
   opacity: 0.55;
   animation: sky-drift 50s linear infinite -24s;
 }
 .app .sky-cloud.c4 {
-  top: 58%;
+  top: 754px;
   left: 62%;
   font-size: 52px;
   opacity: 0.5;
   animation: sky-drift 46s linear infinite -6s;
 }
 .app .sky-cloud.c5 {
-  top: 74%;
+  top: 962px;
   left: -8%;
   font-size: 64px;
   opacity: 0.45;
   animation: sky-drift 55s linear infinite -18s;
 }
 .app .sky-cloud.c6 {
-  top: 88%;
+  top: 1144px;
   left: 30%;
   font-size: 40px;
   opacity: 0.4;
   animation: sky-drift 38s linear infinite -28s;
 }
 .app .sky-cloud.c7 {
-  top: 95%;
+  top: 1235px;
   left: 68%;
   font-size: 58px;
   opacity: 0.35;
@@ -1468,6 +1475,31 @@
   font-size: 26px;
   letter-spacing: -0.5px;
   margin: 10px 0 22px;
+}
+/* 하늘 배경 위에 바로 얹힌 제목/탭은 구름이 뒤로 지나가면 글자와 겹쳐 시인성이 떨어지므로,
+   다른 카드들과 같은 톤의 유리 패널을 하나 더 깔아준다 */
+.app .page-header-card {
+  position: relative;
+  z-index: 1;
+  padding: 16px 20px 8px;
+  border-radius: 24px;
+  background: linear-gradient(
+    150deg,
+    rgba(255, 255, 255, 0.6) 0%,
+    rgba(255, 255, 255, 0.38) 55%,
+    rgba(255, 255, 255, 0.26) 100%
+  );
+  border: 1px solid rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(24px) saturate(100%) brightness(1.1);
+  -webkit-backdrop-filter: blur(24px) saturate(100%) brightness(1.1);
+  box-shadow: 0 16px 40px rgba(90, 100, 160, 0.14);
+  margin-bottom: 20px;
+}
+.app .page-header-card .page-title {
+  margin: 0 0 14px;
+}
+.app .page-header-card .community-tabs {
+  margin-bottom: 0;
 }
 .app .recall-header {
   display: flex;
@@ -2555,6 +2587,38 @@
 }
 .app .sitter-common-icon .icon {
   font-size: 18px;
+}
+.app .sitter-common-icon .icon-wrap {
+  position: relative;
+  display: inline-flex;
+}
+.app .sitter-unread-badge {
+  position: absolute;
+  top: -4px;
+  right: -9px;
+  min-width: 15px;
+  height: 15px;
+  padding: 0 3px;
+  border-radius: 99px;
+  background: #e0455c;
+  color: #fff;
+  font-size: 9px;
+  font-weight: 800;
+  line-height: 15px;
+  text-align: center;
+}
+.app .chat-unread-badge {
+  flex-shrink: 0;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 99px;
+  background: #e0455c;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  line-height: 20px;
+  text-align: center;
 }
 .app .sitter-common-icon:hover,
 .app .sitter-common-icon.active {

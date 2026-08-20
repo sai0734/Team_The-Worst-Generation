@@ -39,6 +39,16 @@ public class BabysitterChatMessageServiceImpl implements BabysitterChatMessageSe
 
         List<BabysitterChatMessage> result = babysitterChatMessageMapper.selectListByRoom(roomNo);
 
+        // 방에 들어와서 목록을 불러간 시점 = 그때까지의 메시지는 읽은 것으로 표시
+        if (!result.isEmpty()) {
+            Long lastMsgNo = result.get(result.size() - 1).getMsgNo();
+            if (room.getParentEmail().equals(requesterEmail)) {
+                babysitterChatRoomMapper.updateParentLastRead(roomNo, lastMsgNo);
+            } else {
+                babysitterChatRoomMapper.updateSitterLastRead(roomNo, lastMsgNo);
+            }
+        }
+
         return result.stream()
                 .map(chatMessage -> modelMapper.map(chatMessage, BabysitterChatMessageDTO.class))
                 .collect(Collectors.toList());

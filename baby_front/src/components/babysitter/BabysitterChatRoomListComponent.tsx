@@ -2,19 +2,38 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import * as babysitterChatApi from "../../api/babysitterChatApi";
 import type { BabysitterChatRoom } from "../../api/babysitterChatApi";
+import * as babysitterApi from "../../api/babysitterApi";
+import { REQUEST_STATUS_LABELS, REQUEST_STATUS_BADGE_CLASS } from "../../api/babysitterApi";
+import type { BabysitterRequest } from "../../api/babysitterApi";
 import useCustomLogin from "../../hooks/useCustomLogin";
 
 const BabysitterChatRoomListComponent = () => {
   const navigate = useNavigate();
   const { isLogin, loginState } = useCustomLogin();
   const [rooms, setRooms] = useState<BabysitterChatRoom[]>([]);
+  // 부모 입장: 내가 보낸 요청의 최신 상태(대기중/수락/거절)를 상대(시터)별로 보여주기 위함
+  const [sentRequests, setSentRequests] = useState<BabysitterRequest[]>([]);
+  // 시터 입장: 새로 들어온(아직 대기중인) 요청이 있는 상대(부모)를 "요청옴"으로 보여주기 위함
+  const [receivedRequests, setReceivedRequests] = useState<BabysitterRequest[]>([]);
 
   useEffect(() => {
     if (!isLogin) {
       return;
     }
     babysitterChatApi.getMyRoomList().then(setRooms);
+    babysitterApi.getSentRequests().then(setSentRequests);
+    babysitterApi.getReceivedRequests().then(setReceivedRequests);
   }, [isLogin]);
+
+  // 같은 시터에게 여러 번 요청했을 수 있으니, 가장 최근(requestNo가 큰) 요청의 상태를 보여줌
+  const latestSentStatus = (sitterEmail: string) => {
+    const mine = sentRequests.filter((r) => r.sitterEmail === sitterEmail);
+    if (mine.length === 0) return null;
+    return mine.reduce((a, b) => (a.requestNo > b.requestNo ? a : b)).status;
+  };
+
+  const hasPendingRequestFrom = (parentEmail: string) =>
+    receivedRequests.some((r) => r.parentEmail === parentEmail && r.status === "PENDING");
 
   if (!isLogin) {
     return (
@@ -33,20 +52,35 @@ const BabysitterChatRoomListComponent = () => {
 
       {rooms.length === 0 && <p>채팅방이 없습니다.</p>}
 
-      {rooms.map((room) => (
-        <div
-          className="list-row"
-          key={room.roomNo}
-          style={{ cursor: "pointer" }}
-          onClick={() => navigate(`/community/babysitter/chat/${room.roomNo}`)}
-        >
-          <span>
-            {loginState.email === room.parentEmail
-              ? room.sitterEmail
-              : room.parentEmail}
-          </span>
-        </div>
-      ))}
+      {rooms.map((room) => {
+        const isParent = loginState.email === room.parentEmail;
+        const sentStatus = isParent ? latestSentStatus(room.sitterEmail) : null;
+        const requestIncoming = !isParent && hasPendingRequestFrom(room.parentEmail);
+
+        return (
+          <div
+            className="list-row"
+            key={room.roomNo}
+            style={{ cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "space-between" }}
+            onClick={() => navigate(`/community/babysitter/chat/${room.roomNo}`)}
+          >
+            <span>{isParent ? room.sitterEmail : room.parentEmail}</span>
+            <span style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              {sentStatus && sentStatus !== "CANCELED" && (
+                <span className={`badge ${REQUEST_STATUS_BADGE_CLASS[sentStatus]}`}>
+                  {REQUEST_STATUS_LABELS[sentStatus]}
+                </span>
+              )}
+              {requestIncoming && <span className="badge pending">요청옴</span>}
+              {!!room.unreadCount && (
+                <span className="chat-unread-badge">
+                  {room.unreadCount > 99 ? "99+" : room.unreadCount}
+                </span>
+              )}
+            </span>
+          </div>
+        );
+      })}
     </div>
   );
 };
