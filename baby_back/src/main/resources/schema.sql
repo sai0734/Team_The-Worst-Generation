@@ -296,6 +296,51 @@ CREATE TABLE IF NOT EXISTS tbl_print_order_item (
     CONSTRAINT fk_print_order_item_album FOREIGN KEY (album_no) REFERENCES tbl_baby_album (album_no)
     );
 
+CREATE TABLE IF NOT EXISTS tbl_baby_behavior_consult (
+    consult_no  BIGINT AUTO_INCREMENT,
+    baby_no     BIGINT       NOT NULL,
+    category    VARCHAR(50)  NOT NULL,
+    situation   VARCHAR(1000) NOT NULL,
+    ai_summary  TEXT,
+    video_id    VARCHAR(50),
+    video_title VARCHAR(300),
+    reg_time    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (consult_no),
+    CONSTRAINT fk_behavior_consult_baby FOREIGN KEY (baby_no) REFERENCES tbl_baby_info (baby_no)
+    );
+
+CREATE TABLE IF NOT EXISTS tbl_baby_behavior_step (
+    step_no     BIGINT AUTO_INCREMENT,
+    consult_no  BIGINT      NOT NULL,
+    step_order  INT         NOT NULL,
+    title       VARCHAR(200) NOT NULL,
+    description VARCHAR(1000) NOT NULL,
+    PRIMARY KEY (step_no),
+    CONSTRAINT fk_behavior_step_consult FOREIGN KEY (consult_no) REFERENCES tbl_baby_behavior_consult (consult_no)
+    );
+
+CREATE TABLE IF NOT EXISTS tbl_baby_behavior_message (
+    message_no BIGINT AUTO_INCREMENT,
+    consult_no BIGINT       NOT NULL,
+    role       VARCHAR(10)  NOT NULL,
+    content    VARCHAR(1000) NOT NULL,
+    reg_time   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (message_no),
+    CONSTRAINT fk_behavior_message_consult FOREIGN KEY (consult_no) REFERENCES tbl_baby_behavior_consult (consult_no)
+    );
+
+CREATE TABLE IF NOT EXISTS tbl_baby_behavior_source (
+    source_no  BIGINT AUTO_INCREMENT,
+    consult_no BIGINT       NOT NULL,
+    title      VARCHAR(300) NOT NULL,
+    link       VARCHAR(500) NOT NULL,
+    press      VARCHAR(100),
+    pub_date   VARCHAR(50),
+    reg_time   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (source_no),
+    CONSTRAINT fk_behavior_source_consult FOREIGN KEY (consult_no) REFERENCES tbl_baby_behavior_consult (consult_no)
+    );
+
 -- HWH 끝
 
 -- KYI - 가계부 내역

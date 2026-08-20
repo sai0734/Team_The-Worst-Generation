@@ -77,6 +77,7 @@ const NAV_ITEMS: NavItem[] = [
     label: "AI 기능",
     to: "/ai",
     subItems: [
+      { label: "행동교정 상담", to: "/ai/behavior" },
       { label: "울음소리 분석", to: "/ai/cry-check" },
       { label: "성분표 검사", to: "/ai/allergy" },
     ],

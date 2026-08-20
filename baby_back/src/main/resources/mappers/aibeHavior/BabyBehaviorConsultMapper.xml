@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.backend.aibeHavior.mapper.BabyBehaviorConsultMapper">
+
+    <select id="selectListByBaby" resultType="com.backend.aibeHavior.domain.BabyBehaviorConsult">
+        SELECT bc.consult_no, bc.baby_no, bc.category, bc.situation, bc.ai_summary,
+               bc.video_id, bc.video_title, bc.reg_time
+        FROM tbl_baby_behavior_consult bc
+        JOIN tbl_baby_info bi ON bc.baby_no = bi.baby_no
+        WHERE bc.baby_no = #{babyNo} AND bi.email = #{email}
+        ORDER BY bc.reg_time DESC
+        LIMIT #{size} OFFSET #{skip}
+    </select>
+
+    <select id="selectListCountByBaby" resultType="long">
+        SELECT COUNT(*)
+        FROM tbl_baby_behavior_consult bc
+        JOIN tbl_baby_info bi ON bc.baby_no = bi.baby_no
+        WHERE bc.baby_no = #{babyNo} AND bi.email = #{email}
+    </select>
+
+    <select id="selectByConsultNo" resultType="com.backend.aibeHavior.domain.BabyBehaviorConsult">
+        SELECT bc.consult_no, bc.baby_no, bc.category, bc.situation, bc.ai_summary,
+               bc.video_id, bc.video_title, bc.reg_time
+        FROM tbl_baby_behavior_consult bc
+        JOIN tbl_baby_info bi ON bc.baby_no = bi.baby_no
+        WHERE bc.consult_no = #{consultNo} AND bi.email = #{email}
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="consultNo" keyColumn="consult_no">
+        INSERT INTO tbl_baby_behavior_consult (baby_no, category, situation, ai_summary, video_id, video_title)
+        VALUES (#{babyNo}, #{category}, #{situation}, #{aiSummary}, #{videoId}, #{videoTitle})
+    </insert>
+
+    <delete id="delete">
+        DELETE FROM tbl_baby_behavior_consult
+        WHERE consult_no = #{consultNo}
+          AND baby_no IN (SELECT baby_no FROM tbl_baby_info WHERE email = #{email})
+    </delete>
+
+</mapper>
