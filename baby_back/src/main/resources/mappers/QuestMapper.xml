@@ -106,17 +106,7 @@
         ALTER TABLE tbl_member_quest ADD COLUMN IF NOT EXISTS profile_id BIGINT NULL
     </update>
 
-    <select id="selectPartnerEmail" resultType="string">
-        SELECT CASE
-                 WHEN email1 = #{email} THEN email2
-                 ELSE email1
-               END
-        FROM tbl_couple
-        WHERE email1 = #{email} OR email2 = #{email}
-        LIMIT 1
-    </select>
-
-    <insert id="insertUrgentQuest" useGeneratedKeys="true" keyProperty="questId" keyColumn="quest_id">
+     <insert id="insertUrgentQuest" useGeneratedKeys="true" keyProperty="questId" keyColumn="quest_id">
         INSERT INTO tbl_quest
             (title, description, type, repeat_type, difficulty, theme, reward, urgency, due_days, active)
         VALUES
@@ -124,16 +114,7 @@
              #{reward}, #{urgency}, #{dueDays}, #{active})
     </insert>
 
-    <select id="selectRandomDaily" resultType="com.backend.quest.domain.Quest">
-        SELECT quest_id, title, description, type, difficulty, theme,
-               reward, urgency, due_days, active
-        FROM tbl_quest
-        WHERE type = 'DAILY' AND active = TRUE
-        ORDER BY RAND()
-        LIMIT #{limit}
-    </select>
-
-    <select id="countAssignedTodayByType" resultType="int">
+      <select id="countAssignedTodayByType" resultType="int">
         SELECT COUNT(*)
         FROM tbl_member_quest mq
         JOIN tbl_quest q ON mq.quest_id = q.quest_id
@@ -167,5 +148,58 @@
           AND member_email = #{email}
           AND status = 'DONE'
     </update>
+
+    <select id="selectRandomDailyExceptOtherProfile" resultType = "com.backend.quest.domain.Quest">
+        SELECT q.quest_id, q.title, q.description, q.type, q.difficulty, q.theme,
+        q.reward, q.urgency, q.due_days, q.active
+        FROM tbl_quest q
+        WHERE q.type = 'DAILY' AND q.active = TRUE
+        AND q.quest_id NOT IN (
+        SELECT mq.quest_id
+        FROM tbl_member_quest mq
+        JOIN tbl_quest q2 ON mq.quest_id = q2.quest_id
+        WHERE mq.member_email = #{email}
+        AND mq.assigned_date = #{date}
+        AND q2.type = 'DAILY'
+        AND mq.profile_id IS NOT NULL
+        AND mq.profile_id &lt;&gt; #{profileId}
+        AND mq.quest_id IS NOT NULL
+        )
+        ORDER BY RAND()
+        LIMIT #{rowCount}
+    </select>
+
+    <select id="countTodayDailyByCreatedBy" resultType="int">
+        SELECT COUNT(*)
+        FROM tbl_member_quest mq
+        JOIN tbl_quest q ON mq.quest_id = q.quest_id
+        WHERE mq.member_email = #{email}
+          AND mq.assigned_date = #{date}
+          AND q.type = 'DAILY'
+          AND mq.profile_id = #{profileId}
+          <choose>
+            <when test="createdBy == null">
+                AND mq.created_by IS NULL
+            </when>
+            <otherwise>
+                AND mq.created_by = #{createdBy}
+            </otherwise>
+          </choose>
+    </select>
+
+    <delete id="deleteTodayDaily">
+            DELETE mq
+    FROM tbl_member_quest mq
+    JOIN tbl_quest q ON mq.quest_id = q.quest_id
+    WHERE mq.member_email = #{email}
+    AND mq.assigned_date = #{date}
+    AND q.type = 'DAILY'
+    <if test="profileId != null">
+    AND mq.profile_id = #{profileId}
+    </if>
+    <if test="profileId == null">
+        AND mq.profile_id IS NULL
+    </if>
+    </delete>
 
 </mapper>
