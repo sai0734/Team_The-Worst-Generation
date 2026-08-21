@@ -6,6 +6,7 @@ const Loading = <div>Loading....</div>;
 const CryCheck = lazy(() => import("../pages/cryCheck/CryCheckPage"));
 const Story = lazy(() => import("../pages/ai/story/StoryPage"));
 const Recipe = lazy(() => import("../pages/ai/recipe/RecipePage"));
+const Behavior = lazy(() => import("../pages/behavior/BehaviorPage"));
 
 const cryCheckRouter = (): RouteObject[] => {
   return [
@@ -34,6 +35,14 @@ const cryCheckRouter = (): RouteObject[] => {
       element: (
         <Suspense fallback={Loading}>
           <Recipe />
+        </Suspense>
+      ),
+    },
+    {
+      path: "behavior",
+      element: (
+        <Suspense fallback={Loading}>
+          <Behavior />
         </Suspense>
       ),
     },

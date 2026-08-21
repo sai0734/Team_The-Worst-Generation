@@ -1,4 +1,4 @@
-import { ChangeEvent, useEffect, useState } from "react";
+import { ChangeEvent, KeyboardEvent, useEffect, useState } from "react";
 import * as ledgerApi from "../../api/ledgerApi";
 import {
   CATEGORY_LABELS,
@@ -160,6 +160,25 @@ const LedgerComponent = () => {
 
   const removeItem = (id: string) => {
     setPendingItems((prev) => prev.filter((item) => item.id !== id));
+  };
+
+  // 일부 환경(브라우저 확장/입력기 등)에서 textarea의 기본 줄바꿈 동작이 먹지 않는 경우가 있어서,
+  // 커서 위치에 직접 줄바꿈을 넣어주는 방식으로 항상 동작하게 함
+  const handleBulkTextKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key !== "Enter" || e.shiftKey || e.nativeEvent.isComposing) {
+      return;
+    }
+    e.preventDefault();
+
+    const target = e.currentTarget;
+    const { selectionStart, selectionEnd, value } = target;
+    const next = value.slice(0, selectionStart) + "\n" + value.slice(selectionEnd);
+    setBulkText(next);
+
+    const caret = selectionStart + 1;
+    requestAnimationFrame(() => {
+      target.selectionStart = target.selectionEnd = caret;
+    });
   };
 
   const handleClassifyBulk = async () => {
@@ -497,6 +516,7 @@ const LedgerComponent = () => {
             placeholder={"예:\n기저귀 32000원\n분유 45000원\n택시 12000원\n\n(한 줄에 한 항목씩, 여러 개 한번에 입력 가능해요)"}
             value={bulkText}
             onChange={(e) => setBulkText(e.target.value)}
+            onKeyDown={handleBulkTextKeyDown}
           />
           <div className="quick-add-row">
             <button

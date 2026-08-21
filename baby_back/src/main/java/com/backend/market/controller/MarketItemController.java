@@ -58,13 +58,16 @@ public class MarketItemController {
     }
 
     // 내 위치(lat, lng) 기준 반경 radiusKm(기본 5km) 안의 거래가능 매물, 가까운 순
+    // category/keyword는 선택값 - 목록 화면에서 카테고리 칩/검색창 필터를 서버에서 처리
     @GetMapping("/nearby")
     public List<MarketItemDTO> nearby(
             @RequestParam double lat,
             @RequestParam double lng,
-            @RequestParam(defaultValue = "5") double radiusKm
+            @RequestParam(defaultValue = "5") double radiusKm,
+            @RequestParam(required = false) String category,
+            @RequestParam(required = false) String keyword
     ) {
-        return marketItemService.getNearby(lat, lng, radiusKm);
+        return marketItemService.getNearby(lat, lng, radiusKm, category, keyword);
     }
 
     @PreAuthorize("hasAnyRole('ROLE_USER')")

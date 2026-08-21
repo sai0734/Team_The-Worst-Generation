@@ -5,11 +5,7 @@ import type { PageRequestParam, PageResponse } from "../types/page";
 const API_SERVER_HOST = "http://localhost:8080";
 const prefix = `${API_SERVER_HOST}/api/market/items`;
 
-export const MARKET_CATEGORIES = [
-  "유모차",
-  "카시트",
-  "아기띠",
-];
+export const MARKET_CATEGORIES = ["유모차", "카시트", "아기띠"];
 
 // MarketItemDTO
 export interface MarketItem {
@@ -101,13 +97,22 @@ export const getItemList = async (
 };
 
 // 내 위치(lat, lng) 기준 반경 radiusKm(기본 5km) 안의 거래가능 매물, 가까운 순
+// category("전체" 또는 미지정 시 전체), keyword는 서버에서 필터링
 export const getNearbyItems = async (
   lat: number,
   lng: number,
   radiusKm = 5,
+  category?: string,
+  keyword?: string,
 ): Promise<MarketItem[]> => {
   const res = await axios.get(`${prefix}/nearby`, {
-    params: { lat, lng, radiusKm },
+    params: {
+      lat,
+      lng,
+      radiusKm,
+      category: category && category !== "전체" ? category : undefined,
+      keyword: keyword ? keyword.trim() : undefined,
+    },
   });
   return res.data;
 };
@@ -141,7 +146,9 @@ export const getMyItems = async (): Promise<MarketItem[]> => {
 };
 
 // 상세페이지 사이드바에서 "판매자의 다른 매물" 보여줄 때 사용 (백엔드 /by-seller/{email} 필요)
-export const getItemsBySeller = async (email: string): Promise<MarketItem[]> => {
+export const getItemsBySeller = async (
+  email: string,
+): Promise<MarketItem[]> => {
   const res = await jwtAxios.get(`${prefix}/by-seller/${email}`);
   return res.data;
 };

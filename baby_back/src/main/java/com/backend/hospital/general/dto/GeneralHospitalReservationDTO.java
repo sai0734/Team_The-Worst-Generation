@@ -26,6 +26,9 @@ public class GeneralHospitalReservationDTO {
     private String hospitalAddress;
     private String hospitalPhone;
 
+    // 예약 결과 문자를 받을 보호자 번호
+    private String notificationPhone;
+
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate reservationDate;
 

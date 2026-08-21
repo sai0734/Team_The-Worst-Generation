@@ -262,10 +262,10 @@ const MarketFormComponent = () => {
       <div className="form-field">
         <label>가격</label>
         <input
-          type="number"
-          min={0}
-          value={price}
-          onChange={(e) => setPrice(e.target.value)}
+          type="text"
+          inputMode="numeric"
+          value={price ? Number(price).toLocaleString() : ""}
+          onChange={(e) => setPrice(e.target.value.replace(/[^0-9]/g, ""))}
           required
         />
       </div>

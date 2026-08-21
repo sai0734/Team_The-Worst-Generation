@@ -492,9 +492,9 @@ const DashboardPage = () => {
           <small className="eyebrow">AI 육아용품 리콜</small>
           {recallProducts && recallProducts.length > 0 ? (
             <>
-              <strong className="home-side-amount">
+              <strong className={`home-side-amount${matchedCount > 0 ? " is-alert" : ""}`}>
                 {matchedCount > 0
-                  ? `안전 확인 필요 ${matchedCount}건`
+                  ? `⚠️ 안전 확인 필요 ${matchedCount}건`
                   : "모두 안전해요"}
               </strong>
               <p className="meta">

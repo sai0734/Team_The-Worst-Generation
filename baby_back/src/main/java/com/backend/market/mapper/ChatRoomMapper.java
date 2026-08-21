@@ -21,4 +21,7 @@ public interface ChatRoomMapper {
 
     void insert(ChatRoom chatRoom);
 
+    // 구매자가 거래완료 신청 눌렀을 때 시각 기록 (판매자는 이게 채워진 방만 최종 확정 가능)
+    void updateCompleteRequested(@Param("roomNo") Long roomNo);
+
 }

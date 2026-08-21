@@ -13,7 +13,8 @@ public interface MarketItemService {
     MarketItemDTO get(Long itemNo);
 
     // 내 위치(lat, lng) 기준 반경 radiusKm 안의 거래가능 매물, 가까운 순 정렬
-    List<MarketItemDTO> getNearby(double lat, double lng, double radiusKm);
+    // category/keyword는 선택값 (null 이거나 category가 "전체" 면 필터 안 함)
+    List<MarketItemDTO> getNearby(double lat, double lng, double radiusKm, String category, String keyword);
 
     Long register(MarketItemDTO marketItemDTO);
 
@@ -28,6 +29,6 @@ public interface MarketItemService {
     // 로그인한 판매자 본인이 등록한 매물 전체 (삭제된 매물 제외)
     List<MarketItemDTO> getMine(String sellerEmail);
 
-    // 거래완료는 구매자(채팅방 buyer)만 - 소유권 확인은 ChatRoomService에서 이미 끝내고 호출함
-    void markAsCompletedByBuyer(Long itemNo);
+    // 거래완료 최종 확정 - 구매자가 신청하고 판매자가 확정하는 흐름. 권한 확인은 ChatRoomService에서 이미 끝내고 호출함
+    void markAsCompleted(Long itemNo);
 }
