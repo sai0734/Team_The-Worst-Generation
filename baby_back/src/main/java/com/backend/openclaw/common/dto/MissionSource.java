@@ -5,5 +5,5 @@ package com.backend.openclaw.common.dto;
 public enum MissionSource {
     SOS,
     HOSPITAL_RESERVATION,
-//    RECALL, 이거 일단 리콜 용익님꺼 넣었는데 주석 풀고 사용하세요
+    RECALL,
 }

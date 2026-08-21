@@ -144,6 +144,49 @@ const RecallListComponent = () => {
   const [detail, setDetail] = useState<DetailState | null>(null);
   const [detailLoading, setDetailLoading] = useState(false);
 
+  const [notificationPhone, setNotificationPhone] = useState<string | null>(null);
+  const [editingPhone, setEditingPhone] = useState(false);
+  const [phoneInput, setPhoneInput] = useState("");
+  const [phoneSaving, setPhoneSaving] = useState(false);
+
+  const loadSetting = async () => {
+    try {
+      const setting = await recallApi.getRecallSetting();
+      setNotificationPhone(setting.notificationPhone ?? null);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  useEffect(() => {
+    loadSetting();
+  }, []);
+
+  const handleStartEditPhone = () => {
+    setPhoneInput(notificationPhone ?? "");
+    setEditingPhone(true);
+  };
+
+  const handleSavePhone = async () => {
+    const trimmed = phoneInput.trim();
+    if (!trimmed) {
+      alert("휴대폰 번호를 입력해주세요.");
+      return;
+    }
+
+    setPhoneSaving(true);
+    try {
+      const setting = await recallApi.updateRecallSetting(trimmed);
+      setNotificationPhone(setting.notificationPhone ?? null);
+      setEditingPhone(false);
+    } catch (err: any) {
+      console.error(err);
+      alert(err?.response?.data?.message ?? "번호 등록에 실패했습니다.");
+    } finally {
+      setPhoneSaving(false);
+    }
+  };
+
   const loadList = async () => {
     setLoading(true);
     setError(null);
@@ -212,6 +255,40 @@ const RecallListComponent = () => {
           <i>＋</i>
           <span>제품 등록</span>
         </button>
+      </div>
+
+      <div className="card recall-notify-setting">
+        {!editingPhone ? (
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+            <span>
+              리콜 문자 알림:{" "}
+              {notificationPhone ? (
+                <strong>{notificationPhone}</strong>
+              ) : (
+                <span className="meta">등록된 번호가 없어요</span>
+              )}
+            </span>
+            <button type="button" className="ghost-btn" onClick={handleStartEditPhone}>
+              {notificationPhone ? "번호 변경" : "번호 등록하기"}
+            </button>
+          </div>
+        ) : (
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <input
+              type="tel"
+              placeholder="01012345678"
+              value={phoneInput}
+              onChange={(e) => setPhoneInput(e.target.value)}
+              style={{ flex: 1 }}
+            />
+            <button type="button" className="ghost-btn" onClick={handleSavePhone} disabled={phoneSaving}>
+              저장
+            </button>
+            <button type="button" className="ghost-btn" onClick={() => setEditingPhone(false)}>
+              취소
+            </button>
+          </div>
+        )}
       </div>
 
       {loading && <div className="card recall-empty">불러오는 중...</div>}

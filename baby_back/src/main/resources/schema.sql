@@ -631,6 +631,14 @@ CREATE TABLE IF NOT EXISTS tbl_my_product (
     INDEX idx_my_product_member (member_email, del_flag)
 );
 ALTER TABLE tbl_my_product ADD COLUMN IF NOT EXISTS image_name VARCHAR(300) NULL;
+
+-- KYI - 리콜 문자 알림 받을 번호 (등록/재검사로 새로 리콜 매칭될 때 이 번호로 SMS 발송)
+CREATE TABLE IF NOT EXISTS tbl_recall_setting (
+    email               VARCHAR(100) NOT NULL,
+    notification_phone  VARCHAR(20)  NOT NULL,
+    PRIMARY KEY (email),
+    CONSTRAINT fk_recall_setting_email FOREIGN KEY (email) REFERENCES tbl_member (email)
+);
 -- KYI 끝
 
 -- LMJ - 알레르기 성분 목록
