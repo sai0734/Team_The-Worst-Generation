@@ -4,18 +4,26 @@ import com.backend.hospital.emergency.dto.EmergencyRoomSOSRequestDTO;
 import com.backend.hospital.emergency.dto.EmergencyRoomSOSResultDTO;
 import com.backend.hospital.emergency.service.EmergencyRoomSOSService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.security.Principal;
 
 @RestController
 @RequestMapping("/api/emergency-rooms")
 @RequiredArgsConstructor
+@PreAuthorize("hasAnyRole('ROLE_USER')")
 public class EmergencySOSController {
 
     private final EmergencyRoomSOSService emergencyRoomSOSService;
 
     @PostMapping("/sos")
     public EmergencyRoomSOSResultDTO requestEmergencySOS(
-            @RequestBody EmergencyRoomSOSRequestDTO request
+            @RequestBody EmergencyRoomSOSRequestDTO request,
+            Principal principal
     ) {
         return emergencyRoomSOSService.requestEmergencySOS(
                 request.getLongitude(),
@@ -24,7 +32,8 @@ public class EmergencySOSController {
                 request.getStage2(),
                 request.getPageNo(),
                 request.getNumOfRows(),
-                request.getTestTargetPhone()
+                request.getNotificationPhone(),
+                principal.getName()
         );
     }
 
