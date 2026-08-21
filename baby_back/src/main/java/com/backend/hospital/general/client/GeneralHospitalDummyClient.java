@@ -4,6 +4,7 @@ import com.backend.hospital.general.dto.GeneralHospitalResponseDTO;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.stream.IntStream;
 
 @Component
 public class GeneralHospitalDummyClient {
@@ -20,13 +21,33 @@ public class GeneralHospitalDummyClient {
     }
 
     private List<GeneralHospitalResponseDTO> dummyHospitals() {
-        return List.of(
-                hospital("G-HOSP-001", "튼튼아이소아청소년과의원", "서울특별시 강남구 테헤란로 123", "소아청소년과", "02-1111-1001", 37.501274, 127.039585, "0900", "1830"),
-                hospital("G-HOSP-002", "맘편한소아과의원", "서울특별시 강남구 선릉로 90", "소아청소년과", "02-1111-1002", 37.492361, 127.030569, "0830", "1900"),
-                hospital("G-HOSP-003", "아이사랑가정의학과", "서울특별시 서초구 서초대로 250", "가정의학과", "02-1111-1003", 37.494931, 127.014869, "0900", "1800"),
-                hospital("G-HOSP-004", "푸른소아청소년과의원", "서울특별시 송파구 올림픽로 300", "소아청소년과", "02-1111-1004", 37.514575, 127.105399, "0900", "2000"),
-                hospital("G-HOSP-005", "해맑은이비인후과의원", "서울특별시 강남구 도산대로 45", "이비인후과", "02-1111-1005", 37.517236, 127.022945, "0930", "1830")
-        );
+        String[] names = {"새봄", "우리아이", "튼튼", "햇살", "푸른", "사랑", "행복", "맑은", "한결", "늘봄"};
+        String[] suffixes = {"소아청소년과의원", "가정의학과의원", "이비인후과의원", "내과의원", "아동병원"};
+        String[] types = {"소아청소년과", "가정의학과", "이비인후과", "내과", "아동병원"};
+        String[] districts = {"강남구", "서초구", "송파구", "강동구", "광진구", "성동구", "동작구", "마포구", "영등포구", "용산구"};
+        String[] roads = {"테헤란로", "서초대로", "올림픽로", "천호대로", "아차산로", "왕십리로", "상도로", "월드컵로", "여의대로", "한강대로"};
+        String[] startTimes = {"0830", "0900", "0930"};
+        String[] endTimes = {"1800", "1830", "1900", "2000"};
+
+        return IntStream.rangeClosed(1, 50)
+                .mapToObj(index -> {
+                    int nameIndex = (index - 1) % names.length;
+                    int typeIndex = (index - 1) / names.length;
+                    int locationIndex = (index * 7) % districts.length;
+
+                    return hospital(
+                            "G-HOSP-%03d".formatted(index),
+                            names[nameIndex] + suffixes[typeIndex],
+                            "서울특별시 " + districts[locationIndex] + " " + roads[locationIndex] + " " + (20 + index * 7),
+                            types[typeIndex],
+                            "02-%04d-%04d".formatted(2000 + index, 1000 + index),
+                            37.46 + ((index * 17) % 100) * 0.001,
+                            126.92 + ((index * 23) % 210) * 0.001,
+                            startTimes[index % startTimes.length],
+                            endTimes[index % endTimes.length]
+                    );
+                })
+                .toList();
     }
 
     private GeneralHospitalResponseDTO hospital(
