@@ -17,6 +17,7 @@ import java.util.Map;
 @Component
 @RequiredArgsConstructor
 @Log4j2
+
 public class ChildcareInstitutionProvider implements AssistDataProvider {
 
     private static final String URL =
@@ -39,23 +40,21 @@ public class ChildcareInstitutionProvider implements AssistDataProvider {
             if (sido.isBlank() && sgg.isBlank()) {
                 return List.of();
             }
-
-            Map<String, String> p = DataGoKrClient.page(1, 10);
-            p.put("ctpvNm", sido);
-            if (!sgg.isBlank()) {
-                p.put("sggNm", sgg);
-            }
+            Map<String, String> p = DataGoKrClient.page(1, 500);
 
             List<AssistItemDTO> list = new ArrayList<>();
             for (JsonObject it : client.items(client.get(URL, p))) {
-                String name = first(it, "instNm", "childCareInstNm", "ogdpNm");
+                if (!matchesRegion(it, sido, sgg)) {
+                    continue;
+                }
+                String name = first(it, "childCareInstNm", "instNm", "ogdpNm");
                 if (name.isBlank()) continue;
                 String addr = first(it, "addr", "roadNmAddr", "lotnoAddr");
                 list.add(AssistItemDTO.builder()
                         .id("care-" + name)
                         .category(category().name())
-                        .title("아이돌봄 제공기관 · " + name)
-                        .summary(addr.isBlank() ? "거주지 인근 아이돌봄 기관" : addr)
+                        .title("아이돌봄제공기관 * " + name)
+                        .summary(addr.isBlank() ? "거주지 인근 아이돌봄기관" : addr)
                         .status("APPLY")
                         .source("아이돌봄 서비스제공기관")
                         .link("https://www.idolbom.go.kr")
@@ -63,9 +62,31 @@ public class ChildcareInstitutionProvider implements AssistDataProvider {
             }
             return list;
         } catch (Exception e) {
-            log.error("아이돌봄 기관 API 실패", e);
+            log.error("아이돌봄기관 API 실패", e);
             return List.of();
         }
+    }
+
+    private static boolean matchesRegion(JsonObject it, String sido, String sgg) {
+        if (sido.isBlank()) {
+            return true;
+        }
+        String itemSido = text(it, "ctpvNm");
+        if (!containsIgnoreBlank(itemSido, sido) && !containsIgnoreBlank(sido, itemSido))
+            return false;
+
+        if (sgg.isBlank()) {
+            return true;
+        }
+        String itemSgg = text(it, "sggNm");
+        return containsIgnoreBlank(itemSgg, sgg) || containsIgnoreBlank(sgg, itemSgg);
+    }
+
+    private static boolean containsIgnoreBlank(String a, String b) {
+        if (a == null || b == null || a.isBlank() || b.isBlank()) {
+            return false;
+        }
+        return a.contains(b) || b.contains(a);
     }
 
     private static String first(JsonObject o, String... keys) {
@@ -77,4 +98,9 @@ public class ChildcareInstitutionProvider implements AssistDataProvider {
         }
         return "";
     }
+
+    private static String text(JsonObject o, String key) {
+        return o.has(key) && !o.get(key).isJsonNull() ? o.get(key).getAsString() : "";
+    }
 }
+
