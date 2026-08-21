@@ -4,5 +4,5 @@ import com.backend.allergy.domain.RecipeRecommend;
 
 public interface RecipeRecommendServiceImpl {
 
-    RecipeRecommend createRecipeRecommend(Long checkNo, String productType);
+    RecipeRecommend createRecipeRecommend(Long checkNo, String productType, String email);
 }

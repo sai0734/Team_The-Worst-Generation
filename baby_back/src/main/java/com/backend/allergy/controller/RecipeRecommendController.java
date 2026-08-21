@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.security.Principal;
+
 @RestController
 @RequestMapping("/api/allergy/recipe")
 @RequiredArgsConstructor
@@ -20,9 +22,10 @@ public class RecipeRecommendController {
     @PostMapping
     public ResponseEntity<RecipeRecommend> recommend(
             @RequestParam("checkNo") Long checkNo,
-            @RequestParam("productType") String productType){
+            @RequestParam("productType") String productType,
+            Principal principal){
 
-        RecipeRecommend result = recipeRecommendServiceImpl.createRecipeRecommend(checkNo,productType);
+        RecipeRecommend result = recipeRecommendServiceImpl.createRecipeRecommend(checkNo, productType, principal.getName());
 
         return ResponseEntity.ok(result);
     }

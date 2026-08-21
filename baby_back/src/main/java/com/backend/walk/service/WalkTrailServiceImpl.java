@@ -1,12 +1,7 @@
 package com.backend.walk.service;
 
-import com.backend.walk.dto.WalkTrailDTO;
-
-import java.util.List;
+import com.backend.walk.dto.WalkAiRecommendationDTO;
 
 public interface WalkTrailServiceImpl {
-
-    List<WalkTrailDTO> getNearby(double lat, double lng, double radiusKm, int limit);
-
-    Long register(WalkTrailDTO dto);
+    WalkAiRecommendationDTO recommendWithAi(double lat, double lng);
 }

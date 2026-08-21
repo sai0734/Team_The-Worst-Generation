@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface BabySkinCheckServiceImpl {
 
-    BabySkinCheck checkSkin(Long babyNo, MultipartFile image);
+    BabySkinCheck checkSkin(Long babyNo, MultipartFile image, String email);
 
-    List<BabySkinCheck> getHistory(Long babyNo);
+    List<BabySkinCheck> getHistory(Long babyNo, String email);
 }

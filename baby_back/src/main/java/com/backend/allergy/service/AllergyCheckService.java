@@ -8,6 +8,7 @@ import com.backend.allergy.domain.BabyCustomAllergy;
 import com.backend.allergy.mapper.AllergyIngredientMapper;
 import com.backend.allergy.mapper.BabyAllergyCheckMapper;
 import com.backend.allergy.mapper.BabyCustomAllergyMapper;
+import com.backend.babyInfo.mapper.BabyInfoMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -27,9 +28,14 @@ public class AllergyCheckService implements AllergyCheckServiceImpl {
     private final AllergyIngredientMapper allergyIngredientMapper;
     private final BabyCustomAllergyMapper babyCustomAllergyMapper;
     private final BabyAllergyCheckMapper babyAllergyCheckMapper;
+    private final BabyInfoMapper babyInfoMapper;
 
     @Override
-    public BabyAllergyCheck checkAllergy(Long babyNo, MultipartFile image) {
+    public BabyAllergyCheck checkAllergy(Long babyNo, MultipartFile image, String email) {
+
+        if (babyInfoMapper.selectByBabyNo(babyNo, email) == null) {
+            throw new IllegalArgumentException("존재하지 않는 아이입니다: " + babyNo);
+        }
 
         byte[] imageBytes = readImageBytes(image);
 

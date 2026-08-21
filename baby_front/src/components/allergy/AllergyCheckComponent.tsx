@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { ChangeEvent, FormEvent } from "react";
+import { Link } from "react-router-dom";
 import * as allergyApi from "../../api/allergyApi";
 import type { BabyAllergyCheck } from "../../types/allergy";
 
@@ -61,6 +62,14 @@ const AllergyCheckComponent = ({ babyNo }: AllergyCheckComponentProps) => {
             <p className="text-sm text-gray-700">
               추가 등록 성분 일치: {result.detectedCustom}
             </p>
+          )}
+          {result.checkNo && (
+            <Link
+              to={`/allergy/recipe/${result.checkNo}?babyNo=${babyNo}`}
+              className="mt-3 inline-block rounded bg-sky-500 px-4 py-2 text-sm text-white"
+            >
+              이 결과로 레시피 추천받기
+            </Link>
           )}
         </div>
       )}

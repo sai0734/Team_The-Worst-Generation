@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface BabyStoolCheckServiceImpl {
 
-    BabyStoolCheck checkStool(Long babyNo, MultipartFile image);
+    BabyStoolCheck checkStool(Long babyNo, MultipartFile image, String email);
 
-    List<BabyStoolCheck> getHistory(Long babyNo);
+    List<BabyStoolCheck> getHistory(Long babyNo, String email);
 }

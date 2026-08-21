@@ -12,6 +12,8 @@ import com.backend.allergy.service.AllergyCheckServiceImpl;
 
 import lombok.RequiredArgsConstructor;
 
+import java.security.Principal;
+
 @RestController
 @RequestMapping("/api/allergy")
 @RequiredArgsConstructor
@@ -22,9 +24,10 @@ public class AllergyCheckController {
     @PostMapping("/check")
     public ResponseEntity<BabyAllergyCheck> checkAllergy(
             @RequestParam("babyNo") Long babyNo,
-            @RequestParam("image") MultipartFile image) {
+            @RequestParam("image") MultipartFile image,
+            Principal principal) {
 
-        BabyAllergyCheck result = allergyCheckServiceImpl.checkAllergy(babyNo, image);
+        BabyAllergyCheck result = allergyCheckServiceImpl.checkAllergy(babyNo, image, principal.getName());
 
         return ResponseEntity.ok(result);
     }

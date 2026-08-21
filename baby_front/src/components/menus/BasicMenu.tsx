@@ -79,7 +79,9 @@ const NAV_ITEMS: NavItem[] = [
     subItems: [
       { label: "행동교정 상담", to: "/ai/behavior" },
       { label: "울음소리 분석", to: "/ai/cry-check" },
-      { label: "성분표 검사", to: "/ai/allergy" },
+      { label: "성분표 검사", to: "/allergy" },
+      { label: "산책로 추천", to: "/walk" },
+      { label: "건강 체크", to: "/health" },
     ],
   },
 ];

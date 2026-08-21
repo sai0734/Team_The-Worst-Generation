@@ -5,6 +5,7 @@ import com.backend.allergy.domain.BabyAllergyCheck;
 import com.backend.allergy.domain.RecipeRecommend;
 import com.backend.allergy.mapper.BabyAllergyCheckMapper;
 import com.backend.allergy.mapper.RecipeRecommendMapper;
+import com.backend.babyInfo.mapper.BabyInfoMapper;
 import com.backend.global.ai.OllamaClient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -16,11 +17,20 @@ public class RecipeRecommendService implements RecipeRecommendServiceImpl {
     private final OllamaClient ollamaClient;
     private final BabyAllergyCheckMapper babyAllergyCheckMapper;
     private final RecipeRecommendMapper recipeRecommendMapper;
+    private final BabyInfoMapper babyInfoMapper;
 
     @Override
-    public RecipeRecommend createRecipeRecommend(Long checkNo, String productType){
+    public RecipeRecommend createRecipeRecommend(Long checkNo, String productType, String email){
 
         BabyAllergyCheck babyAllergyCheck = babyAllergyCheckMapper.selectByCheckNo(checkNo);
+
+        if (babyAllergyCheck == null) {
+            throw new IllegalArgumentException("존재하지 않는 검사 기록입니다: " + checkNo);
+        }
+
+        if (babyInfoMapper.selectByBabyNo(babyAllergyCheck.getBabyNo(), email) == null) {
+            throw new IllegalArgumentException("접근 권한이 없습니다.");
+        }
 
         String prompt = buildPrompt(babyAllergyCheck, productType);
 
@@ -39,7 +49,7 @@ public class RecipeRecommendService implements RecipeRecommendServiceImpl {
     private String buildPrompt(BabyAllergyCheck babyAllergyCheck, String productType){
 
         StringBuilder sb = new StringBuilder();
-        sb.append("아기용").append(productType).append("레시피를 추천해줘. \n");
+        sb.append("아기용").append(productType).append("레시피를 추천해줘.\n");
 
         if(babyAllergyCheck.getDetectedCustom()!=null && !babyAllergyCheck.getDetectedAllergens().isBlank()){
             sb.append("다음 알레르기 유발 성분은 반드시 피해줘: ")
@@ -51,7 +61,8 @@ public class RecipeRecommendService implements RecipeRecommendServiceImpl {
                     .append(babyAllergyCheck.getDetectedCustom()).append("\n");
         }
 
-        sb.append("레시피 이름, 재료 조리 방법을 간단히 알려줘.");
+        sb.append("\n다음 JSON 형식으로만 답해줘. 코드블록 표시(```)나 다른 설명 없이 순수 JSON 객체 하나만 출력해:\n")
+                .append("{\"recipeName\": \"레시피 이름\", \"ingredients\": [\"재료1\", \"재료2\"], \"instructions\": \"조리 방법을 한국어로 간단히 설명\"}");
 
         return sb.toString();
     }
