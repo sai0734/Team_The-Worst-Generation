@@ -5,7 +5,9 @@ import com.backend.hospital.emergency.dto.EmergencyRoomBedStatusDTO;
 import com.backend.hospital.emergency.dto.EmergencyRoomLocationDTO;
 import com.backend.hospital.emergency.dto.EmergencyRoomSOSResponseDTO;
 import com.backend.hospital.emergency.dto.EmergencyRoomSOSResultDTO;
+import com.backend.hospital.emergency.validation.EmergencyRoomSOSValidator;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
@@ -16,9 +18,12 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Log4j2
 public class EmergencyRoomSOSServiceImpl implements EmergencyRoomSOSService{
 
     private final EmergencyApiClient emergencyApiClient;
+    private final EmergencyRoomSOSValidator emergencyRoomSOSValidator;
+    private final EmergencyRoomSOSNoticeService emergencyRoomSOSNoticeService;
 
     @Override
     public List<EmergencyRoomSOSResponseDTO> findEmergencyRooms(
@@ -31,7 +36,12 @@ public class EmergencyRoomSOSServiceImpl implements EmergencyRoomSOSService{
     ) {
         List<EmergencyRoomLocationDTO> locations = emergencyApiClient.searchLocations(longitude, latitude, pageNo, numOfRows);
 
-        List<EmergencyRoomBedStatusDTO> bedStatuses = emergencyApiClient.searchBedStatuses(stage1, stage2, pageNo, numOfRows);
+        List<EmergencyRoomBedStatusDTO> bedStatuses = searchBedStatusesSafely(
+                stage1,
+                stage2,
+                pageNo,
+                numOfRows
+        );
 
         Map<String, EmergencyRoomBedStatusDTO> bedStatusByHospitalId = bedStatuses.stream()
                 .filter(bedStatus -> bedStatus.getHpid() != null)
@@ -51,8 +61,14 @@ public class EmergencyRoomSOSServiceImpl implements EmergencyRoomSOSService{
             String stage2,
             int pageNo,
             int numOfRows,
-            String testTargetPhone
+            String notificationPhone,
+            String memberEmail
     ) {
+        String normalizedPhone =
+                emergencyRoomSOSValidator.validateNotificationPhone(notificationPhone);
+        String requester =
+                emergencyRoomSOSValidator.validateRequester(memberEmail);
+
         List<EmergencyRoomSOSResponseDTO> candidates =
                 findEmergencyRooms(longitude, latitude, stage1, stage2, pageNo, numOfRows);
 
@@ -61,10 +77,15 @@ public class EmergencyRoomSOSServiceImpl implements EmergencyRoomSOSService{
         }
 
         EmergencyRoomSOSResponseDTO selectedHospital = candidates.get(0);
+        emergencyRoomSOSNoticeService.notifyGuardian(
+                selectedHospital,
+                normalizedPhone,
+                requester
+        );
 
         return EmergencyRoomSOSResultDTO.builder()
                 .selectedHospital(selectedHospital)
-                .openClawPayload(toOpenClawPayload(selectedHospital, testTargetPhone))
+                .openClawPayload(toOpenClawPayload(selectedHospital, normalizedPhone))
                 .candidates(candidates)
                 .build();
     }
@@ -125,12 +146,30 @@ public class EmergencyRoomSOSServiceImpl implements EmergencyRoomSOSService{
     // ------------------------------
     // 요청용
 
+    private List<EmergencyRoomBedStatusDTO> searchBedStatusesSafely(
+            String stage1,
+            String stage2,
+            int pageNo,
+            int numOfRows
+    ) {
+        if (stage1 == null || stage1.isBlank() || stage2 == null || stage2.isBlank()) {
+            return List.of();
+        }
+
+        try {
+            return emergencyApiClient.searchBedStatuses(stage1, stage2, pageNo, numOfRows);
+        } catch (Exception exception) {
+            log.warn("Emergency bed status lookup skipped: {}", exception.getMessage());
+            return List.of();
+        }
+    }
+
     private EmergencyRoomSOSResultDTO.OpenClawPayloadDTO toOpenClawPayload(
             EmergencyRoomSOSResponseDTO hospital,
-            String testTargetPhone
+            String notificationPhone
     ) {
         return EmergencyRoomSOSResultDTO.OpenClawPayloadDTO.builder()
-                .callTargetPhone(testTargetPhone)
+                .callTargetPhone(notificationPhone)
                 .actualEmergencyPhone(hospital.getEmergencyPhone())
                 .hospitalId(hospital.getHospitalId())
                 .hospitalName(hospital.getHospitalName())

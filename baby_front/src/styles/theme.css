@@ -370,10 +370,48 @@
   font-size: 13px;
   line-height: 1.55;
 }
+.app .sos-modal form p {
+  margin-bottom: 16px;
+}
+.app .sos-modal__hospital {
+  margin-top: -12px !important;
+  word-break: keep-all;
+}
+.app .sos-modal__field {
+  display: grid;
+  gap: 6px;
+  margin-bottom: 14px;
+  text-align: left;
+}
+.app .sos-modal__field span {
+  color: #465866;
+  font-size: 12px;
+  font-weight: 800;
+}
+.app .sos-modal__field input {
+  height: 44px;
+  padding: 0 12px;
+  border: 1px solid #d5dde3;
+  border-radius: 10px;
+  font-family: inherit;
+  font-size: 14px;
+}
+.app .sos-modal__field input:focus {
+  outline: 3px solid rgba(200, 61, 61, 0.16);
+  border-color: #be3838;
+}
+.app .sos-modal__error {
+  margin: 0 0 14px !important;
+  color: #bd3434 !important;
+  text-align: left;
+}
 .app .sos-modal__actions {
   display: grid;
   grid-template-columns: 1fr 1.25fr;
   gap: 9px;
+}
+.app .sos-modal__actions--single {
+  grid-template-columns: 1fr;
 }
 .app .sos-modal__actions button {
   height: 44px;

@@ -4,8 +4,11 @@ import com.backend.hospital.emergency.client.EmergencyApiClient;
 import com.backend.hospital.emergency.dto.EmergencyRoomBedStatusDTO;
 import com.backend.hospital.emergency.dto.EmergencyRoomLocationDTO;
 import com.backend.hospital.emergency.dto.EmergencyRoomSOSResponseDTO;
+import com.backend.hospital.emergency.dto.EmergencyRoomSOSResultDTO;
+import com.backend.hospital.emergency.service.EmergencyRoomSOSNoticeService;
 import com.backend.hospital.emergency.service.EmergencyRoomSOSService;
 import com.backend.hospital.emergency.service.EmergencyRoomSOSServiceImpl;
+import com.backend.hospital.emergency.validation.EmergencyRoomSOSValidator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,6 +18,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -23,11 +29,18 @@ public class EmergencyServiceTests {
     @Mock
     EmergencyApiClient emergencyApiClient;
 
+    @Mock
+    EmergencyRoomSOSNoticeService emergencyRoomSOSNoticeService;
+
     EmergencyRoomSOSService service;
 
     @BeforeEach
     void setUp() {
-        service = new EmergencyRoomSOSServiceImpl(emergencyApiClient);
+        service = new EmergencyRoomSOSServiceImpl(
+                emergencyApiClient,
+                new EmergencyRoomSOSValidator(),
+                emergencyRoomSOSNoticeService
+        );
     }
 
     @Test
@@ -94,5 +107,40 @@ public class EmergencyServiceTests {
         assertThat(response.getKakaoMapTarget().getName()).isEqualTo("삼성서울병원");
         assertThat(response.getKakaoMapTarget().getLatitude()).isEqualTo(37.488516);
         assertThat(response.getKakaoMapTarget().getLongitude()).isEqualTo(127.086682);
+    }
+
+    @Test
+    void requestEmergencySOS_notifiesGuardian() {
+        EmergencyRoomLocationDTO location = EmergencyRoomLocationDTO.builder()
+                .hpid("A1100010")
+                .dutyName("삼성서울병원")
+                .dutyAddr("서울특별시 강남구 일원로 81")
+                .dutyDivName("종합병원")
+                .dutyTel1("02-3410-2114")
+                .latitude(37.488516)
+                .longitude(127.086682)
+                .distance(0.14)
+                .build();
+
+        when(emergencyApiClient.searchLocations(127.086682, 37.488516, 1, 10))
+                .thenReturn(List.of(location));
+
+        EmergencyRoomSOSResultDTO result = service.requestEmergencySOS(
+                127.086682,
+                37.488516,
+                "",
+                "",
+                1,
+                10,
+                "010-1234-5678",
+                "user@example.com"
+        );
+
+        assertThat(result.getSelectedHospital().getHospitalId()).isEqualTo("A1100010");
+        verify(emergencyRoomSOSNoticeService).notifyGuardian(
+                any(EmergencyRoomSOSResponseDTO.class),
+                eq("01012345678"),
+                eq("user@example.com")
+        );
     }
 }
