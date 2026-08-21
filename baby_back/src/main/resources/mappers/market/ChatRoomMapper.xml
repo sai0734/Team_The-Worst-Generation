@@ -6,6 +6,7 @@
 
     <select id="selectByItemAndMembers" resultType="com.backend.market.domain.ChatRoom">
         SELECT c.room_no, c.item_no, c.buyer_email, c.seller_email, c.reg_time,
+        c.complete_requested_at,
         i.title AS item_title, i.status AS item_status,
         EXISTS(SELECT 1 FROM tbl_review r WHERE r.room_no = c.room_no) AS reviewed
         FROM tbl_chat_room c
@@ -15,6 +16,7 @@
 
     <select id="selectListByMember" resultType="com.backend.market.domain.ChatRoom">
         SELECT c.room_no, c.item_no, c.buyer_email, c.seller_email, c.reg_time,
+        c.complete_requested_at,
         i.title AS item_title, i.status AS item_status,
         EXISTS(SELECT 1 FROM tbl_review r WHERE r.room_no = c.room_no) AS reviewed
         FROM tbl_chat_room c
@@ -25,6 +27,7 @@
 
     <select id="selectOne" resultType="com.backend.market.domain.ChatRoom">
         SELECT c.room_no, c.item_no, c.buyer_email, c.seller_email, c.reg_time,
+        c.complete_requested_at,
         i.title AS item_title, i.status AS item_status,
         EXISTS(SELECT 1 FROM tbl_review r WHERE r.room_no = c.room_no) AS reviewed
         FROM tbl_chat_room c
@@ -36,5 +39,11 @@
         INSERT INTO tbl_chat_room (item_no, buyer_email, seller_email)
         VALUES (#{itemNo}, #{buyerEmail}, #{sellerEmail})
     </insert>
+
+    <update id="updateCompleteRequested">
+        UPDATE tbl_chat_room
+        SET complete_requested_at = CURRENT_TIMESTAMP
+        WHERE room_no = #{roomNo}
+    </update>
 
 </mapper>

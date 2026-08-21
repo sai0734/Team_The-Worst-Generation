@@ -25,6 +25,9 @@ public class ChatRoom {
 
     private LocalDateTime regTime;
 
+    // 구매자가 거래완료 신청한 시각 (null이면 아직 신청 전)
+    private LocalDateTime completeRequestedAt;
+
     // 채팅방 목록에 매물번호 대신 표시할 매물 제목 (JOIN으로만 채워짐, DB 컬럼 아님)
     private String itemTitle;
 

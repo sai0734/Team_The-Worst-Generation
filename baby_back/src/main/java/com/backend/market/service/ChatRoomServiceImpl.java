@@ -57,15 +57,40 @@ public class ChatRoomServiceImpl implements ChatRoomService {
     }
 
     @Override
-    public void completeByBuyer(Long roomNo, String requesterEmail) {
+    public void requestComplete(Long roomNo, String requesterEmail) {
 
         ChatRoom room = Optional.ofNullable(chatRoomMapper.selectOne(roomNo))
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 채팅방입니다: " + roomNo));
 
         if (!room.getBuyerEmail().equals(requesterEmail)) {
-            throw new AccessDeniedException("구매자만 거래완료로 변경할 수 있습니다.");
+            throw new AccessDeniedException("구매자만 거래완료를 신청할 수 있습니다.");
         }
 
-        marketItemService.markAsCompletedByBuyer(room.getItemNo());
+        if (!"거래가능".equals(room.getItemStatus())) {
+            throw new IllegalStateException("이미 처리된 매물입니다.");
+        }
+
+        if (room.getCompleteRequestedAt() != null) {
+            throw new IllegalStateException("이미 거래완료를 신청했습니다.");
+        }
+
+        chatRoomMapper.updateCompleteRequested(roomNo);
+    }
+
+    @Override
+    public void confirmComplete(Long roomNo, String requesterEmail) {
+
+        ChatRoom room = Optional.ofNullable(chatRoomMapper.selectOne(roomNo))
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 채팅방입니다: "+ roomNo));
+
+        if (!room.getSellerEmail().equals(requesterEmail)) {
+            throw new AccessDeniedException("판매자만 거래완료를 확정할 수 있습니다.");
+        }
+
+        if (room.getCompleteRequestedAt() == null) {
+            throw new IllegalStateException("구매자가 거래완료를 신청한 이후에만 확정할 수 있습니다.");
+        }
+
+        marketItemService.markAsCompleted(room.getItemNo());
     }
 }

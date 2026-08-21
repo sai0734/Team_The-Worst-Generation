@@ -30,6 +30,7 @@ const ChatRoomComponent = () => {
   const [room, setRoom] = useState<ChatRoom | null>(null);
   const [input, setInput] = useState("");
   const [connected, setConnected] = useState(false);
+  const [requestingComplete, setRequestingComplete] = useState(false);
   const [completing, setCompleting] = useState(false);
   const [tempDelta, setTempDelta] = useState(0);
   const [reviewContent, setReviewContent] = useState("");
@@ -142,8 +143,27 @@ const ChatRoomComponent = () => {
     loadMessages();
   };
 
+  const handleRequestComplete = async () => {
+    if (
+      !confirm("거래완료를 신청할까요? 판매자가 확인하면 최종 완료 처리돼요.")
+    )
+      return;
+
+    setRequestingComplete(true);
+    try {
+      await chatApi.requestCompleteRoom(Number(roomNo));
+      await loadRoom();
+    } catch (err) {
+      console.error(err);
+      alert("거래완료 신청에 실패했습니다.");
+    } finally {
+      setRequestingComplete(false);
+    }
+  };
+
   const handleComplete = async () => {
-    if (!confirm("이 거래를 완료 처리할까요? 이후에는 되돌릴 수 없어요.")) return;
+    if (!confirm("이 거래를 완료 확정할까요? 이후에는 되돌릴 수 없어요."))
+      return;
 
     setCompleting(true);
     try {
@@ -151,7 +171,7 @@ const ChatRoomComponent = () => {
       await loadRoom();
     } catch (err) {
       console.error(err);
-      alert("거래완료 처리에 실패했습니다.");
+      alert("거래완료 확정에 실패했습니다.");
     } finally {
       setCompleting(false);
     }
@@ -230,17 +250,37 @@ const ChatRoomComponent = () => {
               </span>
             )
           ) : isBuyer ? (
-            <button
-              type="button"
-              className="btn ghost"
-              onClick={handleComplete}
-              disabled={completing}
-            >
-              {completing ? "처리 중..." : "거래완료로 표시"}
-            </button>
+            room.completeRequestedAt ? (
+              <p className="cry-check-hint" style={{ margin: 0 }}>
+                거래완료를 신청했어요. 판매자 확인을 기다리고 있어요.
+              </p>
+            ) : (
+              <button
+                type="button"
+                className="btn ghost"
+                onClick={handleRequestComplete}
+                disabled={requestingComplete}
+              >
+                {requestingComplete ? "신청 중..." : "거래완료 신청"}
+              </button>
+            )
+          ) : room.completeRequestedAt ? (
+            <div>
+              <p className="cry-check-hint" style={{ margin: "0 0 8px" }}>
+                구매자가 거래완료를 신청했어요. 확인 후 확정해주세요.
+              </p>
+              <button
+                type="button"
+                className="btn ghost"
+                onClick={handleComplete}
+                disabled={completing}
+              >
+                {completing ? "처리 중..." : "거래완료 확정"}
+              </button>
+            </div>
           ) : (
             <p className="cry-check-hint" style={{ margin: 0 }}>
-              구매자가 거래완료 처리를 하면 여기에 반영돼요.
+              구매자가 거래완료 신청을 하면 여기서 확정할 수 있어요.
             </p>
           )}
         </div>
@@ -298,7 +338,9 @@ const ChatRoomComponent = () => {
               )}
 
               {msg.regTime && (
-                <div className="chat-time">{formatMessageTime(msg.regTime)}</div>
+                <div className="chat-time">
+                  {formatMessageTime(msg.regTime)}
+                </div>
               )}
             </div>
           );

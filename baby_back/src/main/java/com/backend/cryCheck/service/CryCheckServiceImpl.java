@@ -7,6 +7,8 @@ import com.backend.crycheck.dto.CryCheckDTO;
 import com.backend.crycheck.mapper.CryCheckMapper;
 import com.backend.global.ai.OllamaClient;
 import com.backend.global.util.CustomFileUtil;
+import com.backend.sleep.domain.BabySleep;
+import com.backend.sleep.mapper.BabySleepMapper;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -16,9 +18,15 @@ import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.Period;
+import java.time.format.DateTimeFormatter;
+import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -33,6 +41,9 @@ public class CryCheckServiceImpl implements CryCheckService {
     private static final double MAX_PITCH_HZ = 1000;
     private static final double MIN_VOLUME = 3.0;
     private static final double MIN_DURATION_SEC = 1.0;
+
+    // 프롬포트에 참고용으로 넣어줄 과거 피드백(보호자가 확인해준 실제 원인) 최대 개수
+    private static final int FEEDBACK_HISTORY_LIMIT = 5;
 
     // 울음소리로 보기 어려운 경우 반환할 결과.
     private static final String NOT_A_CRY_RESULT =
@@ -52,6 +63,9 @@ public class CryCheckServiceImpl implements CryCheckService {
     private final OllamaClient ollamaClient;
 
     private final CustomFileUtil fileUtil;
+
+    // 응애관리(수면 기록) 모듈 - 최근 수면 정보를 프롬프트 참고 자료로만 조회
+    private final BabySleepMapper babySleepMapper;
 
     private final ModelMapper modelMapper;
 
@@ -101,7 +115,7 @@ public class CryCheckServiceImpl implements CryCheckService {
 
         // 추출된 음향 특징과 아기 개월수를 이용해 Ollama에 울음 원인 분석을 요청한다.
         String rawAiResult = ollamaClient.chat(
-                buildPrompt(cryCheckDTO, babyInfo)
+                buildPrompt(cryCheckDTO, babyInfo, email)
         );
 
         // Ollama가 코드 블록이나 추가 문장을 반환하더라도 JSON 객체만 추출하여 저장한다.
@@ -245,7 +259,8 @@ public class CryCheckServiceImpl implements CryCheckService {
     // Ollama에 전달할 울음소리 분석 프롬프트 생성.
     private String buildPrompt(
             CryCheckDTO cryCheckDTO,
-            BabyInfo babyInfo
+            BabyInfo babyInfo,
+            String email
     ) {
 
         Integer ageMonths = calculateAgeMonths(
@@ -256,6 +271,20 @@ public class CryCheckServiceImpl implements CryCheckService {
                 ? ageMonths + "개월"
                 : "정보 없음";
 
+        String nowText = LocalDateTime.now().format(
+                DateTimeFormatter.ofPattern("HH시 mm분")
+        );
+
+        String sleepInfoText = buildSleepInfoText(
+                cryCheckDTO.getBabyNo(),
+                email
+        );
+
+        String feedbackHistoryText = buildFeedbackHistoryText(
+                cryCheckDTO.getBabyNo(),
+                email
+        );
+
         return """
                 너는 영유아 울음소리의 음향 특징을 분석하여
                 가능한 울음 원인을 추정하는 육아 보조 AI다.
@@ -264,11 +293,14 @@ public class CryCheckServiceImpl implements CryCheckService {
                 확인할 때 참고할 수 있도록 제공하는 추정 결과다.
 
                 [입력 정보]
+                - 현재 시각: %s
                 - 아기 개월수: %s
                 - 평균 피치: %sHz
                 - 평균 볼륨: %s/100
                 - 울음 지속시간: %s초
                 - 울음 변화 패턴: %s
+                - 최근 수면 정보: %s
+                - 최근 확인된 울음 원인(참고용, 최대 %d건): %s
 
                 [분석 후보]
 
@@ -292,6 +324,9 @@ public class CryCheckServiceImpl implements CryCheckService {
                   칭얼거리듯 비교적 약하고 늘어지는 경향이 있다.
                   낮거나 중간 정도의 볼륨과 하강형 패턴을
                   주요 근거로 참고한다.
+                  입력 정보의 "최근 수면 정보"에서 마지막 수면으로부터
+                  오래 지났거나 아직 수면 중이라면 졸림 가능성을
+                  더 높게 본다.
 
                 - 일반적인 불편함
                   기저귀, 온도, 자세, 트림 등으로 인해 나타날 수 있다.
@@ -316,9 +351,12 @@ public class CryCheckServiceImpl implements CryCheckService {
                 2. 각 후보와 맞지 않는 음향 특징도 함께 확인한다.
                 3. 하나의 수치만으로 원인을 결정하지 않는다.
                 4. 아기 개월수는 보조 근거로만 사용한다.
-                5. 입력되지 않은 수유 시간, 수면 시간, 체온 등의
-                   정보는 추측하지 않는다.
-                6. 가능성이 높은 후보를 최대 3개까지 출력한다.
+                5. 입력되지 않은 수유 시간, 체온 등의 정보는
+                   추측하지 않는다.
+                6. "최근 확인된 울음 원인"은 참고 정보일 뿐이다.
+                   이번 음향 특징이 그 원인과 맞지 않으면
+                   그대로 따르지 않는다.
+                7. 가능성이 높은 후보를 최대 3개까지 출력한다.
 
                 [확신도 규칙]
 
@@ -365,7 +403,7 @@ public class CryCheckServiceImpl implements CryCheckService {
                       "rank": 2,
                       "cause": "졸림",
                       "confidence": 30,
-                      "reason": "비교적 낮은 볼륨을 고려하면 졸림 가능성도 있습니다. 최근 수면 시간을 확인해 보세요."
+                      "reason": "비교적 낮은 볼륨과 마지막 수면으로부터 지난 시간을 고려하면 졸림 가능성도 있습니다. 재워보면서 반응을 살펴보세요."
                     },
                     {
                       "rank": 3,
@@ -376,13 +414,91 @@ public class CryCheckServiceImpl implements CryCheckService {
                   ]
                 }
                 """.formatted(
+                nowText,
                 ageText,
                 cryCheckDTO.getAvgPitch(),
                 cryCheckDTO.getAvgVolume(),
                 cryCheckDTO.getDurationSeconds(),
-                cryCheckDTO.getPattern()
+                cryCheckDTO.getPattern(),
+                sleepInfoText,
+                FEEDBACK_HISTORY_LIMIT,
+                feedbackHistoryText
         );
     }
+
+    // 이 아기의 가장 최근 수면 기록을 찾아 "졸림" 판단에 참고할 문장으로 만든다.
+    // 응애관리(수면 기록) 데이터를 조회만 할 뿐, 그 쪽 코드는 건드리지 않는다.
+    private String buildSleepInfoText(Long babyNo, String email) {
+
+        List<BabySleep> sleepList = babySleepMapper.selectList(babyNo, email);
+
+        if (sleepList == null || sleepList.isEmpty()) {
+            return "기록 없음";
+        }
+
+        BabySleep latest = sleepList.stream()
+                .filter(sleep -> sleep.getStartTime() != null)
+                .max(Comparator.comparing(BabySleep::getStartTime))
+                .orElse(null);
+
+        if (latest == null) {
+            return "기록 없음";
+        }
+
+        if (latest.getEndTime() == null) {
+            return "현재 수면 중 (시작 " + formatElapsed(latest.getStartTime()) + " 전)";
+        }
+
+        return "마지막 수면 종료로부터 " + formatElapsed(latest.getEndTime()) + " 전";
+    }
+
+    // 기준 시각으로부터 지금까지 지난 시간을 "N시간 M분" 형태 문장으로 만든다.
+    private String formatElapsed(LocalDateTime time) {
+
+        long minutes = Math.max(
+                Duration.between(time, LocalDateTime.now()).toMinutes(),
+                0
+        );
+
+        long hours = minutes / 60;
+        long remainMinutes = minutes % 60;
+
+        if (hours > 0) {
+            return hours + "시간 " + remainMinutes + "분";
+        }
+
+        return remainMinutes + "분";
+    }
+
+    // 이 아기의 과거 울음소리 분석 중 보호자가 실제 원인을 알려준 기록을 최근 순으로 모아
+    // 참고용 문장으로 만든다. (판단의 단독 근거로 쓰지 말라는 규칙은 프롬프트 본문에서 별도로 안내함)
+    private String buildFeedbackHistoryText(Long babyNo, String email) {
+
+        List<CryCheck> history = cryCheckMapper.selectListByBaby(babyNo, email);
+
+        if (history == null || history.isEmpty()) {
+            return "과거 기록 없음";
+        }
+
+        Map<String, Long> feedbackCounts = history.stream()
+                .map(CryCheck::getUserFeedback)
+                .filter(feedback -> feedback != null && !feedback.isBlank())
+                .limit(FEEDBACK_HISTORY_LIMIT)
+                .collect(Collectors.groupingBy(
+                        feedback -> feedback,
+                        LinkedHashMap::new,
+                        Collectors.counting()
+                ));
+
+        if (feedbackCounts.isEmpty()) {
+            return "과거 기록 없음";
+        }
+
+        return feedbackCounts.entrySet().stream()
+                .map(entry -> entry.getKey() + " " + entry.getValue() + "회")
+                .collect(Collectors.joining(", "));
+    }
+
 
     // Ollama 응답에서 JSON 객체만 추출하고 프론트에서 사용할 수 있는 형식인지 확인한다.
     private String cleanJsonResponse(String rawResult) {

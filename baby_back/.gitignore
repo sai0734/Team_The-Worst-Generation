@@ -14,3 +14,5 @@ out
 # Logs
 *.log
 
+# 감자마켓 관련
+upload/

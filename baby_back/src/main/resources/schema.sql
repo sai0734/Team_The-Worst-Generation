@@ -1021,6 +1021,9 @@ CREATE TABLE IF NOT EXISTS tbl_chat_room (
     CONSTRAINT fk_chat_room_seller FOREIGN KEY (seller_email) REFERENCES tbl_member (email)
     );
 
+-- 구매자가 "거래완료 신청" 을 누른 시각. null 이면 아직 신청 전. 판매자는 이게 채워진 방만 최종 확정 가능
+ALTER TABLE tbl_chat_room ADD COLUMN IF NOT EXISTS complete_requested_at DATETIME NULL;
+
 CREATE TABLE IF NOT EXISTS tbl_chat_message (
                                                 msg_no       BIGINT AUTO_INCREMENT,
                                                 room_no      BIGINT       NOT NULL,
