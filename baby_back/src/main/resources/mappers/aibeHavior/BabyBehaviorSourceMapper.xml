@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.backend.aibeHavior.mapper.BabyBehaviorSourceMapper">
+
+    <select id="selectListByConsultNo" resultType="com.backend.aibeHavior.domain.BabyBehaviorSource">
+        SELECT source_no, consult_no, title, link, press, pub_date, reg_time
+        FROM tbl_baby_behavior_source
+        WHERE consult_no = #{consultNo}
+        ORDER BY source_no ASC
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="sourceNo" keyColumn="source_no">
+        INSERT INTO tbl_baby_behavior_source (consult_no, title, link, press, pub_date)
+        VALUES (#{consultNo}, #{title}, #{link}, #{press}, #{pubDate})
+    </insert>
+
+    <delete id="deleteByConsultNo">
+        DELETE FROM tbl_baby_behavior_source WHERE consult_no = #{consultNo}
+    </delete>
+
+</mapper>

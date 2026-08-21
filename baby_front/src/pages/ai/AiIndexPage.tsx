@@ -4,6 +4,7 @@ import SideMenuLayout from "../../layouts/SideMenuLayout";
 import SkyBackground from "../../components/common/SkyBackground";
 
 const AI_SIDE_ITEMS = [
+  { label: "행동교정 상담", to: "/ai/behavior" },
   { label: "울음소리 분석", to: "/ai/cry-check" },
   { label: "맞춤 동화 생성", to: "/ai/story" },
   { label: "맞춤 산책로", to: "/walk" },

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.backend.aibeHavior.mapper.BabyBehaviorStepMapper">
+
+    <select id="selectListByConsultNo" resultType="com.backend.aibeHavior.domain.BabyBehaviorStep">
+        SELECT step_no, consult_no, step_order, title, description
+        FROM tbl_baby_behavior_step
+        WHERE consult_no = #{consultNo}
+        ORDER BY step_order ASC
+    </select>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="stepNo" keyColumn="step_no">
+        INSERT INTO tbl_baby_behavior_step (consult_no, step_order, title, description)
+        VALUES (#{consultNo}, #{stepOrder}, #{title}, #{description})
+    </insert>
+
+    <delete id="deleteByConsultNo">
+        DELETE FROM tbl_baby_behavior_step WHERE consult_no = #{consultNo}
+    </delete>
+
+</mapper>
