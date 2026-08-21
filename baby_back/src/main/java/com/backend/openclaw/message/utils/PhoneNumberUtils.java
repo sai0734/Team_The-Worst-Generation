@@ -1,0 +1,15 @@
+package com.backend.openclaw.message.utils;
+
+public final class PhoneNumberUtils {
+
+    private PhoneNumberUtils() {
+    }
+
+    public static String normalize(String phoneNumber) {
+        if (phoneNumber == null) {
+            return null;
+        }
+
+        return phoneNumber.replaceAll("[\\s-]", "");
+    }
+}

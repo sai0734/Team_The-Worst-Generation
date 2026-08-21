@@ -6,15 +6,17 @@
 
     <select id="selectByReservationNo" resultType="com.backend.hospital.general.domain.GeneralHospitalReservation">
         SELECT reservation_no, member_email, hospital_id, hospital_name, hospital_type,
-               hospital_address, hospital_phone, reservation_date, reservation_time,
-               patient_name, message, status, reg_time, mod_time
+                hospital_address, hospital_phone, notification_phone,
+                reservation_date, reservation_time,
+                patient_name, message, status, reg_time, mod_time
         FROM tbl_hospital_reservation
         WHERE reservation_no = #{reservationNo}
     </select>
 
     <select id="selectListByMember" resultType="com.backend.hospital.general.domain.GeneralHospitalReservation">
         SELECT reservation_no, member_email, hospital_id, hospital_name, hospital_type,
-               hospital_address, hospital_phone, reservation_date, reservation_time,
+                hospital_address, hospital_phone, notification_phone,
+                reservation_date, reservation_time,
                patient_name, message, status, reg_time, mod_time
         FROM tbl_hospital_reservation
         WHERE member_email = #{memberEmail}
@@ -24,11 +26,12 @@
     <insert id="insert" useGeneratedKeys="true" keyProperty="reservationNo" keyColumn="reservation_no">
         INSERT INTO tbl_hospital_reservation (
             member_email, hospital_id, hospital_name, hospital_type, hospital_address,
-            hospital_phone, reservation_date, reservation_time, patient_name, message, status
+        hospital_phone, notification_phone,
+        reservation_date, reservation_time, patient_name, message, status
         )
         VALUES (
             #{memberEmail}, #{hospitalId}, #{hospitalName}, #{hospitalType}, #{hospitalAddress},
-            #{hospitalPhone}, #{reservationDate}, #{reservationTime}, #{patientName}, #{message}, #{status}
+            #{hospitalPhone}, #{notificationPhone}, #{reservationDate}, #{reservationTime}, #{patientName}, #{message}, #{status}
         )
     </insert>
 
