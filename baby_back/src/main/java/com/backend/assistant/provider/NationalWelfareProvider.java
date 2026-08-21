@@ -31,6 +31,8 @@ public class NationalWelfareProvider implements AssistDataProvider {
     @Override
     public List<AssistItemDTO> search(AssistRecommendRequest request) {
         try {
+            Integer months = request.getChild() != null ? request.getChild().getBabyMonths() : null;
+
             Map<String, String> p = DataGoKrClient.page(1, 20);
             p.put("callTp", "L");
             p.put("srchKeyCode", "001");
@@ -38,6 +40,9 @@ public class NationalWelfareProvider implements AssistDataProvider {
 
             List<AssistItemDTO> list = new ArrayList<>();
             for (JsonObject it : client.items(client.get(URL, p))) {
+                if (!matchesLifeStage(text(it, "lifeArray"), months)) {
+                    continue;
+                }
                 String title = text(it, "servNm");
                 if (title.isBlank()) continue;
                 String id = text(it, "servId");
@@ -62,5 +67,22 @@ public class NationalWelfareProvider implements AssistDataProvider {
 
     private static String text(JsonObject o, String key) {
         return o.has(key) && !o.get(key).isJsonNull() ? o.get(key).getAsString() : "";
+    }
+
+    private static boolean matchesLifeStage(String lifeArray, Integer months) {
+        if (lifeArray == null || lifeArray.isBlank() || months == null) {
+            return true;
+        }
+        return lifeArray.contains(lifeStageName(months));
+    }
+
+    private static String lifeStageName(int months) { //나이판단
+        if (months < 84) {
+            return "영유아";
+        }
+        if (months < 156) {
+            return "아동";
+        }
+        return "청소년";
     }
 }

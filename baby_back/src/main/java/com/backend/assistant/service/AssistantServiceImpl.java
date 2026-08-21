@@ -40,7 +40,10 @@ public class AssistantServiceImpl implements AssistantService {
         List<AssistItemDTO> items = new ArrayList<>();
         for (AssistDataProvider p : providers) {
             if (wanted.contains(p.category().name())) {
-                items.addAll(p.search(request));
+                List<AssistItemDTO> found = p.search(request);
+                log.info("provider={} category={} count={}",
+                        p.getClass().getSimpleName(), p.category(), found.size());
+                items.addAll(found);
             }
         }
 
