@@ -8,6 +8,7 @@ import {
   useSearchParams,
 } from "react-router-dom";
 import BasicLayout from "../../layouts/BasicLayout";
+import SkyBackground from "../../components/common/SkyBackground";
 import * as babyInfoApi from "../../api/babyInfoApi";
 import type { BabyInfo } from "../../api/babyInfoApi";
 
@@ -176,7 +177,8 @@ const AllergyIndexPage = () => {
 
   return (
     <BasicLayout>
-      <div style={layoutStyle}>
+      <SkyBackground />
+      <div style={layoutStyle} className="page-sky-content">
         <nav style={navStyle}>
           <span style={navSectionLabelStyle}>검사할 아이</span>
           {pickerOpen || !selectedBaby ? (

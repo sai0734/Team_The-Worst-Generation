@@ -79,9 +79,13 @@ public class KakaoLocalClient {
         List<KakaoPlace> places = new ArrayList<>();
         for (int i = 0; i < documents.size(); i++) {
             JsonObject doc = documents.get(i).getAsJsonObject();
+            String roadAddress = doc.get("road_address_name").getAsString();
+            String address = roadAddress.isBlank()
+                    ? doc.get("address_name").getAsString()
+                    :roadAddress;
             places.add(new KakaoPlace(
                     doc.get("place_name").getAsString(),
-                    doc.get("road_address_name").getAsString(),
+                    address,
                     doc.get("y").getAsDouble(),
                     doc.get("x").getAsDouble(),
                     doc.get("distance").getAsDouble(),

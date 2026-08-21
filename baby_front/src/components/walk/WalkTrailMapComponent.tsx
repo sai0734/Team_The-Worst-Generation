@@ -5,11 +5,23 @@ import { loadKakaoMapScript } from "../../util/kakaoMapLoader";
 
 const DEFAULT_CENTER = { lat: 37.566826, lng: 126.9786567 }; // 서울시청 (위치 정보 없을 때 기본값)
 
+// 유모차 동반 도보 속도 기준(약 시속 3km). 직선거리 기준이라 실제보다 짧게 나올 수 있어 "약" 표기.
+const STROLLER_WALK_SPEED_KMH = 3;
+
 const formatDistance = (distanceKm?: number): string | null => {
   if (distanceKm === undefined) return null;
   return distanceKm < 1
     ? `${Math.round(distanceKm * 1000)}m`
     : `${distanceKm.toFixed(1)}km`;
+};
+
+const formatWalkMinutes = (distanceKm?: number): string | null => {
+  if (distanceKm === undefined) return null;
+  const minutes = Math.max(
+    1,
+    Math.round((distanceKm / STROLLER_WALK_SPEED_KMH) * 60),
+  );
+  return `도보 약 ${minutes}분`;
 };
 
 const buildDirectionsUrl = (
@@ -278,6 +290,7 @@ const WalkTrailMapComponent = () => {
             className="btn"
             onClick={fetchAiRecommendation}
             disabled={aiLoading || mapLoading}
+            style={{ flexShrink: 0 }}
           >
             {aiLoading ? "추천 받는 중..." : "AI 추천받기"}
           </button>
@@ -333,7 +346,8 @@ const WalkTrailMapComponent = () => {
                     >
                       <strong style={{ fontSize: 14 }}>{place.name}</strong>
                       <span className="status-badge available">
-                        {formatDistance(place.distanceM / 1000)}
+                        {formatDistance(place.distanceM / 1000)} ·{" "}
+                        {formatWalkMinutes(place.distanceM / 1000)}
                       </span>
                     </div>
                     <p
@@ -355,7 +369,7 @@ const WalkTrailMapComponent = () => {
                         fontSize: 12,
                       }}
                     >
-                      경로보기 (새 창)
+                      경로보기
                     </button>
                   </div>
                 ))}
