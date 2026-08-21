@@ -111,7 +111,7 @@ public class BehaviorServiceImpl implements BehaviorService {
 
         // 1단계: qwen에게 category+situation을 주고 검색 키워드 추출
         String keywordPrompt = String.format(KEYWORD_PROMPT, request.getCategory(), request.getSituation());
-        String keyword = ollamaClient.chat(keywordPrompt).trim();
+        String keyword = chatWithRetry(keywordPrompt).trim();
 
         log.info("추출된 검색 키워드: " + keyword);
 
@@ -133,8 +133,7 @@ public class BehaviorServiceImpl implements BehaviorService {
         }
 
         String answerPrompt = String.format(ANSWER_PROMPT, request.getCategory(), request.getSituation(), candidateText);
-        String answerRaw = ollamaClient.chat(answerPrompt);
-        JsonObject answerJson = JsonParser.parseString(extractJson(answerRaw)).getAsJsonObject();
+        JsonObject answerJson = chatJsonWithRetry(answerPrompt);
 
         String aiSummary = answerJson.get("summary").getAsString();
 
@@ -189,8 +188,7 @@ public class BehaviorServiceImpl implements BehaviorService {
             }
 
             String videoPrompt = String.format(VIDEO_PROMPT, request.getSituation(), videoText);
-            String videoRaw = ollamaClient.chat(videoPrompt);
-            JsonObject videoJson = JsonParser.parseString(extractJson(videoRaw)).getAsJsonObject();
+            JsonObject videoJson = chatJsonWithRetry(videoPrompt);
             int selectedIndex = videoJson.get("selectedIndex").getAsInt();
 
             if (selectedIndex >= 0 && selectedIndex < videoCandidates.size()) {
@@ -276,7 +274,7 @@ public class BehaviorServiceImpl implements BehaviorService {
 
         String followupPrompt = String.format(FOLLOWUP_PROMPT,
                 consult.getCategory(), consult.getSituation(), consult.getAiSummary(), historyText);
-        String answer = ollamaClient.chat(followupPrompt).trim();
+        String answer = chatWithRetry(followupPrompt).trim();
 
         messageMapper.insert(BabyBehaviorMessage.builder()
                 .consultNo(consult.getConsultNo())
@@ -406,6 +404,32 @@ public class BehaviorServiceImpl implements BehaviorService {
             return host == null ? null : host.replaceFirst("^www\\.", "");
         } catch (Exception e) {
             return null;
+        }
+    }
+
+    private String chatWithRetry(String prompt) {
+        try {
+            return ollamaClient.chat(prompt);
+        } catch (Exception e) {
+            log.warn("Ollama 호출 실패, 1회 재시도: " + e.getMessage());
+            try {
+                return ollamaClient.chat(prompt);
+            } catch (Exception retryFailed) {
+                throw new IllegalArgumentException("AI가 질문을 인식하지 못했습니다. 다시 시도해주세요.", retryFailed);
+            }
+        }
+    }
+
+    private JsonObject chatJsonWithRetry(String prompt) {
+        try {
+            return JsonParser.parseString(extractJson(ollamaClient.chat(prompt))).getAsJsonObject();
+        } catch (Exception e) {
+            log.warn("AI 응답 파싱 실패, 1회 재시도: " + e.getMessage());
+            try {
+                return JsonParser.parseString(extractJson(ollamaClient.chat(prompt))).getAsJsonObject();
+            } catch (Exception retryFailed) {
+                throw new IllegalArgumentException("AI가 질문을 인식하지 못했습니다. 다시 시도해주세요.", retryFailed);
+            }
         }
     }
 
