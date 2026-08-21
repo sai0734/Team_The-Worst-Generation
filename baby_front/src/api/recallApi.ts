@@ -148,3 +148,23 @@ export const getForeignRecallDetail = async (
   const list: ForeignRecallDetail[] = res.data;
   return list?.[0];
 };
+
+// ===== 리콜 알림 번호 설정 =====
+const recallSettingPrefix = `${API_SERVER_HOST}/api/recall/setting`;
+
+export interface RecallSetting {
+  email?: string;
+  notificationPhone?: string;
+}
+
+export const getRecallSetting = async (): Promise<RecallSetting> => {
+  const res = await jwtAxios.get(recallSettingPrefix);
+  return res.data;
+};
+
+export const updateRecallSetting = async (
+  notificationPhone: string,
+): Promise<RecallSetting> => {
+  const res = await jwtAxios.put(recallSettingPrefix, { notificationPhone });
+  return res.data;
+};
