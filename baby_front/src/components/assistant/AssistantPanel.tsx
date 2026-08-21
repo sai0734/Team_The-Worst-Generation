@@ -3,7 +3,18 @@ import {
   assistantApi,
   type AssistItem,
 } from "../../api/assistantApi";
+import * as babyInfoApi from "../../api/babyInfoApi";
 import useCustomLogin from "../../hooks/useCustomLogin";
+
+const ageInMonthsFromBirth = (birthDate: string): number => {
+  const birth = new Date(birthDate);
+  const today = new Date();
+  let months =
+    (today.getFullYear() - birth.getFullYear()) * 12 +
+    (today.getMonth() - birth.getMonth());
+  if (today.getDate() < birth.getDate()) months -= 1;
+  return Math.max(months, 0);
+};
 
 const SECTIONS = [
   { key: "local", title: "우리 지역 지원금" },
@@ -61,12 +72,15 @@ interface AssistantPanelProps {
 const AssistantPanel = ({ className, style }: AssistantPanelProps) => {
   const { isLogin } = useCustomLogin();
   const [months, setMonths] = useState(6);
+  const [hasBaby, setHasBaby] = useState(false);
   const [sido, setSido] = useState("");
   const [sigungu, setSigungu] = useState("");
   const [items, setItems] = useState<AssistItem[]>([]);
   const [answer, setAnswer] = useState("");
   const [updatedAt, setUpdatedAt] = useState("");
   const [saving, setSaving] = useState(false);
+  const [savingRegion, setSavingRegion] = useState(false);
+  const [savedMsg, setSavedMsg] = useState("");
   const [activeSection, setActiveSection] = useState<SectionKey>("local");
 
   useEffect(() => {
@@ -74,6 +88,7 @@ const AssistantPanel = ({ className, style }: AssistantPanelProps) => {
       setSido("");
       setSigungu("");
       setMonths(6);
+      setHasBaby(false);
       setItems([]);
       setAnswer("");
       setUpdatedAt("");
@@ -83,26 +98,39 @@ const AssistantPanel = ({ className, style }: AssistantPanelProps) => {
     let cancelled = false;
     const load = async () => {
       try {
-        const [region, snap] = await Promise.all([
+        const [region, snap, babies] = await Promise.all([
           assistantApi.getRegion(),
           assistantApi.snapshot(),
+          babyInfoApi.getList().catch(() => []),
         ]);
         if (cancelled) return;
         setSido(region.regionSido ?? "");
         setSigungu(region.regionSigungu ?? "");
-        if (region.babyMonths != null && region.babyMonths >= 0) {
-          setMonths(region.babyMonths);
+
+        if (babies.length > 0) {
+          const youngest = [...babies].sort((a, b) =>
+            b.birthDate.localeCompare(a.birthDate),
+          )[0];
+          setHasBaby(true);
+          setMonths(ageInMonthsFromBirth(youngest.birthDate));
+        } else {
+          setHasBaby(false);
+          if (region.babyMonths != null && region.babyMonths >= 0) {
+            setMonths(region.babyMonths);
+          }
         }
+
         setAnswer(snap.answer);
         setItems(snap.items ?? []);
         setUpdatedAt(snap.updatedAt ?? "");
       } catch {
         if (!cancelled) {
-          setAnswer("저장된 지원금 목록을 불러오지 못했어요.");
+          setAnswer("저장된 지원금 목록을 불러오지 못했습니다.");
           setItems([]);
         }
       }
     };
+
     void load();
     return () => {
       cancelled = true;
@@ -127,8 +155,27 @@ const AssistantPanel = ({ className, style }: AssistantPanelProps) => {
   }, [items]);
   const visibleItems = grouped[activeSection];
 
+  const saveRegionOnly = async () => {
+    setSavingRegion(true);
+    setSavedMsg("");
+    try {
+      await assistantApi.saveRegion({
+        regionSido: sido.trim(),
+        regionSigungu: sigungu.trim(),
+        babyMonths: months,
+      });
+      setSavedMsg("지역이 저장되었습니다.");
+    } catch (e) {
+      console.error(e);
+      setSavedMsg("저장에 실패했어요.");
+    } finally {
+      setSavingRegion(false);
+    }
+  };
+
   const saveAndSearch = async () => {
     setSaving(true);
+    setSavedMsg("");
     try {
       await assistantApi.saveRegion({
         regionSido: sido.trim(),
@@ -170,16 +217,27 @@ const AssistantPanel = ({ className, style }: AssistantPanelProps) => {
               마지막 갱신 {new Date(updatedAt).toLocaleTimeString("ko-KR")}
             </p>
           ) : null}
+          {savedMsg ? <p className="assist-hint">{savedMsg}</p> : null}
         </div>
         {isLogin ? (
-          <button
-            type="button"
-            className="assist-edit"
-            onClick={() => void saveAndSearch()}
-            disabled={saving}
-          >
-            {saving ? "찾는 중…" : "정책 찾기"}
-          </button>
+          <div className="assist-panel-actions">
+            <button
+              type="button"
+              className="assist-save"
+              onClick={() => void saveRegionOnly()}
+              disabled={savingRegion}
+            >
+              {savingRegion ? "저장 중…" : "지역 저장"}
+            </button>
+            <button
+              type="button"
+              className="assist-edit"
+              onClick={() => void saveAndSearch()}
+              disabled={saving}
+            >
+              {saving ? "찾는 중…" : "정책 찾기"}
+            </button>
+          </div>
         ) : null}
       </div>
 
@@ -192,9 +250,12 @@ const AssistantPanel = ({ className, style }: AssistantPanelProps) => {
             min={0}
             placeholder="예: 8"
             value={months}
-            disabled={!isLogin}
+            disabled={!isLogin || hasBaby}
             onChange={(e) => setMonths(Number(e.target.value) || 0)}
           />
+          {hasBaby ? (
+            <small className="assist-hint">등록된 아이 정보로 자동 계산됨</small>
+          ) : null}
         </div>
         <div className="assist-filter-group">
           <label htmlFor="assist-sido">시/도</label>

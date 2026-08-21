@@ -70,7 +70,14 @@
   color: var(--muted);
 }
 
-.app .assist-edit {
+.app .assist-panel-actions {
+  display: flex;
+  flex-shrink: 0;
+  gap: 6px;
+}
+
+.app .assist-edit,
+.app .assist-save {
   flex-shrink: 0;
   border: 1px solid var(--line);
   background: var(--glass);
@@ -81,7 +88,12 @@
   cursor: pointer;
 }
 
-.app .assist-edit:disabled {
+.app .assist-save {
+  background: transparent;
+}
+
+.app .assist-edit:disabled,
+.app .assist-save:disabled {
   opacity: 0.6;
   cursor: wait;
 }
