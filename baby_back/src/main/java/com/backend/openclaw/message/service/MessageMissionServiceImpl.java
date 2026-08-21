@@ -8,6 +8,7 @@ import com.backend.openclaw.message.dto.MessageRequestDTO;
 import com.backend.openclaw.message.utils.PhoneNumberUtils;
 import com.backend.openclaw.message.validation.MessageMissionValidator;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -18,6 +19,9 @@ import java.util.UUID;
 public class MessageMissionServiceImpl implements MessageMissionService {
 
     private final MessageMissionValidator messageMissionValidator;
+
+    @Value("${openclaw.message.dry-run:true}")
+    private boolean dryRun = true;
 
     @Override
     public MessageMissionDTO createMission(MessageRequestDTO request, String requestedBy) {
@@ -32,7 +36,7 @@ public class MessageMissionServiceImpl implements MessageMissionService {
                 MissionMetadataDTO.builder()
                         .missionId("msg_" + UUID.randomUUID())
                         .source(request.getSource())
-                        .dryRun(true)
+                        .dryRun(dryRun)
                         .requestedBy(requester)
                         .requestedAt(Instant.now())
                         .build();

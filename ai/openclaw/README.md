@@ -89,4 +89,13 @@ Gateway Token은 최초 온보딩 후 다음 파일의 `gateway.auth.token`에�
 백엔드 → OpenClaw Agent → android_sms_send → DRY_RUN
 ```
 
-최종 시연 PC에서만 Termux SMS 브리지를 연결해 실제 SIM 문자를 발송합니다.
+브리지 스크립트는 `plugins/android-sms/bridge/sms_bridge.py` 에 있습니다.
+폰 테스트가 끝나면 Termux에서 이 스크립트를 켜고, PC에 아래 값을 넣습니다.
+
+```env
+ANDROID_SMS_BRIDGE_URL=http://폰IP:8787
+ANDROID_SMS_BRIDGE_KEY=
+```
+
+백엔드 `dryRun=false`는 브리지가 연결된 뒤에만 바꿉니다.
+상세 절차는 `plugins/android-sms/README.md`를 참고하세요.

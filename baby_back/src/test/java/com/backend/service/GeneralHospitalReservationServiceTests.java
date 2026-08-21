@@ -4,8 +4,10 @@ import com.backend.hospital.general.domain.GeneralHospitalReservation;
 import com.backend.hospital.general.domain.GeneralHospitalReservationStatus;
 import com.backend.hospital.general.dto.GeneralHospitalReservationDTO;
 import com.backend.hospital.general.mapper.GeneralHospitalReservationMapper;
+import com.backend.hospital.general.service.GeneralHospitalReservationNoticeService;
 import com.backend.hospital.general.service.GeneralHospitalReservationService;
 import com.backend.hospital.general.service.GeneralHospitalReservationServiceImpl;
+import com.backend.hospital.general.validation.GeneralHospitalReservationValidator;
 import lombok.extern.log4j.Log4j2;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -21,12 +23,18 @@ import static org.mockito.Mockito.*;
 class GeneralHospitalReservationServiceTests {
 
     private GeneralHospitalReservationMapper mapper;
+    private GeneralHospitalReservationNoticeService noticeService;
     private GeneralHospitalReservationService service;
 
     @BeforeEach
     void setUp() {
         mapper = mock(GeneralHospitalReservationMapper.class);
-        service = new GeneralHospitalReservationServiceImpl(mapper);
+        noticeService = mock(GeneralHospitalReservationNoticeService.class);
+        service = new GeneralHospitalReservationServiceImpl(
+                mapper,
+                new GeneralHospitalReservationValidator(),
+                noticeService
+        );
     }
 
     @Test
@@ -42,6 +50,7 @@ class GeneralHospitalReservationServiceTests {
                 );
 
         verify(mapper).insert(captor.capture());
+        verify(noticeService).notifyAfterCommit(captor.getValue());
 
         GeneralHospitalReservation saved = captor.getValue();
 
@@ -84,6 +93,7 @@ class GeneralHospitalReservationServiceTests {
         );
 
         verifyNoInteractions(mapper);
+        verifyNoInteractions(noticeService);
     }
 
     @Test

@@ -8,9 +8,14 @@ import { defineToolPlugin } from "openclaw/plugin-sdk/tool-plugin";
 type MessageMissionResult = {
   missionId: string;
   provider: "ANDROID_SMS";
-  status: "DRY_RUN";
+  status: "DRY_RUN" | "SUCCESS";
   accepted: true;
   to: string;
+};
+
+type AndroidSmsToolOptions = {
+  fetch?: typeof fetch;
+  env?: NodeJS.Dict<string>;
 };
 
 const resultByMissionId = new Map<string, MessageMissionResult>();
@@ -74,11 +79,68 @@ function missionResult(
   };
 }
 
-export function createAndroidSmsTool(): AgentTool<
-  typeof androidSmsParameters,
-  MessageMissionResult
-> {
+function bridgeConfig(env: NodeJS.Dict<string>) {
+  const url = env.ANDROID_SMS_BRIDGE_URL?.trim().replace(/\/$/, "");
+  const key = env.ANDROID_SMS_BRIDGE_KEY?.trim();
+  if (!url || !key) {
+    throw new Error("ANDROID_SMS_BRIDGE_NOT_CONFIGURED");
+  }
+  return { url, key };
+}
+
+async function sendThroughBridge(
+  mission: {
+    metadata: { missionId: string };
+    to: string;
+    content: string;
+  },
+  options: Required<Pick<AndroidSmsToolOptions, "fetch" | "env">>,
+  signal?: AbortSignal,
+): Promise<MessageMissionResult> {
+  const { url, key } = bridgeConfig(options.env);
+  const response = await options.fetch(`${url}/sms`, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      "x-android-sms-key": key,
+    },
+    body: JSON.stringify({
+      missionId: mission.metadata.missionId,
+      to: mission.to,
+      content: mission.content,
+    }),
+    signal,
+  });
+
+  if (!response.ok) {
+    throw new Error(`ANDROID_SMS_BRIDGE_FAILED:${response.status}`);
+  }
+
+  const payload = (await response.json()) as Partial<MessageMissionResult>;
+  if (
+    payload.provider !== "ANDROID_SMS" ||
+    (payload.status !== "SUCCESS" && payload.status !== "DRY_RUN") ||
+    payload.accepted !== true ||
+    payload.to !== mission.to
+  ) {
+    throw new Error("ANDROID_SMS_BRIDGE_INVALID_RESPONSE");
+  }
+
+  return {
+    missionId: mission.metadata.missionId,
+    provider: "ANDROID_SMS",
+    status: payload.status,
+    accepted: true,
+    to: mission.to,
+  };
+}
+
+export function createAndroidSmsTool(
+  options: AndroidSmsToolOptions = {},
+): AgentTool<typeof androidSmsParameters, MessageMissionResult> {
   const returnedMissionIds = new Set<string>();
+  const request = options.fetch ?? fetch;
+  const env = options.env ?? process.env;
 
   return {
     name: "android_sms_send",
@@ -98,17 +160,19 @@ export function createAndroidSmsTool(): AgentTool<
         return missionResult(previousResult, repeatedInCurrentRun);
       }
 
-      if (!mission.metadata.dryRun) {
-        throw new Error("ANDROID_SMS_BRIDGE_NOT_CONFIGURED");
-      }
-
-      const result: MessageMissionResult = {
-        missionId,
-        provider: "ANDROID_SMS",
-        status: "DRY_RUN",
-        accepted: true,
-        to: mission.to,
-      };
+      const result = mission.metadata.dryRun
+        ? {
+            missionId,
+            provider: "ANDROID_SMS" as const,
+            status: "DRY_RUN" as const,
+            accepted: true as const,
+            to: mission.to,
+          }
+        : await sendThroughBridge(
+            mission,
+            { fetch: request, env },
+            signal,
+          );
 
       resultByMissionId.set(missionId, result);
       returnedMissionIds.add(missionId);

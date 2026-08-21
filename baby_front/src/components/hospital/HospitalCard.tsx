@@ -98,7 +98,12 @@ const HospitalCard = ({ hospital, rank, selected, userLocation, onSelect }: Hosp
         )}
       </div>
       <div className="hospital-card-actions">
-        <Link to="/hospital/reservation" className="ghost-btn" onClick={(event) => event.stopPropagation()}>
+        <Link
+          to="/hospital/reservation"
+          state={{ hospital }}
+          className="ghost-btn"
+          onClick={(event) => event.stopPropagation()}
+        >
           <ReservationIcon /> 예약하기
         </Link>
         <a

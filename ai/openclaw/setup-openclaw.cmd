@@ -121,6 +121,30 @@ call openclaw plugins install "%PLUGIN_DIR%" --force
 if errorlevel 1 goto plugin_error
 popd
 
+echo [설정] 문자 전용 에이전트와 반복 호출 차단 설정 중...
+if not exist "%USERPROFILE%\.openclaw\workspace-message-dispatcher" (
+    mkdir "%USERPROFILE%\.openclaw\workspace-message-dispatcher"
+)
+call openclaw agents add message-dispatcher --workspace "%USERPROFILE%\.openclaw\workspace-message-dispatcher" --model "ollama/%MODEL_NAME%" --non-interactive
+if errorlevel 1 (
+    echo [확인] message-dispatcher 에이전트가 이미 있으면 기존 설정을 갱신합니다.
+)
+call openclaw config set gateway.mode local
+if errorlevel 1 exit /b 1
+powershell -NoProfile -ExecutionPolicy Bypass -Command ^
+    "$ErrorActionPreference='Stop';" ^
+    "$path = Join-Path $env:USERPROFILE '.openclaw\openclaw.json';" ^
+    "$config = Get-Content -LiteralPath $path -Raw | ConvertFrom-Json;" ^
+    "$agent = $config.agents.list | Where-Object { $_.id -eq 'message-dispatcher' } | Select-Object -First 1;" ^
+    "if (-not $agent) { throw 'message-dispatcher agent not found' };" ^
+    "if (-not $agent.tools) { $agent | Add-Member -NotePropertyName tools -NotePropertyValue ([pscustomobject]@{}) };" ^
+    "$agent.tools | Add-Member -NotePropertyName allow -NotePropertyValue @('android_sms_send') -Force;" ^
+    "$agent.tools | Add-Member -NotePropertyName loopDetection -NotePropertyValue ([pscustomobject]@{ enabled = $true }) -Force;" ^
+    "$config | ConvertTo-Json -Depth 32 | Set-Content -LiteralPath $path -Encoding UTF8"
+if errorlevel 1 exit /b 1
+call openclaw config validate
+if errorlevel 1 exit /b 1
+
 echo [완료] OpenClaw와 Android SMS 플러그인 설정이 완료되었습니다.
 echo [실행] openclaw\setup-openclaw.cmd launch
 echo [상태] openclaw\setup-openclaw.cmd status
@@ -132,6 +156,18 @@ echo [오류] Android SMS 플러그인 설정에 실패했습니다.
 exit /b 1
 
 :launch
+set "ROOT_ENV=%~dp0..\..\.env"
+if exist "%ROOT_ENV%" (
+    for /f "usebackq eol=# tokens=1,* delims==" %%A in ("%ROOT_ENV%") do (
+        if /i "%%A"=="ANDROID_SMS_BRIDGE_URL" set "ANDROID_SMS_BRIDGE_URL=%%B"
+        if /i "%%A"=="ANDROID_SMS_BRIDGE_KEY" set "ANDROID_SMS_BRIDGE_KEY=%%B"
+    )
+)
+if defined ANDROID_SMS_BRIDGE_URL (
+    echo [확인] SMS 브리지: %ANDROID_SMS_BRIDGE_URL%
+) else (
+    echo [확인] ANDROID_SMS_BRIDGE_URL 이 없어 dryRun 문자만 가능합니다.
+)
 call openclaw gateway run --port 18789
 exit /b %errorlevel%
 

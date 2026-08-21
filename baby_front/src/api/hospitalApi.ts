@@ -1,5 +1,7 @@
 import jwtAxios from "../util/jwtUtil";
 import type {
+  HospitalReservationRequest,
+  HospitalReservationResponse,
   HospitalSearchRequest,
   HospitalWaitingRefreshResponse,
   MapCoordinate,
@@ -34,6 +36,17 @@ export const refreshHospitalWaitingCounts = async (
   const response = await jwtAxios.post<HospitalWaitingRefreshResponse>(
     `${hospitalHost}/waiting/refresh`,
     { hospitalIds },
+  );
+
+  return response.data;
+};
+
+export const registerHospitalReservation = async (
+  request: HospitalReservationRequest,
+): Promise<HospitalReservationResponse> => {
+  const response = await jwtAxios.post<HospitalReservationResponse>(
+    `${hospitalHost}/reservations/`,
+    request,
   );
 
   return response.data;

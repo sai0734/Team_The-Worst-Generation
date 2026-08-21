@@ -1,4 +1,5 @@
 import { Navigate } from "react-router-dom";
+import HospitalReservationComponent from "../../components/hospital/HospitalReservationComponent";
 import useCurrentProfile from "../../hooks/useCurrentProfile";
 import useCustomLogin from "../../hooks/useCustomLogin";
 import BasicLayout from "../../layouts/BasicLayout";
@@ -13,9 +14,7 @@ const HospitalReservationPage = () => {
 
   return (
     <BasicLayout>
-      <section className="hospital-reservation-placeholder">
-        <p>ai랑 연동 페이지 할곳</p>
-      </section>
+      <HospitalReservationComponent />
     </BasicLayout>
   );
 };

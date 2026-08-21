@@ -11,6 +11,7 @@
   },
   "files": [
     "dist",
+    "bridge",
     "openclaw.plugin.json",
     "README.md"
   ],

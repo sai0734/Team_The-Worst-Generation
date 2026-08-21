@@ -38,6 +38,7 @@ public class OpenClawMessageClient {
     private final ObjectMapper objectMapper;
 
     private final HttpClient httpClient = HttpClient.newBuilder()
+            .version(HttpClient.Version.HTTP_1_1)
             .connectTimeout(Duration.ofSeconds(5))
             .build();
 
@@ -80,7 +81,7 @@ public class OpenClawMessageClient {
                                     + ":message-mission-"
                                     + mission.getMetadata().getMissionId()
                     )
-                    .timeout(Duration.ofSeconds(30))
+                    .timeout(Duration.ofSeconds(90))
                     .POST(HttpRequest.BodyPublishers.ofString(
                             objectMapper.writeValueAsString(requestBody)
                     ))
