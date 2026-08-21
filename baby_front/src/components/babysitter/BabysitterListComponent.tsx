@@ -16,8 +16,8 @@ import type {
 import type { PageResponse } from "../../types/page";
 import type { MovePageParam } from "../../hooks/useCustomMove";
 import PageComponent from "../common/PageComponent";
-import useCustomLogin from "../../hooks/useCustomLogin";
 import BabysitterMapComponent from "./BabysitterMapComponent";
+import { SEOUL_ALL_DONG, SEOUL_DISTRICT_NAMES, SEOUL_DISTRICTS } from "../../data/seoulRegions";
 
 const DAYS = Object.keys(DAY_OF_WEEK_LABELS) as DayOfWeek[];
 const SLOTS = Object.keys(TIME_SLOT_LABELS) as TimeSlot[];
@@ -26,31 +26,29 @@ const SORT_LABELS: Record<SortOption, string> = {
   recent: "최근 등록순",
   pick: "찜 많은순",
   career: "경력 많은순",
+  rating: "별점순",
 };
 
-const DEFAULT_CENTER = { lat: 37.566826, lng: 126.9786567 }; // 서울시청 (내 동네도 GPS도 없을 때 기본값)
+const DEFAULT_CENTER = { lat: 37.566826, lng: 126.9786567 }; // 서울시청 (GPS 없을 때 기본값)
 const RADIUS_KM = 5;
 
 type ViewMode = "search" | "nearby";
-type CenterSource = "profile" | "gps" | "default";
+type CenterSource = "gps" | "default";
 
 const BabysitterListComponent = () => {
   const navigate = useNavigate();
-  const { isLogin } = useCustomLogin();
 
   const [viewMode, setViewMode] = useState<ViewMode>("search");
 
-  const [region, setRegion] = useState("");
+  const [gu, setGu] = useState("");
+  const [dong, setDong] = useState("");
+  const region = [gu, dong].filter(Boolean).join(" ");
   const [keyword, setKeyword] = useState("");
-  const [dayOfWeek, setDayOfWeek] = useState<DayOfWeek | "">("");
+  const [dayOfWeek, setDayOfWeek] = useState<Set<DayOfWeek>>(new Set());
   const [timeSlot, setTimeSlot] = useState<TimeSlot | "">("");
   const [sort, setSort] = useState<SortOption>("recent");
   const [pageResponse, setPageResponse] =
     useState<PageResponse<BabysitterProfile> | null>(null);
-
-  const [myLocation, setMyLocation] = useState("");
-  const [editingLocation, setEditingLocation] = useState(false);
-  const [locationInput, setLocationInput] = useState("");
 
   const [center, setCenter] = useState(DEFAULT_CENTER);
   const [centerSource, setCenterSource] = useState<CenterSource>("default");
@@ -58,18 +56,30 @@ const BabysitterListComponent = () => {
   const [nearbyList, setNearbyList] = useState<BabysitterProfile[]>([]);
   const [nearbyLoading, setNearbyLoading] = useState(false);
 
-  const loadList = async (pageNum: number, regionOverride?: string) => {
+  const loadList = async (pageNum: number) => {
     const res = await babysitterApi.getList({
       page: pageNum,
       size: 10,
-      region: (regionOverride ?? region) || undefined,
+      region: region || undefined,
       keyword: keyword || undefined,
-      dayOfWeek: dayOfWeek || undefined,
+      dayOfWeek: dayOfWeek.size > 0 ? Array.from(dayOfWeek) : undefined,
       timeSlot: timeSlot || undefined,
       sort,
     });
 
     setPageResponse(res);
+  };
+
+  const toggleDay = (day: DayOfWeek) => {
+    setDayOfWeek((prev) => {
+      const next = new Set(prev);
+      if (next.has(day)) {
+        next.delete(day);
+      } else {
+        next.add(day);
+      }
+      return next;
+    });
   };
 
   const loadNearby = async (lat: number, lng: number) => {
@@ -104,26 +114,7 @@ const BabysitterListComponent = () => {
   };
 
   useEffect(() => {
-    if (isLogin) {
-      babysitterApi
-        .getMyLocation()
-        .then((saved) => {
-          setMyLocation(saved.region);
-          setLocationInput(saved.region);
-          setRegion(saved.region);
-          loadList(1, saved.region);
-
-          if (saved.latitude != null && saved.longitude != null) {
-            setCenter({ lat: saved.latitude, lng: saved.longitude });
-            setCenterSource("profile");
-          }
-        })
-        .catch(() => {
-          loadList(1);
-        });
-    } else {
-      loadList(1);
-    }
+    loadList(1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -147,32 +138,14 @@ const BabysitterListComponent = () => {
     loadList(pageParam?.page ?? 1);
   };
 
-  const handleSaveLocation = async () => {
-    await babysitterApi.saveMyLocation(
-      locationInput,
-      centerSource !== "default" ? center.lat : undefined,
-      centerSource !== "default" ? center.lng : undefined,
-    );
-    setMyLocation(locationInput);
-    setRegion(locationInput);
-    setEditingLocation(false);
-    loadList(1, locationInput);
-  };
-
   const sourceLabel = locating
     ? "현재 위치 확인 중..."
-    : centerSource === "profile"
-      ? "내 동네 기준"
-      : centerSource === "gps"
-        ? "현재 위치 기준"
-        : "기본 위치(서울시청) 기준";
+    : centerSource === "gps"
+      ? "현재 위치 기준"
+      : "기본 위치(서울시청) 기준";
 
   return (
     <div>
-      <div className="recall-header">
-        <h2>베이비시터 찾기</h2>
-      </div>
-
       <div className="sitter-toolbar-row">
         <div className="seg">
           <button
@@ -190,71 +163,50 @@ const BabysitterListComponent = () => {
             내 주변
           </button>
         </div>
-
-        {isLogin && (
-          <div className="sitter-location-row">
-            내 동네:{" "}
-            {editingLocation ? (
-              <>
-                <input
-                  value={locationInput}
-                  onChange={(e) => setLocationInput(e.target.value)}
-                  placeholder="예: 역삼동"
-                />
-                <button type="button" className="btn ghost" onClick={handleSaveLocation}>
-                  저장
-                </button>
-                <button
-                  type="button"
-                  className="btn ghost"
-                  onClick={() => setEditingLocation(false)}
-                >
-                  취소
-                </button>
-              </>
-            ) : (
-              <>
-                <b>{myLocation || "미설정"}</b>
-                <button
-                  type="button"
-                  className="btn ghost"
-                  onClick={() => {
-                    setLocationInput(myLocation);
-                    setEditingLocation(true);
-                  }}
-                >
-                  변경
-                </button>
-              </>
-            )}
-          </div>
-        )}
       </div>
 
       {viewMode === "search" ? (
         <>
           <div className="sitter-filter-bar">
-            <input
-              placeholder="지역"
-              value={region}
-              onChange={(e) => setRegion(e.target.value)}
-            />
+            <select
+              value={gu}
+              onChange={(e) => {
+                setGu(e.target.value);
+                setDong("");
+              }}
+            >
+              <option value="">구 전체</option>
+              {SEOUL_DISTRICT_NAMES.map((name) => (
+                <option key={name} value={name}>
+                  {name}
+                </option>
+              ))}
+            </select>
+            <select value={dong} onChange={(e) => setDong(e.target.value)}>
+              <option value="">동 전체</option>
+              {(gu ? SEOUL_DISTRICTS[gu] : SEOUL_ALL_DONG).map((name) => (
+                <option key={name} value={name}>
+                  {name}
+                </option>
+              ))}
+            </select>
             <input
               placeholder="이름/소개 검색"
               value={keyword}
               onChange={(e) => setKeyword(e.target.value)}
             />
-            <select
-              value={dayOfWeek}
-              onChange={(e) => setDayOfWeek(e.target.value as DayOfWeek | "")}
-            >
-              <option value="">요일 무관</option>
+            <div className="seg">
               {DAYS.map((day) => (
-                <option key={day} value={day}>
+                <button
+                  key={day}
+                  type="button"
+                  className={dayOfWeek.has(day) ? "is-active" : ""}
+                  onClick={() => toggleDay(day)}
+                >
                   {DAY_OF_WEEK_LABELS[day]}
-                </option>
+                </button>
               ))}
-            </select>
+            </div>
             <select
               value={timeSlot}
               onChange={(e) => setTimeSlot(e.target.value as TimeSlot | "")}

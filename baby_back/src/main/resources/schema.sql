@@ -405,7 +405,6 @@ CREATE TABLE IF NOT EXISTS tbl_babysitter_job_post (
     region       VARCHAR(100),
     latitude     DECIMAL(10,7),
     longitude    DECIMAL(10,7),
-    desired_date DATE         NOT NULL,
     time_slot    VARCHAR(10)  NOT NULL,
     hourly_rate  INT,
     message      VARCHAR(1000),
@@ -414,8 +413,19 @@ CREATE TABLE IF NOT EXISTS tbl_babysitter_job_post (
     mod_time     DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (job_no),
     CONSTRAINT fk_babysitter_job_post_parent FOREIGN KEY (parent_email) REFERENCES tbl_member (email),
-    INDEX idx_babysitter_job_post_region_date (region, desired_date),
+    INDEX idx_babysitter_job_post_region (region),
     INDEX idx_babysitter_job_post_status (status)
+);
+
+-- 특정 날짜(desired_date) 대신 반복적으로 필요한 요일 여러 개를 고를 수 있게 함
+DROP INDEX IF EXISTS idx_babysitter_job_post_region_date ON tbl_babysitter_job_post;
+ALTER TABLE tbl_babysitter_job_post DROP COLUMN IF EXISTS desired_date;
+
+CREATE TABLE IF NOT EXISTS tbl_babysitter_job_desired_day (
+    job_no      BIGINT      NOT NULL,
+    day_of_week VARCHAR(10) NOT NULL,
+    PRIMARY KEY (job_no, day_of_week),
+    CONSTRAINT fk_babysitter_job_desired_day_job FOREIGN KEY (job_no) REFERENCES tbl_babysitter_job_post (job_no)
 );
 
 ALTER TABLE tbl_babysitter_job_post ADD COLUMN IF NOT EXISTS latitude DECIMAL(10,7) NULL;
@@ -463,6 +473,9 @@ CREATE TABLE IF NOT EXISTS tbl_babysitter_chat_room (
     CONSTRAINT fk_babysitter_chat_room_sitter FOREIGN KEY (sitter_email) REFERENCES tbl_babysitter_profile (email),
     UNIQUE KEY uq_babysitter_chat_room (parent_email, sitter_email)
 );
+-- 안읽음 배지용: 각자(부모/시터)가 마지막으로 읽은 메시지 번호
+ALTER TABLE tbl_babysitter_chat_room ADD COLUMN IF NOT EXISTS parent_last_read_msg_no BIGINT NOT NULL DEFAULT 0;
+ALTER TABLE tbl_babysitter_chat_room ADD COLUMN IF NOT EXISTS sitter_last_read_msg_no BIGINT NOT NULL DEFAULT 0;
 
 -- KYI - 베이비시터 채팅 메시지
 CREATE TABLE IF NOT EXISTS tbl_babysitter_chat_message (

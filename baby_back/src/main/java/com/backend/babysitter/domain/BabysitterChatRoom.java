@@ -21,4 +21,11 @@ public class BabysitterChatRoom {
     private String sitterEmail;
 
     private LocalDateTime regTime;
+
+    // 안읽음 배지 계산용: 각자 마지막으로 읽은 메시지 번호
+    private Long parentLastReadMsgNo;
+    private Long sitterLastReadMsgNo;
+
+    // selectListByMember에서만 채워짐(조회 시점 계산값, DB 컬럼 아님)
+    private Integer unreadCount;
 }

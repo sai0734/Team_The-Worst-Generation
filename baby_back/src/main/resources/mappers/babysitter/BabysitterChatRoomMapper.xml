@@ -3,20 +3,36 @@
 <mapper namespace="com.backend.babysitter.mapper.BabysitterChatRoomMapper">
 
     <select id="selectByMembers" resultType="com.backend.babysitter.domain.BabysitterChatRoom">
-        SELECT room_no, parent_email, sitter_email, reg_time
+        SELECT room_no, parent_email, sitter_email, reg_time,
+               parent_last_read_msg_no, sitter_last_read_msg_no
         FROM tbl_babysitter_chat_room
         WHERE parent_email = #{parentEmail} AND sitter_email = #{sitterEmail}
     </select>
 
     <select id="selectListByMember" resultType="com.backend.babysitter.domain.BabysitterChatRoom">
-        SELECT room_no, parent_email, sitter_email, reg_time
-        FROM tbl_babysitter_chat_room
-        WHERE parent_email = #{memberEmail} OR sitter_email = #{memberEmail}
-        ORDER BY reg_time DESC
+        SELECT r.room_no, r.parent_email, r.sitter_email, r.reg_time,
+               r.parent_last_read_msg_no, r.sitter_last_read_msg_no,
+               (
+                   SELECT COUNT(*)
+                   FROM tbl_babysitter_chat_message m
+                   WHERE m.room_no = r.room_no
+                     AND m.sender_email &lt;&gt; #{memberEmail}
+                     AND m.msg_type = 'TEXT'
+                     AND m.msg_no > (
+                         CASE WHEN r.parent_email = #{memberEmail}
+                              THEN r.parent_last_read_msg_no
+                              ELSE r.sitter_last_read_msg_no
+                         END
+                     )
+               ) AS unread_count
+        FROM tbl_babysitter_chat_room r
+        WHERE r.parent_email = #{memberEmail} OR r.sitter_email = #{memberEmail}
+        ORDER BY r.reg_time DESC
     </select>
 
     <select id="selectOne" resultType="com.backend.babysitter.domain.BabysitterChatRoom">
-        SELECT room_no, parent_email, sitter_email, reg_time
+        SELECT room_no, parent_email, sitter_email, reg_time,
+               parent_last_read_msg_no, sitter_last_read_msg_no
         FROM tbl_babysitter_chat_room
         WHERE room_no = #{roomNo}
     </select>
@@ -25,5 +41,17 @@
         INSERT INTO tbl_babysitter_chat_room (parent_email, sitter_email)
         VALUES (#{parentEmail}, #{sitterEmail})
     </insert>
+
+    <update id="updateParentLastRead">
+        UPDATE tbl_babysitter_chat_room
+        SET parent_last_read_msg_no = #{lastMsgNo}
+        WHERE room_no = #{roomNo} AND parent_last_read_msg_no &lt; #{lastMsgNo}
+    </update>
+
+    <update id="updateSitterLastRead">
+        UPDATE tbl_babysitter_chat_room
+        SET sitter_last_read_msg_no = #{lastMsgNo}
+        WHERE room_no = #{roomNo} AND sitter_last_read_msg_no &lt; #{lastMsgNo}
+    </update>
 
 </mapper>

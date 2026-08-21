@@ -1,9 +1,10 @@
 package com.backend.babysitter.dto;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 import com.backend.babysitter.domain.BabysitterJobStatus;
+import com.backend.babysitter.domain.DayOfWeekType;
 import com.backend.babysitter.domain.TimeSlotType;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
@@ -35,8 +36,7 @@ public class BabysitterJobPostDTO {
     // /nearby 조회 시에만 채워짐 - 기준 좌표로부터 거리(km)
     private Double distanceKm;
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
-    private LocalDate desiredDate;
+    private List<DayOfWeekType> desiredDays;
 
     private TimeSlotType timeSlot;
 

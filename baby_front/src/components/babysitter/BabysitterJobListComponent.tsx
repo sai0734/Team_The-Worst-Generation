@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import * as babysitterApi from "../../api/babysitterApi";
-import { JOB_STATUS_LABELS, JOB_STATUS_BADGE_CLASS, TIME_SLOT_LABELS } from "../../api/babysitterApi";
-import type { BabysitterJobPost, TimeSlot } from "../../api/babysitterApi";
+import { JOB_STATUS_LABELS, JOB_STATUS_BADGE_CLASS, DAY_OF_WEEK_LABELS, TIME_SLOT_LABELS } from "../../api/babysitterApi";
+import type { BabysitterJobPost, DayOfWeek, TimeSlot } from "../../api/babysitterApi";
 import type { PageResponse } from "../../types/page";
 import type { MovePageParam } from "../../hooks/useCustomMove";
 import PageComponent from "../common/PageComponent";
@@ -10,6 +10,9 @@ import { SEOUL_ALL_DONG, SEOUL_DISTRICT_NAMES, SEOUL_DISTRICTS } from "../../dat
 
 const DEFAULT_CENTER = { lat: 37.566826, lng: 126.9786567 }; // 서울시청 (내 시터 프로필 위치도 GPS도 없을 때 기본값)
 const RADIUS_KM = 5;
+
+const formatDays = (days: DayOfWeek[]): string =>
+  days.map((d) => DAY_OF_WEEK_LABELS[d]).join(", ");
 
 type ViewMode = "search" | "nearby";
 type CenterSource = "profile" | "gps" | "default";
@@ -22,7 +25,6 @@ const BabysitterJobListComponent = () => {
   const [gu, setGu] = useState("");
   const [dong, setDong] = useState("");
   const region = [gu, dong].filter(Boolean).join(" ");
-  const [desiredDate, setDesiredDate] = useState("");
   const [timeSlot, setTimeSlot] = useState<TimeSlot | "">("");
   const [keyword, setKeyword] = useState("");
   const [pageResponse, setPageResponse] =
@@ -39,7 +41,6 @@ const BabysitterJobListComponent = () => {
       page: pageNum,
       size: 10,
       region: region || undefined,
-      desiredDate: desiredDate || undefined,
       timeSlot: timeSlot || undefined,
       keyword: keyword || undefined,
     });
@@ -117,10 +118,6 @@ const BabysitterJobListComponent = () => {
 
   return (
     <div>
-      <div className="recall-header">
-        <h2>돌봄 구인글</h2>
-      </div>
-
       <div className="seg" style={{ marginBottom: 16 }}>
         <button
           type="button"
@@ -163,11 +160,6 @@ const BabysitterJobListComponent = () => {
                 </option>
               ))}
             </select>
-            <input
-              type="date"
-              value={desiredDate}
-              onChange={(e) => setDesiredDate(e.target.value)}
-            />
             <select
               value={timeSlot}
               onChange={(e) => setTimeSlot(e.target.value as TimeSlot | "")}
@@ -208,7 +200,7 @@ const BabysitterJobListComponent = () => {
                     </span>
                   </div>
                   <div className="meta">
-                    {job.desiredDate} ({TIME_SLOT_LABELS[job.timeSlot]}) · {job.region ?? "지역 미입력"}
+                    {formatDays(job.desiredDays)} ({TIME_SLOT_LABELS[job.timeSlot]}) · {job.region ?? "지역 미입력"}
                   </div>
                   <div className="meta">
                     {job.hourlyRate ? `시급 ${job.hourlyRate.toLocaleString()}원` : "시급 협의"} · 지원 {job.applicationCount}명
@@ -262,7 +254,7 @@ const BabysitterJobListComponent = () => {
                     <div className="meta">
                       {job.distanceKm != null && `내 위치에서 ${job.distanceKm.toFixed(1)}km`}
                       {" · "}
-                      {job.desiredDate} ({TIME_SLOT_LABELS[job.timeSlot]})
+                      {formatDays(job.desiredDays)} ({TIME_SLOT_LABELS[job.timeSlot]})
                     </div>
                     <div className="meta">
                       {job.hourlyRate ? `시급 ${job.hourlyRate.toLocaleString()}원` : "시급 협의"} · 지원 {job.applicationCount}명

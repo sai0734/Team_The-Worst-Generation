@@ -1,6 +1,9 @@
 import { useEffect, useState } from "react";
 import { Link, NavLink, Navigate, Outlet, useLocation } from "react-router-dom";
 import * as babysitterApi from "../../api/babysitterApi";
+import * as babysitterChatApi from "../../api/babysitterChatApi";
+
+const UNREAD_POLL_MS = 20000;
 
 const PARENT_ONLY_PATHS = [
   "/community/babysitter",
@@ -34,12 +37,39 @@ const BabysitterLayoutPage = () => {
   // null = 아직 확인 전, true = 시터로 등록됨, false = 미등록(부모 입장)
   const [isSitter, setIsSitter] = useState<boolean | null>(null);
 
+  // 프로필을 등록/삭제해도 이 레이아웃은 리마운트되지 않으므로(중첩 라우트),
+  // 경로가 바뀔 때마다 다시 확인해서 역할 판단이 옛날 값으로 굳어있지 않게 함
   useEffect(() => {
     babysitterApi
       .getMine()
       .then(() => setIsSitter(true))
       .catch(() => setIsSitter(false));
-  }, []);
+  }, [pathname]);
+
+  // 채팅 아이콘의 안읽음 배지: 전체 방의 안읽은 메시지 수 합. 실시간 push는 아니라
+  // 일정 주기로 다시 불러와서 갱신함(방 안에서 보고 나오면 자연히 줄어듦).
+  const [unreadTotal, setUnreadTotal] = useState(0);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadUnread = () => {
+      babysitterChatApi
+        .getMyRoomList()
+        .then((rooms) => {
+          if (cancelled) return;
+          setUnreadTotal(rooms.reduce((sum, r) => sum + (r.unreadCount ?? 0), 0));
+        })
+        .catch(() => {});
+    };
+
+    loadUnread();
+    const timer = setInterval(loadUnread, UNREAD_POLL_MS);
+    return () => {
+      cancelled = true;
+      clearInterval(timer);
+    };
+  }, [pathname]);
 
   // 역할과 안 맞는 화면(예: 시터가 뒤로가기로 "찜한 시터"에 남아있는 경우)에 머물러 있으면
   // 그 역할의 기본 화면으로 보내준다.
@@ -54,10 +84,16 @@ const BabysitterLayoutPage = () => {
     <div>
       <div className="sitter-common-row">
         <NavLink to="/community/babysitter/chat" className={commonIconClass}>
-          <span className="icon">💬</span>채팅
+          <span className="icon-wrap">
+            <span className="icon">💬</span>
+            {unreadTotal > 0 && (
+              <span className="sitter-unread-badge">{unreadTotal > 99 ? "99+" : unreadTotal}</span>
+            )}
+          </span>
+          채팅
         </NavLink>
         <NavLink to="/community/babysitter/me/edit" className={commonIconClass}>
-          <span className="icon">👤</span>내 프로필
+          <span className="icon">👤</span>시터프로필
         </NavLink>
       </div>
 

@@ -1,4 +1,4 @@
-import { ChangeEvent, FormEvent, useEffect, useState } from "react";
+import { ChangeEvent, FormEvent, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import * as babysitterApi from "../../api/babysitterApi";
 import {
@@ -49,7 +49,22 @@ const BabysitterFormComponent = () => {
   const [exists, setExists] = useState(false);
   const [selectedSlots, setSelectedSlots] = useState<Set<string>>(new Set());
   const [photoFileName, setPhotoFileName] = useState<string | null>(null);
+  // 아직 프로필이 없어(row가 없어) 바로 업로드할 수 없는 신규 등록 상태에서,
+  // 선택한 파일을 들고 있다가 save() 성공 직후 업로드하기 위한 임시 보관.
+  const [pendingPhotoFile, setPendingPhotoFile] = useState<File | null>(null);
   const [photoUploading, setPhotoUploading] = useState(false);
+
+  const pendingPhotoPreview = useMemo(
+    () => (pendingPhotoFile ? URL.createObjectURL(pendingPhotoFile) : null),
+    [pendingPhotoFile],
+  );
+  useEffect(() => {
+    return () => {
+      if (pendingPhotoPreview) {
+        URL.revokeObjectURL(pendingPhotoPreview);
+      }
+    };
+  }, [pendingPhotoPreview]);
 
   useEffect(() => {
     babysitterApi
@@ -111,6 +126,12 @@ const BabysitterFormComponent = () => {
       return;
     }
 
+    if (!exists) {
+      // 프로필이 아직 없으면 업로드 endpoint가 404를 내므로, 저장 성공 직후 올리도록 보관만 함.
+      setPendingPhotoFile(file);
+      return;
+    }
+
     setPhotoUploading(true);
     try {
       const res = await babysitterApi.uploadPhoto(file);
@@ -144,6 +165,11 @@ const BabysitterFormComponent = () => {
       return;
     }
 
+    if (!photoFileName && !pendingPhotoFile) {
+      alert("프로필 사진은 필수예요. 사진을 선택해주세요.");
+      return;
+    }
+
     try {
       const availability = DAYS.flatMap((day) =>
         SLOTS.filter((slot) => selectedSlots.has(slotKey(day, slot))).map((slot) => ({
@@ -163,6 +189,10 @@ const BabysitterFormComponent = () => {
         intro: intro || undefined,
         availability,
       });
+
+      if (pendingPhotoFile) {
+        await babysitterApi.uploadPhoto(pendingPhotoFile);
+      }
 
       alert("저장되었습니다.");
       navigate("/community/babysitter");
@@ -193,23 +223,28 @@ const BabysitterFormComponent = () => {
         {exists ? "내 시터 프로필 수정" : "시터 프로필 등록"}
       </h2>
 
-      {exists ? (
-        <div className="field">
-          <label>프로필 사진</label>
-          {photoFileName && (
-            <img
-              src={babysitterApi.getFileUrl(photoFileName)}
-              className="sitter-avatar-lg"
-              style={{ marginBottom: 8 }}
-            />
-          )}
-          <input type="file" accept="image/*" onChange={handlePhotoChange} disabled={photoUploading} />
-        </div>
-      ) : (
-        <p className="field-hint">
-          프로필 사진은 먼저 저장한 뒤 업로드할 수 있습니다.
-        </p>
-      )}
+      <div className="field">
+        <label>프로필 사진 (필수)</label>
+        {(pendingPhotoPreview || photoFileName) && (
+          <img
+            src={pendingPhotoPreview ?? babysitterApi.getFileUrl(photoFileName!)}
+            className="sitter-avatar-lg"
+            style={{ marginBottom: 8 }}
+          />
+        )}
+        <input
+          type="file"
+          accept="image/*"
+          onChange={handlePhotoChange}
+          disabled={photoUploading}
+          required={!photoFileName && !pendingPhotoFile}
+        />
+        {!exists && (
+          <p className="field-hint">
+            선택한 사진은 등록과 동시에 함께 저장돼요.
+          </p>
+        )}
+      </div>
 
       <div className="field">
         <label>이름</label>

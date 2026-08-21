@@ -1,5 +1,7 @@
 package com.backend.babysitter.dto;
 
+import java.util.List;
+
 import com.backend.babysitter.domain.DayOfWeekType;
 import com.backend.babysitter.domain.TimeSlotType;
 import com.backend.global.dto.PageRequestDTO;
@@ -23,7 +25,7 @@ public class BabysitterSearchDTO extends PageRequestDTO {
 
     private Integer minCareerYears;
 
-    private DayOfWeekType dayOfWeek;
+    private List<DayOfWeekType> dayOfWeek;
 
     private TimeSlotType timeSlot;
 

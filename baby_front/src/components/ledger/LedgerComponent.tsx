@@ -69,7 +69,6 @@ const LedgerComponent = () => {
   const [summary, setSummary] = useState<LedgerSummary | null>(null);
   const [entries, setEntries] = useState<Ledger[]>([]);
 
-  const [briefingAvailable, setBriefingAvailable] = useState(false);
   const [briefingText, setBriefingText] = useState("");
   const [briefingLoading, setBriefingLoading] = useState(false);
 
@@ -95,13 +94,9 @@ const LedgerComponent = () => {
       const summaryRes = await ledgerApi.getSummary();
       setSummary(summaryRes);
 
-      const [entriesRes, settingRes] = await Promise.all([
-        ledgerApi.getLedgerList(summaryRes.cycleStart, summaryRes.cycleEnd),
-        ledgerApi.getSetting(),
-      ]);
+      const entriesRes = await ledgerApi.getLedgerList(summaryRes.cycleStart, summaryRes.cycleEnd);
 
       setEntries(entriesRes);
-      setBriefingAvailable(settingRes.briefingAvailable);
 
       // 이번 달이 아닌 다른 년/월을 보고 있는 상태에서 항목을 추가/수정/삭제했을 때도
       // 그 목록이 같이 갱신되도록 함께 새로고침한다.
@@ -351,7 +346,6 @@ const LedgerComponent = () => {
     try {
       const result = await ledgerApi.getBriefing();
       setBriefingText(result.summary);
-      setBriefingAvailable(false);
     } catch (err) {
       alert("AI 브리핑 생성에 실패했습니다.");
       console.error(err);
@@ -375,10 +369,12 @@ const LedgerComponent = () => {
   const monthCategoryBreakdown: Partial<Record<LedgerCategory, number>> =
     isCurrentMonth && summary
       ? summary.categoryBreakdown
-      : displayEntries.reduce<Partial<Record<LedgerCategory, number>>>((acc, entry) => {
-          acc[entry.category] = (acc[entry.category] ?? 0) + entry.amount;
-          return acc;
-        }, {});
+      : displayEntries
+          .filter((entry) => entry.type === "EXPENSE")
+          .reduce<Partial<Record<LedgerCategory, number>>>((acc, entry) => {
+            acc[entry.category] = (acc[entry.category] ?? 0) + entry.amount;
+            return acc;
+          }, {});
 
   const presentCategories = CATEGORY_ORDER.filter((cat) =>
     displayEntries.some((entry) => entry.category === cat),
@@ -472,15 +468,21 @@ const LedgerComponent = () => {
             </div>
           </div>
 
-          {isCurrentMonth && briefingAvailable && !briefingText && (
+          {isCurrentMonth && (
             <button type="button" className="tool" onClick={handleBriefing} disabled={briefingLoading}>
               <i>✦</i>
-              <span>{briefingLoading ? "브리핑 생성 중..." : "AI 브리핑 받기"}</span>
+              <span>
+                {briefingLoading
+                  ? "브리핑 생성 중..."
+                  : briefingText
+                    ? "AI 브리핑 다시 받기"
+                    : "AI 브리핑 받기"}
+              </span>
             </button>
           )}
 
           {isCurrentMonth && briefingText && (
-            <div className="card briefing-box" style={{ marginTop: briefingAvailable ? 12 : 0 }}>
+            <div className="card briefing-box" style={{ marginTop: 12 }}>
               <p>{briefingText}</p>
             </div>
           )}
