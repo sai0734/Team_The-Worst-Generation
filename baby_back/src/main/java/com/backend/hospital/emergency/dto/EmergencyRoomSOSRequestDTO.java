@@ -16,5 +16,5 @@ public class EmergencyRoomSOSRequestDTO {
     private int pageNo = 1;
     private int numOfRows = 10;
 
-    private String testTargetPhone;
+    private String notificationPhone;
 }

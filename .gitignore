@@ -6,6 +6,10 @@
 # 도커
 docker-compose.override.yml
 
+# OpenClaw 로컬 플러그인 생성물
+ai/openclaw/plugins/**/node_modules/
+ai/openclaw/plugins/**/dist/
+
 # IDE
 .idea
 *.iml

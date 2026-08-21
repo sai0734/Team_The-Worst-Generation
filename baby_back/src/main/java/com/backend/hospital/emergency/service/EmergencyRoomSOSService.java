@@ -23,6 +23,7 @@ public interface EmergencyRoomSOSService {
             String stage2,
             int pageNo,
             int numOfRows,
-            String testTargetPhone
+            String notificationPhone,
+            String memberEmail
     );
 }

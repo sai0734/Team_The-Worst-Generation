@@ -54,3 +54,24 @@ export interface HospitalWaitingRefreshResponse {
   retryAfterSeconds: number;
   hospitals: HospitalWaitingCount[];
 }
+
+export interface HospitalReservationLocationState {
+  hospital: PediatricHospital;
+}
+
+export interface HospitalReservationRequest {
+  hospitalId: string;
+  hospitalName: string;
+  hospitalType?: string;
+  hospitalAddress?: string;
+  hospitalPhone?: string;
+  notificationPhone: string;
+  reservationDate: string;
+  reservationTime: string;
+  patientName?: string;
+  message?: string;
+}
+
+export interface HospitalReservationResponse {
+  reservationNo: number;
+}

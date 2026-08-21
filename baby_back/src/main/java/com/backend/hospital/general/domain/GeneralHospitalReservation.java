@@ -26,6 +26,9 @@ public class GeneralHospitalReservation {
     private String hospitalAddress;
     private String hospitalPhone;
 
+    // 예약 결과 문자를 받을 보호자 번호
+    private String notificationPhone;
+
     private LocalDate reservationDate;
     private String reservationTime;
 

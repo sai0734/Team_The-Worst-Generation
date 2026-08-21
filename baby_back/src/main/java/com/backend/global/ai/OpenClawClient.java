@@ -33,49 +33,63 @@ public class OpenClawClient {
 
     private final HttpClient http = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(5))
+            .version(HttpClient.Version.HTTP_1_1)
             .build();
 
+    private static final int PICK_MAX_ATTEMPTS = 2;
     /** 실패하면 null. OpenClaw가 [] 를 주면 빈 목록. 공공 API 원본은 호출 쪽에서 쓰지 않는다. */
-    public List<AssistItemDTO> pick(int months, String region, String babyName, String gender,
-                                   List<AssistItemDTO> candidates) {
-        if (candidates == null || candidates.isEmpty()) {
-            return List.of();
-        }
+ public List<AssistItemDTO> pick(int months, String region, String babyName,String gender,
+                                 List<AssistItemDTO> candidates) {
+     if (candidates == null || candidates.isEmpty()) {
+         return List.of();
+     }
+     String message = buildPrompt(months, region, babyName, gender, candidates);
 
-        String message = buildPrompt(months, region, babyName, gender, candidates);
+     for (int attempt = 1; attempt <= PICK_MAX_ATTEMPTS; attempt++) {
+         List<AssistItemDTO> result = pickOnce(message);
+         if (result != null) {
+             return result;
+         }
+         log.warn("Openclaw 지원금 필터링 실패(시도 {}/{})", attempt,
+                 PICK_MAX_ATTEMPTS);
+     }
+     return null;
+ }
 
-        JsonObject user = new JsonObject();
-        user.addProperty("role", "user");
-        user.addProperty("content", message);
-        JsonArray messages = new JsonArray();
-        messages.add(user);
+ private List<AssistItemDTO> pickOnce(String message) {
+     JsonObject user = new JsonObject();
+     user.addProperty("role", "user");
+     user.addProperty("content", message);
+     JsonArray messages = new JsonArray();
+     messages.add(user);
 
-        JsonObject body = new JsonObject();
-        body.addProperty("model", "openclaw/default");
-        body.add("messages", messages);
+     JsonObject body = new JsonObject();
+     body.addProperty("model", "openclaw/default");
+     body.add("messages", messages);
 
-        try {
-            String root = baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
-            String token = resolveToken();
-            HttpRequest.Builder builder = HttpRequest.newBuilder()
-                    .uri(URI.create(root + "/v1/chat/completions"))
-                    .header("Content-Type", "application/json")
-                    .timeout(Duration.ofSeconds(25))
-                    .POST(HttpRequest.BodyPublishers.ofString(body.toString()));
-            if (!token.isBlank()) {
-                builder.header("Authorization", "Bearer " + token);
-            }
-            HttpResponse<String> res = http.send(builder.build(), HttpResponse.BodyHandlers.ofString());
-            if (res.statusCode() != 200) {
-                log.warn("OpenClaw HTTP {} body={}", res.statusCode(), res.body());
-                return null;
-            }
-            return parseItems(res.body());
-        } catch (Exception e) {
-            log.warn("OpenClaw 연결 실패: {}", e.getMessage());
-            return null;
-        }
-    }
+     try {
+         String root = baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
+         String token = resolveToken();
+         HttpRequest.Builder builder = HttpRequest.newBuilder()
+                 .uri(URI.create(root + "/v1/chat/completions"))
+                 .header("Content-Type", "application/json")
+                 .timeout(Duration.ofSeconds(60))
+                 .POST(HttpRequest.BodyPublishers.ofString(body.toString()));
+         if (!token.isBlank()) {
+             builder.header("Authorization","Bearer " +token);
+         }
+         HttpResponse<String> res = http.send(builder.build(),
+                 HttpResponse.BodyHandlers.ofString());
+         if (res.statusCode() != 200) {
+             log.warn("Openclaw HTTP {} body={}", res.statusCode(), res.body());
+             return null;
+         }
+         return parseItems(res.body());
+     } catch (Exception e) {
+         log.warn("Openclaw 연결실패: {}", e.getMessage());
+         return null;
+     }
+ }
 
     public List<DailyQuestDraft> generateDailyQuests(int months, String parentType, String weekday) {
         String message = buildDailyQuestPrompt(months, parentType, weekday);
@@ -96,7 +110,7 @@ public class OpenClawClient {
             HttpRequest.Builder builder = HttpRequest.newBuilder()
                     .uri(URI.create(root + "/v1/chat/completions"))
                     .header("Content-Type", "application/json")
-                    .timeout(Duration.ofSeconds(12))
+                    .timeout(Duration.ofSeconds(60))
                     .POST(HttpRequest.BodyPublishers.ofString(body.toString()));
             if (!token.isBlank()) {
                 builder.header("Authorization", "Bearer " + token);
@@ -146,6 +160,8 @@ public class OpenClawClient {
             String content = extractAssistantText(raw);
             String json = extractJsonArray(content);
             if (json == null) {
+                log.warn("Openclaw 일일퀘 응답에 JSON배열이 없음: {}",
+                content.length() > 500 ? content.substring(0, 500) + "..." : content);
                 return null;
             }
             JsonArray arr = JsonParser.parseString(json).getAsJsonArray();
@@ -177,7 +193,20 @@ public class OpenClawClient {
         String safeRegion = (region == null || region.isBlank()) ? "미입력" : region.trim();
         String safeName = (babyName == null || babyName.isBlank()) ? "미입력" : babyName.trim();
         String safeGender = (gender == null || gender.isBlank()) ? "미입력" : gender.trim();
-        String candidatesJson = new Gson().toJson(candidates);
+
+        List<AssistItemDTO> trimmed = candidates.stream()
+                .limit(40)
+                .map(it -> AssistItemDTO.builder()
+                        .id(it.getId())
+                        .category(it.getCategory())
+                        .title(it.getTitle())
+                        .summary(truncate(it.getSummary(), 80))
+                        .status(it.getStatus())
+                        .link(it.getLink())
+                        .source(it.getSource())
+                        .build())
+        .toList();
+        String candidatesJson = new Gson().toJson(trimmed);
 
         return """
                 너는 육아 지원 목록을 거르는 필터다. 상담사처럼 설명하지 마라.
@@ -237,10 +266,11 @@ public class OpenClawClient {
 
     private List<AssistItemDTO> parseItems(String raw) {
         try {
-            String content = extractAssistantText(raw);
+            String content = stripThinking(extractAssistantText(raw));
             String json = extractJsonArray(content);
             if (json == null) {
-                log.warn("OpenClaw 응답에 JSON 배열이 없음");
+                log.warn("OpenClaw 응답에 JSON 배열이 없음: {}",
+                content.length() > 500 ? content.substring(0, 500) + "..." : content);
                 return null;
             }
             JsonArray arr = JsonParser.parseString(json).getAsJsonArray();
@@ -299,16 +329,60 @@ public class OpenClawClient {
         return raw;
     }
 
+    private static String stripThinking(String content) {
+     if (content == null) {
+         return "";
+     }
+     return content.replaceAll("(?is)<think>.*?</think>", "").trim();
+    }
+
     private static String extractJsonArray(String content) {
         if (content == null) {
             return null;
         }
         int start = content.indexOf('[');
-        int end = content.lastIndexOf(']');
-        if (start < 0 || end <= start) {
-            return null;
+        while (start >= 0) {
+            int end = findMatchingBracket(content, start);
+            if (end > start) {
+                String candidate = content.substring(start, end + 1);
+                try {
+                    JsonParser.parseString(candidate);
+                    return candidate;
+                } catch (Exception ignored) {
+                }
+            }
+            start = content.indexOf('[', start + 1);
         }
-        return content.substring(start, end + 1);
+        return null;
+    }
+    private static int findMatchingBracket(String s, int openIndex) {
+        int depth = 0;
+        boolean inString = false;
+        boolean escape= false;
+        for (int i = openIndex; i < s.length(); i++) {
+            char c = s.charAt(i);
+            if (inString) {
+                if (escape) {
+                    escape = false;
+                } else if (c == '\\') {
+                    escape =true;
+                } else if (c == '"') {
+                    inString = false;
+                }
+                continue;
+            }
+            if (c == '"') {
+                inString = true;
+            } else if (c == '[') {
+                depth++;
+            } else if (c ==']') {
+                depth--;
+                if (depth == 0) {
+                    return i;
+                }
+            }
+        }
+        return -1;
     }
 
     private static String normalizeStatus(String status) {
@@ -317,5 +391,12 @@ public class OpenClawClient {
 
     private static String str(JsonObject o, String key) {
         return o.has(key) && !o.get(key).isJsonNull() ? o.get(key).getAsString() : "";
+    }
+
+    private static String truncate(String s, int max) {
+        if (s == null || s.length() <= max) {
+            return s == null ? "" : s;
+        }
+        return s.substring(0, max);
     }
 }

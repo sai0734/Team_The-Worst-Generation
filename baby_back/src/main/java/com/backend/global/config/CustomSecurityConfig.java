@@ -3,6 +3,8 @@ package com.backend.global.config;
 import java.util.Arrays;
 
 import com.backend.auth.service.AuthTokenService;
+import com.backend.global.security.filter.OpenClawInternalKeyFilter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -37,6 +39,9 @@ public class CustomSecurityConfig {
 
   private final AuthenticationConfiguration authenticationConfiguration;
   private final AuthTokenService authTokenService;
+
+  @Value("${openclaw.internal-key:}")
+  private String openClawInternalKey;
 
   @Bean
   public PasswordEncoder passwordEncoder() {
@@ -73,6 +78,7 @@ public class CustomSecurityConfig {
     apiLoginFilter.setAuthenticationFailureHandler(new APILoginFailHandler());
 
     http.authenticationManager(authenticationManager);
+    http.addFilterBefore(new OpenClawInternalKeyFilter(openClawInternalKey), UsernamePasswordAuthenticationFilter.class);
     http.addFilterBefore(apiLoginFilter, UsernamePasswordAuthenticationFilter.class);
     http.addFilterBefore(new JWTCheckFilter(), UsernamePasswordAuthenticationFilter.class);
 

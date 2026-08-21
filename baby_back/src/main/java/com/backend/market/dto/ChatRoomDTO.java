@@ -20,6 +20,8 @@ public class ChatRoomDTO {
 
     private LocalDateTime regTime;
 
+    private LocalDateTime completeRequestedAt;
+
     private String itemTitle;
 
     private String itemStatus;

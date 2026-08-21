@@ -31,6 +31,8 @@ public class MyProductServiceImpl implements MyProductService {
 
     private final RecallService recallService;
 
+    private final RecallNoticeService recallNoticeService;
+
     @Override
     public MyProductDTO register(String memberEmail, MyProductDTO dto) {
 
@@ -62,6 +64,10 @@ public class MyProductServiceImpl implements MyProductService {
 
         applyMatch(product);
         myProductMapper.updateRecallMatch(product);
+
+        if (product.isRecallMatched()) {
+            recallNoticeService.notifyAfterCommit(product);
+        }
 
         return toDTO(myProductMapper.selectOne(product.getProductNo()));
     }
@@ -95,6 +101,10 @@ public class MyProductServiceImpl implements MyProductService {
 
         applyMatch(product);
         myProductMapper.update(product);
+
+        if (product.isRecallMatched()) {
+            recallNoticeService.notifyAfterCommit(product);
+        }
 
         return toDTO(myProductMapper.selectOne(productNo));
     }
@@ -157,6 +167,10 @@ public class MyProductServiceImpl implements MyProductService {
         for (MyProduct product : myProductMapper.selectUnmatched()) {
             applyMatch(product);
             myProductMapper.updateRecallMatch(product);
+
+            if (product.isRecallMatched()) {
+                recallNoticeService.notifyAfterCommit(product);
+            }
         }
     }
 

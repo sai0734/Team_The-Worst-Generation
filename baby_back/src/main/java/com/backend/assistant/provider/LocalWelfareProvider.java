@@ -32,6 +32,8 @@ public class LocalWelfareProvider implements AssistDataProvider {
     @Override
     public List<AssistItemDTO> search(AssistRecommendRequest request) {
         try {
+            Integer months = request.getChild() != null ?
+                    request.getChild().getBabyMonths() : null;
             String sido = AssistRegionNames.sido(
                     request.getChild() != null ? request.getChild().getRegionSido() : "");
             String sgg = AssistRegionNames.sigungu(
@@ -51,6 +53,9 @@ public class LocalWelfareProvider implements AssistDataProvider {
             List<AssistItemDTO> list = new ArrayList<>();
             for (JsonObject it : client.items(client.get(URL, p))) {
                 if (!matchesRegion(it, sido, sgg)) {
+                    if (!matchesLifeStage(text(it, "lifeArray"), months)) {
+                        continue;
+                    }
                     continue;
                 }
                 String title = text(it, "servNm");
@@ -102,5 +107,22 @@ public class LocalWelfareProvider implements AssistDataProvider {
 
     private static String text(JsonObject o, String key) {
         return o.has(key) && !o.get(key).isJsonNull() ? o.get(key).getAsString() : "";
+    }
+
+    private static boolean matchesLifeStage(String lifeArray, Integer months) {
+        if (lifeArray == null || lifeArray.isBlank() || months == null) {
+            return true;
+        }
+        return lifeArray.contains(lifeStageName(months));
+    }
+
+    private static String lifeStageName(int months) {
+        if (months < 84) {
+            return "영유아";
+        }
+        if (months < 156) {
+            return "아동";
+        }
+        return "청소년";
     }
 }

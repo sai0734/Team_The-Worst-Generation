@@ -12,9 +12,7 @@ import { formatRelativeTime } from "../../util/relativeTime";
 
 const CATEGORY_FILTERS = ["전체", ...MARKET_CATEGORIES];
 const DEFAULT_CENTER = { lat: 37.566826, lng: 126.9786567 }; // 서울시청 (내 동네도 GPS도 없을 때 기본값)
-// 더미데이터가 몇 개 없어서 위치(GPS/내 동네)에 상관없이 전부 보이도록 사실상 무제한 반경으로 둠.
-// 실제 매물이 쌓이면 5 정도로 다시 좁히면 됨.
-const RADIUS_KM = 20000;
+const RADIUS_KM = 5;
 
 type ListFilter = "nearby" | "wish";
 type CenterSource = "profile" | "gps" | "default";
@@ -109,7 +107,8 @@ const MarketHomeComponent = () => {
     });
   }, [isLogin]);
 
-  // 필터(근처/내찜) 또는 중심좌표가 바뀔 때마다 목록 재조회
+  // 필터(근처/내찜, 카테고리, 검색어) 또는 중심좌표가 바뀔 때마다 목록 재조회
+  // (카테고리/검색어는 nearby 조회일 때만 서버로 넘김 - 내 찜목록은 어차피 목록이 작아서 클라이언트에서 거름)
   useEffect(() => {
     let cancelled = false;
 
@@ -135,6 +134,8 @@ const MarketHomeComponent = () => {
             center.lat,
             center.lng,
             RADIUS_KM,
+            category,
+            appliedSearch,
           );
           if (!cancelled) setItems(nearby);
         }
@@ -150,7 +151,7 @@ const MarketHomeComponent = () => {
     return () => {
       cancelled = true;
     };
-  }, [listFilter, center.lat, center.lng, isLogin]);
+  }, [listFilter, center.lat, center.lng, isLogin, category, appliedSearch]);
 
   const toggleWish = async (itemNo?: number) => {
     if (!itemNo) return;
@@ -181,17 +182,20 @@ const MarketHomeComponent = () => {
 
   const normalizedSearch = appliedSearch.trim().toLowerCase();
 
-  const filteredItems = items
-    .filter((item) => category === "전체" || item.category === category)
-    .filter((item) => {
-      if (!normalizedSearch) return true;
-      const title = item.title?.toLowerCase() ?? "";
-      const description = item.description?.toLowerCase() ?? "";
-      return (
-        title.includes(normalizedSearch) ||
-        description.includes(normalizedSearch)
-      );
-    });
+  const filteredItems =
+    listFilter === "wish"
+      ? items
+          .filter((item) => category === "전체" || item.category === category)
+          .filter((item) => {
+            if (!normalizedSearch) return true;
+            const title = item.title?.toLowerCase() ?? "";
+            const description = item.description?.toLowerCase() ?? "";
+            return (
+              title.includes(normalizedSearch) ||
+              description.includes(normalizedSearch)
+            );
+          })
+      : items;
 
   const sourceLabel =
     centerSource === "profile"
@@ -256,7 +260,7 @@ const MarketHomeComponent = () => {
             {listFilter === "nearby" && (
               <div className="market-home-location">
                 <span className="market-map-sub">
-                  {sourceLabel} · 전체 매물 표시 중
+                  {sourceLabel} · 반경 {RADIUS_KM}km 이내 매물 표시 중
                 </span>
                 <button
                   type="button"

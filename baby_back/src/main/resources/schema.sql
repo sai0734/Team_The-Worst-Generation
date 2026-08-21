@@ -81,6 +81,7 @@ CREATE TABLE IF NOT EXISTS tbl_hospital_reservation (
     hospital_type VARCHAR(100),
     hospital_address VARCHAR(300),
     hospital_phone VARCHAR(50),
+    notification_phone VARCHAR(20),
     reservation_date DATE NOT NULL,
     reservation_time VARCHAR(10) NOT NULL,
     patient_name VARCHAR(50),
@@ -294,6 +295,51 @@ CREATE TABLE IF NOT EXISTS tbl_print_order_item (
     PRIMARY KEY (item_no),
     CONSTRAINT fk_print_order_item_order FOREIGN KEY (order_no) REFERENCES tbl_print_order (order_no),
     CONSTRAINT fk_print_order_item_album FOREIGN KEY (album_no) REFERENCES tbl_baby_album (album_no)
+    );
+
+CREATE TABLE IF NOT EXISTS tbl_baby_behavior_consult (
+    consult_no  BIGINT AUTO_INCREMENT,
+    baby_no     BIGINT       NOT NULL,
+    category    VARCHAR(50)  NOT NULL,
+    situation   VARCHAR(1000) NOT NULL,
+    ai_summary  TEXT,
+    video_id    VARCHAR(50),
+    video_title VARCHAR(300),
+    reg_time    DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (consult_no),
+    CONSTRAINT fk_behavior_consult_baby FOREIGN KEY (baby_no) REFERENCES tbl_baby_info (baby_no)
+    );
+
+CREATE TABLE IF NOT EXISTS tbl_baby_behavior_step (
+    step_no     BIGINT AUTO_INCREMENT,
+    consult_no  BIGINT      NOT NULL,
+    step_order  INT         NOT NULL,
+    title       VARCHAR(200) NOT NULL,
+    description VARCHAR(1000) NOT NULL,
+    PRIMARY KEY (step_no),
+    CONSTRAINT fk_behavior_step_consult FOREIGN KEY (consult_no) REFERENCES tbl_baby_behavior_consult (consult_no)
+    );
+
+CREATE TABLE IF NOT EXISTS tbl_baby_behavior_message (
+    message_no BIGINT AUTO_INCREMENT,
+    consult_no BIGINT       NOT NULL,
+    role       VARCHAR(10)  NOT NULL,
+    content    VARCHAR(1000) NOT NULL,
+    reg_time   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (message_no),
+    CONSTRAINT fk_behavior_message_consult FOREIGN KEY (consult_no) REFERENCES tbl_baby_behavior_consult (consult_no)
+    );
+
+CREATE TABLE IF NOT EXISTS tbl_baby_behavior_source (
+    source_no  BIGINT AUTO_INCREMENT,
+    consult_no BIGINT       NOT NULL,
+    title      VARCHAR(300) NOT NULL,
+    link       VARCHAR(500) NOT NULL,
+    press      VARCHAR(100),
+    pub_date   VARCHAR(50),
+    reg_time   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (source_no),
+    CONSTRAINT fk_behavior_source_consult FOREIGN KEY (consult_no) REFERENCES tbl_baby_behavior_consult (consult_no)
     );
 
 -- HWH 끝
@@ -585,6 +631,14 @@ CREATE TABLE IF NOT EXISTS tbl_my_product (
     INDEX idx_my_product_member (member_email, del_flag)
 );
 ALTER TABLE tbl_my_product ADD COLUMN IF NOT EXISTS image_name VARCHAR(300) NULL;
+
+-- KYI - 리콜 문자 알림 받을 번호 (등록/재검사로 새로 리콜 매칭될 때 이 번호로 SMS 발송)
+CREATE TABLE IF NOT EXISTS tbl_recall_setting (
+    email               VARCHAR(100) NOT NULL,
+    notification_phone  VARCHAR(20)  NOT NULL,
+    PRIMARY KEY (email),
+    CONSTRAINT fk_recall_setting_email FOREIGN KEY (email) REFERENCES tbl_member (email)
+);
 -- KYI 끝
 
 -- LMJ - 알레르기 성분 목록
@@ -959,6 +1013,9 @@ CREATE TABLE IF NOT EXISTS tbl_chat_room (
     CONSTRAINT fk_chat_room_buyer FOREIGN KEY (buyer_email) REFERENCES tbl_member (email),
     CONSTRAINT fk_chat_room_seller FOREIGN KEY (seller_email) REFERENCES tbl_member (email)
     );
+
+-- 구매자가 "거래완료 신청" 을 누른 시각. null 이면 아직 신청 전. 판매자는 이게 채워진 방만 최종 확정 가능
+ALTER TABLE tbl_chat_room ADD COLUMN IF NOT EXISTS complete_requested_at DATETIME NULL;
 
 CREATE TABLE IF NOT EXISTS tbl_chat_message (
                                                 msg_no       BIGINT AUTO_INCREMENT,
