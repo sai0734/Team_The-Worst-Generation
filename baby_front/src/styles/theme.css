@@ -1409,6 +1409,11 @@
   margin: 3px 0 1px;
   letter-spacing: -0.5px;
 }
+/* 리콜처럼 확인이 필요한 중요 알림은 색으로 눈에 띄게 표시 */
+.app .home-side-amount.is-alert {
+  color: #ef6262;
+  font-weight: 900;
+}
 .app .home-side-card .meta {
   font-size: 10px;
   color: var(--muted);
