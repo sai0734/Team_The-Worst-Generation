@@ -38,12 +38,22 @@ public class ChatRoomController {
         return chatRoomService.getOrCreate(itemNo, principal.getName(), sellerEmail);
     }
 
-    // 거래완료는 구매자만 (판매자는 이 엔드포인트를 호출할 방법이 없음, 프론트에서도 버튼 자체를 안 보여줌)
+    // 1단계: 구매자가 거래완료 신청 (판매자는 이 엔드포인트를 호출할 방법이 없음, 프론트에서도 버튼 자체를 안 보여줌)
+    @PreAuthorize("hasAnyRole('ROLE_USER')")
+    @PutMapping("/{roomNo}/request-complete")
+    public Map<String, String> requestComplete(@PathVariable Long roomNo, Principal principal) {
+
+        chatRoomService.requestComplete(roomNo, principal.getName());
+
+        return Map.of("result", "success");
+    }
+
+    // 2단계: 판매자가 최종 확정 (구매자가 먼저 신청한 방만 가능, 구매자는 이 엔드포인트를 호출할 방법이 없음)
     @PreAuthorize("hasAnyRole('ROLE_USER')")
     @PutMapping("/{roomNo}/complete")
     public Map<String, String> complete(@PathVariable Long roomNo, Principal principal) {
 
-        chatRoomService.completeByBuyer(roomNo, principal.getName());
+        chatRoomService.confirmComplete(roomNo, principal.getName());
 
         return Map.of("result", "success");
     }

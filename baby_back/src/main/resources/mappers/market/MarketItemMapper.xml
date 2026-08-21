@@ -136,6 +136,12 @@
         AND i.status = '거래가능'
         AND i.latitude IS NOT NULL
         AND i.longitude IS NOT NULL
+        <if test="category != null and category != '' and category != '전체'">
+            AND i.category = #{category}
+        </if>
+        <if test="keyword != null and keyword != ''">
+            AND (i.title LIKE CONCAT('%', #{keyword}, '%') OR i.description LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
     </select>
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="itemNo" keyColumn="item_no">

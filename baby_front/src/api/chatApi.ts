@@ -11,6 +11,7 @@ export interface ChatRoom {
   buyerEmail?: string;
   sellerEmail?: string;
   regTime?: string;
+  completeRequestedAt?: string;
   itemTitle?: string;
   itemStatus?: string;
   reviewed?: boolean;
@@ -55,7 +56,12 @@ export const uploadChatImage = async (file: File): Promise<string> => {
   return res.data.fileName;
 };
 
-// 거래완료: 구매자만 가능
+// 1단계: 구매자가 거래완료 신청
+export const requestCompleteRoom = async (roomNo: number): Promise<void> => {
+  await jwtAxios.put(`${roomPrefix}/${roomNo}/request-complete`);
+};
+
+// 2단계: 판매자가 최종 확정 (구매자가 먼저 신청한 방만 가능)
 export const completeRoom = async (roomNo: number): Promise<void> => {
   await jwtAxios.put(`${roomPrefix}/${roomNo}/complete`);
 };

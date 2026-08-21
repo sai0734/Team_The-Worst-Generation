@@ -74,9 +74,9 @@ public class MarketItemServiceImpl implements MarketItemService{
     }
 
     @Override
-    public List<MarketItemDTO> getNearby(double lat, double lng, double radiusKm) {
+    public List<MarketItemDTO> getNearby(double lat, double lng, double radiusKm, String category, String keyword) {
 
-        List<MarketItem> candidates = marketItemMapper.selectNearbyCandidates();
+        List<MarketItem> candidates = marketItemMapper.selectNearbyCandidates(category, keyword);
 
         return candidates.stream()
                 .filter(item -> item.getLatitude() != null && item.getLongitude() != null)
@@ -218,7 +218,7 @@ public class MarketItemServiceImpl implements MarketItemService{
     }
 
     @Override
-    public void markAsCompletedByBuyer(Long itemNo) {
+    public void markAsCompleted(Long itemNo) {
 
         MarketItem item = Optional.ofNullable(marketItemMapper.selectOne(itemNo))
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 매물입니다: " + itemNo));

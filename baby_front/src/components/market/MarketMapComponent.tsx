@@ -96,7 +96,7 @@ const MarketMapComponent = ({ items, center }: MarketMapComponentProps) => {
           mapContainerRef.current,
           {
             center: centerLatLng,
-            level: 6,
+            level: 7,
           },
         );
 
@@ -131,9 +131,6 @@ const MarketMapComponent = ({ items, center }: MarketMapComponentProps) => {
       });
       overlaysRef.current.push(myMarker);
 
-      const bounds = new (window as any).kakao.maps.LatLngBounds();
-      bounds.extend(centerLatLng);
-
       items.forEach((item) => {
         if (item.latitude == null || item.longitude == null) return;
 
@@ -152,12 +149,7 @@ const MarketMapComponent = ({ items, center }: MarketMapComponentProps) => {
         });
 
         overlaysRef.current.push(marker);
-        bounds.extend(position);
       });
-
-      if (items.length > 0) {
-        mapRef.current.setBounds(bounds);
-      }
     };
 
     render().catch((err) => console.error(err));
