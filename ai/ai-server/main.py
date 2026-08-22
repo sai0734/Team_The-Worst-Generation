@@ -2,6 +2,8 @@ from fastapi import FastAPI
 
 from app.routers import emergency
 
+from app.routers import sleep
+
 
 app = FastAPI(
     title="BabyCare AI Server",
@@ -18,5 +20,11 @@ app.include_router(
     emergency.router,
     prefix="/api/v1/emergency",
     tags=["emergency"],
+)
+
+app.include_router(
+    sleep.router,
+    prefix="/api/v1/sleep",
+    tags=["sleep"],
 )
 
