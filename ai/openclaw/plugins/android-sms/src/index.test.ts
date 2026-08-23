@@ -10,23 +10,40 @@ describe("android-sms", () => {
   });
 
   it("returns normally once and terminates a repeated call in one run", async () => {
+    const fetchMock = async () =>
+      new Response(
+        JSON.stringify({
+          missionId: "msg_repeat_guard_test",
+          provider: "ANDROID_SMS",
+          status: "SUCCESS",
+          accepted: true,
+          to: "01012345678",
+        }),
+        { status: 200 },
+      );
+    const options = {
+      fetch: fetchMock as typeof fetch,
+      env: {
+        ANDROID_SMS_BRIDGE_URL: "http://127.0.0.1:8787",
+        ANDROID_SMS_BRIDGE_KEY: "bridge-secret",
+      },
+    };
     const mission = {
       metadata: {
         schemaVersion: 1,
         missionId: "msg_repeat_guard_test",
         source: "POSTMAN",
-        dryRun: true,
         requestedBy: "test",
         requestedAt: "2026-08-21T02:00:00+09:00",
       },
       to: "01012345678",
-      content: "DRY_RUN test",
+      content: "send test",
     };
-    const tool = createAndroidSmsTool();
+    const tool = createAndroidSmsTool(options);
 
     const first = await tool.execute("call-1", { mission });
     const repeated = await tool.execute("call-2", { mission });
-    const retryRun = await createAndroidSmsTool().execute(
+    const retryRun = await createAndroidSmsTool(options).execute(
       "call-3",
       { mission },
     );
@@ -42,7 +59,7 @@ describe("android-sms", () => {
     });
   });
 
-  it("rejects live send without a bridge", async () => {
+  it("rejects send without a bridge", async () => {
     const tool = createAndroidSmsTool({ env: {} });
 
     await expect(
@@ -52,7 +69,6 @@ describe("android-sms", () => {
             schemaVersion: 1,
             missionId: "msg_live_missing",
             source: "POSTMAN",
-            dryRun: false,
             requestedBy: "test",
             requestedAt: "2026-08-21T02:00:00+09:00",
           },
@@ -63,7 +79,7 @@ describe("android-sms", () => {
     ).rejects.toThrow("ANDROID_SMS_BRIDGE_NOT_CONFIGURED");
   });
 
-  it("posts a live mission to the sms bridge once", async () => {
+  it("posts a mission to the sms bridge once", async () => {
     const fetchMock = async (input: RequestInfo | URL, init?: RequestInit) => {
       expect(String(input)).toBe("http://192.168.0.12:8787/sms");
       expect(init?.method).toBe("POST");
@@ -101,7 +117,6 @@ describe("android-sms", () => {
           schemaVersion: 1,
           missionId: "msg_live_bridge",
           source: "HOSPITAL_RESERVATION",
-          dryRun: false,
           requestedBy: "test",
           requestedAt: "2026-08-21T02:00:00+09:00",
         },

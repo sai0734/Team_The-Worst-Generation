@@ -68,7 +68,7 @@ class OpenClawMessageClientTests {
                   "choices": [
                     {
                       "message": {
-                        "content": "{\\"missionId\\":\\"msg_test\\",\\"provider\\":\\"ANDROID_SMS\\",\\"status\\":\\"DRY_RUN\\",\\"accepted\\":true}"
+                        "content": "{\\"missionId\\":\\"msg_test\\",\\"provider\\":\\"ANDROID_SMS\\",\\"status\\":\\"SUCCESS\\",\\"accepted\\":true}"
                       }
                     }
                   ]
@@ -112,13 +112,9 @@ class OpenClawMessageClientTests {
                         .path("missionId")
                         .asText()
         );
-        assertTrue(
-                sentMission.path("metadata")
-                        .path("dryRun")
-                        .asBoolean()
-        );
+        assertEquals(5, sentMission.path("metadata").size());
         assertEquals(
-                "DRY_RUN",
+                "SUCCESS",
                 result.path("status").asText()
         );
     }
@@ -246,7 +242,6 @@ class OpenClawMessageClientTests {
                         .schemaVersion(1)
                         .missionId("msg_test")
                         .source(MissionSource.SOS)
-                        .dryRun(true)
                         .requestedBy("tester@example.com")
                         .requestedAt(Instant.parse(
                                 "2026-08-19T07:00:00Z"

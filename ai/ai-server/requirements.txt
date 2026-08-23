@@ -1,7 +1,7 @@
 fastapi
 uvicorn
 pydantic
-pandas
-scikit-learn
-joblib
+piper-tts==1.7.0
+sherpa-onnx==1.13.6
+numpy==2.5.2
 

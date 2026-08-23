@@ -28,6 +28,12 @@ public class MessageMissionController {
             Principal principal,
             @RequestBody MessageRequestDTO request
     ) {
+        log.info(
+                "MESSAGE_MISSION_API_RECEIVED source={}, authenticated={}",
+                request == null ? null : request.getSource(),
+                principal != null
+        );
+
         String requestedBy =
                 principal == null
                         ? null
@@ -43,9 +49,10 @@ public class MessageMissionController {
                 dispatchService.dispatch(mission);
 
         log.info(
-                "Message mission completed: missionId={}, status={}",
+                "MESSAGE_MISSION_API_COMPLETED missionId={}, status={}, accepted={}",
                 result.getMissionId(),
-                result.getStatus()
+                result.getStatus(),
+                result.isAccepted()
         );
 
         return result;

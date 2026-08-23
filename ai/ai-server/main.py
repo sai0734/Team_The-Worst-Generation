@@ -1,11 +1,19 @@
+import logging
+import os
+
 from fastapi import FastAPI
 
-from app.routers import emergency
+from app.routers import story
 
+
+logging.basicConfig(
+    level=os.environ.get("AI_LOG_LEVEL", "INFO").upper(),
+    format="%(asctime)s %(levelname)s %(name)s %(message)s",
+)
 
 app = FastAPI(
     title="BabyCare AI Server",
-    version="0.1.0",
+    version="0.2.0",
 )
 
 
@@ -15,8 +23,8 @@ def health() -> dict[str, bool]:
 
 
 app.include_router(
-    emergency.router,
-    prefix="/api/v1/emergency",
-    tags=["emergency"],
+    story.router,
+    prefix="/api/v1/stories",
+    tags=["stories"],
 )
 

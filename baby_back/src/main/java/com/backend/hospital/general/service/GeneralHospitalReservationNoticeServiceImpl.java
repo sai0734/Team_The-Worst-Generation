@@ -25,8 +25,16 @@ public class GeneralHospitalReservationNoticeServiceImpl
     @Override
     public void notifyAfterCommit(GeneralHospitalReservation reservation) {
         Runnable dispatch = () -> notifyGuardian(reservation);
+        boolean transactionActive =
+                TransactionSynchronizationManager.isSynchronizationActive();
 
-        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+        log.info(
+                "HOSPITAL_NOTICE_SCHEDULED reservationNo={}, afterCommit={}, mode=LIVE_ONLY",
+                reservation.getReservationNo(),
+                transactionActive
+        );
+
+        if (transactionActive) {
             TransactionSynchronizationManager.registerSynchronization(
                     new TransactionSynchronization() {
                         @Override
@@ -42,6 +50,8 @@ public class GeneralHospitalReservationNoticeServiceImpl
     }
 
     private void notifyGuardian(GeneralHospitalReservation reservation) {
+        String missionId = "<not-created>";
+
         try {
             var mission = messageMissionService.createMission(
                     MessageRequestDTO.builder()
@@ -51,20 +61,31 @@ public class GeneralHospitalReservationNoticeServiceImpl
                             .build(),
                     reservation.getMemberEmail()
             );
+            missionId = mission.getMetadata().getMissionId();
+
+            log.info(
+                    "HOSPITAL_NOTICE_DISPATCH_START reservationNo={}, missionId={}",
+                    reservation.getReservationNo(),
+                    missionId
+            );
 
             var result = messageMissionDispatchService.dispatch(mission);
 
             log.info(
-                    "Reservation notice dispatched: reservationNo={}, missionId={}, status={}",
+                    "HOSPITAL_NOTICE_DISPATCH_SUCCESS reservationNo={}, missionId={}, "
+                            + "status={}, accepted={}",
                     reservation.getReservationNo(),
                     result.getMissionId(),
-                    result.getStatus()
+                    result.getStatus(),
+                    result.isAccepted()
             );
         } catch (Exception exception) {
-            log.warn(
-                    "Reservation notice failed: reservationNo={}, reason={}",
+            log.error(
+                    "HOSPITAL_NOTICE_DISPATCH_FAILED reservationNo={}, missionId={}, reason={}",
                     reservation.getReservationNo(),
-                    exception.getMessage()
+                    missionId,
+                    exception.getMessage(),
+                    exception
             );
         }
     }

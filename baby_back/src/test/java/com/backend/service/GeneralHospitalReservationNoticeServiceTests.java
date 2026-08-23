@@ -53,7 +53,7 @@ class GeneralHospitalReservationNoticeServiceTests {
                 .thenReturn(
                         MessageMissionResultDTO.builder()
                                 .missionId("msg_reservation")
-                                .status(MissionStatus.DRY_RUN)
+                                .status(MissionStatus.SUCCESS)
                                 .accepted(true)
                                 .to("01012345678")
                                 .build()
@@ -117,7 +117,6 @@ class GeneralHospitalReservationNoticeServiceTests {
                         MissionMetadataDTO.builder()
                                 .missionId("msg_reservation")
                                 .source(MissionSource.HOSPITAL_RESERVATION)
-                                .dryRun(true)
                                 .requestedBy("user@example.com")
                                 .build()
                 )

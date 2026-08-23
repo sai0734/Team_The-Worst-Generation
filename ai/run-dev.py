@@ -139,12 +139,26 @@ def setup_python_environment() -> Path:
         cwd=PYTHON_SERVER_ROOT,
         check=True,
     )
+    print("[setup] Preparing local Korean TTS model...")
+    subprocess.run(
+        [
+            str(executable),
+            str(PYTHON_SERVER_ROOT / "scripts" / "setup_tts.py"),
+        ],
+        cwd=PYTHON_SERVER_ROOT,
+        env=load_root_env(),
+        check=True,
+    )
     return executable
 
 
 def python_server_ready(executable: Path) -> bool:
     completed = subprocess.run(
-        [str(executable), "-c", "import fastapi, pydantic, uvicorn"],
+        [
+            str(executable),
+            "-c",
+            "import fastapi, piper, pydantic, sherpa_onnx, uvicorn",
+        ],
         cwd=PYTHON_SERVER_ROOT,
         stdout=subprocess.DEVNULL,
         stderr=subprocess.DEVNULL,
