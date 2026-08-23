@@ -5,7 +5,7 @@
 <mapper namespace="com.backend.homecam.mapper.HomeCamSafeZoneMapper">
 
     <select id="selectByEmail" resultType="com.backend.homecam.domain.HomeCamSafeZone">
-        SELECT email, x_ratio, y_ratio, w_ratio, h_ratio
+        SELECT email, x_ratio, y_ratio, w_ratio, h_ratio, baseline_embedding, embedding_model_version
         FROM tbl_homecam_safe_zone
         WHERE email = #{email}
     </select>
@@ -21,6 +21,13 @@
         y_ratio = #{yRatio},
         w_ratio = #{wRatio},
         h_ratio = #{hRatio}
+        WHERE email = #{email}
+    </update>
+
+    <update id="updateBaseline">
+        UPDATE tbl_homecam_safe_zone
+        SET baseline_embedding = #{baselineEmbedding},
+        embedding_model_version = #{embeddingModelVersion}
         WHERE email = #{email}
     </update>
 

@@ -5,3 +5,8 @@ pandas
 scikit-learn
 joblib
 
+# homecam - image embedding (MobileNetV3, ImageNet pretrained) for safe-zone exit detection
+torch
+torchvision
+pillow
+
