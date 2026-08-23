@@ -178,17 +178,18 @@ public class BabySleepServiceImpl implements BabySleepService {
                 너는 육아 지원 서비스의 수면 코치야.
                 아래는 생후 %d개월 아기의 최근 수면 분석 결과야.
 
-                - 수면시간 추세: 하루당 %.1f분씩 %s
+                - 수면시간 추세: 하루당 %.1f분 %s
                 - 이 개월수 권장 수면시간: %.1f~%.1f시간
                 - 최근 평균 수면시간: %.1f시간
                 - %s
 
                 이 분석 결과를 보고 부모에게 도움이 되는 조언을 3~4문장으로 짧게 해줘.
                 의학적 진단이나 확정적인 판단은 하지 말고, 일반적인 수면 패턴 관점에서만 조언해줘.
+                딱딱한 보고서 말투 말고, 부모님을 다독이듯 따뜻하고 부드러운 말투로 써줘.
                 """.formatted(
                 ageInMonths,
                 Math.abs(analysis.trendMinutesPerDay()),
-                analysis.trendMinutesPerDay() >= 0 ? "늘어나는 추세야" : "줄어드는 추세야",
+                analysis.trendMinutesPerDay() >= 0 ? "증가" : "감소",
                 analysis.guidelineMinHours(),
                 analysis.guidelineMaxHours(),
                 analysis.averageTotalHours(),
