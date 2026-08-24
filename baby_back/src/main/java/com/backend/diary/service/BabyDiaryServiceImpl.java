@@ -4,6 +4,7 @@ import com.backend.babyInfo.mapper.BabyInfoMapper;
 import com.backend.diary.domain.BabyDiary;
 import com.backend.diary.dto.BabyDiaryDTO;
 import com.backend.diary.mapper.BabyDiaryMapper;
+import com.backend.global.ai.DiaryVisionClient;
 import com.backend.global.ai.OllamaClient;
 import com.backend.global.dto.PageRequestDTO;
 import com.backend.global.dto.PageResponseDTO;
@@ -34,7 +35,7 @@ public class BabyDiaryServiceImpl implements BabyDiaryService{
 
     private final CustomFileUtil customFileUtil;
 
-    private final OllamaClient ollamaClient;
+    private final DiaryVisionClient diaryVisionClient;
 
     private static final String DIARY_PROMPT =
             "너는 부모를 대신해서 아기 사진을 보고 육아일기를 써주는 역할이야. "
@@ -155,7 +156,7 @@ public class BabyDiaryServiceImpl implements BabyDiaryService{
             throw new RuntimeException("이미지 파일을 읽는 중 오류가 발생했습니다.", e);
         }
 
-        return ollamaClient.chatWithImageForDiary(DIARY_PROMPT, imageBytes);
+        return diaryVisionClient.generateDiaryContent(imageBytes);
 
     }
 

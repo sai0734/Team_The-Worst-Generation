@@ -3,6 +3,7 @@ package com.backend.sleep.service;
 import com.backend.babyInfo.domain.BabyInfo;
 import com.backend.babyInfo.mapper.BabyInfoMapper;
 import com.backend.global.ai.OllamaClient;
+import com.backend.global.ai.SleepAiClient;
 import com.backend.sleep.domain.BabySleep;
 import com.backend.sleep.dto.BabySleepDTO;
 import com.backend.sleep.mapper.BabySleepMapper;
@@ -16,11 +17,7 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
-import java.util.Map;
-import java.util.TreeMap;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -34,6 +31,8 @@ public class BabySleepServiceImpl implements BabySleepService {
     private final BabyInfoMapper babyInfoMapper;
 
     private final OllamaClient ollamaClient;
+
+    private final SleepAiClient sleepAiClient;
 
     private final ModelMapper modelMapper;
 
@@ -152,32 +151,50 @@ public class BabySleepServiceImpl implements BabySleepService {
             }
         }
 
-        StringBuilder summary = new StringBuilder();
+        List<SleepAiClient.DailyTotal> dailyTotals = new ArrayList<>();
         for (Map.Entry<LocalDate, int[]> entry : dailyMinutes.entrySet()) {
             LocalDate date = entry.getKey();
+            int[] totals = entry.getValue();
+            dailyTotals.add(new SleepAiClient.DailyTotal(
+                    date.toString(),
+                    totals[0],
+                    totals[1],
+                    recordedDates.contains(date)
+            ));
+        }
 
-            if (!recordedDates.contains(date)) {
-                summary.append(date).append(": 기록 없음\n");
-                continue;
-            }
+        SleepAiClient.AnalysisResult analysis = sleepAiClient.analyze((int) ageInMonths, dailyTotals);
 
-            int nap = entry.getValue()[0];
-            int night = entry.getValue()[1];
-            summary.append(date)
-                    .append(": 낮잠 ").append(nap / 60).append("시간 ").append(nap % 60).append("분, ")
-                    .append("밤잠 ").append(night / 60).append("시간 ").append(night % 60).append("분\n");
+        String anomalyText;
+        if (!"READY".equals(analysis.modelStatus())) {
+            anomalyText = "이상치 탐지 모델이 아직 준비되지 않아 이 부분은 참고하지 마.";
+        } else if (analysis.anomalyDates().isEmpty()) {
+            anomalyText = "특별히 눈에 띄는 이상치는 없었어.";
+        } else {
+            anomalyText = "다음 날짜에 평소와 다른 수면 패턴이 감지됐어: " + String.join(", ", analysis.anomalyDates());
         }
 
         String prompt = """
                 너는 육아 지원 서비스의 수면 코치야.
-                아래는 생후 %d개월 아기의 최근 7일간 수면 기록이야.
-                "기록 없음"으로 표시된 날은 부모가 기록을 남기지 않은 것뿐이니, 수면이 없었다고 판단하지 말고 조언에서 제외해줘.
+                아래는 생후 %d개월 아기의 최근 수면 분석 결과야.
 
-                %s
+                - 수면시간 추세: 하루당 %.1f분 %s
+                - 이 개월수 권장 수면시간: %.1f~%.1f시간
+                - 최근 평균 수면시간: %.1f시간
+                - %s
 
-                이 수면 패턴을 보고 부모에게 도움이 되는 조언을 3~4문장으로 짧게 해줘.
+                이 분석 결과를 보고 부모에게 도움이 되는 조언을 3~4문장으로 짧게 해줘.
                 의학적 진단이나 확정적인 판단은 하지 말고, 일반적인 수면 패턴 관점에서만 조언해줘.
-                """.formatted(ageInMonths, summary.toString());
+                딱딱한 보고서 말투 말고, 부모님을 다독이듯 따뜻하고 부드러운 말투로 써줘.
+                """.formatted(
+                ageInMonths,
+                Math.abs(analysis.trendMinutesPerDay()),
+                analysis.trendMinutesPerDay() >= 0 ? "증가" : "감소",
+                analysis.guidelineMinHours(),
+                analysis.guidelineMaxHours(),
+                analysis.averageTotalHours(),
+                anomalyText
+        );
 
         return ollamaClient.chat(prompt);
 

@@ -1,9 +1,20 @@
+--extra-index-url https://download.pytorch.org/whl/cu126
 fastapi
 uvicorn
 pydantic
 pandas
 scikit-learn
 joblib
+torch
+torchvision
+transformers
+Pillow
+accelerate
+moviepy
+numpy
+uroman
+scipy
+
 chromadb
 sentence-transformers
 requests
