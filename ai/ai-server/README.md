@@ -11,14 +11,14 @@ Spring Boot와 분리해서 실행하는 Python FastAPI 서버입니다.
   실제 문장과 배경은 아이 정보에 맞춰 새로 생성합니다.
 - 한 이야기에는 중심 목표 하나, 아이와 말하는 친구 한 명만 둡니다.
 
-- SHORT, MEDIUM, LONG: 로컬 Ollama LLM으로 동화 생성
-- Python: 입력 검증, 길이 제어, 결과 구조 검사, 로컬 TTS 처리
+- 모든 동화: 로컬 Ollama LLM으로 7~8장면, 800~1,000자의 기승전결 이야기 생성
+- Python: 입력 검증, 고정 분량 제어, 결과 구조·최소 분량 검사, 로컬 TTS 처리
 - TTS: Supertonic 3 한국어 ONNX 모델로 인터넷 없이 WAV 생성
 - TTS fallback: Supertonic 오류 시 Piper로 자동 전환
 - 아이 이름, 취향, 좋아하는 물건 원문은 로그에 기록하지 않음
 
 하드코딩된 동화 문장은 사용하지 않습니다.
-길이별 차이는 LLM 프롬프트의 장면 수와 목표 글자 수로 제어합니다.
+별도의 길이 선택 없이 모든 동화를 같은 장편 생성 규칙으로 만듭니다.
 
 ## 실행
 
@@ -49,8 +49,7 @@ POST http://127.0.0.1:5000/api/v1/stories/tts/synthesize
   "ageMonths": 36,
   "interests": ["토끼", "우주"],
   "favoriteItems": ["분홍 인형"],
-  "theme": "BEDTIME",
-  "length": "SHORT"
+  "theme": "BEDTIME"
 }
 ~~~
 

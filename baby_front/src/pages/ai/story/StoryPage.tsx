@@ -3,7 +3,7 @@ import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import type { BabyInfo } from "../../../api/babyInfoApi";
 import * as babyInfoApi from "../../../api/babyInfoApi";
-import { generateStory, synthesizeStory, type StoryGenerateResponse, type StoryLength, type StoryTheme } from "../../../api/storyApi";
+import { generateStory, synthesizeStory, type StoryGenerateResponse, type StoryTheme } from "../../../api/storyApi";
 import StoryLoading from "../../../components/story/StoryLoading";
 import { setCurrentBaby } from "../../../slices/babySlice";
 import "../../../styles/story.css";
@@ -13,9 +13,6 @@ const THEMES: { value: StoryTheme; label: string; icon: string }[] = [
   { value: "BEDTIME", label: "포근한 잠자리", icon: "☾" }, { value: "ADVENTURE", label: "신나는 모험", icon: "✦" },
   { value: "FRIENDSHIP", label: "다정한 우정", icon: "♡" }, { value: "HABIT", label: "좋은 습관", icon: "♧" },
   { value: "FAMILY", label: "따뜻한 가족", icon: "⌂" },
-];
-const LENGTHS: { value: StoryLength; label: string; hint: string }[] = [
-  { value: "SHORT", label: "짧게", hint: "약 3분" }, { value: "MEDIUM", label: "적당히", hint: "약 5분" }, { value: "LONG", label: "길게", hint: "약 8분" },
 ];
 const ageInMonths = (birthDate: string) => {
   const birth = new Date(birthDate); const today = new Date();
@@ -29,7 +26,7 @@ const StoryPage = () => {
   const dispatch = useDispatch(); const navigate = useNavigate();
   const [babies, setBabies] = useState<BabyInfo[]>([]); const [selectedBabyNo, setSelectedBabyNo] = useState<number>();
   const [preferences, setPreferences] = useState(""); const [theme, setTheme] = useState<StoryTheme>("BEDTIME");
-  const [length, setLength] = useState<StoryLength>("SHORT"); const [pageState, setPageState] = useState<PageState>("form");
+  const [pageState, setPageState] = useState<PageState>("form");
   const [story, setStory] = useState<StoryGenerateResponse | null>(null); const [error, setError] = useState("");
   const [audioUrl, setAudioUrl] = useState(""); const [audioLoading, setAudioLoading] = useState(false);
 
@@ -46,7 +43,7 @@ const StoryPage = () => {
     if (!selectedBaby) return;
     setError(""); setStory(null); setPageState("loading"); dispatch(setCurrentBaby(selectedBaby));
     try {
-      setStory(await generateStory({ babyName: selectedBaby.babyName, ageMonths: ageInMonths(selectedBaby.birthDate), interests: splitPreferences(preferences), favoriteItems: [], theme, length }));
+      setStory(await generateStory({ babyName: selectedBaby.babyName, ageMonths: ageInMonths(selectedBaby.birthDate), interests: splitPreferences(preferences), favoriteItems: [], theme }));
     } catch { setError("이야기 요정이 잠시 길을 잃었어요. 잠시 후 다시 시도해 주세요."); setPageState("form"); }
   };
   const finishLoading = useCallback(() => setPageState("result"), []);
@@ -79,9 +76,8 @@ const StoryPage = () => {
         </div>
         <div className="story-field"><div className="story-label"><b>2</b><div><h2>좋아하는 것과 관심사</h2><p>쉼표로 나누어 최대 8개까지 적을 수 있어요.</p></div></div><textarea value={preferences} onChange={(event) => setPreferences(event.target.value)} maxLength={320} placeholder="예: 토끼, 우주, 분홍 인형, 공룡" /></div>
         <div className="story-field"><div className="story-label"><b>3</b><div><h2>어떤 이야기를 만들까요?</h2><p>오늘 아이에게 들려주고 싶은 분위기를 골라 주세요.</p></div></div><div className="story-themes">{THEMES.map((item) => <button type="button" key={item.value} className={theme === item.value ? "is-selected" : ""} onClick={() => setTheme(item.value)}><i>{item.icon}</i>{item.label}</button>)}</div></div>
-        <div className="story-field story-length-field"><div className="story-label"><b>4</b><div><h2>이야기 길이</h2><p>함께 읽을 시간에 맞춰 골라 주세요.</p></div></div><div className="story-lengths">{LENGTHS.map((item) => <button type="button" key={item.value} className={length === item.value ? "is-selected" : ""} onClick={() => setLength(item.value)}><strong>{item.label}</strong><small>{item.hint}</small></button>)}</div></div>
         {error && <p className="story-error" role="alert">{error}</p>}
-        <button type="button" className="story-create-button" disabled={!selectedBaby} onClick={handleCreate}><span>✦</span> {selectedBaby?.babyName ?? "아이"}의 동화 세계 만들기</button>
+        <button type="button" className="story-create-button" disabled={!selectedBaby} onClick={handleCreate}><span>✦</span> 이야기 생성하기</button>
       </section><p className="story-asset-credit">Book illustration: Openclipart · j4p4n</p>
     </main>
   );

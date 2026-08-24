@@ -2,5 +2,5 @@
 setlocal
 chcp 65001 > nul
 cd /d "%~dp0"
-python -u run-dev.py %*
+python -u run-dev.py --restart %*
 exit /b %errorlevel%

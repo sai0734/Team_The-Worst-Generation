@@ -23,8 +23,7 @@ class StoryServiceTests {
                 121,
                 List.of(),
                 List.of(),
-                "BEDTIME",
-                "SHORT"
+                "BEDTIME"
         );
 
         assertThrows(

@@ -3,7 +3,6 @@ import jwtAxios from "../util/jwtUtil";
 const STORY_HOST = "http://localhost:8080/api/stories";
 
 export type StoryTheme = "BEDTIME" | "ADVENTURE" | "FRIENDSHIP" | "HABIT" | "FAMILY";
-export type StoryLength = "SHORT" | "MEDIUM" | "LONG";
 
 export interface StoryGenerateRequest {
   babyName: string;
@@ -11,7 +10,6 @@ export interface StoryGenerateRequest {
   interests: string[];
   favoriteItems: string[];
   theme: StoryTheme;
-  length: StoryLength;
 }
 
 export interface StoryGenerateResponse {

@@ -7,12 +7,6 @@ from pydantic import BaseModel, ConfigDict, Field, StringConstraints
 ShortText = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=40)]
 
 
-class StoryLength(str, Enum):
-    SHORT = "SHORT"
-    MEDIUM = "MEDIUM"
-    LONG = "LONG"
-
-
 class StoryTheme(str, Enum):
     BEDTIME = "BEDTIME"
     ADVENTURE = "ADVENTURE"
@@ -40,7 +34,6 @@ class StoryGenerateRequest(BaseModel):
         max_length=8,
     )
     theme: StoryTheme = StoryTheme.BEDTIME
-    length: StoryLength = StoryLength.SHORT
 
 
 class StoryGenerateResponse(BaseModel):

@@ -42,8 +42,7 @@ class StoryAiLiveIntegrationTests {
                         36,
                         List.of("토끼", "우주"),
                         List.of("분홍 인형"),
-                        "BEDTIME",
-                        "SHORT"
+                        "BEDTIME"
                 )
         );
         StoryAudioDTO audio = client.synthesize(
@@ -51,8 +50,8 @@ class StoryAiLiveIntegrationTests {
         );
 
         assertEquals("LLM", story.generationMode());
-        assertTrue(story.characterCount() > 0);
-        assertTrue(story.sceneCount() > 0);
+        assertTrue(story.characterCount() >= 800);
+        assertTrue(story.sceneCount() >= 7);
         assertEquals(
                 "RIFF",
                 new String(

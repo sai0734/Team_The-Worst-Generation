@@ -5,7 +5,6 @@ from unittest.mock import patch
 from app.schemas.story import (
     StoryGenerateRequest,
     StoryGenerationMode,
-    StoryLength,
     StoryTheme,
 )
 from app.services.story_generation_service import (
@@ -25,19 +24,11 @@ class FakeStoryGenerationService:
 
     def generate(self, request: StoryGenerateRequest) -> GeneratedStory:
         self.requests.append(request)
-        scene_counts = {
-            StoryLength.SHORT: 5,
-            StoryLength.MEDIUM: 7,
-            StoryLength.LONG: 10,
-        }
         return GeneratedStory(
             title=f"{request.baby_name}의 맞춤 동화",
             scenes=[
                 f"{request.baby_name}의 이야기 장면 {number}"
-                for number in range(
-                    1,
-                    scene_counts[request.length] + 1,
-                )
+                for number in range(1, 8)
             ],
         )
 
@@ -57,26 +48,20 @@ class FakeHttpResponse:
 
 
 class StoryServiceTests(unittest.TestCase):
-    def test_every_length_uses_llm_generation(self) -> None:
+    def test_story_uses_single_llm_generation_profile(self) -> None:
         generator = FakeStoryGenerationService()
         service = StoryService(generation_service=generator)
 
-        for length in StoryLength:
-            with self.subTest(length=length):
-                result = service.generate(
-                    self._request(length)
-                )
-
-                self.assertEqual(
-                    StoryGenerationMode.LLM,
-                    result.generation_mode,
-                )
-                self.assertIn("서윤", result.content)
+        result = service.generate(self._request())
 
         self.assertEqual(
-            list(StoryLength),
-            [request.length for request in generator.requests],
+            StoryGenerationMode.LLM,
+            result.generation_mode,
         )
+        self.assertIn("서윤", result.content)
+        self.assertEqual(7, result.scene_count)
+        self.assertEqual(1, len(generator.requests))
+
 
     def test_status_exposes_llm_model(self) -> None:
         status = StoryService(
@@ -87,22 +72,21 @@ class StoryServiceTests(unittest.TestCase):
         self.assertEqual(StoryGenerationMode.LLM, status.generation_mode)
         self.assertEqual("test-story-model", status.model)
 
-    def test_prompt_applies_length_rule(self) -> None:
+    def test_prompt_applies_single_long_story_rule(self) -> None:
         generator = StoryGenerationService(enabled=True)
 
-        short_prompt = generator._prompt(self._request(StoryLength.SHORT))
-        long_prompt = generator._prompt(self._request(StoryLength.LONG))
+        prompt = generator._prompt(self._request())
 
-        self.assertIn('# 유아 맞춤형 고품질 동화 생성 프롬프트', short_prompt)
-        self.assertIn('`5`개 이상 `6`개 이하', short_prompt)
-        self.assertIn('`300`자 이상 `800`자 이하', short_prompt)
-        self.assertIn('`10`개 이상 `14`개 이하', long_prompt)
-        self.assertIn('`1400`자 이상 `2800`자 이하', long_prompt)
-        self.assertIn('서윤이는', short_prompt)
-        self.assertIn('서윤이가', short_prompt)
-        self.assertIn('토끼와 거북이', short_prompt)
-        self.assertNotIn('{topic}', short_prompt)
-        self.assertNotIn('{사건 단계 목록}', short_prompt)
+        self.assertIn('# 유아 맞춤형 고품질 동화 생성 프롬프트', prompt)
+        self.assertIn('`7`개 이상 `8`개 이하', prompt)
+        self.assertIn('`800`자 이상 `1000`자 이하', prompt)
+        self.assertIn('최소 115자 이상', prompt)
+        self.assertIn('기승전결', prompt)
+        self.assertIn('서윤이는', prompt)
+        self.assertIn('서윤이가', prompt)
+        self.assertIn('토끼와 거북이', prompt)
+        self.assertNotIn('{topic}', prompt)
+        self.assertNotIn('{사건 단계 목록}', prompt)
 
     def test_consonant_ending_name_forms(self) -> None:
         forms = StoryGenerationService(enabled=True)._name_forms('서윤')
@@ -133,7 +117,7 @@ class StoryServiceTests(unittest.TestCase):
 
     def test_prompt_uses_classic_blueprint_and_name_forms(self) -> None:
         generator = StoryGenerationService(enabled=True)
-        prompt = generator._prompt(self._request(StoryLength.MEDIUM))
+        prompt = generator._prompt(self._request())
         self.assertIn('토끼와 거북이', prompt)
         self.assertIn('서윤이는', prompt)
         self.assertIn('서윤이가', prompt)
@@ -160,16 +144,16 @@ class StoryServiceTests(unittest.TestCase):
             StoryGenerationError,
             "STORY_LLM_DISABLED",
         ):
-            generator.generate(self._request(StoryLength.SHORT))
+            generator.generate(self._request())
 
-    def test_structured_story_does_not_trigger_legacy_constraints(self) -> None:
+    def test_too_short_story_is_retried_then_rejected(self) -> None:
         generator = StoryGenerationService(enabled=True)
         response = {
             'response': json.dumps(
                 {
                     'title': '새 프롬프트 동화',
                     'characters': ['서윤', '토끼'],
-                    'scenes': ['짧지만 구조가 올바른 장면'] * 5,
+                    'scenes': ['짧지만 구조가 올바른 장면'] * 4,
                 },
                 ensure_ascii=False,
             )
@@ -178,11 +162,59 @@ class StoryServiceTests(unittest.TestCase):
             'app.services.story_generation_service.urlopen',
             return_value=FakeHttpResponse(response),
         ) as urlopen_mock:
-            result = generator.generate(
-                self._request(StoryLength.SHORT)
+            with self.assertRaisesRegex(
+                StoryGenerationError,
+                "STORY_LLM_STORY_TOO_FEW_SCENES",
+            ):
+                generator.generate(self._request())
+        self.assertEqual(2, urlopen_mock.call_count)
+        first_request = urlopen_mock.call_args_list[0].args[0]
+        retry_request = urlopen_mock.call_args_list[1].args[0]
+        first_payload = json.loads(first_request.data.decode("utf-8"))
+        retry_payload = json.loads(retry_request.data.decode("utf-8"))
+        self.assertIs(False, first_payload["think"])
+        self.assertEqual(8192, first_payload["options"]["num_ctx"])
+        self.assertEqual(7, first_payload["format"]["properties"]["scenes"]["minItems"])
+        self.assertEqual(115, first_payload["format"]["properties"]["scenes"]["items"]["minLength"])
+        self.assertIn("확장할 초안", retry_payload["prompt"])
+        self.assertIn("짧지만 구조가 올바른 장면", retry_payload["prompt"])
+
+    def test_short_draft_is_expanded_and_returned(self) -> None:
+        generator = StoryGenerationService(enabled=True)
+        short_response = {
+            "response": json.dumps(
+                {
+                    "title": "짧은 초안",
+                    "characters": ["서윤", "토끼"],
+                    "scenes": ["짧은 장면"] * 5,
+                },
+                ensure_ascii=False,
             )
-        self.assertEqual('새 프롬프트 동화', result.title)
-        self.assertEqual(1, urlopen_mock.call_count)
+        }
+        expanded_response = {
+            "response": json.dumps(
+                {
+                    "title": "충분히 확장된 동화",
+                    "characters": ["서윤", "토끼"],
+                    "scenes": self._dialogue_story_scenes() * 3,
+                },
+                ensure_ascii=False,
+            )
+        }
+
+        with patch(
+            "app.services.story_generation_service.urlopen",
+            side_effect=[
+                FakeHttpResponse(short_response),
+                FakeHttpResponse(expanded_response),
+            ],
+        ) as urlopen_mock:
+            result = generator.generate(self._request())
+
+        self.assertEqual("충분히 확장된 동화", result.title)
+        self.assertGreaterEqual(len(result.scenes), 7)
+        self.assertGreaterEqual(generator._content_length(result), 800)
+        self.assertEqual(2, urlopen_mock.call_count)
 
     def test_invalid_llm_json_is_rejected(self) -> None:
         generator = StoryGenerationService(enabled=True)
@@ -195,7 +227,7 @@ class StoryServiceTests(unittest.TestCase):
                 StoryGenerationError,
                 "STORY_LLM_STORY_JSON_INVALID",
             ):
-                generator.generate(self._request(StoryLength.SHORT))
+                generator.generate(self._request())
 
     def test_invalid_json_is_retried_once(self) -> None:
         generator = StoryGenerationService(enabled=True)
@@ -204,7 +236,7 @@ class StoryServiceTests(unittest.TestCase):
                 {
                     "title": "복구된 동화",
                     "characters": ["서윤", "토끼"],
-                    "scenes": self._dialogue_story_scenes(),
+                    "scenes": self._dialogue_story_scenes() * 3,
                 },
                 ensure_ascii=False,
             )
@@ -217,9 +249,7 @@ class StoryServiceTests(unittest.TestCase):
                 FakeHttpResponse(valid_response),
             ],
         ) as urlopen_mock:
-            result = generator.generate(
-                self._request(StoryLength.SHORT)
-            )
+            result = generator.generate(self._request())
 
         self.assertEqual("복구된 동화", result.title)
         self.assertEqual(2, urlopen_mock.call_count)
@@ -244,7 +274,7 @@ class StoryServiceTests(unittest.TestCase):
             return_value=FakeHttpResponse(response),
         ):
             result = generator._request_story(
-                self._request(StoryLength.SHORT),
+                self._request(),
                 "test prompt",
             )
 
@@ -276,14 +306,14 @@ class StoryServiceTests(unittest.TestCase):
             return_value=FakeHttpResponse(response),
         ):
             result = generator._request_story(
-                self._request(StoryLength.SHORT),
+                self._request(),
                 "test prompt",
             )
 
-        self.assertEqual(5, len(result.scenes))
+        self.assertEqual(7, len(result.scenes))
         self.assertIn("서윤이는", result.scenes[0])
 
-    def test_too_many_scenes_are_merged_without_llm_retry(self) -> None:
+    def test_scenes_within_fixed_limit_are_kept(self) -> None:
         generator = StoryGenerationService(enabled=True)
         response = {
             "response": json.dumps(
@@ -303,11 +333,11 @@ class StoryServiceTests(unittest.TestCase):
             return_value=FakeHttpResponse(response),
         ):
             result = generator._request_story(
-                self._request(StoryLength.SHORT),
+                self._request(),
                 "test prompt",
             )
 
-        self.assertEqual(6, len(result.scenes))
+        self.assertEqual(8, len(result.scenes))
         self.assertTrue(
             all(scene.strip() for scene in result.scenes)
         )
@@ -413,14 +443,13 @@ class StoryServiceTests(unittest.TestCase):
             ),
         ]
 
-    def _request(self, length: StoryLength) -> StoryGenerateRequest:
+    def _request(self) -> StoryGenerateRequest:
         return StoryGenerateRequest(
             babyName="서윤",
             ageMonths=36,
             interests=["토끼", "우주"],
             favoriteItems=["분홍 인형"],
             theme=StoryTheme.BEDTIME,
-            length=length,
         )
 
 

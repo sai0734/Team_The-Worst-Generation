@@ -65,14 +65,14 @@ class StoryAiClientTests {
                         36,
                         List.of("토끼"),
                         List.of("분홍 인형"),
-                        "BEDTIME",
-                        "SHORT"
+                        "BEDTIME"
                 )
         );
 
         JsonNode sent = objectMapper.readTree(requestBody.get());
         assertEquals("서윤", sent.path("babyName").asText());
         assertEquals("토끼", sent.path("interests").get(0).asText());
+        assertEquals(true, sent.path("length").isMissingNode());
         assertEquals("story_test", result.storyId());
         assertEquals(5, result.sceneCount());
     }
@@ -121,8 +121,7 @@ class StoryAiClientTests {
                         36,
                         List.of(),
                         List.of(),
-                        "BEDTIME",
-                        "SHORT"
+                        "BEDTIME"
                 ))
         );
 

@@ -20,10 +20,6 @@ public class StoryServiceImpl implements StoryService {
     private static final Set<String> THEMES = Set.of(
             "BEDTIME", "ADVENTURE", "FRIENDSHIP", "HABIT", "FAMILY"
     );
-    private static final Set<String> LENGTHS = Set.of(
-            "SHORT", "MEDIUM", "LONG"
-    );
-
     private final StoryAiClient storyAiClient;
 
     @Override
@@ -33,12 +29,11 @@ public class StoryServiceImpl implements StoryService {
         validateGenerateRequest(requestDTO);
         log.info(
                 "STORY_GENERATE_REQUESTED ageMonths={} interests={} "
-                        + "favoriteItems={} theme={} length={}",
+                        + "favoriteItems={} theme={}",
                 requestDTO.ageMonths(),
                 requestDTO.interests().size(),
                 requestDTO.favoriteItems().size(),
-                requestDTO.theme(),
-                requestDTO.length()
+                requestDTO.theme()
         );
         return storyAiClient.generate(requestDTO);
     }
@@ -84,9 +79,6 @@ public class StoryServiceImpl implements StoryService {
         }
         if (!THEMES.contains(requestDTO.theme())) {
             throw new IllegalArgumentException("STORY_THEME_INVALID");
-        }
-        if (!LENGTHS.contains(requestDTO.length())) {
-            throw new IllegalArgumentException("STORY_LENGTH_INVALID");
         }
     }
 }
