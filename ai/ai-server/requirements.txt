@@ -4,4 +4,6 @@ pydantic
 pandas
 scikit-learn
 joblib
-
+chromadb
+sentence-transformers
+requests

@@ -7,7 +7,9 @@ import com.backend.assistant.dto.AssistRecommendRequest;
 import com.backend.assistant.dto.AssistRecommendresponse;
 import com.backend.assistant.mapper.AssistSnapshotMapper;
 import com.backend.assistant.provider.AssistDataProvider;
+import com.backend.assistant.util.AssistRegionNames;
 import com.backend.global.ai.OpenClawClient;
+import com.backend.global.ai.RagClient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,6 +29,7 @@ public class AssistantServiceImpl implements AssistantService {
     private final List<AssistDataProvider> providers;
     private final OpenClawClient openClawClient;
     private final AssistSnapshotMapper snapshotMapper;
+    private final RagClient ragClient;
 
     @Value("${data.go.kr.service-key:}")
     private String dataGoKrKey;
@@ -47,6 +50,15 @@ public class AssistantServiceImpl implements AssistantService {
             }
         }
 
+        if (wanted.contains("SUBSIDY")) {
+            Integer subsidyMonths = request.getChild() != null ? request.getChild().getBabyMonths() : null;
+            String subsidySido = AssistRegionNames.sido(
+                    request.getChild() != null ? request.getChild().getRegionSido() : "");
+            List<AssistItemDTO> subsidies = ragClient.search(subsidyMonths == null ? 0 : subsidyMonths, subsidySido);
+            log.info("provider=RagClient category=SUBSIDY count={}", subsidies.size());
+            items.addAll(subsidies);
+        }
+
         String sido = request.getChild() != null ? request.getChild().getRegionSido() : null;
         String sigungu = request.getChild() != null ? request.getChild().getRegionSigungu() : null;
         String region = ((sido == null ? "" : sido) + " " + (sigungu == null ? "" : sigungu)).trim();
@@ -64,15 +76,7 @@ public class AssistantServiceImpl implements AssistantService {
                     .build();
         }
 
-        int age = (months == null) ? 0 : months;
-        List<AssistItemDTO> ranked = openClawClient.pick(age, region, babyName, gender, items);
-        if (ranked == null) {
-            log.warn("OpenClaw 실패, 공공 API 목록을 그대로 사용");
-        } else if (ranked.isEmpty()) {
-            log.warn("OpenClaw가 항목을 모두 걸러 공공 API 목록을 유지");
-        } else {
-            items = ranked;
-        }
+
 
         String answer;
         if (items.isEmpty()) {
@@ -88,6 +92,19 @@ public class AssistantServiceImpl implements AssistantService {
         return AssistRecommendresponse.builder()
                 .answer(answer)
                 .items(items)
+                .build();
+    }
+
+    @Override
+    public AssistRecommendresponse ask(AssistRecommendRequest request) {
+        int months = request.getChild() != null && request.getChild().getBabyMonths() != null
+                ? request.getChild().getBabyMonths() : 0;
+        String sido = AssistRegionNames.sido(
+                request.getChild() != null ? request.getChild().getRegionSido() : "");
+        RagClient.AskResult result = ragClient.ask(request.getQuery(), months, sido);
+        return AssistRecommendresponse.builder()
+                .answer(result.answer())
+                .items(result.sources())
                 .build();
     }
 

@@ -74,4 +74,11 @@ export const assistantApi = {
     const res = await jwtAxios.post(`${prefix}/refresh`);
     return res.data;
   },
+
+  ask: async (
+    payload: AssistRecommendRequest,
+  ): Promise<AssistRecommendResponse> => {
+    const res = await jwtAxios.post(`${prefix}/ask`, payload);
+    return res.data;
+  },
 };
