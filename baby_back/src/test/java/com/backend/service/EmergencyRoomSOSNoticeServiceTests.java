@@ -55,7 +55,7 @@ class EmergencyRoomSOSNoticeServiceTests {
                 .thenReturn(
                         MessageMissionResultDTO.builder()
                                 .missionId("msg_sos")
-                                .status(MissionStatus.DRY_RUN)
+                                .status(MissionStatus.SUCCESS)
                                 .accepted(true)
                                 .to("01012345678")
                                 .build()
@@ -120,7 +120,6 @@ class EmergencyRoomSOSNoticeServiceTests {
                         MissionMetadataDTO.builder()
                                 .missionId("msg_sos")
                                 .source(MissionSource.SOS)
-                                .dryRun(true)
                                 .requestedBy("user@example.com")
                                 .build()
                 )

@@ -9,6 +9,7 @@ import os
 import re
 import subprocess
 import sys
+from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any
 
@@ -19,8 +20,10 @@ DEFAULT_PORT = 8787
 sent_by_mission_id: dict[str, dict[str, Any]] = {}
 
 
-def env_flag(name: str) -> bool:
-    return os.environ.get(name, "").strip().lower() in {"1", "true", "yes"}
+def log_event(event: str, **fields: Any) -> None:
+    timestamp = datetime.now(timezone.utc).isoformat()
+    details = " ".join(f"{key}={value}" for key, value in fields.items())
+    print(f"{timestamp} {event} {details}".rstrip(), flush=True)
 
 
 def require_key() -> str:
@@ -35,10 +38,6 @@ def normalize_phone(value: str) -> str:
 
 
 def send_sms(to: str, content: str) -> None:
-    if env_flag("SMS_BRIDGE_DRY_RUN"):
-        print(f"[DRY_RUN] to={to} content={content}", flush=True)
-        return
-
     completed = subprocess.run(
         ["termux-sms-send", "-n", to, content],
         capture_output=True,
@@ -72,13 +71,17 @@ class SmsBridgeHandler(BaseHTTPRequestHandler):
         if auth.startswith("Bearer "):
             provided = provided or auth[7:]
         if not hmac.compare_digest(provided, self.bridge_key):
+            log_event(
+                "SMS_BRIDGE_UNAUTHORIZED",
+                remoteAddress=self.client_address[0],
+            )
             self._send_json(401, {"error": "UNAUTHORIZED"})
             return True
         return False
 
     def do_GET(self) -> None:
         if self.path.rstrip("/") == "/health":
-            self._send_json(200, {"ok": True, "dryRun": env_flag("SMS_BRIDGE_DRY_RUN")})
+            self._send_json(200, {"ok": True, "mode": "LIVE"})
             return
         self._send_json(404, {"error": "NOT_FOUND"})
 
@@ -114,28 +117,48 @@ class SmsBridgeHandler(BaseHTTPRequestHandler):
             self._send_json(400, {"error": "INVALID_CONTENT"})
             return
 
+        log_event(
+            "SMS_BRIDGE_REQUEST_RECEIVED",
+            missionId=mission_id,
+            contentLength=len(content),
+            mode="LIVE_ONLY",
+        )
+
         previous = sent_by_mission_id.get(mission_id)
         if previous:
+            log_event("SMS_BRIDGE_CACHE_HIT", missionId=mission_id)
             self._send_json(200, previous)
             return
 
         try:
+            log_event("TERMUX_SMS_SEND_START", missionId=mission_id)
             send_sms(to, content)
         except FileNotFoundError:
+            log_event(
+                "TERMUX_SMS_SEND_FAILED",
+                missionId=mission_id,
+                reason="TERMUX_SMS_SEND_NOT_FOUND",
+            )
             self._send_json(503, {"error": "TERMUX_SMS_SEND_NOT_FOUND"})
             return
         except RuntimeError as error:
+            log_event(
+                "TERMUX_SMS_SEND_FAILED",
+                missionId=mission_id,
+                reason=str(error),
+            )
             self._send_json(502, {"error": "SMS_SEND_FAILED", "detail": str(error)})
             return
 
         result = {
             "missionId": mission_id,
             "provider": "ANDROID_SMS",
-            "status": "DRY_RUN" if env_flag("SMS_BRIDGE_DRY_RUN") else "SUCCESS",
+            "status": "SUCCESS",
             "accepted": True,
             "to": to,
         }
         sent_by_mission_id[mission_id] = result
+        log_event("TERMUX_SMS_SEND_SUCCESS", missionId=mission_id)
         self._send_json(200, result)
 
 
@@ -144,8 +167,11 @@ def main() -> None:
     port = int(os.environ.get("ANDROID_SMS_BRIDGE_PORT", DEFAULT_PORT))
     SmsBridgeHandler.bridge_key = key
     server = ThreadingHTTPServer(("0.0.0.0", port), SmsBridgeHandler)
-    mode = "DRY_RUN" if env_flag("SMS_BRIDGE_DRY_RUN") else "LIVE"
-    print(f"Android SMS bridge listening on 0.0.0.0:{port} ({mode})", flush=True)
+    log_event(
+        "SMS_BRIDGE_STARTED",
+        bind=f"0.0.0.0:{port}",
+        mode="LIVE_ONLY",
+    )
     server.serve_forever()
 
 
