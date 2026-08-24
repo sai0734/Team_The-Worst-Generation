@@ -1,3 +1,4 @@
+--extra-index-url https://download.pytorch.org/whl/cu126
 fastapi
 uvicorn
 pydantic
@@ -6,7 +7,17 @@ scikit-learn
 joblib
 torch
 torchvision
+<<<<<<< HEAD
 pillow
+=======
+transformers
+Pillow
+accelerate
+moviepy
+numpy
+uroman
+scipy
+>>>>>>> 2f14158b84edfe377ad95dbd9c4b384e281aad5d
 
 chromadb
 sentence-transformers

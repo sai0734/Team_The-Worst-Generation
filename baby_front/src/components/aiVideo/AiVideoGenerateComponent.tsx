@@ -1,4 +1,4 @@
-import { DragEvent, useEffect, useRef, useState } from "react";
+import { DragEvent, useEffect, useState } from "react";
 import { BabyDiary } from "../../api/diaryApi";
 import * as diaryApi from "../../api/diaryApi";
 import * as aiVideoApi from "../../api/aiVideoApi";
@@ -14,20 +14,12 @@ const AiVideoGenerateComponent = ({ diary }: AiVideoGenerateProps) => {
   const [isDragOver, setIsDragOver] = useState(false);
   const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
-  const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useEffect(() => {
     setVideoPhoto(null);
     setVideoPhotoPreview(null);
     setVideoUrl(null);
     setIsGenerating(false);
-
-    return () => {
-      if (pollIntervalRef.current) {
-        clearInterval(pollIntervalRef.current);
-        pollIntervalRef.current = null;
-      }
-    };
   }, [diary?.diaryNo]);
 
   const applyVideoPhoto = (file: File | null) => {
@@ -47,34 +39,6 @@ const AiVideoGenerateComponent = ({ diary }: AiVideoGenerateProps) => {
     return null;
   };
 
-  const pollStatus = (taskId: string) => {
-    const intervalId = setInterval(async () => {
-      try {
-        const result = await aiVideoApi.checkStatus(taskId);
-
-        if (result.status === "succeed") {
-          clearInterval(intervalId);
-          pollIntervalRef.current = null;
-          setVideoUrl(result.videoUrl);
-          setIsGenerating(false);
-        } else if (result.status === "failed") {
-          clearInterval(intervalId);
-          pollIntervalRef.current = null;
-          alert("영상 생성에 실패했습니다.");
-          setIsGenerating(false);
-        }
-      } catch (err) {
-        clearInterval(intervalId);
-        pollIntervalRef.current = null;
-        alert("상태 확인 중 오류가 발생했습니다.");
-        console.error(err);
-        setIsGenerating(false);
-      }
-    }, 5000);
-
-    pollIntervalRef.current = intervalId;
-  };
-
   const handleGenerate = async () => {
     if (!diary) return;
 
@@ -88,11 +52,12 @@ const AiVideoGenerateComponent = ({ diary }: AiVideoGenerateProps) => {
     setVideoUrl(null);
 
     try {
-      const { taskId } = await aiVideoApi.generate(diary.content, imageFile);
-      pollStatus(taskId);
+      const result = await aiVideoApi.generateFallback(diary.content, imageFile);
+      setVideoUrl(aiVideoApi.getViewUrl(result.fileName));
     } catch (err) {
-      alert("영상 생성 요청에 실패했습니다.");
+      alert("영상 생성에 실패했습니다.");
       console.error(err);
+    } finally {
       setIsGenerating(false);
     }
   };

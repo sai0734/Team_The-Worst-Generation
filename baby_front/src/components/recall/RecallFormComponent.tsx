@@ -147,6 +147,9 @@ const RecallFormComponent = () => {
             disabled={ocrLoading}
           />
           <p className="photo-hint">
+            {ocrLoading && (
+              <span className="h-3 w-3 flex-shrink-0 animate-spin rounded-full border-2 border-black/10 border-t-[#005bb2] mr-1.5 inline-block align-middle" />
+            )}
             {ocrLoading
               ? "사진에서 정보를 읽는 중입니다..."
               : "촬영하면 제품명·브랜드·모델명·인증번호를 자동으로 채워드려요"}
@@ -194,7 +197,15 @@ const RecallFormComponent = () => {
           정확한 리콜 확인을 위해 브랜드명·모델명·인증번호 중 최소 하나는 입력해주세요.
         </p>
 
-        <button type="submit" className="submit-btn" disabled={submitting}>
+        <button
+          type="submit"
+          className="submit-btn"
+          disabled={submitting}
+          style={{ display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 7 }}
+        >
+          {submitting && (
+            <span className="h-3 w-3 flex-shrink-0 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+          )}
           {submitting
             ? isEdit
               ? "수정 중..."

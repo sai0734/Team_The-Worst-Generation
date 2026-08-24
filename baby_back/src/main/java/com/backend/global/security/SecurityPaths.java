@@ -27,6 +27,7 @@ public final class SecurityPaths {
           "/api/recall/my-products/view/**",
           "/ws-chat/**",
           "/api/cry-check/files/**",
+          "/api/ai-video/view/**",
   };
 
   private static final AntPathMatcher PATH_MATCHER = new AntPathMatcher();
