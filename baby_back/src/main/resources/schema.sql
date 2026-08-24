@@ -1080,6 +1080,10 @@ CREATE TABLE IF NOT EXISTS tbl_homecam_safe_zone (
     CONSTRAINT fk_homecam_safe_zone_email FOREIGN KEY (email) REFERENCES tbl_member (email)
     );
 
+-- 홈캠 안전영역 이탈 감지용 기준(baseline) 이미지 임베딩 - 파이썬 AI서버가 만든 벡터를 JSON 배열 텍스트로 저장
+ALTER TABLE tbl_homecam_safe_zone ADD COLUMN IF NOT EXISTS baseline_embedding LONGTEXT NULL;
+ALTER TABLE tbl_homecam_safe_zone ADD COLUMN IF NOT EXISTS embedding_model_version VARCHAR(100) NULL;
+
 -- LJW 끝
 -- YSJ 추가 정부지원금 3시 배치
 CREATE TABLE IF NOT EXISTS tbl_assist_snapshot (

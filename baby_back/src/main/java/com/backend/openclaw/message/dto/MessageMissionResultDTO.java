@@ -15,7 +15,7 @@ public class MessageMissionResultDTO {
     // 요청한 문자 미션 ID
     private String missionId;
 
-    // DRY_RUN, SUCCESS, FAILED
+    // SUCCESS, FAILED
     private MissionStatus status;
 
     // OpenClaw가 요청을 처리했는지 여부

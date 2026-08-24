@@ -70,4 +70,3 @@ class EmergencyModelStatusResponse(BaseModel):
 
     status: Literal["NOT_TRAINED", "READY"]
     model_path: str = Field(alias="modelPath")
-

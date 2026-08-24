@@ -43,14 +43,14 @@ class MessageMissionDispatchServiceTests {
     }
 
     @Test
-    void dispatchDryRunMissionSuccessfully() {
+    void dispatchMissionSuccessfully() {
         MessageMissionDTO mission = createMission();
 
         when(openClawMessageClient.dispatchMission(mission))
                 .thenReturn(
                         objectMapper.createObjectNode()
                                 .put("missionId", "msg_test")
-                                .put("status", "DRY_RUN")
+                                .put("status", "SUCCESS")
                                 .put("accepted", true)
                                 .put("to", "01012345678")
                 );
@@ -71,7 +71,7 @@ class MessageMissionDispatchServiceTests {
                 result.getMissionId()
         );
         assertEquals(
-                MissionStatus.DRY_RUN,
+                MissionStatus.SUCCESS,
                 result.getStatus()
         );
         assertTrue(result.isAccepted());
@@ -89,7 +89,7 @@ class MessageMissionDispatchServiceTests {
                 .thenReturn(
                         objectMapper.createObjectNode()
                                 .put("missionId", "msg_other")
-                                .put("status", "DRY_RUN")
+                                .put("status", "SUCCESS")
                                 .put("accepted", true)
                 );
 
@@ -145,7 +145,6 @@ class MessageMissionDispatchServiceTests {
                         .schemaVersion(1)
                         .missionId("msg_test")
                         .source(MissionSource.SOS)
-                        .dryRun(true)
                         .requestedBy("tester@example.com")
                         .requestedAt(Instant.now())
                         .build();

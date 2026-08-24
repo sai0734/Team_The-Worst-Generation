@@ -19,4 +19,3 @@ class EmergencyModelService:
             status=status,
             model_path=str(self.model_path),
         )
-

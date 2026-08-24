@@ -81,21 +81,66 @@ Gateway Token은 최초 온보딩 후 다음 파일의 `gateway.auth.token`에�
 
 실제 키는 README나 Git에 저장하지 않습니다.
 
+## Windows에서 안정적으로 실행
+
+다른 PC에서는 먼저 한 번만 초기 설정을 실행합니다.
+
+```bat
+openclaw\setup-openclaw.cmd
+```
+
+`launch`를 바로 실행해도 설정 누락을 검사하고 필요한 초기 설정을 자동 복구합니다.
+프로젝트 `.env`의 `OPENCLAW_GATEWAY_TOKEN`이 비어 있거나 잘못된 값이면
+64자리 난수 토큰을 생성하고 Gateway 설정에도 같은 값을 적용합니다.
+
+CMD 창과 무관하게 계속 실행하려면 Windows 예약 작업 서비스를 설치합니다.
+
+```bat
+openclaw\setup-openclaw.cmd install-service
+```
+
+운영 확인 명령:
+
+```bat
+openclaw\setup-openclaw.cmd status
+openclaw\setup-openclaw.cmd doctor
+openclaw\setup-openclaw.cmd restart-service
+```
+
+`doctor`는 portable Node, Ollama 모델, Gateway 설정,
+`message-dispatcher` 에이전트, `android-sms` 플러그인과 연결 상태를 확인합니다.
+서비스는 프로젝트의 `.env`를 다시 읽기 때문에 실제 문자 브리지 URL과 키도
+CMD 창의 임시 환경변수에 의존하지 않습니다.
+
 ## Android 문자 테스트 단계
 
-안드로이드폰을 연결하기 전에는 `dryRun=true`로 실행합니다.
+문자 테스트도 항상 실제 안드로이드 SMS 브리지를 거칩니다.
 
 ```text
-백엔드 → OpenClaw Agent → android_sms_send → DRY_RUN
+백엔드 → OpenClaw Agent → android_sms_send → Android SMS 브리지 → 실제 문자
 ```
 
 브리지 스크립트는 `plugins/android-sms/bridge/sms_bridge.py` 에 있습니다.
-폰 테스트가 끝나면 Termux에서 이 스크립트를 켜고, PC에 아래 값을 넣습니다.
+Termux에서 이 스크립트를 켜고, PC에 아래 값을 넣습니다.
 
 ```env
 ANDROID_SMS_BRIDGE_URL=http://폰IP:8787
 ANDROID_SMS_BRIDGE_KEY=
 ```
 
-백엔드 `dryRun=false`는 브리지가 연결된 뒤에만 바꿉니다.
+브리지가 연결되지 않았거나 설정값이 없으면 발송은 실패로 반환됩니다.
 상세 절차는 `plugins/android-sms/README.md`를 참고하세요.
+
+## 문자 발송 로그 확인
+
+문자 흐름은 모든 단계에서 같은 `missionId`를 기록합니다.
+
+- 백엔드: 기본 `baby_back/logs/baby-back.log`
+- OpenClaw: `%LOCALAPPDATA%\Temp\openclaw\openclaw-YYYY-MM-DD.log`
+- 안드로이드 Termux: 기본 `~/sms-bridge.log`
+
+백엔드 로그 경로는 `BACKEND_LOG_FILE`, 휴대폰 로그 경로는
+`SMS_BRIDGE_LOG_FILE` 환경변수로 바꿀 수 있습니다.
+
+다른 컴퓨터에서 실패하면 백엔드 로그의 `missionId`를 복사하여
+OpenClaw 로그와 휴대폰 로그에서 같은 값을 검색합니다.

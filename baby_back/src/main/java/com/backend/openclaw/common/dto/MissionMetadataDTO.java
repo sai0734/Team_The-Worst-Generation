@@ -23,10 +23,6 @@ public class MissionMetadataDTO {
     // 이거는 어느 기능에서 준건지 알기 위함
     private MissionSource source;
 
-    // 실제 발송 여부를 결정하는 안전 장치(false 면 실제 문자 or 전화 실행)
-    @Builder.Default
-    private boolean dryRun = true;
-
     // 누가 요청했는지
     private String requestedBy;
 

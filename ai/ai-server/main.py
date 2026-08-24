@@ -1,7 +1,9 @@
-from fastapi import FastAPI
-from app.routers import emergency, subsidy, recall
-from app.routers import health as health_router
+import logging
+import os
 
+from fastapi import FastAPI
+from app.routers import emergency, homecam, recall, story, subsidy
+from app.routers import health as health_router
 
 from app.routers import sleep
 
@@ -9,9 +11,14 @@ from app.routers import diary
 
 from app.routers import video
 
+logging.basicConfig(
+    level=os.environ.get("AI_LOG_LEVEL", "INFO").upper(),
+    format="%(asctime)s %(levelname)s %(name)s %(message)s",
+)
+
 app = FastAPI(
     title="BabyCare AI Server",
-    version="0.1.0",
+    version="0.2.0",
 )
 
 
@@ -23,6 +30,18 @@ app.include_router(
     emergency.router,
     prefix="/api/v1/emergency",
     tags=["emergency"],
+)
+
+app.include_router(
+    story.router,
+    prefix="/api/v1/stories",
+    tags=["stories"],
+)
+
+app.include_router(
+    homecam.router,
+    prefix="/api/v1/homecam",
+    tags=["homecam"],
 )
 
 app.include_router(
@@ -60,4 +79,3 @@ app.include_router(
     prefix="/api/v1/recall",
     tags=["recall"],
 )
-

@@ -26,6 +26,11 @@ public class EmergencyRoomSOSNoticeServiceImpl
             String notificationPhone,
             String memberEmail
     ) {
+        log.info(
+                "SOS_NOTICE_SCHEDULED hospitalId={}, mode=LIVE_ONLY",
+                hospital.getHospitalId()
+        );
+
         CompletableFuture.runAsync(
                 () -> sendGuardianNotice(hospital, notificationPhone, memberEmail)
         );
@@ -36,6 +41,8 @@ public class EmergencyRoomSOSNoticeServiceImpl
             String notificationPhone,
             String memberEmail
     ) {
+        String missionId = "<not-created>";
+
         try {
             var mission = messageMissionService.createMission(
                     MessageRequestDTO.builder()
@@ -45,20 +52,31 @@ public class EmergencyRoomSOSNoticeServiceImpl
                             .build(),
                     memberEmail
             );
+            missionId = mission.getMetadata().getMissionId();
+
+            log.info(
+                    "SOS_NOTICE_DISPATCH_START hospitalId={}, missionId={}",
+                    hospital.getHospitalId(),
+                    missionId
+            );
 
             var result = messageMissionDispatchService.dispatch(mission);
 
             log.info(
-                    "SOS notice dispatched: hospitalId={}, missionId={}, status={}",
+                    "SOS_NOTICE_DISPATCH_SUCCESS hospitalId={}, missionId={}, "
+                            + "status={}, accepted={}",
                     hospital.getHospitalId(),
                     result.getMissionId(),
-                    result.getStatus()
+                    result.getStatus(),
+                    result.isAccepted()
             );
         } catch (Exception exception) {
-            log.warn(
-                    "SOS notice failed: hospitalId={}, reason={}",
+            log.error(
+                    "SOS_NOTICE_DISPATCH_FAILED hospitalId={}, missionId={}, reason={}",
                     hospital.getHospitalId(),
-                    exception.getMessage()
+                    missionId,
+                    exception.getMessage(),
+                    exception
             );
         }
     }

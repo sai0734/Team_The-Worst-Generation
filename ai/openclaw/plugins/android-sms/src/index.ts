@@ -8,7 +8,7 @@ import { defineToolPlugin } from "openclaw/plugin-sdk/tool-plugin";
 type MessageMissionResult = {
   missionId: string;
   provider: "ANDROID_SMS";
-  status: "DRY_RUN" | "SUCCESS";
+  status: "SUCCESS";
   accepted: true;
   to: string;
 };
@@ -20,12 +20,15 @@ type AndroidSmsToolOptions = {
 
 const resultByMissionId = new Map<string, MessageMissionResult>();
 
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
 const missionMetadataSchema = Type.Object(
   {
     schemaVersion: Type.Integer({ minimum: 1 }),
     missionId: Type.String({ minLength: 1, maxLength: 128 }),
     source: Type.String({ minLength: 1, maxLength: 64 }),
-    dryRun: Type.Boolean(),
     requestedBy: Type.String({ minLength: 1, maxLength: 255 }),
     requestedAt: Type.String({ format: "date-time" }),
   },
@@ -119,7 +122,7 @@ async function sendThroughBridge(
   const payload = (await response.json()) as Partial<MessageMissionResult>;
   if (
     payload.provider !== "ANDROID_SMS" ||
-    (payload.status !== "SUCCESS" && payload.status !== "DRY_RUN") ||
+    payload.status !== "SUCCESS" ||
     payload.accepted !== true ||
     payload.to !== mission.to
   ) {
@@ -142,6 +145,12 @@ export function createAndroidSmsTool(
   const request = options.fetch ?? fetch;
   const env = options.env ?? process.env;
 
+  console.info(
+    "[android-sms] TOOL_CONFIGURED mode=LIVE_ONLY " +
+      `bridgeUrlConfigured=${Boolean(env.ANDROID_SMS_BRIDGE_URL?.trim())} ` +
+      `bridgeKeyConfigured=${Boolean(env.ANDROID_SMS_BRIDGE_KEY?.trim())}`,
+  );
+
   return {
     name: "android_sms_send",
     label: "Android SMS Send",
@@ -156,27 +165,40 @@ export function createAndroidSmsTool(
       const previousResult = resultByMissionId.get(missionId);
 
       if (previousResult) {
+        console.info(
+          `[android-sms] CACHE_HIT missionId=${missionId} ` +
+            `repeatedInCurrentRun=${repeatedInCurrentRun}`,
+        );
         returnedMissionIds.add(missionId);
         return missionResult(previousResult, repeatedInCurrentRun);
       }
 
-      const result = mission.metadata.dryRun
-        ? {
-            missionId,
-            provider: "ANDROID_SMS" as const,
-            status: "DRY_RUN" as const,
-            accepted: true as const,
-            to: mission.to,
-          }
-        : await sendThroughBridge(
-            mission,
-            { fetch: request, env },
-            signal,
-          );
+      const startedAt = Date.now();
+      console.info(
+        `[android-sms] SEND_START missionId=${missionId} mode=LIVE_ONLY`,
+      );
 
-      resultByMissionId.set(missionId, result);
-      returnedMissionIds.add(missionId);
-      return missionResult(result);
+      try {
+        const result = await sendThroughBridge(
+          mission,
+          { fetch: request, env },
+          signal,
+        );
+
+        resultByMissionId.set(missionId, result);
+        returnedMissionIds.add(missionId);
+        console.info(
+          `[android-sms] SEND_SUCCESS missionId=${missionId} ` +
+            `status=${result.status} elapsedMs=${Date.now() - startedAt}`,
+        );
+        return missionResult(result);
+      } catch (error) {
+        console.error(
+          `[android-sms] SEND_FAILED missionId=${missionId} ` +
+            `reason=${errorMessage(error)} elapsedMs=${Date.now() - startedAt}`,
+        );
+        throw error;
+      }
     },
   };
 }

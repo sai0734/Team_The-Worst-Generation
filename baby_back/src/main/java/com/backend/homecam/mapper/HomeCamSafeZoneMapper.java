@@ -13,4 +13,8 @@ public interface HomeCamSafeZoneMapper {
 
     void update(HomeCamSafeZone zone);
 
+    void updateBaseline(@Param("email") String email,
+                         @Param("baselineEmbedding") String baselineEmbedding,
+                         @Param("embeddingModelVersion") String embeddingModelVersion);
+
 }

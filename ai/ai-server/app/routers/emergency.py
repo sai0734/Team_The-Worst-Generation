@@ -12,4 +12,3 @@ model_service = EmergencyModelService()
 def get_model_status() -> EmergencyModelStatusResponse:
     """Return whether a trained emergency model artifact is available."""
     return model_service.get_status()
-

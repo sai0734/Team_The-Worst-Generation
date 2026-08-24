@@ -230,8 +230,15 @@ const CryCheckRecorderComponent = ({ onAnalyzed }: CryCheckRecorderProps) => {
         onClick={handleAnalyze}
         disabled={analyzing || !hasSource || recording}
       >
+        {analyzing && <span className="cry-check-spinner" aria-hidden="true" />}
         {analyzing ? "분석 중..." : "분석하기"}
       </button>
+
+      {analyzing && (
+        <p className="cry-check-analyzing-hint">
+          AI가 울음소리를 분석하고 있어요. 몇 초 정도 걸릴 수 있어요.
+        </p>
+      )}
 
       {result && <CryCheckResultView item={result} />}
     </div>

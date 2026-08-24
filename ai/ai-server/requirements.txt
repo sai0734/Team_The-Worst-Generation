@@ -14,7 +14,8 @@ moviepy
 numpy
 uroman
 scipy
-
 chromadb
 sentence-transformers
 requests
+piper-tts==1.7.0
+sherpa-onnx==1.13.6
