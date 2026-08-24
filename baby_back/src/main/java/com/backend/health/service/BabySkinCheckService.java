@@ -1,7 +1,7 @@
 package com.backend.health.service;
 
 import com.backend.babyInfo.mapper.BabyInfoMapper;
-import com.backend.global.ai.OllamaClient;
+import com.backend.health.ai.PythonVisionClient;
 import com.backend.health.domain.BabySkinCheck;
 import com.backend.health.mapper.BabySkinCheckMapper;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +15,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class BabySkinCheckService implements BabySkinCheckServiceImpl {
 
-    private final OllamaClient ollamaClient;
+    private final PythonVisionClient visionClient;
     private final BabySkinCheckMapper babySkinCheckMapper;
     private final BabyInfoMapper babyInfoMapper;
 
@@ -37,7 +37,7 @@ public class BabySkinCheckService implements BabySkinCheckServiceImpl {
 
         byte[] imageBytes = readImageBytes(image);
 
-        String aiResult = ollamaClient.chatWithImage(PROMPT, imageBytes);
+        String aiResult = visionClient.chatWithImage(PROMPT, imageBytes);
 
         BabySkinCheck babySkinCheck = new BabySkinCheck();
         babySkinCheck.setBabyNo(babyNo);

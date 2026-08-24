@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 
 from app.routers import emergency
+from app.routers import health as health_router
 
 
 app = FastAPI(
@@ -20,3 +21,8 @@ app.include_router(
     tags=["emergency"],
 )
 
+app.include_router(
+    health_router.router,
+    prefix="/api/v1/health",
+    tags=["health"],
+)
