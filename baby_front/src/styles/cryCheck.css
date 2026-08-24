@@ -69,6 +69,33 @@
 .app .cry-check-analyze-btn {
   margin-top: 14px;
   width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.app .cry-check-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-top-color: #fff;
+  border-radius: 50%;
+  display: inline-block;
+  animation: cry-check-spin 0.7s linear infinite;
+}
+
+@keyframes cry-check-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.app .cry-check-analyzing-hint {
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--muted);
+  text-align: center;
 }
 
 .app .cry-check-result {

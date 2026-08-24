@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.backend.global.ai.RecallMatchAiClient;
 import com.backend.recall.domain.DomesticRecallConditionKey;
 import com.backend.recall.domain.ForeignRecallConditionKey;
 import com.backend.recall.domain.MyProduct;
@@ -27,11 +28,16 @@ import lombok.extern.log4j.Log4j2;
 @RequiredArgsConstructor
 public class MyProductServiceImpl implements MyProductService {
 
+    // 이 점수 이상이어야 "같은 제품"으로 인정 (사전학습 문장 임베딩 코사인 유사도 기준)
+    private static final double AI_MATCH_SCORE_THRESHOLD = 0.75;
+
     private final MyProductMapper myProductMapper;
 
     private final RecallService recallService;
 
     private final RecallNoticeService recallNoticeService;
+
+    private final RecallMatchAiClient recallMatchAiClient;
 
     @Override
     public MyProductDTO register(String memberEmail, MyProductDTO dto) {
@@ -192,7 +198,9 @@ public class MyProductServiceImpl implements MyProductService {
             SafetyKoreaDomesticRecallDTO domesticHit = findBestMatch(
                 product, domestic,
                 SafetyKoreaDomesticRecallDTO::getRecallModelName,
-                SafetyKoreaDomesticRecallDTO::getRecallBrandName
+                SafetyKoreaDomesticRecallDTO::getRecallBrandName,
+                SafetyKoreaDomesticRecallDTO::getRecallProductName,
+                SafetyKoreaDomesticRecallDTO::getRecallUid
             );
 
             if (domesticHit != null) {
@@ -207,7 +215,9 @@ public class MyProductServiceImpl implements MyProductService {
             SafetyKoreaForeignRecallDTO foreignHit = findBestMatch(
                 product, foreign,
                 SafetyKoreaForeignRecallDTO::getRecallModelName,
-                SafetyKoreaForeignRecallDTO::getRecallBrandName
+                SafetyKoreaForeignRecallDTO::getRecallBrandName,
+                SafetyKoreaForeignRecallDTO::getRecallProductName,
+                SafetyKoreaForeignRecallDTO::getFRecallUid
             );
 
             if (foreignHit != null) {
@@ -234,14 +244,17 @@ public class MyProductServiceImpl implements MyProductService {
     /**
      * SafetyKorea 국내/해외 리콜 API의 recallProductName은 "유모차"처럼 카테고리성 일반명사인 경우가
      * 많아, 제품명만으로는 서로 다른 브랜드/모델의 리콜을 구분할 수 없다. 사용자가 모델명(우선) 또는
-     * 브랜드명을 입력했다면 그 값이 실제로 포함된 검색결과만 매칭으로 인정하고, 둘 다 없다면(구분할
-     * 정보가 전혀 없는 경우) 기존처럼 첫 번째 검색결과를 사용한다.
+     * 브랜드명을 입력했다면 그 값이 실제로 포함된 검색결과만 매칭으로 인정한다.
+     * 문자열이 정확히/부분적으로 일치하지 않으면(오타, 표기법 차이 등) 파이썬 AI 서버의 문장 임베딩
+     * 유사도 매칭으로 한 번 더 시도하고, 그래도 없으면(또는 구분 정보가 전혀 없으면) 첫 번째 결과를 쓴다.
      */
     private <T> T findBestMatch(
         MyProduct product,
         List<T> candidates,
         Function<T, String> modelExtractor,
-        Function<T, String> brandExtractor
+        Function<T, String> brandExtractor,
+        Function<T, String> titleExtractor,
+        Function<T, String> idExtractor
     ) {
         if (candidates.isEmpty()) {
             return null;
@@ -249,21 +262,60 @@ public class MyProductServiceImpl implements MyProductService {
 
         String model = normalize(product.getModelName());
         if (model != null) {
-            return candidates.stream()
+            T hit = candidates.stream()
                 .filter(c -> textMatches(model, normalize(modelExtractor.apply(c))))
                 .findFirst()
                 .orElse(null);
+            return hit != null ? hit : findBestMatchByAi(product, candidates, titleExtractor, brandExtractor, idExtractor);
         }
 
         String brand = normalize(product.getBrandName());
         if (brand != null) {
-            return candidates.stream()
+            T hit = candidates.stream()
                 .filter(c -> textMatches(brand, normalize(brandExtractor.apply(c))))
                 .findFirst()
                 .orElse(null);
+            return hit != null ? hit : findBestMatchByAi(product, candidates, titleExtractor, brandExtractor, idExtractor);
         }
 
         return candidates.get(0);
+    }
+
+    /**
+     * 문자열 일치로 못 찾았을 때의 마지막 시도. Python AI 서버(사전학습 문장 임베딩)에 등록 제품과
+     * 후보들의 유사도를 물어보고, 가장 점수가 높은 후보가 기준치를 넘으면 그걸 매칭으로 인정한다.
+     * AI 서버가 꺼져있거나 응답이 이상하면 IllegalStateException이 나는데, 이건 호출부(applyMatch)의
+     * catch에서 이미 "매칭 실패로 처리하고 넘어가기"로 처리하고 있어서 여기선 따로 안 잡는다.
+     */
+    private <T> T findBestMatchByAi(
+        MyProduct product,
+        List<T> candidates,
+        Function<T, String> titleExtractor,
+        Function<T, String> brandExtractor,
+        Function<T, String> idExtractor
+    ) {
+        List<RecallMatchAiClient.Candidate> aiCandidates = candidates.stream()
+            .map(c -> new RecallMatchAiClient.Candidate(idExtractor.apply(c), titleExtractor.apply(c), brandExtractor.apply(c)))
+            .collect(Collectors.toList());
+
+        RecallMatchAiClient.MatchResponse response = recallMatchAiClient.match(
+            product.getProductName(), product.getBrandName(), product.getModelName(), aiCandidates
+        );
+
+        if (!"READY".equals(response.modelStatus()) || response.matches().isEmpty()) {
+            return null;
+        }
+
+        RecallMatchAiClient.MatchResult best = response.matches().get(0);
+
+        if (best.score() < AI_MATCH_SCORE_THRESHOLD) {
+            return null;
+        }
+
+        return candidates.stream()
+            .filter(c -> best.recallId().equals(idExtractor.apply(c)))
+            .findFirst()
+            .orElse(null);
     }
 
     private String normalize(String s) {

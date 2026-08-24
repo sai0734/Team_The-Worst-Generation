@@ -1,11 +1,45 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, type CSSProperties } from "react";
 import type { ChangeEvent, FormEvent } from "react";
 import * as healthApi from "../../api/healthApi";
 import type { BabyStoolCheck } from "../../types/health";
+import { parseHealthCheckResult } from "../../util/healthResultParser";
 
 interface StoolCheckComponentProps {
   babyNo: number;
 }
+
+const resultRowStyle: CSSProperties = {
+  display: "grid",
+  gridTemplateColumns: "64px 1fr",
+  gap: 8,
+  alignItems: "start",
+};
+
+const resultLabelStyle: CSSProperties = {
+  fontSize: 12,
+  fontWeight: 700,
+  color: "var(--muted)",
+};
+
+const ResultBlock = ({ aiResult }: { aiResult?: string }) => {
+  const parsed = parseHealthCheckResult(aiResult ?? "");
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+      <div style={resultRowStyle}>
+        <span style={resultLabelStyle}>상태</span>
+        <span>{parsed.status}</span>
+      </div>
+      <div style={resultRowStyle}>
+        <span style={resultLabelStyle}>판정</span>
+        <span>{parsed.verdict}</span>
+      </div>
+      <div style={resultRowStyle}>
+        <span style={resultLabelStyle}>대처법</span>
+        <span>{parsed.action}</span>
+      </div>
+    </div>
+  );
+};
 
 const StoolCheckComponent = ({ babyNo }: StoolCheckComponentProps) => {
   const [image, setImage] = useState<File | null>(null);
@@ -75,9 +109,9 @@ const StoolCheckComponent = ({ babyNo }: StoolCheckComponentProps) => {
       {result && (
         <div className="card" style={{ marginTop: 16 }}>
           <p className="eyebrow">분석 결과</p>
-          <p style={{ marginTop: 8, whiteSpace: "pre-line" }}>
-            {result.aiResult}
-          </p>
+          <div style={{ marginTop: 8 }}>
+            <ResultBlock aiResult={result.aiResult} />
+          </div>
         </div>
       )}
 
@@ -98,10 +132,9 @@ const StoolCheckComponent = ({ babyNo }: StoolCheckComponentProps) => {
                 <p style={{ fontSize: 11, color: "var(--muted)" }}>
                   {item.regTime}
                 </p>
-                jgg
-                <p style={{ marginTop: 4, whiteSpace: "pre-line" }}>
-                  {item.aiResult}
-                </p>
+                <div style={{ marginTop: 4 }}>
+                  <ResultBlock aiResult={item.aiResult} />
+                </div>
               </div>
             ))}
           </div>

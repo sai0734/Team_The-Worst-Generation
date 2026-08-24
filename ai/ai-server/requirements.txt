@@ -1,7 +1,21 @@
+--extra-index-url https://download.pytorch.org/whl/cu126
 fastapi
 uvicorn
 pydantic
+pandas
+scikit-learn
+joblib
+torch
+torchvision
+transformers
+Pillow
+accelerate
+moviepy
+numpy
+uroman
+scipy
+chromadb
+sentence-transformers
+requests
 piper-tts==1.7.0
 sherpa-onnx==1.13.6
-numpy==2.5.2
-
