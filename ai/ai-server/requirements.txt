@@ -15,3 +15,6 @@ numpy
 uroman
 scipy
 
+chromadb
+sentence-transformers
+requests
