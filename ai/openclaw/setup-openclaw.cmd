@@ -4,7 +4,7 @@ chcp 65001 > nul
 
 set "NODE_VERSION=24.15.0"
 set "OPENCLAW_VERSION=2026.7.1-2"
-set "SETUP_REVISION=3"
+set "SETUP_REVISION=4"
 set "MODEL_NAME=parenting-qwen:8b"
 set "TOOLS_ROOT=%LOCALAPPDATA%\BabyCare\openclaw"
 set "NODE_ARCHIVE=node-v%NODE_VERSION%-win-x64"
@@ -187,7 +187,9 @@ powershell -NoProfile -ExecutionPolicy Bypass -Command ^
     "$agent = $config.agents.list | Where-Object { $_.id -eq 'message-dispatcher' } | Select-Object -First 1;" ^
     "if (-not $agent) { throw 'message-dispatcher agent not found' };" ^
     "if (-not $agent.tools) { $agent | Add-Member -NotePropertyName tools -NotePropertyValue ([pscustomobject]@{}) };" ^
-    "$agent.tools | Add-Member -NotePropertyName allow -NotePropertyValue @('android_sms_send') -Force;" ^
+    "if ($agent.tools.PSObject.Properties['allow']) { $agent.tools.PSObject.Properties.Remove('allow') };" ^
+    "$agent.tools | Add-Member -NotePropertyName profile -NotePropertyValue 'minimal' -Force;" ^
+    "$agent.tools | Add-Member -NotePropertyName alsoAllow -NotePropertyValue @('android_sms_send') -Force;" ^
     "$agent.tools | Add-Member -NotePropertyName loopDetection -NotePropertyValue ([pscustomobject]@{ enabled = $true }) -Force;" ^
     "$config | ConvertTo-Json -Depth 32 | Set-Content -LiteralPath $path -Encoding UTF8"
 if errorlevel 1 exit /b 1
@@ -325,7 +327,9 @@ powershell -NoProfile -ExecutionPolicy Bypass -Command ^
     "$agent=$config.agents.list | Where-Object { $_.id -eq 'message-dispatcher' } | Select-Object -First 1;" ^
     "if ($config.gateway.auth.mode -ne 'token' -or $config.gateway.auth.token -ne '%OPENCLAW_GATEWAY_TOKEN%') { exit 1 };" ^
     "if (-not $agent) { exit 1 };" ^
-    "if (-not ($agent.tools.allow -contains 'android_sms_send')) { exit 1 };" ^
+    "if ($agent.tools.PSObject.Properties['allow']) { exit 1 };" ^
+    "if ($agent.tools.profile -ne 'minimal') { exit 1 };" ^
+    "if (@($agent.tools.alsoAllow).Count -ne 1 -or -not ($agent.tools.alsoAllow -contains 'android_sms_send')) { exit 1 };" ^
     "if (-not $agent.tools.loopDetection.enabled) { exit 1 }"
 exit /b %errorlevel%
 
