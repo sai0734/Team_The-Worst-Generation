@@ -9,6 +9,8 @@ docker-compose.override.yml
 # OpenClaw 로컬 플러그인 생성물
 ai/openclaw/plugins/**/node_modules/
 ai/openclaw/plugins/**/dist/
+ai/ai-server/models/tts/
+ai/ai-server/generated/
 
 # IDE
 .idea

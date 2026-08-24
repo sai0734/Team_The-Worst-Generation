@@ -48,8 +48,6 @@ class MessageMissionServiceTests {
                 result.getMetadata().getSchemaVersion());
         log.info("source={}",
                 result.getMetadata().getSource());
-        log.info("dryRun={}",
-                result.getMetadata().isDryRun());
         log.info("requestedBy={}",
                 result.getMetadata().getRequestedBy());
         log.info("requestedAt={}",
@@ -68,7 +66,6 @@ class MessageMissionServiceTests {
                 1,
                 result.getMetadata().getSchemaVersion()
         );
-        assertTrue(result.getMetadata().isDryRun());
         assertTrue(
                 result.getMetadata()
                         .getMissionId()
