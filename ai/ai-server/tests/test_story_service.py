@@ -28,7 +28,7 @@ class FakeStoryGenerationService:
             title=f"{request.baby_name}의 맞춤 동화",
             scenes=[
                 f"{request.baby_name}의 이야기 장면 {number}"
-                for number in range(1, 8)
+                for number in range(1, 5)
             ],
         )
 
@@ -48,7 +48,7 @@ class FakeHttpResponse:
 
 
 class StoryServiceTests(unittest.TestCase):
-    def test_story_uses_single_llm_generation_profile(self) -> None:
+    def test_story_service_returns_four_generated_parts(self) -> None:
         generator = FakeStoryGenerationService()
         service = StoryService(generation_service=generator)
 
@@ -59,7 +59,7 @@ class StoryServiceTests(unittest.TestCase):
             result.generation_mode,
         )
         self.assertIn("서윤", result.content)
-        self.assertEqual(7, result.scene_count)
+        self.assertEqual(4, result.scene_count)
         self.assertEqual(1, len(generator.requests))
 
 
@@ -72,21 +72,26 @@ class StoryServiceTests(unittest.TestCase):
         self.assertEqual(StoryGenerationMode.LLM, status.generation_mode)
         self.assertEqual("test-story-model", status.model)
 
-    def test_prompt_applies_single_long_story_rule(self) -> None:
+    def test_first_part_prompt_applies_four_part_story_rule(self) -> None:
         generator = StoryGenerationService(enabled=True)
 
-        prompt = generator._prompt(self._request())
+        prompt = generator._serial_part_prompt(
+            request=self._request(),
+            part_number=1,
+            title="",
+            characters=[],
+            outline=[],
+            completed_parts=[],
+        )
 
-        self.assertIn('# 유아 맞춤형 고품질 동화 생성 프롬프트', prompt)
-        self.assertIn('`7`개 이상 `8`개 이하', prompt)
-        self.assertIn('`800`자 이상 `1000`자 이하', prompt)
-        self.assertIn('최소 115자 이상', prompt)
-        self.assertIn('기승전결', prompt)
+        self.assertIn('4부작', prompt)
+        self.assertIn('약 500자', prompt)
+        self.assertIn('430자 이상 650자 이하', prompt)
+        self.assertIn('기:', prompt)
         self.assertIn('서윤이는', prompt)
         self.assertIn('서윤이가', prompt)
         self.assertIn('토끼와 거북이', prompt)
-        self.assertNotIn('{topic}', prompt)
-        self.assertNotIn('{사건 단계 목록}', prompt)
+        self.assertIn('title, characters, outline, part', prompt)
 
     def test_consonant_ending_name_forms(self) -> None:
         forms = StoryGenerationService(enabled=True)._name_forms('서윤')
@@ -115,15 +120,39 @@ class StoryServiceTests(unittest.TestCase):
         self.assertIn('서윤이가 웃었어요', normalized)
         self.assertIn('서윤이와 걸었고 서윤아', normalized)
 
-    def test_prompt_uses_classic_blueprint_and_name_forms(self) -> None:
+    def test_serial_part_heading_is_removed_without_cutting_normal_word(self) -> None:
         generator = StoryGenerationService(enabled=True)
-        prompt = generator._prompt(self._request())
-        self.assertIn('토끼와 거북이', prompt)
-        self.assertIn('서윤이는', prompt)
-        self.assertIn('서윤이가', prompt)
-        self.assertIn('중심 목표를 하나 정한다', prompt)
-        self.assertIn('원작의 문장, 대사, 표현', prompt)
-        self.assertIn('"characters": ["서윤", "친구 이름"]', prompt)
+
+        with_heading = generator._normalize_serial_part(
+            "1부: 서윤이는 별빛 길을 걸었어요.\n\n토끼가 따라왔어요.",
+            "서윤",
+        )
+        normal_start = generator._normalize_serial_part(
+            "기분 좋은 아침에 서윤이는 문을 열었어요.",
+            "서윤",
+        )
+
+        self.assertEqual(
+            "서윤이는 별빛 길을 걸었어요. 토끼가 따라왔어요.",
+            with_heading,
+        )
+        self.assertTrue(normal_start.startswith("기분 좋은 아침"))
+
+    def test_continuation_prompt_contains_previous_part_and_outline(self) -> None:
+        generator = StoryGenerationService(enabled=True)
+        prompt = generator._serial_part_prompt(
+            request=self._request(),
+            part_number=2,
+            title="별빛 길의 약속",
+            characters=["서윤", "토끼"],
+            outline=["시작", "어려움", "위기 해결", "따뜻한 결말"],
+            completed_parts=["서윤이와 토끼가 별빛 길을 출발했어요."],
+        )
+        self.assertIn('별빛 길의 약속', prompt)
+        self.assertIn('서윤이와 토끼가 별빛 길을 출발했어요.', prompt)
+        self.assertIn('어려움', prompt)
+        self.assertIn('직전 부의 마지막 사건', prompt)
+        self.assertIn('part 필드만', prompt)
 
     def test_repeated_sentences_are_measured(self) -> None:
         generator = StoryGenerationService(enabled=True)
@@ -146,14 +175,15 @@ class StoryServiceTests(unittest.TestCase):
         ):
             generator.generate(self._request())
 
-    def test_too_short_story_is_retried_then_rejected(self) -> None:
+    def test_too_short_serial_part_is_retried_then_rejected(self) -> None:
         generator = StoryGenerationService(enabled=True)
         response = {
             'response': json.dumps(
                 {
                     'title': '새 프롬프트 동화',
                     'characters': ['서윤', '토끼'],
-                    'scenes': ['짧지만 구조가 올바른 장면'] * 4,
+                    'outline': ['시작', '어려움', '위기 해결', '결말'],
+                    'part': '너무 짧은 첫 번째 이야기',
                 },
                 ensure_ascii=False,
             )
@@ -164,7 +194,7 @@ class StoryServiceTests(unittest.TestCase):
         ) as urlopen_mock:
             with self.assertRaisesRegex(
                 StoryGenerationError,
-                "STORY_LLM_STORY_TOO_FEW_SCENES",
+                "STORY_LLM_PART_TOO_SHORT",
             ):
                 generator.generate(self._request())
         self.assertEqual(2, urlopen_mock.call_count)
@@ -174,47 +204,44 @@ class StoryServiceTests(unittest.TestCase):
         retry_payload = json.loads(retry_request.data.decode("utf-8"))
         self.assertIs(False, first_payload["think"])
         self.assertEqual(8192, first_payload["options"]["num_ctx"])
-        self.assertEqual(7, first_payload["format"]["properties"]["scenes"]["minItems"])
-        self.assertEqual(115, first_payload["format"]["properties"]["scenes"]["items"]["minLength"])
-        self.assertIn("확장할 초안", retry_payload["prompt"])
-        self.assertIn("짧지만 구조가 올바른 장면", retry_payload["prompt"])
+        self.assertEqual(430, first_payload["format"]["properties"]["part"]["minLength"])
+        self.assertEqual(650, first_payload["format"]["properties"]["part"]["maxLength"])
+        self.assertIn("이전 응답은 형식 또는 분량 조건", retry_payload["prompt"])
 
-    def test_short_draft_is_expanded_and_returned(self) -> None:
+    def test_short_first_part_is_retried_then_four_parts_are_returned(self) -> None:
         generator = StoryGenerationService(enabled=True)
         short_response = {
             "response": json.dumps(
                 {
                     "title": "짧은 초안",
                     "characters": ["서윤", "토끼"],
-                    "scenes": ["짧은 장면"] * 5,
+                    "outline": ["시작", "어려움", "위기 해결", "결말"],
+                    "part": "짧은 장면",
                 },
                 ensure_ascii=False,
             )
         }
-        expanded_response = {
-            "response": json.dumps(
-                {
-                    "title": "충분히 확장된 동화",
-                    "characters": ["서윤", "토끼"],
-                    "scenes": self._dialogue_story_scenes() * 3,
-                },
-                ensure_ascii=False,
-            )
-        }
+        serial_responses = [
+            self._serial_response(part_number)
+            for part_number in range(1, 5)
+        ]
 
         with patch(
             "app.services.story_generation_service.urlopen",
             side_effect=[
                 FakeHttpResponse(short_response),
-                FakeHttpResponse(expanded_response),
+                *[
+                    FakeHttpResponse(response)
+                    for response in serial_responses
+                ],
             ],
         ) as urlopen_mock:
             result = generator.generate(self._request())
 
-        self.assertEqual("충분히 확장된 동화", result.title)
-        self.assertGreaterEqual(len(result.scenes), 7)
-        self.assertGreaterEqual(generator._content_length(result), 800)
-        self.assertEqual(2, urlopen_mock.call_count)
+        self.assertEqual("네 번 이어지는 별빛 동화", result.title)
+        self.assertEqual(4, len(result.scenes))
+        self.assertTrue(all(len(part) >= 430 for part in result.scenes))
+        self.assertEqual(5, urlopen_mock.call_count)
 
     def test_invalid_llm_json_is_rejected(self) -> None:
         generator = StoryGenerationService(enabled=True)
@@ -231,28 +258,25 @@ class StoryServiceTests(unittest.TestCase):
 
     def test_invalid_json_is_retried_once(self) -> None:
         generator = StoryGenerationService(enabled=True)
-        valid_response = {
-            "response": json.dumps(
-                {
-                    "title": "복구된 동화",
-                    "characters": ["서윤", "토끼"],
-                    "scenes": self._dialogue_story_scenes() * 3,
-                },
-                ensure_ascii=False,
-            )
-        }
+        serial_responses = [
+            self._serial_response(part_number)
+            for part_number in range(1, 5)
+        ]
 
         with patch(
             "app.services.story_generation_service.urlopen",
             side_effect=[
                 FakeHttpResponse({"response": "unterminated {"}),
-                FakeHttpResponse(valid_response),
+                *[
+                    FakeHttpResponse(response)
+                    for response in serial_responses
+                ],
             ],
         ) as urlopen_mock:
             result = generator.generate(self._request())
 
-        self.assertEqual("복구된 동화", result.title)
-        self.assertEqual(2, urlopen_mock.call_count)
+        self.assertEqual("네 번 이어지는 별빛 동화", result.title)
+        self.assertEqual(5, urlopen_mock.call_count)
 
     def test_packed_scene_array_is_normalized(self) -> None:
         generator = StoryGenerationService(enabled=True)
@@ -413,6 +437,30 @@ class StoryServiceTests(unittest.TestCase):
         )
 
         self.assertEqual(2, len(story.characters))
+
+    def _serial_response(self, part_number: int) -> dict:
+        seed = (
+            f"서윤이와 토끼는 앞에서 이어진 사건을 따라 별빛 길을 걸었어요. "
+            f"두 친구는 {part_number}번째 약속을 기억하며 서로의 표정을 살폈어요. "
+            "바람과 나뭇잎 소리를 듣고 작은 단서를 발견하자 함께 방법을 의논했어요. "
+            "서윤이가 먼저 용기를 내자 토끼도 곁에서 힘을 보탰고 이야기는 다음 사건으로 자연스럽게 이어졌어요. "
+        )
+        part = (seed * 5)[:500]
+        payload: dict = {"part": part}
+        if part_number == 1:
+            payload.update(
+                title="네 번 이어지는 별빛 동화",
+                characters=["서윤", "토끼"],
+                outline=[
+                    "서윤이와 토끼가 별빛 숲의 약속을 따라 함께 출발한다.",
+                    "두 친구가 길을 막는 문제를 만나 단서를 차근차근 찾는다.",
+                    "서윤이가 앞에서 발견한 단서로 가장 큰 위기를 해결한다.",
+                    "두 친구가 약속을 지키고 따뜻한 집으로 돌아와 하루를 마친다.",
+                ],
+            )
+        return {
+            "response": json.dumps(payload, ensure_ascii=False),
+        }
 
     def _dialogue_story_scenes(self) -> list[str]:
         return [

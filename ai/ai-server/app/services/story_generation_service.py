@@ -50,6 +50,11 @@ STORY_RULES = (7, 8, 800, 1000)
 NUM_PREDICT = 4096
 NUM_CONTEXT = 8192
 DIALOGUE_RULES = (8, 14)
+SERIAL_PART_COUNT = 4
+SERIAL_PART_TARGET_CHARS = 500
+SERIAL_PART_MIN_CHARS = 430
+SERIAL_PART_MAX_CHARS = 650
+SERIAL_PART_NUM_PREDICT = 1536
 STORY_RESPONSE_FORMAT = {
     "type": "object",
     "properties": {
@@ -80,6 +85,55 @@ STORY_RESPONSE_FORMAT = {
         },
     },
     "required": ["title", "characters", "scenes"],
+    "additionalProperties": False,
+}
+FIRST_SERIAL_PART_RESPONSE_FORMAT = {
+    "type": "object",
+    "properties": {
+        "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 80,
+        },
+        "characters": {
+            "type": "array",
+            "minItems": 2,
+            "maxItems": 2,
+            "items": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 40,
+            },
+        },
+        "outline": {
+            "type": "array",
+            "minItems": SERIAL_PART_COUNT,
+            "maxItems": SERIAL_PART_COUNT,
+            "items": {
+                "type": "string",
+                "minLength": 15,
+                "maxLength": 180,
+            },
+        },
+        "part": {
+            "type": "string",
+            "minLength": SERIAL_PART_MIN_CHARS,
+            "maxLength": SERIAL_PART_MAX_CHARS,
+        },
+    },
+    "required": ["title", "characters", "outline", "part"],
+    "additionalProperties": False,
+}
+CONTINUATION_PART_RESPONSE_FORMAT = {
+    "type": "object",
+    "properties": {
+        "part": {
+            "type": "string",
+            "minLength": SERIAL_PART_MIN_CHARS,
+            "maxLength": SERIAL_PART_MAX_CHARS,
+        },
+    },
+    "required": ["part"],
     "additionalProperties": False,
 }
 DIALOGUE_PATTERN = re.compile(
@@ -249,59 +303,293 @@ class StoryGenerationService:
         if not self.enabled:
             raise StoryGenerationError("STORY_LLM_DISABLED")
 
-        initial_prompt = self._prompt(request)
-        prompt = initial_prompt
-        temperature = 0.65
+        title = ""
+        characters: list[str] = []
+        outline: list[str] = []
+        parts: list[str] = []
+
+        for part_number in range(1, SERIAL_PART_COUNT + 1):
+            result = self._generate_serial_part(
+                request=request,
+                part_number=part_number,
+                title=title,
+                characters=characters,
+                outline=outline,
+                completed_parts=parts,
+            )
+
+            if part_number == 1:
+                title = result["title"]
+                characters = result["characters"]
+                outline = result["outline"]
+
+            part = result["part"]
+            self._validate_serial_part(part, part_number)
+            parts.append(part)
+            logger.info(
+                "STORY_LLM_PART_GENERATED part=%d/%d chars=%d",
+                part_number,
+                SERIAL_PART_COUNT,
+                len(part),
+            )
+
+        generated = GeneratedStory(
+            title=title,
+            scenes=parts,
+            characters=characters,
+            story_pattern=self._select_story_blueprint(request).key,
+        )
+        self._validate_serial_story(generated)
+        return generated
+
+    def _generate_serial_part(
+        self,
+        request: StoryGenerateRequest,
+        part_number: int,
+        title: str,
+        characters: list[str],
+        outline: list[str],
+        completed_parts: list[str],
+    ) -> dict:
+        initial_prompt = self._serial_part_prompt(
+            request=request,
+            part_number=part_number,
+            title=title,
+            characters=characters,
+            outline=outline,
+            completed_parts=completed_parts,
+        )
+        response_format = (
+            FIRST_SERIAL_PART_RESPONSE_FORMAT
+            if part_number == 1
+            else CONTINUATION_PART_RESPONSE_FORMAT
+        )
         retryable_errors = {
             "STORY_LLM_STORY_JSON_INVALID",
             "STORY_LLM_STORY_STRUCTURE_INVALID",
             "STORY_LLM_RESPONSE_REQUIRED",
-            "STORY_LLM_STORY_TOO_FEW_SCENES",
-            "STORY_LLM_STORY_TOO_SHORT",
+            "STORY_LLM_PART_TOO_SHORT",
+            "STORY_LLM_PART_TOO_LONG",
         }
 
+        prompt = initial_prompt
         for attempt in range(2):
-            generated: GeneratedStory | None = None
             try:
-                generated = self._request_story(
-                    request,
+                result = self._request_json(
                     prompt,
-                    temperature=temperature,
+                    temperature=0.6 if attempt == 0 else 0.35,
+                    response_format=response_format,
+                    num_predict=SERIAL_PART_NUM_PREDICT,
                 )
-                self._validate_story_quality(generated)
-                return generated
+                parsed = self._parse_serial_part_result(
+                    request=request,
+                    part_number=part_number,
+                    result=result,
+                )
+                self._validate_serial_part(
+                    parsed["part"],
+                    part_number,
+                )
+                return parsed
             except StoryGenerationError as error:
-                reason = str(error)
-                if reason not in retryable_errors:
-                    raise
-                if (
-                    attempt == 1
-                    and reason == "STORY_LLM_STORY_TOO_SHORT"
-                    and generated is not None
-                ):
-                    enriched = self._add_scene_details(request, generated)
-                    self._validate_story_quality(enriched)
-                    return enriched
-                if attempt == 1:
+                if str(error) not in retryable_errors or attempt == 1:
                     raise
                 logger.warning(
-                    "STORY_LLM_RETRY attempt=%d reason=%s",
+                    "STORY_LLM_PART_RETRY part=%d attempt=%d reason=%s",
+                    part_number,
                     attempt + 1,
-                    reason,
+                    error,
                 )
-                if reason in {
-                    "STORY_LLM_STORY_TOO_FEW_SCENES",
-                    "STORY_LLM_STORY_TOO_SHORT",
-                } and generated is not None:
-                    prompt = self._expansion_prompt(request, generated)
-                    temperature = 0.55
-                else:
-                    prompt = initial_prompt + (
-                        " JSON 문자열의 따옴표와 괄호를 끝까지 닫아 유효한 JSON만 출력한다."
-                    )
-                    temperature = 0.2
+                prompt = initial_prompt + (
+                    "\n이전 응답은 형식 또는 분량 조건을 지키지 못했다. "
+                    f"part 본문을 반드시 {SERIAL_PART_MIN_CHARS}자 이상 "
+                    f"{SERIAL_PART_MAX_CHARS}자 이하로 완성하고, "
+                    "요청한 JSON 필드만 출력한다."
+                )
 
         raise StoryGenerationError("STORY_LLM_STORY_GENERATION_FAILED")
+
+    def _parse_serial_part_result(
+        self,
+        request: StoryGenerateRequest,
+        part_number: int,
+        result: dict,
+    ) -> dict:
+        part = result.get("part")
+        if not isinstance(part, str) or not part.strip():
+            raise StoryGenerationError(
+                "STORY_LLM_STORY_STRUCTURE_INVALID"
+            )
+
+        parsed: dict = {
+            "part": self._normalize_serial_part(
+                part,
+                request.baby_name,
+            )
+        }
+        if part_number != 1:
+            return parsed
+
+        title = result.get("title")
+        characters = result.get("characters")
+        outline = result.get("outline")
+        if (
+            not isinstance(title, str)
+            or not title.strip()
+            or not isinstance(characters, list)
+            or len(characters) != 2
+            or any(
+                not isinstance(character, str)
+                or not character.strip()
+                for character in characters
+            )
+            or request.baby_name not in characters
+            or not isinstance(outline, list)
+            or len(outline) != SERIAL_PART_COUNT
+            or any(
+                not isinstance(beat, str)
+                or not beat.strip()
+                for beat in outline
+            )
+        ):
+            raise StoryGenerationError(
+                "STORY_LLM_STORY_STRUCTURE_INVALID"
+            )
+
+        parsed.update(
+            title=title.strip(),
+            characters=[character.strip() for character in characters],
+            outline=[beat.strip() for beat in outline],
+        )
+        return parsed
+
+    def _serial_part_prompt(
+        self,
+        request: StoryGenerateRequest,
+        part_number: int,
+        title: str,
+        characters: list[str],
+        outline: list[str],
+        completed_parts: list[str],
+    ) -> str:
+        blueprint = self._select_story_blueprint(request)
+        forms = self._name_forms(request.baby_name)
+        profile = {
+            "babyName": request.baby_name,
+            "ageMonths": request.age_months,
+            "interests": request.interests,
+            "favoriteItems": request.favorite_items,
+            "theme": request.theme.value,
+        }
+        part_roles = {
+            1: "기: 주인공과 친구, 장소와 목표를 자연스럽게 소개하고 사건을 시작한다. 결말을 내지 않는다.",
+            2: "승: 1부의 사건 때문에 새로운 어려움이 생기고 두 인물이 해결을 시도한다. 앞 내용을 요약하지 않는다.",
+            3: "전: 가장 큰 위기가 일어나며 주인공이 1~2부의 단서와 좋아하는 것을 활용해 직접 해결한다.",
+            4: "결: 위기를 완전히 해결하고 앞서 나온 사건을 회수해 따뜻하고 만족스러운 결말로 끝낸다.",
+        }
+        common_rules = (
+            f"전체 4부 중 {part_number}부를 쓴다. "
+            f"part 본문은 공백 포함 약 {SERIAL_PART_TARGET_CHARS}자, "
+            f"반드시 {SERIAL_PART_MIN_CHARS}자 이상 "
+            f"{SERIAL_PART_MAX_CHARS}자 이하로 쓴다. "
+            "유아가 듣기 편한 자연스러운 한국어 동화 문체를 사용한다. "
+            "장면 번호, 소제목, 기·승·전·결 표시는 본문에 쓰지 않는다. "
+            "같은 문장을 반복하지 않고 행동, 대화, 감각 묘사를 함께 사용한다. "
+            f"주인공 이름 조사는 {forms.topic}, {forms.subject}, "
+            f"{forms.object}, {forms.vocative} 형태를 문맥에 맞게 사용한다. "
+            "고전동화의 문장이나 대사를 복사하지 않고 사건 구조만 참고한다."
+        )
+
+        if part_number == 1:
+            return (
+                "서로 자연스럽게 이어지는 유아 동화 4부작을 설계하고 1부를 작성한다.\n"
+                + common_rules
+                + "\n이번 부의 역할: "
+                + part_roles[part_number]
+                + "\n아이 정보: "
+                + json.dumps(profile, ensure_ascii=False)
+                + "\n참고할 사건 구조: "
+                + blueprint.source_title
+                + " - "
+                + blueprint.core
+                + " / "
+                + json.dumps(blueprint.beats, ensure_ascii=False)
+                + "\n반드시 title, characters, outline, part 필드만 가진 JSON 객체를 출력한다. "
+                + f"characters는 [{json.dumps(request.baby_name, ensure_ascii=False)}, "
+                + '"친구 이름"]처럼 주인공과 친구 한 명만 넣는다. '
+                + "outline은 1부부터 4부까지 이어지는 사건 계획 네 개를 순서대로 넣는다."
+            )
+
+        continuity = {
+            "title": title,
+            "characters": characters,
+            "outline": outline,
+            "completedParts": completed_parts,
+        }
+        return (
+            "이미 시작된 유아 동화를 바로 이어서 다음 부를 작성한다.\n"
+            + common_rules
+            + "\n이번 부의 역할: "
+            + part_roles[part_number]
+            + "\n확정된 동화 정보와 앞부분: "
+            + json.dumps(continuity, ensure_ascii=False)
+            + "\n앞부분을 다시 설명하거나 처음부터 소개하지 않는다. "
+            "직전 부의 마지막 사건과 감정에서 곧바로 이어 시작하고, "
+            "확정된 등장인물·물건·장소·사건의 인과관계를 바꾸지 않는다. "
+            "part 필드만 가진 JSON 객체를 출력한다."
+        )
+
+    def _normalize_serial_part(
+        self,
+        part: str,
+        baby_name: str,
+    ) -> str:
+        normalized = re.sub(
+            r"^\s*(?:\*\*)?(?:(?:제?\s*[1-4]\s*부|[1-4]\s*[.)])"
+            r"(?:\s*[:：-])?|[기승전결]\s*[:：-])(?:\*\*)?\s*",
+            "",
+            part.strip(),
+            count=1,
+        )
+        normalized = re.sub(r"\s*\n+\s*", " ", normalized)
+        return self._normalize_baby_name_particles(
+            self._normalize_narration_style(normalized),
+            baby_name,
+        ).strip()
+
+    def _validate_serial_part(
+        self,
+        part: str,
+        part_number: int,
+    ) -> None:
+        length = len(part)
+        if length < SERIAL_PART_MIN_CHARS:
+            logger.warning(
+                "STORY_LLM_PART_TOO_SHORT part=%d chars=%d minimum=%d",
+                part_number,
+                length,
+                SERIAL_PART_MIN_CHARS,
+            )
+            raise StoryGenerationError("STORY_LLM_PART_TOO_SHORT")
+        if length > SERIAL_PART_MAX_CHARS:
+            logger.warning(
+                "STORY_LLM_PART_TOO_LONG part=%d chars=%d maximum=%d",
+                part_number,
+                length,
+                SERIAL_PART_MAX_CHARS,
+            )
+            raise StoryGenerationError("STORY_LLM_PART_TOO_LONG")
+
+    def _validate_serial_story(
+        self,
+        generated: GeneratedStory,
+    ) -> None:
+        if len(generated.scenes) != SERIAL_PART_COUNT:
+            raise StoryGenerationError(
+                "STORY_LLM_STORY_STRUCTURE_INVALID"
+            )
+        for part_number, part in enumerate(generated.scenes, start=1):
+            self._validate_serial_part(part, part_number)
 
     def _request_story(
         self,
