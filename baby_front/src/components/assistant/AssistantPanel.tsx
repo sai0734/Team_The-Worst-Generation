@@ -31,36 +31,55 @@ const sectionOf = (it: AssistItem): SectionKey => {
   return "national";
 };
 
+const PAGE_SIZE = 5;
+
 const PolicyCards = ({ items }: { items: AssistItem[] }) => {
+  const [shown, setShown] = useState(PAGE_SIZE);
+
+  useEffect(() => {
+    setShown(PAGE_SIZE);
+  }, [items]);
+
   if (items.length === 0) {
     return <p className="assist-empty">아이 나이와 거주지를 입력하고 정책 찾기를 눌러 주세요.</p>;
   }
+
+  const visible = items.slice(0, shown);
+  const rest = items.length - visible.length;
+
   return (
-    <ul className="assist-cards">
-      {items.map((it, idx) => {
-        const done = it.status === "DONE";
-        return (
-          <li key={it.id || `${it.title}-${idx}`}>
-            <div>
-              <h4>{it.title}</h4>
-              <p>{it.summary}</p>
-            </div>
-            {done ? (
-              <span className="assist-status done">지급완료</span>
-            ) : (
-              <a
-                className="assist-status apply"
-                href={it.link || "https://www.bokjiro.go.kr"}
-                target="_blank"
-                rel="noreferrer"
-              >
-                신청하기
-              </a>
-            )}
-          </li>
-        );
-      })}
-    </ul>
+    <>
+      <ul className="assist-cards">
+        {visible.map((it, idx) => {
+          const done = it.status === "DONE";
+          return (
+            <li key={it.id || `${it.title}-${idx}`}>
+              <div>
+                <h4>{it.title}</h4>
+                <p>{it.summary}</p>
+              </div>
+              {done ? (
+                <span className="assist-status done">지급완료</span>
+              ) : (
+                <a
+                  className="assist-status apply"
+                  href={it.link || "https://www.bokjiro.go.kr"}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  신청하기
+                </a>
+              )}
+            </li>
+          );
+        })}
+      </ul>
+      {rest > 0 ? (
+        <button type="button" className="assist-more" onClick={() => setShown((n) => n + PAGE_SIZE)}>
+          {rest}개 더보기
+        </button>
+      ) : null}
+    </>
   );
 };
 
@@ -82,6 +101,10 @@ const AssistantPanel = ({ className, style }: AssistantPanelProps) => {
   const [savingRegion, setSavingRegion] = useState(false);
   const [savedMsg, setSavedMsg] = useState("");
   const [activeSection, setActiveSection] = useState<SectionKey>("local");
+  const [question, setQuestion] = useState("");
+  const [asking, setAsking] = useState(false);
+  const [askAnswer, setAskAnswer] = useState("");
+  const [askSources, setAskSources] = useState<AssistItem[]>([]);
 
   useEffect(() => {
     if (!isLogin) {
@@ -194,6 +217,26 @@ const AssistantPanel = ({ className, style }: AssistantPanelProps) => {
     }
   };
 
+  const askQuestion = async () => {
+    if (!question.trim()) return;
+    setAsking(true);
+    setAskAnswer("");
+    setAskSources([]);
+    try {
+      const res = await assistantApi.ask({
+        query: question.trim(),
+        child: { babyMonths: months, regionSido: sido },
+      });
+      setAskAnswer(res.answer);
+      setAskSources(res.items ?? []);
+    } catch (e) {
+      console.error(e);
+      setAskAnswer("답변을 가져오지 못했어요.");
+    } finally {
+      setAsking(false);
+    }
+  };
+
   return (
     <article
       id="ai-subsidy-panel"
@@ -281,24 +324,66 @@ const AssistantPanel = ({ className, style }: AssistantPanelProps) => {
         </div>
       </div>
 
-      <div className="assist-filter-btns" role="tablist" aria-label="정책 종류">
-        {SECTIONS.map((section) => {
-          const count = grouped[section.key].length;
-          const on = activeSection === section.key;
-          return (
-            <button
-              key={section.key}
-              type="button"
-              role="tab"
-              aria-selected={on}
-              className={`assist-filter-btn${on ? " is-on" : ""}`}
-              onClick={() => setActiveSection(section.key)}
-            >
-              <span>{section.title}</span>
-              <em>{count}</em>
+      <div className="assist-side-row">
+        <div className="assist-filter-btns" role="tablist" aria-label="정책 종류">
+          {SECTIONS.map((section) => {
+            const count = grouped[section.key].length;
+            const on = activeSection === section.key;
+            return (
+              <button
+                key={section.key}
+                type="button"
+                role="tab"
+                aria-selected={on}
+                className={`assist-filter-btn${on ? " is-on" : ""}`}
+                onClick={() => setActiveSection(section.key)}
+              >
+                <span>{section.title}</span>
+                <em>{count}</em>
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="assist-ask">
+          <label htmlFor="assist-question">AI에게 물어보기</label>
+          <div>
+            <input
+              id="assist-question"
+              type="text"
+              placeholder="예: 다자녀 가구가 받을 수 있는 지원금은?"
+              value={question}
+              disabled={!isLogin}
+              onChange={(e) => setQuestion(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") void askQuestion();
+              }}
+            />
+          </div>
+          <div>
+            <button type="button" onClick={() => void askQuestion()} disabled={!isLogin || asking}>
+              {asking ? "생각 중…" : "질문하기"}
             </button>
-          );
-        })}
+          </div>
+          {askAnswer ? (
+            <div className="assist-ask-answer">
+              <p>{askAnswer}</p>
+              {askSources.length > 0 ? (
+                <p className="assist-ask-sources">
+                  출처:{" "}
+                  {askSources.map((s, idx) => (
+                    <span key={s.id || idx}>
+                      <a href={s.link || "https://www.bokjiro.go.kr"} target="_blank" rel="noreferrer">
+                        {s.title}
+                      </a>
+                      {idx < askSources.length - 1 ? ", " : ""}
+                    </span>
+                  ))}
+                </p>
+              ) : null}
+            </div>
+          ) : null}
+        </div>
       </div>
 
       <PolicyCards items={visibleItems} />

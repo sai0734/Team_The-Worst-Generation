@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from app.routers import emergency
+from app.routers import emergency, subsidy
 
 
 app = FastAPI(
@@ -18,5 +18,12 @@ app.include_router(
     emergency.router,
     prefix="/api/v1/emergency",
     tags=["emergency"],
+)
+
+
+app.include_router(
+    subsidy.router,
+    prefix="/api/v1/subsidy",
+    tags=["subsidy"],
 )
 
