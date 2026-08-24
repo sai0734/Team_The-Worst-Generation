@@ -109,11 +109,25 @@
   background: var(--soft);
 }
 
+.app .assist-side-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  align-items: start;
+  margin: 0 0 10px;
+}
+
+@media (max-width: 480px) {
+  .app .assist-side-row {
+    grid-template-columns: 1fr;
+  }
+}
+
 .app .assist-filter-btns {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: 1fr 1fr;
   gap: 6px;
-  margin: 0 0 10px;
+  margin: 0;
 }
 
 .app .assist-filter-btn {
@@ -226,6 +240,100 @@
   margin: 4px 0 0;
   font-size: 11px;
   color: var(--muted);
+}
+
+.app .assist-ask {
+  margin: 0 0 10px;
+  padding: 8px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--soft);
+}
+
+.app .assist-ask label {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 10px;
+  font-weight: 800;
+  color: var(--muted);
+}
+
+.app .assist-ask input {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 6px 8px;
+  font-size: 12px;
+  background: #fff;
+}
+
+.app .assist-ask button {
+  margin-top: 6px;
+  border: 1px solid var(--line);
+  background: var(--glass);
+  border-radius: 99px;
+  padding: 5px 12px;
+  font-size: 10px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.app .assist-ask button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.app .assist-ask-answer {
+  margin-top: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--hover, #fff);
+}
+
+.app .assist-ask-answer p {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--ink);
+}
+
+.app .assist-ask-answer ul {
+  list-style: none;
+  margin: 6px 0 0;
+  padding: 6px 0 0;
+  border-top: 1px dashed var(--line);
+  display: grid;
+  gap: 4px;
+}
+
+.app .assist-ask-answer li {
+  font-size: 10px;
+}
+
+.app .assist-ask-answer a {
+  color: var(--accent);
+  font-weight: 800;
+}
+
+.app .assist-more {
+  width: 100%;
+  margin-top: 6px;
+  border: 1px solid var(--line);
+  background: var(--glass);
+  border-radius: 12px;
+  padding: 8px 12px;
+  font-size: 11px;
+  font-weight: 800;
+  font-family: inherit;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.app .assist-more:hover {
+  border-color: var(--accent);
+  color: var(--accent);
 }
 
 .app .assist-status {

@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from app.routers import emergency, homecam
+from app.routers import emergency, subsidy, homecam
 
 
 app = FastAPI(
@@ -26,3 +26,8 @@ app.include_router(
     tags=["homecam"],
 )
 
+app.include_router(
+    subsidy.router,
+    prefix="/api/v1/subsidy",
+    tags=["subsidy"],
+)
