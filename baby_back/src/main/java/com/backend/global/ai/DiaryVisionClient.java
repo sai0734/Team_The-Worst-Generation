@@ -24,6 +24,7 @@ public class DiaryVisionClient {
     private String baseUrl;
 
     private final HttpClient httpClient = HttpClient.newBuilder()
+            .version(HttpClient.Version.HTTP_1_1)
             .connectTimeout(Duration.ofSeconds(5))
             .build();
 
@@ -37,7 +38,7 @@ public class DiaryVisionClient {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(baseUrl + "/api/v1/diary/generate"))
                 .header("Content-Type", "application/json")
-                .timeout(Duration.ofSeconds(120))
+                .timeout(Duration.ofSeconds(300))
                 .POST(HttpRequest.BodyPublishers.ofString(body.toString()))
                 .build();
 
