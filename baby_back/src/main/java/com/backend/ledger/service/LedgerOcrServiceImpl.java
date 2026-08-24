@@ -4,11 +4,11 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.backend.allergy.client.VisionApiClient;
-import com.backend.global.ai.OllamaClient;
 import com.backend.ledger.domain.LedgerCategory;
 import com.backend.ledger.domain.LedgerType;
 import com.backend.ledger.dto.LedgerClassifyResponseDTO;
@@ -26,7 +26,17 @@ public class LedgerOcrServiceImpl implements LedgerOcrService {
 
     private final VisionApiClient visionApiClient;
 
-    private final OllamaClient ollamaClient;
+    private final ChatClient.Builder chatClientBuilder;
+
+    private ChatClient chatClient;
+
+    // ChatClient.Builder는 매번 새로 build()하기보다 한 번만 만들어서 재사용
+    private ChatClient chatClient() {
+        if (chatClient == null) {
+            chatClient = chatClientBuilder.build();
+        }
+        return chatClient;
+    }
 
     @Override
     public List<LedgerClassifyResponseDTO> extractFromReceipt(MultipartFile image) {
@@ -64,7 +74,7 @@ public class LedgerOcrServiceImpl implements LedgerOcrService {
             """.formatted(categoryList, rawText);
 
         try {
-            String raw = ollamaClient.chat(prompt);
+            String raw = chatClient().prompt(prompt).call().content();
             JsonObject json = parseJsonObject(raw);
 
             LedgerClassifyResponseDTO result = toClassifyResponse(json);
