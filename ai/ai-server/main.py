@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from app.routers import emergency, subsidy
+from app.routers import emergency, subsidy, recall
 
 from app.routers import sleep
 
@@ -41,10 +41,17 @@ app.include_router(
     video.router,
     prefix="/api/v1/video",
     tags=["video"],
+)
 
 app.include_router(
     subsidy.router,
     prefix="/api/v1/subsidy",
     tags=["subsidy"],
+)
+
+app.include_router(
+    recall.router,
+    prefix="/api/v1/recall",
+    tags=["recall"],
 )
 

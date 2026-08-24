@@ -489,7 +489,11 @@ const LedgerComponent = () => {
 
           {isCurrentMonth && (
             <button type="button" className="tool" onClick={handleBriefing} disabled={briefingLoading}>
-              <i>✦</i>
+              {briefingLoading ? (
+                <span className="h-3 w-3 flex-shrink-0 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+              ) : (
+                <i>✦</i>
+              )}
               <span>
                 {briefingLoading
                   ? "브리핑 생성 중..."
@@ -525,11 +529,20 @@ const LedgerComponent = () => {
               onClick={handleClassifyBulk}
               disabled={aiLoading || !bulkText.trim()}
             >
-              <i>✦</i>
+              {aiLoading ? (
+                <span className="h-3 w-3 flex-shrink-0 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+              ) : (
+                <i>✦</i>
+              )}
               <span>{aiLoading ? "분류 중..." : "AI로 분류"}</span>
             </button>
             <label className={`ghost-btn receipt-upload-btn${receiptLoading ? " disabled" : ""}`}>
-              📷 {receiptLoading ? "영수증 인식 중..." : "영수증으로 추가 (여러 장 가능)"}
+              {receiptLoading ? (
+                <span className="h-3 w-3 flex-shrink-0 animate-spin rounded-full border-2 border-black/10 border-t-[#005bb2] mr-1.5 inline-block align-middle" />
+              ) : (
+                "📷 "
+              )}
+              {receiptLoading ? "영수증 인식 중..." : "영수증으로 추가 (여러 장 가능)"}
               <input
                 type="file"
                 accept="image/*"

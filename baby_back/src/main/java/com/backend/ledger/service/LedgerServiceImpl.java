@@ -9,10 +9,10 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.backend.global.ai.OllamaClient;
 import com.backend.ledger.domain.Ledger;
 import com.backend.ledger.domain.LedgerCategory;
 import com.backend.ledger.domain.LedgerSetting;
@@ -44,9 +44,19 @@ public class LedgerServiceImpl implements LedgerService {
 
     private final LedgerSettingMapper ledgerSettingMapper;
 
-    private final OllamaClient ollamaClient;
+    private final ChatClient.Builder chatClientBuilder;
+
+    private ChatClient chatClient;
 
     private record Cycle(LocalDate start, LocalDate end) {}
+
+    // ChatClient.Builder는 매번 새로 build()하기보다 한 번만 만들어서 재사용
+    private ChatClient chatClient() {
+        if (chatClient == null) {
+            chatClient = chatClientBuilder.build();
+        }
+        return chatClient;
+    }
 
     @Override
     public Long register(LedgerDTO ledgerDTO) {
@@ -187,7 +197,7 @@ public class LedgerServiceImpl implements LedgerService {
             입력 문장: %s
             """.formatted(categoryList, requestDTO.getMemo());
 
-        String raw = ollamaClient.chat(prompt);
+        String raw = chatClient().prompt(prompt).call().content();
         JsonObject json = parseJsonObject(raw);
 
         return toClassifyResponse(json);
@@ -223,7 +233,7 @@ public class LedgerServiceImpl implements LedgerService {
             %s
             """.formatted(categoryList, memos.size(), numberedLines);
 
-        String raw = ollamaClient.chat(prompt);
+        String raw = chatClient().prompt(prompt).call().content();
         JsonArray jsonArray = parseJsonArray(raw);
 
         List<LedgerClassifyResponseDTO> results = new java.util.ArrayList<>();
@@ -281,8 +291,12 @@ public class LedgerServiceImpl implements LedgerService {
         LedgerSummaryDTO stats = getSummary(email);
 
         String prompt = """
-            아래는 사용자의 가계부 데이터야. 이번 기간과 저번 기간을 비교해서
+            아래는 사용자의 가계부 데이터야. 이번 기간을 저번 기간과 비교해서
+            지출이 크게 늘었거나 눈에 띄게 많이 쓴 카테고리 등 문제가 될 만한 부분 위주로
             친근한 말투로 2~3문장짜리 짧은 브리핑을 작성해줘. 숫자는 원 단위로 표현해줘.
+            특별히 두드러지는 문제가 없으면 그렇다고 짧게 말해줘.
+            사용자에게 되묻는 질문이나 "~하시겠어요?" 같은 질문형 문장은 절대 쓰지 말고,
+            상태를 알려주는 브리핑으로만 끝내줘.
 
             이번 기간(%s ~ %s): 수입 %d원, 지출 %d원
             저번 기간(%s ~ %s): 수입 %d원, 지출 %d원
@@ -293,7 +307,7 @@ public class LedgerServiceImpl implements LedgerService {
                 stats.getCategoryBreakdown()
             );
 
-        String summary = ollamaClient.chat(prompt);
+        String summary = chatClient().prompt(prompt).call().content();
 
         LedgerSetting setting = ledgerSettingMapper.selectByEmail(email);
         if (setting == null) {
