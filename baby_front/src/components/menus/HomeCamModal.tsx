@@ -45,7 +45,6 @@ const HomeCamModal = ({ onClose }: HomeCamModalProps) => {
     isMonitoring,
     isViewing,
     stream,
-    detections,
     safeZone,
     isAlertActive,
     error,
@@ -74,22 +73,29 @@ const HomeCamModal = ({ onClose }: HomeCamModalProps) => {
     }
   }, [stream]);
 
-  // 사람 인식 박스 + 안전영역 오버레이
+  // 안전영역 오버레이 (실제 이탈 판정은 서버에서 하므로, 여기서는 그려둔 범위만 표시)
+  // 모달이 다시 열릴 때는 <video>가 새로 생겨서 videoWidth가 아직 0일 수 있음 -
+  // 그 순간에만 그리면 아무것도 안 그려진 채로 멈추니, 메타데이터가 실제로 로드되는
+  // 시점(loadedmetadata)에도 다시 그리도록 이벤트로 걸어둠
   useEffect(() => {
     const canvas = canvasRef.current;
     const video = videoRef.current;
-    if (!canvas || !video || !video.videoWidth) return;
+    if (!canvas || !video) return;
 
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return;
+    const draw = () => {
+      if (!video.videoWidth) return;
 
-    canvas.width = video.clientWidth;
-    canvas.height = video.clientHeight;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
 
-    const content = getVideoContentRect(video);
+      canvas.width = video.clientWidth;
+      canvas.height = video.clientHeight;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    if (safeZone) {
+      if (!safeZone) return;
+
+      const content = getVideoContentRect(video);
+
       ctx.strokeStyle = isAlertActive ? "#ff4d4f" : "#ffd23d";
       ctx.lineWidth = 2;
       ctx.setLineDash([6, 4]);
@@ -100,29 +106,15 @@ const HomeCamModal = ({ onClose }: HomeCamModalProps) => {
         safeZone.hRatio * content.h,
       );
       ctx.setLineDash([]);
-    }
+    };
 
-    if (!isMonitoring) return;
-
-    detections.forEach((d) => {
-      const x = content.x + (d.originX / video.videoWidth) * content.w;
-      const y = content.y + (d.originY / video.videoHeight) * content.h;
-      const w = (d.width / video.videoWidth) * content.w;
-      const h = (d.height / video.videoHeight) * content.h;
-
-      ctx.strokeStyle = "#3ddc84";
-      ctx.lineWidth = 2;
-      ctx.strokeRect(x, y, w, h);
-
-      const label = `${d.categoryName} ${Math.round(d.score * 100)}%`;
-      ctx.font = "12px sans-serif";
-      const textWidth = ctx.measureText(label).width;
-      ctx.fillStyle = "#3ddc84";
-      ctx.fillRect(x, Math.max(0, y - 16), textWidth + 8, 16);
-      ctx.fillStyle = "#0a1512";
-      ctx.fillText(label, x + 4, Math.max(12, y - 4));
-    });
-  }, [detections, isMonitoring, safeZone, isAlertActive]);
+    draw();
+    video.addEventListener("loadedmetadata", draw);
+    return () => video.removeEventListener("loadedmetadata", draw);
+    // stream이 null <-> 값 으로 바뀔 때마다 위쪽 조건부 렌더링이 <video>/<canvas>를
+    // 통째로 새로 마운트하므로, 그때마다 이 effect가 다시 붙어야 새 엘리먼트에도
+    // 리스너가 걸림 (안 그러면 감시 중지 후 재시작할 때 똑같은 문제가 재현됨)
+  }, [safeZone, isAlertActive, stream]);
 
   useEffect(() => {
     const closeWithEscape = (event: KeyboardEvent) => {
