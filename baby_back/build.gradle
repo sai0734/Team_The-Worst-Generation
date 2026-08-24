@@ -7,6 +7,11 @@ plugins {
 group = 'com'
 version = '0.0.1-SNAPSHOT'
 
+ext {
+	// Spring AI 2.0.x는 Spring Boot 4용. 이 프로젝트는 Boot 3.5.15라 1.1.x 계열을 써야 함.
+	set('springAiVersion', '1.1.4')
+}
+
 java {
 	toolchain {
 		languageVersion = JavaLanguageVersion.of(21)
@@ -17,7 +22,16 @@ repositories {
 	mavenCentral()
 }
 
+dependencyManagement {
+	imports {
+		mavenBom "org.springframework.ai:spring-ai-bom:${springAiVersion}"
+	}
+}
+
 dependencies {
+	// 가계부 - Spring AI (Ollama) : 분류/영수증OCR/브리핑 텍스트 생성
+	implementation 'org.springframework.ai:spring-ai-starter-model-ollama'
+
 	implementation platform('me.paulschwarz:spring-dotenv-bom:5.1.0')
 	developmentOnly 'me.paulschwarz:springboot3-dotenv:5.1.0'
 

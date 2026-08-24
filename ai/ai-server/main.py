@@ -1,11 +1,15 @@
 from fastapi import FastAPI
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 from app.routers import emergency
 from app.routers import health as health_router
 =======
 from app.routers import emergency, subsidy
 >>>>>>> a307bc6ae32be3e757e3d3fe16f30c714a064ac9
+=======
+from app.routers import emergency, subsidy, recall
+>>>>>>> 4d1cc627a6da85584c35d966c8f7b741b798f48c
 
 from app.routers import sleep
 
@@ -23,7 +27,6 @@ app = FastAPI(
 def health() -> dict[str, bool]:
     return {"ok": True}
 
-
 app.include_router(
     emergency.router,
     prefix="/api/v1/emergency",
@@ -31,12 +34,12 @@ app.include_router(
 )
 
 app.include_router(
-<<<<<<< HEAD
     health_router.router,
     prefix="/api/v1/health",
     tags=["health"],
 )
-=======
+
+app.include_router(
     sleep.router,
     prefix="/api/v1/sleep",
     tags=["sleep"],
@@ -52,6 +55,7 @@ app.include_router(
     video.router,
     prefix="/api/v1/video",
     tags=["video"],
+)
 
 app.include_router(
     subsidy.router,
@@ -59,4 +63,9 @@ app.include_router(
     tags=["subsidy"],
 )
 
->>>>>>> a307bc6ae32be3e757e3d3fe16f30c714a064ac9
+app.include_router(
+    recall.router,
+    prefix="/api/v1/recall",
+    tags=["recall"],
+)
+
