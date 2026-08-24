@@ -284,8 +284,9 @@ public class MyProductServiceImpl implements MyProductService {
     /**
      * 문자열 일치로 못 찾았을 때의 마지막 시도. Python AI 서버(사전학습 문장 임베딩)에 등록 제품과
      * 후보들의 유사도를 물어보고, 가장 점수가 높은 후보가 기준치를 넘으면 그걸 매칭으로 인정한다.
-     * AI 서버가 꺼져있거나 응답이 이상하면 IllegalStateException이 나는데, 이건 호출부(applyMatch)의
-     * catch에서 이미 "매칭 실패로 처리하고 넘어가기"로 처리하고 있어서 여기선 따로 안 잡는다.
+     * AI 서버가 꺼져있거나 응답이 이상하면 IllegalStateException이 나는데, 이걸 그대로 던지면
+     * applyMatch 전체가 중단되어(국내 실패 시 해외 검색까지 스킵) 매칭 정확도가 떨어지므로
+     * 여기서 잡아서 "AI로도 못 찾음"과 동일하게 처리한다.
      */
     private <T> T findBestMatchByAi(
         MyProduct product,
@@ -298,9 +299,15 @@ public class MyProductServiceImpl implements MyProductService {
             .map(c -> new RecallMatchAiClient.Candidate(idExtractor.apply(c), titleExtractor.apply(c), brandExtractor.apply(c)))
             .collect(Collectors.toList());
 
-        RecallMatchAiClient.MatchResponse response = recallMatchAiClient.match(
-            product.getProductName(), product.getBrandName(), product.getModelName(), aiCandidates
-        );
+        RecallMatchAiClient.MatchResponse response;
+        try {
+            response = recallMatchAiClient.match(
+                product.getProductName(), product.getBrandName(), product.getModelName(), aiCandidates
+            );
+        } catch (IllegalStateException e) {
+            log.warn("AI 리콜 매칭 서버 호출 실패, 텍스트 매칭 결과만 사용 (productNo={}): {}", product.getProductNo(), e.getMessage());
+            return null;
+        }
 
         if (!"READY".equals(response.modelStatus()) || response.matches().isEmpty()) {
             return null;
