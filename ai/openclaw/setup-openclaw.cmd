@@ -116,6 +116,11 @@ if errorlevel 1 (
     exit /b 1
 )
 
+REM OpenClaw CLI는 잘못된 allow/alsoAllow 조합이 있으면 어떤 설정 명령도 실행하지 못합니다.
+REM 기존 message-dispatcher 설정을 CLI 호출 전에 먼저 정리합니다.
+call :configure_message_dispatcher_tools optional
+if errorlevel 1 exit /b 1
+
 echo [설정] OpenClaw Gateway와 Ollama 모델 연결 중...
 call openclaw onboard --auth-choice ollama --skip-health --skip-channels --non-interactive --accept-risk
 if errorlevel 1 exit /b 1
@@ -180,18 +185,7 @@ if errorlevel 1 (
 )
 call openclaw config set gateway.mode local
 if errorlevel 1 exit /b 1
-powershell -NoProfile -ExecutionPolicy Bypass -Command ^
-    "$ErrorActionPreference='Stop';" ^
-    "$path = Join-Path $env:USERPROFILE '.openclaw\openclaw.json';" ^
-    "$config = Get-Content -LiteralPath $path -Raw | ConvertFrom-Json;" ^
-    "$agent = $config.agents.list | Where-Object { $_.id -eq 'message-dispatcher' } | Select-Object -First 1;" ^
-    "if (-not $agent) { throw 'message-dispatcher agent not found' };" ^
-    "if (-not $agent.tools) { $agent | Add-Member -NotePropertyName tools -NotePropertyValue ([pscustomobject]@{}) };" ^
-    "if ($agent.tools.PSObject.Properties['allow']) { $agent.tools.PSObject.Properties.Remove('allow') };" ^
-    "$agent.tools | Add-Member -NotePropertyName profile -NotePropertyValue 'minimal' -Force;" ^
-    "$agent.tools | Add-Member -NotePropertyName alsoAllow -NotePropertyValue @('android_sms_send') -Force;" ^
-    "$agent.tools | Add-Member -NotePropertyName loopDetection -NotePropertyValue ([pscustomobject]@{ enabled = $true }) -Force;" ^
-    "$config | ConvertTo-Json -Depth 32 | Set-Content -LiteralPath $path -Encoding UTF8"
+call :configure_message_dispatcher_tools required
 if errorlevel 1 exit /b 1
 call openclaw config validate
 if errorlevel 1 exit /b 1
@@ -288,6 +282,26 @@ for /f "usebackq eol=# tokens=1,* delims==" %%A in ("%ROOT_ENV%") do (
     if /i "%%A"=="ANDROID_SMS_BRIDGE_KEY" set "ANDROID_SMS_BRIDGE_KEY=%%B"
 )
 exit /b 0
+
+:configure_message_dispatcher_tools
+if not exist "%CONFIG_FILE%" (
+    if /i "%~1"=="required" exit /b 1
+    exit /b 0
+)
+powershell -NoProfile -ExecutionPolicy Bypass -Command ^
+    "$ErrorActionPreference='Stop';" ^
+    "$required = '%~1' -eq 'required';" ^
+    "$path = '%CONFIG_FILE%';" ^
+    "$config = Get-Content -LiteralPath $path -Raw | ConvertFrom-Json;" ^
+    "$agent = $config.agents.list | Where-Object { $_.id -eq 'message-dispatcher' } | Select-Object -First 1;" ^
+    "if (-not $agent) { if ($required) { throw 'message-dispatcher agent not found' } else { exit 0 } };" ^
+    "if (-not $agent.tools) { $agent | Add-Member -NotePropertyName tools -NotePropertyValue ([pscustomobject]@{}) };" ^
+    "if ($agent.tools.PSObject.Properties['allow']) { $agent.tools.PSObject.Properties.Remove('allow') };" ^
+    "$agent.tools | Add-Member -NotePropertyName profile -NotePropertyValue 'minimal' -Force;" ^
+    "$agent.tools | Add-Member -NotePropertyName alsoAllow -NotePropertyValue @('android_sms_send') -Force;" ^
+    "$agent.tools | Add-Member -NotePropertyName loopDetection -NotePropertyValue ([pscustomobject]@{ enabled = $true }) -Force;" ^
+    "$config | ConvertTo-Json -Depth 32 | Set-Content -LiteralPath $path -Encoding UTF8"
+exit /b %errorlevel%
 
 :ensure_gateway_token
 call :load_env
