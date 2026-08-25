@@ -10,3 +10,6 @@ data/*
 models/*
 !models/.gitkeep
 
+# homecam - YOLO가 첫 실행 때 자동으로 받는 가중치 파일 (다들 알아서 재다운로드됨)
+*.pt
+
