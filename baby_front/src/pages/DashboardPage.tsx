@@ -3,7 +3,6 @@ import {
   useState,
   type CSSProperties,
   type FormEvent,
-  type ReactNode,
 } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import BasicLayout from "../layouts/BasicLayout";
@@ -19,38 +18,6 @@ import AssistantPanel from "../components/assistant/AssistantPanel";
 import SkyBackground from "../components/common/SkyBackground";
 import heroBaby from "../assets/hero-baby.png";
 import "../styles/dashboard-home.css";
-
-const SplitHeading = ({
-  text,
-  inView,
-  className,
-}: {
-  text: string;
-  inView: boolean;
-  className?: string;
-}) => (
-  <h2
-    className={`split-heading${inView ? " in-view" : ""}${className ? ` ${className}` : ""}`}
-  >
-    {[...text].map((ch, i) => (
-      <span key={i} className="char" style={{ transitionDelay: `${i * 30}ms` }}>
-        {ch === " " ? " " : ch}
-      </span>
-    ))}
-  </h2>
-);
-
-const RevealLine = ({
-  play,
-  children,
-}: {
-  play: boolean;
-  children: ReactNode;
-}) => (
-  <span className={`reveal-line${play ? " play" : ""}`}>
-    <span className="reveal-inner">{children}</span>
-  </span>
-);
 
 const emptyHome: QuestHome = {
   dailyQuests: [],
@@ -89,6 +56,21 @@ const questErrorMsg = (err: unknown) => {
   return "보내지 못했습니다.";
 };
 
+const HERO_SLIDE_COUNT = 4;
+const HERO_INTERVAL_MS = 5000;
+
+// 슬라이드별 배경 사진 (Unsplash, 무료 라이선스 — 출처 링크는 각 항목의 사진작가 크레딧)
+const HERO_SLIDE_IMAGES = [
+  // Daniel Thomas – "baby in pink shirt lying on white textile"
+  "https://images.unsplash.com/photo-1608365151231-7dbed3034787?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
+  // Arwan Sutanto – "selective focus photography of girl crying"
+  "https://images.unsplash.com/photo-1517545084371-4a575dde2a02?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
+  // DIANA HAUAN – "mother tucking in her baby in a crib"
+  "https://images.unsplash.com/photo-1770407780059-be1a0b3059c6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
+  // Kyaw Zay Ya – "red and black stroller"
+  "https://images.unsplash.com/photo-1559135141-2bea6465fccf?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
+];
+
 const DashboardPage = () => {
   const { isLogin, loginState } = useCustomLogin();
   const navigate = useNavigate();
@@ -107,16 +89,22 @@ const DashboardPage = () => {
   const [sendingUrgent, setSendingUrgent] = useState(false);
   const [urgentMsg, setUrgentMsg] = useState("");
 
-  const [heroPlay, setHeroPlay] = useState(false);
   const [cardsIn, setCardsIn] = useState(false);
+  const [heroIdx, setHeroIdx] = useState(0);
 
   useEffect(() => {
-    const t1 = setTimeout(() => setHeroPlay(true), 80);
-    const t2 = setTimeout(() => setCardsIn(true), 420);
+    const t2 = setTimeout(() => setCardsIn(true), 200);
     return () => {
-      clearTimeout(t1);
       clearTimeout(t2);
     };
+  }, []);
+
+  useEffect(() => {
+    const interval = setInterval(
+      () => setHeroIdx((prev) => (prev + 1) % HERO_SLIDE_COUNT),
+      HERO_INTERVAL_MS,
+    );
+    return () => clearInterval(interval);
   }, []);
 
   const loadQuests = async () => {
@@ -263,35 +251,121 @@ const DashboardPage = () => {
 
       <div className="home-content">
       <div className="home-hero-group">
-      <section className="home-hero">
-        <div className="home-hero-text">
-          <RevealLine play={heroPlay}>
-            <span className="chip home-hero-chip">환영합니다!</span>
-          </RevealLine>
-          <h1>
-            <RevealLine play={heroPlay}>오늘도 함께,</RevealLine>
-            <RevealLine play={heroPlay}>
-              <b>잘 키워가요.</b>
-            </RevealLine>
-          </h1>
-          <p className="desc">아이봄과 함께하는 똑똑하고 편안한 육아 일기.</p>
-          <Link
-            to="/babyInfo/input"
-            className="submit-btn home-hero-cta"
-            onClick={(e) => {
-              e.preventDefault();
-              navigate("/babyInfo/input");
-            }}
-          >
-            우리 아이 등록하기
-          </Link>
+      <section className="gov-hero">
+        <div
+          className={`gov-hero-slide${heroIdx === 0 ? " active" : ""}`}
+          style={{ backgroundImage: `url(${HERO_SLIDE_IMAGES[0]})` }}
+        >
+          <div>
+            <p className="eyebrow">TODAY</p>
+            <h1>
+              오늘도 함께, <b>잘 키워가요.</b>
+            </h1>
+            <p>
+              아이봄과 함께하는 똑똑하고 편안한 육아 일기.{" "}
+              {daily.length > 0
+                ? `오늘의 할 일 ${daily.length - done}개가 남아있어요.`
+                : ""}
+            </p>
+            <Link
+              to="/babyInfo/input"
+              className="gov-hero-cta"
+              onClick={(e) => {
+                e.preventDefault();
+                navigate("/babyInfo/input");
+              }}
+            >
+              우리 아이 등록하기
+            </Link>
+          </div>
+          <img src={heroBaby} alt="" className="gov-hero-art" />
         </div>
-        <img
-          src={heroBaby}
-          alt=""
-          className={`home-hero-art${heroPlay ? " in-view" : ""}`}
-        />
+
+        <div
+          className={`gov-hero-slide${heroIdx === 1 ? " active" : ""}`}
+          style={{ backgroundImage: `url(${HERO_SLIDE_IMAGES[1]})` }}
+        >
+          <div>
+            <p className="eyebrow">AI 울음소리 분석</p>
+            <h1>
+              우리 아이가 왜 우는지
+              <br />
+              AI가 먼저 알려드려요
+            </h1>
+            <p>피치·볼륨·패턴을 분석해서 배고픔·졸림·불편함을 구분해요.</p>
+            <Link
+              to="/ai/cry-check"
+              className="gov-hero-cta"
+              onClick={(e) => {
+                e.preventDefault();
+                navigate("/ai/cry-check");
+              }}
+            >
+              지금 분석하기
+            </Link>
+          </div>
+          <span className="gov-hero-emoji">🍼</span>
+        </div>
+
+        <div
+          className={`gov-hero-slide${heroIdx === 2 ? " active" : ""}`}
+          style={{ backgroundImage: `url(${HERO_SLIDE_IMAGES[2]})` }}
+        >
+          <div>
+            <p className="eyebrow">홈캠</p>
+            <h1>
+              낮잠시간, 안심하고
+              <br />
+              다른 일 하세요
+            </h1>
+            <p>안전영역을 벗어나면 바로 알려드려요.</p>
+            <span className="gov-hero-cta">우측 하단 + 버튼으로 감시 시작</span>
+          </div>
+          <span className="gov-hero-emoji">📷</span>
+        </div>
+
+        <div
+          className={`gov-hero-slide${heroIdx === 3 ? " active" : ""}`}
+          style={{ backgroundImage: `url(${HERO_SLIDE_IMAGES[3]})` }}
+        >
+          <div>
+            <p className="eyebrow">감자마켓</p>
+            <h1>
+              우리 동네 육아템,
+              <br />
+              필요한 만큼만
+            </h1>
+            <p>내 동네 기준 반경 5km 이내 매물을 한눈에.</p>
+            <Link
+              to="/market"
+              className="gov-hero-cta"
+              onClick={(e) => {
+                e.preventDefault();
+                navigate("/market");
+              }}
+            >
+              둘러보기
+            </Link>
+          </div>
+          <span className="gov-hero-emoji">🛒</span>
+        </div>
+
+        <div className="gov-hero-dots">
+          {Array.from({ length: HERO_SLIDE_COUNT }).map((_, idx) => (
+            <button
+              key={idx}
+              type="button"
+              className={idx === heroIdx ? "active" : ""}
+              aria-label={`${idx + 1}번째 슬라이드`}
+              onClick={() => setHeroIdx(idx)}
+            />
+          ))}
+        </div>
       </section>
+
+      <AssistantPanel
+        className={`gov-subsidy-hero-slot home-rise-up${cardsIn ? " in-view" : ""}`}
+      />
 
       <div className="home-ticker">
         <div className="home-ticker-track">
@@ -302,6 +376,9 @@ const DashboardPage = () => {
           <span className="home-ticker-chip"><i>🥕</i>감자마켓에서 육아템 거래해보세요</span>
           <span className="home-ticker-chip"><i>👶</i>믿을 수 있는 베이비시터 찾아보세요</span>
           <span className="home-ticker-chip"><i>🍼</i>AI 울음소리 분석 써보세요</span>
+          <span className="home-ticker-chip"><i>🏥</i>우리 아이 주변 소아과 찾아보세요</span>
+          <span className="home-ticker-chip"><i>💬</i>커뮤니티에서 육아 정보 나눠보세요</span>
+          <span className="home-ticker-chip"><i>🔔</i>육아용품 리콜 알림 확인해보세요</span>
           {/* 끊김 없이 흐르도록 동일 세트를 한 번 더 반복 (총 2세트) */}
           <span className="home-ticker-chip"><i>📔</i>오늘의 육아일기 남겨보세요</span>
           <span className="home-ticker-chip"><i>💸</i>AI로 우리 동네 지원금 찾아보세요</span>
@@ -310,25 +387,28 @@ const DashboardPage = () => {
           <span className="home-ticker-chip"><i>🥕</i>감자마켓에서 육아템 거래해보세요</span>
           <span className="home-ticker-chip"><i>👶</i>믿을 수 있는 베이비시터 찾아보세요</span>
           <span className="home-ticker-chip"><i>🍼</i>AI 울음소리 분석 써보세요</span>
+          <span className="home-ticker-chip"><i>🏥</i>우리 아이 주변 소아과 찾아보세요</span>
+          <span className="home-ticker-chip"><i>💬</i>커뮤니티에서 육아 정보 나눠보세요</span>
+          <span className="home-ticker-chip"><i>🔔</i>육아용품 리콜 알림 확인해보세요</span>
         </div>
       </div>
       </div>
 
       <div className="home-grid home-grid-v2 stagger">
         <article
-          className={`card home-tip-card area-tip motif-star home-rise-up${cardsIn ? " in-view" : ""}`}
+          className={`gov-card gov-tip-row area-tip home-rise-up${cardsIn ? " in-view" : ""}`}
           style={{ "--i": 0 } as CSSProperties}
         >
-          <p className="home-tip-label">💡 오늘의 꿀팁</p>
-          <p className="home-tip-text">{getTodayTip()}</p>
+          <span className="ico">💡</span>
+          <p>{getTodayTip()}</p>
         </article>
 
         <article
-          className={`card area-quest motif-cloud home-rise-up${cardsIn ? " in-view" : ""}`}
+          className={`gov-card gov-quest-card area-quest home-rise-up${cardsIn ? " in-view" : ""}`}
           style={{ "--i": 1 } as CSSProperties}
         >
-          <div className="head">
-            <SplitHeading text="오늘의 할 일" inView={cardsIn} />
+          <div className="gov-quest-head">
+            <h2>오늘의 할 일</h2>
             <b>
               {done} / {daily.length} 완료
             </b>
@@ -437,7 +517,7 @@ const DashboardPage = () => {
         <div className="home-side-col area-side">
         <Link
           to="/ledger"
-          className={`card home-side-card area-ledger motif-moon home-rise-up${cardsIn ? " in-view" : ""}`}
+          className={`gov-card gov-stat-card home-rise-up${cardsIn ? " in-view" : ""}`}
           style={{ "--i": 2 } as CSSProperties}
           onClick={(e) => {
             e.preventDefault();
@@ -486,7 +566,7 @@ const DashboardPage = () => {
 
         <Link
           to="/recall"
-          className={`card home-side-card area-recall motif-sparkle home-rise-up${cardsIn ? " in-view" : ""}`}
+          className={`gov-card gov-stat-card home-rise-up${cardsIn ? " in-view" : ""}`}
           style={{ "--i": 3 } as CSSProperties}
           onClick={(e) => {
             e.preventDefault();
@@ -514,11 +594,6 @@ const DashboardPage = () => {
           <span className="home-side-btn">리콜 현황 보기</span>
         </Link>
         </div>
-
-        <AssistantPanel
-          className={`area-assist home-rise-up${cardsIn ? " in-view" : ""}`}
-          style={{ "--i": 4 } as CSSProperties}
-        />
       </div>
       </div>
       </div>

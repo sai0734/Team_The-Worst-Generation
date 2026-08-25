@@ -156,6 +156,7 @@ const HospitalHomeComponent = () => {
 
       {locationMessage && <div className="hospital-location-message">{locationMessage}</div>}
 
+      <div className="card">
       <div className="hospital-content">
         <div className="hospital-map-pane">
           <HospitalMap
@@ -218,6 +219,7 @@ const HospitalHomeComponent = () => {
             onRetry={() => void loadHospitals(searchCenter)}
           />
         </aside>
+      </div>
       </div>
       <p className="hospital-data-notice">
         <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>

@@ -1,5 +1,4 @@
 import BasicLayout from "../../layouts/BasicLayout";
-import MarketSubNav from "../../components/market/MarketSubNav";
 import MarketProfileComponent from "../../components/market/MarketProfileComponent";
 import SkyBackground from "../../components/common/SkyBackground";
 
@@ -9,7 +8,6 @@ const MarketProfilePage = () => {
     <BasicLayout>
       <SkyBackground />
       <div className="page-sky-content">
-        <MarketSubNav />
         <MarketProfileComponent />
       </div>
     </BasicLayout>
