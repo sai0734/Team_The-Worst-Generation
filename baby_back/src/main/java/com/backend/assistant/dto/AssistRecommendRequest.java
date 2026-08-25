@@ -13,11 +13,13 @@ public class AssistRecommendRequest {
     private ChildContext child;
 
     @Data
-    public static class ChildContext {
-        private Integer babyMonths;
-        private String babyName;
-        private String gender;
-        private String regionSido;
-        private String regionSigungu;
+public static class ChildContext {
+    private Integer babyMonths;
+    private String babyName;
+    private String gender;
+    private String regionSido;
+    private String regionSigungu;
+    private Integer householdSize;
+    private List<String> incomeTags;
     }
 }

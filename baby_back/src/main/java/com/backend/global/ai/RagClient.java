@@ -2,6 +2,7 @@ package com.backend.global.ai;
 
 import com.backend.assistant.dto.AssistItemDTO;
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Component;
@@ -24,10 +25,15 @@ public class RagClient {
             .version(HttpClient.Version.HTTP_1_1)
             .build();
 
-    public List<AssistItemDTO> search(int months, String regionSido) {
+    public List<AssistItemDTO> search(int months, String regionSido, Integer householdSize,
+                                      List<String> incomeTags) {
         JsonObject body = new JsonObject();
         body.addProperty("babyMonths", months);
         body.addProperty("regionSido", regionSido == null ? "" : regionSido);
+        if (householdSize != null) body.addProperty("householdSize", householdSize);
+        JsonArray tags = new JsonArray();
+        if (incomeTags != null) incomeTags.forEach(tags::add);
+        body.add("incomeTags", tags);
 
         try {
             HttpRequest req = HttpRequest.newBuilder()

@@ -51,10 +51,18 @@ public class AssistantServiceImpl implements AssistantService {
         }
 
         if (wanted.contains("SUBSIDY")) {
+            AssistRecommendRequest.ChildContext child = request.getChild();
             Integer subsidyMonths = request.getChild() != null ? request.getChild().getBabyMonths() : null;
-            String subsidySido = AssistRegionNames.sido(
-                    request.getChild() != null ? request.getChild().getRegionSido() : "");
-            List<AssistItemDTO> subsidies = ragClient.search(subsidyMonths == null ? 0 : subsidyMonths, subsidySido);
+            String subsidySido = AssistRegionNames.sido(child != null ? child.getRegionSido()
+                    : "");
+            Integer householdSize = child != null ? child.getHouseholdSize() : null;
+            List<String> incomeTags = child != null ? child.getIncomeTags() : null;
+
+            List<AssistItemDTO> subsidies = ragClient.search(
+                    subsidyMonths == null ? 0 : subsidyMonths,
+                    subsidySido,
+                    householdSize,
+                    incomeTags);
             log.info("provider=RagClient category=SUBSIDY count={}", subsidies.size());
             items.addAll(subsidies);
         }

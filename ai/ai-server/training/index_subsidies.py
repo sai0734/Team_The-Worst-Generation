@@ -61,11 +61,13 @@ def index_all() -> None:
             continue
         title = item.get("servNm", "")
         summary = item.get("servDgst", "") or "복지서비스"
+        target = item.get("trgterIndvdlArray", "")
         ids.append("national-" + sid)
-        docs.append(f"{title}. {summary}")
+        docs.append(f"{title}. {summary}. 대상: {target}" if target else f"{title}.{summary}")
+
         metas.append({
             **_stage_flags(item.get("lifeArray", "")),
-            "target": item.get("trgterIndvdlArray", ""),
+            "target": target,
             "sido": "", "title": title, "summary": summary,
             "source": "복지로 중앙부처",
             "link": item.get("servDtlLink", "") or "https://www.bokjiro.go.kr",
@@ -78,10 +80,10 @@ def index_all() -> None:
         title = item.get("servNm", "")
         summary = item.get("servDgst", "") or "복지서비스"
         ids.append("local-" + sid)
-        docs.append(f"{title}. {summary}")
+        docs.append(f"{title}. {summary}. 대상: {target}" if target else f"{title}. {summary}")
         metas.append({
             **_stage_flags(item.get("lifeArray", "")),
-            "target": item.get("trgterIndvdlArray", ""),
+            "target":target,
             "sido": item.get("ctpvNm", ""), "title": title, "summary": summary,
             "source": "복지로 지자체",
             "link": item.get("servDtlLink", "") or "https://www.bokjiro.go.kr",
