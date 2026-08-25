@@ -1,4 +1,5 @@
 import { useEffect, useRef } from "react";
+import { Link } from "react-router-dom";
 import "./landing.css";
 import LandingHero from "./LandingHero";
 import LandingTimeline from "./LandingTimeline";
@@ -88,6 +89,34 @@ const LandingPage = () => {
           <h3>지금, 아이봄과 하루를 시작해보세요</h3>
           <a className="btn" href="#timelineWrap">지금 시작하기</a>
         </div>
+
+        <div className="footer-nav">
+          <div className="footer-nav-col">
+            <p className="footer-nav-title">서비스</p>
+            <Link to="/babyInfo">응애관리</Link>
+            <Link to="/diary">육아일기</Link>
+            <Link to="/ledger">가계부</Link>
+            <Link to="/market">감자마켓</Link>
+            <Link to="/hospital">병원</Link>
+            <Link to="/community">커뮤니티</Link>
+          </div>
+          <div className="footer-nav-col">
+            <p className="footer-nav-title">AI 기능</p>
+            <Link to="/ai/behavior">행동교정 상담</Link>
+            <Link to="/ai/cry-check">울음소리 분석</Link>
+            <Link to="/ai/story">맞춤 동화 생성</Link>
+            <Link to="/walk">산책로 추천</Link>
+            <Link to="/allergy">성분표 검사</Link>
+            <Link to="/health">건강 체크</Link>
+          </div>
+          <div className="footer-nav-col">
+            <p className="footer-nav-title">계정</p>
+            <Link to="/member/login">로그인</Link>
+            <Link to="/member/signup">회원가입</Link>
+            <Link to="/mypage">마이페이지</Link>
+          </div>
+        </div>
+
         <div className="footer-bottom">
           <div className="footer-logo"><b>아이</b>봄</div>
           <div className="footer-links">

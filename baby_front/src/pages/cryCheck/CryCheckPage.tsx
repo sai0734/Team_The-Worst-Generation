@@ -45,13 +45,17 @@ const CryCheckPage = () => {
   return (
     <div className="cry-check-page">
       {babyList.length > 1 && (
-        <div className="cry-check-mode-tabs">
+        <div className="flex flex-wrap gap-2">
           {babyList.map((baby) => (
             <button
               key={baby.babyNo}
               type="button"
               onClick={() => dispatch(setCurrentBaby(baby))}
-              className={`chip${baby.babyNo === currentBaby.babyNo ? " is-active" : ""}`}
+              className={`rounded-full px-4 py-2 text-sm font-bold transition-colors ${
+                baby.babyNo === currentBaby.babyNo
+                  ? "bg-[#5AB2FF] text-white"
+                  : "border border-[rgba(42,41,38,0.15)] bg-white text-[#2A2926]"
+              }`}
             >
               {baby.babyName}
             </button>

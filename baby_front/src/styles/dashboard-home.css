@@ -440,3 +440,62 @@
       "assist";
   }
 }
+
+.app .home-ticker {
+  background: var(--glass);
+  border: 1px solid var(--line);
+  border-radius: var(--radius, 24px);
+  padding: 14px 0;
+  backdrop-filter: blur(15px);
+  box-shadow: 0 18px 55px rgba(0, 45, 90, 0.08);
+  overflow: hidden;
+}
+
+.app .home-ticker-track {
+  display: flex;
+  gap: 12px;
+  width: max-content;
+  padding: 0 20px;
+  animation: home-ticker-scroll 26s linear infinite;
+}
+
+.app .home-ticker:hover .home-ticker-track {
+  animation-play-state: paused;
+}
+
+.app .home-ticker-chip {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 18px;
+  border-radius: 99px;
+  background: var(--soft);
+  border: 1px solid var(--line);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--ink);
+  white-space: nowrap;
+}
+
+.app .home-ticker-chip i {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  font-size: 11px;
+  font-style: normal;
+  flex-shrink: 0;
+}
+
+@keyframes home-ticker-scroll {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}

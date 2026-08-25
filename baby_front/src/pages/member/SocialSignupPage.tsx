@@ -4,6 +4,7 @@ import { useDispatch } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 import { signupAndLinkSocial } from "../../api/kakaoApi";
 import BasicMenu from "../../components/menus/BasicMenu";
+import SkyBackground from "../../components/common/SkyBackground";
 import { login } from "../../slices/loginSlice";
 import type { AppDispatch } from "../../store";
 import type {
@@ -77,7 +78,8 @@ const SocialSignupPage = () => {
   return (
     <div className="fixed top-0 left-0 flex h-full w-full flex-col">
       <BasicMenu />
-      <div className="flex h-full w-full items-center justify-center">
+      <SkyBackground />
+      <div className="page-sky-content flex h-full w-full items-center justify-center">
         <div className="m-2 w-full max-w-xl border-2 border-sky-200 p-6">
           <h1 className="mb-6 text-center text-3xl font-bold">
             소셜 회원가입

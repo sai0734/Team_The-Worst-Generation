@@ -56,12 +56,6 @@ const navSectionLabelStyle: CSSProperties = {
   padding: "4px 14px 2px",
 };
 
-const navDividerStyle: CSSProperties = {
-  height: 1,
-  background: "var(--line)",
-  margin: "6px 4px",
-};
-
 const contentStyle: CSSProperties = {
   minWidth: 0,
   display: "flex",
@@ -69,45 +63,22 @@ const contentStyle: CSSProperties = {
   gap: 20,
 };
 
-const babyPickerListStyle: CSSProperties = {
+const babyPickerRowStyle: CSSProperties = {
   display: "flex",
   flexWrap: "wrap",
   gap: 8,
-  padding: "0 4px",
 };
 
-const babyPickBtnStyle: CSSProperties = {
-  padding: "8px 14px",
-  borderRadius: 14,
-  border: "1px solid var(--line)",
-  background: "var(--glass)",
-  color: "var(--ink)",
-  fontWeight: 700,
-  fontSize: 13,
-  cursor: "pointer",
-};
-
-const selectedBabyRowStyle: CSSProperties = {
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "space-between",
-  padding: "8px 14px",
-};
-
-const selectedBabyNameStyle: CSSProperties = {
+const babyPickerBtnStyle = (active: boolean): CSSProperties => ({
+  padding: "8px 16px",
+  borderRadius: 999,
   fontSize: 14,
   fontWeight: 700,
-  color: "var(--ink)",
-};
-
-const changeBabyBtnStyle: CSSProperties = {
-  border: "none",
-  background: "none",
-  color: "var(--accent)",
-  fontSize: 12,
-  fontWeight: 700,
   cursor: "pointer",
-};
+  border: active ? "none" : "1px solid rgba(42,41,38,0.15)",
+  background: active ? "#5AB2FF" : "#fff",
+  color: active ? "#fff" : "#2A2926",
+});
 
 const HealthIndexPage = () => {
   const navigate = useNavigate();
@@ -118,7 +89,6 @@ const HealthIndexPage = () => {
 
   const [babyList, setBabyList] = useState<BabyInfo[]>([]);
   const [selectedBaby, setSelectedBaby] = useState<BabyInfo | null>(null);
-  const [pickerOpen, setPickerOpen] = useState(true);
 
   useEffect(() => {
     babyInfoApi
@@ -135,13 +105,7 @@ const HealthIndexPage = () => {
           ? list.find((baby) => String(baby.babyNo) === effectiveBabyNo)
           : undefined;
 
-        if (matched) {
-          setSelectedBaby(matched);
-          setPickerOpen(false);
-        } else if (list.length === 1) {
-          setSelectedBaby(list[0]);
-          setPickerOpen(false);
-        }
+        setSelectedBaby(matched ?? list[0]);
       })
       .catch((err) => {
         console.error(err);
@@ -152,7 +116,6 @@ const HealthIndexPage = () => {
 
   const handleSelectBaby = (baby: BabyInfo) => {
     setSelectedBaby(baby);
-    setPickerOpen(false);
 
     const currentAction = SIDE_ITEMS.find((item) =>
       location.pathname.includes(`/health/${item.action}/`),
@@ -177,50 +140,42 @@ const HealthIndexPage = () => {
   return (
     <BasicLayout>
       <SkyBackground />
-      <div style={layoutStyle} className="page-sky-content">
-        <nav style={navStyle}>
-          <span style={navSectionLabelStyle}>검사할 아이</span>
-          {pickerOpen || !selectedBaby ? (
-            <div style={babyPickerListStyle}>
-              {babyList.map((baby) => (
-                <button
-                  key={baby.babyNo}
-                  type="button"
-                  style={babyPickBtnStyle}
-                  onClick={() => handleSelectBaby(baby)}
-                >
-                  {baby.babyName}
-                </button>
-              ))}
-            </div>
-          ) : (
-            <div style={selectedBabyRowStyle}>
-              <span style={selectedBabyNameStyle}>{selectedBaby.babyName}</span>
+      <div
+        className="page-sky-content"
+        style={{ display: "flex", flexDirection: "column", gap: 20 }}
+      >
+        {babyList.length > 1 && (
+          <div style={babyPickerRowStyle}>
+            {babyList.map((baby) => (
               <button
+                key={baby.babyNo}
                 type="button"
-                style={changeBabyBtnStyle}
-                onClick={() => setPickerOpen(true)}
+                style={babyPickerBtnStyle(baby.babyNo === selectedBaby?.babyNo)}
+                onClick={() => handleSelectBaby(baby)}
               >
-                변경
+                {baby.babyName}
               </button>
-            </div>
-          )}
+            ))}
+          </div>
+        )}
 
-          <div style={navDividerStyle} />
-          <span style={navSectionLabelStyle}>아이별 관리</span>
-          {SIDE_ITEMS.map((item) => (
-            <span
-              key={item.action}
-              style={navItemStyle(isActionActive(item.action), !selectedBaby)}
-              onClick={() => goWithBaby(item.action)}
-            >
-              {item.label}
-            </span>
-          ))}
-        </nav>
+        <div style={layoutStyle}>
+          <nav style={navStyle}>
+            <span style={navSectionLabelStyle}>아이별 관리</span>
+            {SIDE_ITEMS.map((item) => (
+              <span
+                key={item.action}
+                style={navItemStyle(isActionActive(item.action), !selectedBaby)}
+                onClick={() => goWithBaby(item.action)}
+              >
+                {item.label}
+              </span>
+            ))}
+          </nav>
 
-        <div style={contentStyle}>
-          <Outlet />
+          <div style={contentStyle}>
+            <Outlet />
+          </div>
         </div>
       </div>
     </BasicLayout>

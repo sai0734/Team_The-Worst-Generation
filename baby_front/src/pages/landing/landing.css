@@ -94,6 +94,7 @@
 .landing-page .hero p { margin-top: 20px; font-size: clamp(14px, 1.6vw, 18px); color: rgba(243,238,228,.85); line-height: 1.7; }
 .landing-page .hero .cta { margin-top: 36px; display: inline-flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
 .landing-page .hero .btn {
+  display: inline-flex; align-items: center; justify-content: center; line-height: 1;
   padding: 14px 28px; border-radius: 99px; font-size: 13px; font-weight: 800;
   cursor: pointer; border: 1px solid rgba(255,255,255,.4);
 }
@@ -124,7 +125,7 @@
 .landing-page .timeline-head .eyebrow { font-size: 11px; letter-spacing: 3px; font-weight: 900; color: var(--l-accent); }
 .landing-page .timeline-head h2 {
   font-family: var(--l-display);
-  font-size: clamp(24px, 3vw, 38px); letter-spacing: -1px; margin-top: 10px;
+  font-size: clamp(24px, 3vw, 38px); letter-spacing: -0.2px; margin-top: 10px;
   color: #fff; text-shadow: 0 2px 14px rgba(0,0,0,.35), 0 1px 3px rgba(0,0,0,.3);
 }
 .landing-page .timeline-head h2 .dchar { display: inline-block; }
@@ -649,6 +650,14 @@
   display: inline-block; padding: 14px 28px; border-radius: 99px; font-size: 13px; font-weight: 800;
   background: var(--l-accent); color: #fff; border: 1px solid var(--l-accent);
 }
+.landing-page .footer-nav {
+  display: flex; flex-wrap: wrap; gap: 40px;
+  padding: 44px 8vw; border-bottom: 1px solid rgba(255,255,255,.12);
+}
+.landing-page .footer-nav-col { display: flex; flex-direction: column; gap: 12px; min-width: 120px; }
+.landing-page .footer-nav-title { font-size: 11px; font-weight: 800; letter-spacing: 1.5px; color: rgba(255,255,255,.45); margin: 0 0 2px; }
+.landing-page .footer-nav-col a { font-size: 13px; font-weight: 600; color: rgba(255,255,255,.82); }
+.landing-page .footer-nav-col a:hover { color: var(--l-nav-active); }
 .landing-page .footer-bottom { padding: 30px 8vw 40px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
 .landing-page .footer-logo { font-family: var(--l-display); font-size: 16px; font-weight: 700; }
 .landing-page .footer-logo b { color: var(--l-nav-active); }
