@@ -26,7 +26,7 @@ import java.time.Duration;
 @Log4j2
 public class StoryAiClient {
 
-    private static final Duration GENERATION_TIMEOUT = Duration.ofSeconds(180);
+    private static final Duration GENERATION_TIMEOUT = Duration.ofSeconds(420);
     private static final Duration TTS_TIMEOUT = Duration.ofSeconds(180);
 
     private final ObjectMapper objectMapper;

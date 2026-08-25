@@ -24,6 +24,6 @@ if exist "%ROOT_ENV%" (
 
 if not defined OPENCLAW_GATEWAY_TOKEN exit /b 1
 
-REM OpenClaw가 Windows 예약 작업에 전달한 Gateway 인자를 그대로 실행합니다.
+REM Run the Gateway arguments passed by the OpenClaw Windows scheduled task.
 call openclaw %*
 exit /b %errorlevel%

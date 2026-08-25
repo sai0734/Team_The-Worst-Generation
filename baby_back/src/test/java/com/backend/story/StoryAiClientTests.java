@@ -52,7 +52,7 @@ class StoryAiClientTests {
                   "content":"따뜻한 이야기",
                   "generationMode":"LLM",
                   "characterCount":7,
-                  "sceneCount":5
+                  "sceneCount":4
                 }
                 """.getBytes(StandardCharsets.UTF_8),
                 Map.of("Content-Type", "application/json"),
@@ -74,7 +74,7 @@ class StoryAiClientTests {
         assertEquals("토끼", sent.path("interests").get(0).asText());
         assertEquals(true, sent.path("length").isMissingNode());
         assertEquals("story_test", result.storyId());
-        assertEquals(5, result.sceneCount());
+        assertEquals(4, result.sceneCount());
     }
 
     @Test

@@ -13,6 +13,7 @@ out
 
 # Logs
 *.log
+logs/
 
 # 감자마켓 관련
 upload/

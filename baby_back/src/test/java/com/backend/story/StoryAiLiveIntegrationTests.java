@@ -50,8 +50,8 @@ class StoryAiLiveIntegrationTests {
         );
 
         assertEquals("LLM", story.generationMode());
-        assertTrue(story.characterCount() >= 800);
-        assertTrue(story.sceneCount() >= 7);
+        assertTrue(story.characterCount() >= 1720);
+        assertEquals(4, story.sceneCount());
         assertEquals(
                 "RIFF",
                 new String(

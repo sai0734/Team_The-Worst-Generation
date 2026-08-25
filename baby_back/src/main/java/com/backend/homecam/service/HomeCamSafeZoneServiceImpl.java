@@ -19,8 +19,6 @@ public class HomeCamSafeZoneServiceImpl implements HomeCamSafeZoneService {
 
     private final ModelMapper modelMapper;
 
-    private final HomeCamAnalyzeService homeCamAnalyzeService;
-
     @Override
     public HomeCamSafeZoneDTO get(String email) {
 
@@ -45,16 +43,6 @@ public class HomeCamSafeZoneServiceImpl implements HomeCamSafeZoneService {
         } else {
             zone.changeZone(dto.getXRatio(), dto.getYRatio(), dto.getWRatio(), dto.getHRatio());
             homeCamSafeZoneMapper.update(zone);
-        }
-
-        if (dto.getBaselineImageBase64() != null && !dto.getBaselineImageBase64().isBlank()) {
-            try {
-                homeCamAnalyzeService.captureBaseline(dto.getEmail(), dto.getBaselineImageBase64());
-            } catch (Exception e) {
-                // AI서버가 잠깐 꺼져있어도 안전영역(사각형) 저장 자체는 실패시키지 않음 -
-                // 기준 이미지가 없으면 analyze()가 ready=false를 돌려줄 뿐, 다음 저장 때 다시 시도됨
-                log.warn("홈캠 기준 임베딩 캡처 실패 (email=" + dto.getEmail() + "): " + e.getMessage());
-            }
         }
     }
 }

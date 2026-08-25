@@ -27,12 +27,6 @@ def health() -> dict[str, bool]:
     return {"ok": True}
 
 app.include_router(
-    emergency.router,
-    prefix="/api/v1/emergency",
-    tags=["emergency"],
-)
-
-app.include_router(
     story.router,
     prefix="/api/v1/stories",
     tags=["stories"],
