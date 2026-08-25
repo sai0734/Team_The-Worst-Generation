@@ -1,14 +1,14 @@
 import * as homeCamApi from "../api/homeCamApi";
 
-// 사람 인식은 더 이상 브라우저(MediaPipe)에서 하지 않음 - 안전영역으로 크롭한 프레임을
-// 주기적으로 백엔드(→ 파이썬 AI서버)에 보내서, 침대에 아기가 있을 때의 "기준 이미지"와
-// 지금 프레임이 얼마나 비슷한지(임베딩 코사인 유사도)로 이탈 여부를 판정함.
+// 사람 인식은 브라우저(MediaPipe)가 아니라 백엔드(→ 파이썬 AI서버, YOLOv8 + OpenCV)에서 함.
+// 카메라 전체 프레임을 주기적으로 보내면, 서버가 "사람"을 탐지해서 그 좌표가 저장된
+// 안전영역(침대 범위) 사각형 안에 있는지 판정해서 돌려줌.
 const ANALYZE_INTERVAL_MS = 1500;
 // 네트워크 호출 기반이라 프레임 하나하나가 순간적으로 튈 수 있음 - 이만큼 연속으로
 // "이탈"이 나와야 실제 알람을 울림 (대략 4~5초 정도 지속된 변화만 알람으로 취급)
 const OUT_OF_ZONE_STREAK_THRESHOLD = 3;
-// 서버로 보내는 크롭 이미지 최대 가로폭(px) - 매 프레임 전송이라 용량을 작게 유지
-const CROP_MAX_WIDTH = 320;
+// 서버로 보내는 프레임 최대 가로폭(px) - 매 프레임 전송이라 용량을 작게 유지
+const FRAME_MAX_WIDTH = 640;
 
 // 비디오 실제 해상도 대비 0~1 비율로 저장 - 카메라 해상도가 바뀌어도 안전영역이 안 틀어짐
 export interface SafeZoneRatio {
@@ -26,8 +26,6 @@ export interface HomeCamSnapshot {
   isViewing: boolean;
   stream: MediaStream | null;
   safeZone: SafeZoneRatio | null;
-  // 마지막으로 서버에서 받은 기준 이미지 대비 유사도 (0~1, 아직 없으면 null)
-  lastSimilarity: number | null;
   isAlertActive: boolean;
   error: string | null;
 }
@@ -39,7 +37,6 @@ let snapshot: HomeCamSnapshot = {
   isViewing: false,
   stream: null,
   safeZone: null,
-  lastSimilarity: null,
   isAlertActive: false,
   error: null,
 };
@@ -125,20 +122,16 @@ const stopAlarmSound = () => {
   }
 };
 
-// 안전영역 비율만큼 현재 비디오 프레임을 잘라서 작은 JPEG(base64, data URL 접두어 제외)로 반환
-const captureCroppedFrame = (zone: SafeZoneRatio): string | null => {
+// 지금 비디오 프레임 전체를 작은 JPEG(base64, data URL 접두어 제외)로 반환.
+// 안전영역으로 미리 자르지 않고 화면 전체를 보냄 - 서버(YOLO)가 화면 어디든 사람을
+// 찾아야 하기 때문
+const captureFullFrame = (): string | null => {
   const video = detectionVideo;
   if (!video.videoWidth || !video.videoHeight || video.readyState < 2) return null;
 
-  const cropX = zone.xRatio * video.videoWidth;
-  const cropY = zone.yRatio * video.videoHeight;
-  const cropW = zone.wRatio * video.videoWidth;
-  const cropH = zone.hRatio * video.videoHeight;
-  if (cropW <= 0 || cropH <= 0) return null;
-
-  const scale = Math.min(1, CROP_MAX_WIDTH / cropW);
-  const outW = Math.max(1, Math.round(cropW * scale));
-  const outH = Math.max(1, Math.round(cropH * scale));
+  const scale = Math.min(1, FRAME_MAX_WIDTH / video.videoWidth);
+  const outW = Math.max(1, Math.round(video.videoWidth * scale));
+  const outH = Math.max(1, Math.round(video.videoHeight * scale));
 
   const canvas = document.createElement("canvas");
   canvas.width = outW;
@@ -146,26 +139,25 @@ const captureCroppedFrame = (zone: SafeZoneRatio): string | null => {
   const ctx = canvas.getContext("2d");
   if (!ctx) return null;
 
-  ctx.drawImage(video, cropX, cropY, cropW, cropH, 0, 0, outW, outH);
+  ctx.drawImage(video, 0, 0, outW, outH);
 
   const dataUrl = canvas.toDataURL("image/jpeg", 0.8);
   const commaIndex = dataUrl.indexOf(",");
   return commaIndex === -1 ? null : dataUrl.slice(commaIndex + 1);
 };
 
-// 크롭 프레임을 백엔드로 보내서 기준 이미지 대비 이탈 여부를 판정받음
+// 전체 프레임을 백엔드로 보내서 안전영역 이탈 여부를 판정받음
 const analyzeCurrentFrame = async () => {
   if (!snapshot.isMonitoring || !snapshot.safeZone || analyzeInFlight) return;
 
-  const frame = captureCroppedFrame(snapshot.safeZone);
+  const frame = captureFullFrame();
   if (!frame) return;
 
   analyzeInFlight = true;
   try {
     const result = await homeCamApi.analyzeFrame(frame);
-    setSnapshot({ lastSimilarity: result.similarity });
 
-    // 기준 이미지가 아직 캡처된 적 없음 - 판정 보류 (임의로 알람 울리지 않음)
+    // 안전영역 자체가 아직 저장된 적 없음 - 판정 보류 (임의로 알람 울리지 않음)
     if (!result.ready) return;
 
     if (!result.outOfZone) {
@@ -268,7 +260,7 @@ export const homeCamMonitor = {
       clearInterval(analyzeIntervalId);
       analyzeIntervalId = null;
     }
-    setSnapshot({ isMonitoring: false, isAlertActive: false, lastSimilarity: null });
+    setSnapshot({ isMonitoring: false, isAlertActive: false });
     releaseStreamIfUnused();
   },
 
@@ -299,17 +291,15 @@ export const homeCamMonitor = {
 
   // 화면 드래그로 그린 안전영역(침대 범위) 저장 - 계정에 묶여서 서버(DB)에 저장되고,
   // 다시 그리면 이전 값을 덮어쓸 뿐 쌓이지 않음(email당 항상 1행). 다른 기기/브라우저에서
-  // 로그인해도 같은 범위가 그대로 불러와짐. 이 순간의 프레임을 "기준 이미지"로 같이 캡처해서
-  // 보내면, 백엔드가 AI서버로 임베딩을 만들어 저장함 (이후 이탈 판정의 기준이 됨).
+  // 로그인해도 같은 범위가 그대로 불러와짐. 좌표만 저장하면 끝 - 사람 탐지는 매 프레임
+  // 서버(YOLO)가 하기 때문에 여기서 기준 이미지를 따로 캡처해서 보낼 필요가 없음.
   setSafeZone: (zone: SafeZoneRatio): void => {
     outOfZoneStreak = 0;
     stopAlarmSound();
     safeZoneFetched = true;
-    setSnapshot({ safeZone: zone, isAlertActive: false, lastSimilarity: null });
+    setSnapshot({ safeZone: zone, isAlertActive: false });
 
-    const baselineImageBase64 = captureCroppedFrame(zone) ?? undefined;
-
-    homeCamApi.saveSafeZone(zone, baselineImageBase64).catch(() => {
+    homeCamApi.saveSafeZone(zone).catch(() => {
       setSnapshot({
         error: "침대 범위 저장에 실패했어요. 다시 시도해주세요.",
       });

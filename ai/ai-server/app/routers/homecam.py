@@ -1,43 +1,45 @@
 from fastapi import APIRouter, HTTPException
 
-from app.schemas.homecam import HomecamAnalyzeRequest, HomecamAnalyzeResponse
-from app.services.homecam_embedding_service import (
+from app.schemas.homecam import (
+    DetectedPersonSchema,
+    HomecamDetectRequest,
+    HomecamDetectResponse,
+)
+from app.services.homecam_yolo_service import (
     MODEL_VERSION,
-    HomecamEmbeddingDimensionError,
-    HomecamEmbeddingService,
     HomecamImageDecodeError,
+    HomecamYoloService,
 )
 
 router = APIRouter()
-embedding_service = HomecamEmbeddingService()
+detection_service = HomecamYoloService()
 
 
-@router.post("/analyze", response_model=HomecamAnalyzeResponse)
-def analyze(request: HomecamAnalyzeRequest) -> HomecamAnalyzeResponse:
-    """Embed a cropped safe-zone frame, and score it against a baseline if given.
+@router.post("/analyze", response_model=HomecamDetectResponse)
+def analyze(request: HomecamDetectRequest) -> HomecamDetectResponse:
+    """카메라 전체 프레임에서 사람을 탐지해 위치(비율 좌표)만 돌려준다.
 
-    baseline_embedding omitted -> just returns an embedding (baseline capture).
-    baseline_embedding given -> also returns cosine similarity to it (live check).
+    안전영역(사각형)과 겹치는지 판정은 여기서 하지 않는다 - Spring이 저장된
+    안전영역 좌표와 비교해서 최종 판정한다.
     """
 
     try:
-        image = embedding_service.decode_image(request.image_base64)
+        image = detection_service.decode_image(request.image_base64)
     except HomecamImageDecodeError as exc:
         raise HTTPException(status_code=400, detail=f"이미지를 디코딩할 수 없습니다: {exc}") from exc
 
-    embedding = embedding_service.embed(image)
+    people = detection_service.detect_people(image)
 
-    similarity = None
-    if request.baseline_embedding is not None:
-        try:
-            similarity = embedding_service.cosine_similarity(
-                embedding, request.baseline_embedding
+    return HomecamDetectResponse(
+        people=[
+            DetectedPersonSchema(
+                confidence=person.confidence,
+                x_ratio=person.x_ratio,
+                y_ratio=person.y_ratio,
+                w_ratio=person.w_ratio,
+                h_ratio=person.h_ratio,
             )
-        except HomecamEmbeddingDimensionError as exc:
-            raise HTTPException(status_code=400, detail=str(exc)) from exc
-
-    return HomecamAnalyzeResponse(
-        embedding=embedding,
-        similarity=similarity,
+            for person in people
+        ],
         model_version=MODEL_VERSION,
     )

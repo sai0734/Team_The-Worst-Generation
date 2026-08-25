@@ -21,3 +21,7 @@ sentence-transformers
 requests
 piper-tts==1.7.0
 sherpa-onnx==1.13.6
+
+# homecam - person detection (YOLOv8 + OpenCV) for safe-zone exit detection
+ultralytics
+opencv-python

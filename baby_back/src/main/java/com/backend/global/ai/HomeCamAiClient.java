@@ -18,7 +18,7 @@ import com.google.gson.JsonParser;
 
 import lombok.extern.log4j.Log4j2;
 
-// 홈캠 안전영역 이탈 감지용 이미지 임베딩 서버 (ai/ai-server, homecam 모듈) 호출
+// 홈캠 안전영역 이탈 감지용 사람 탐지 서버 (ai/ai-server, homecam 모듈, YOLOv8 + OpenCV) 호출
 @Component
 @Log4j2
 public class HomeCamAiClient {
@@ -28,33 +28,44 @@ public class HomeCamAiClient {
 
     private final HttpClient httpClient = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(5))
+            // 자바 HttpClient가 기본으로 시도하는 h2c(cleartext HTTP/2) 업그레이드를
+            // uvicorn이 못 알아들어서 body가 통째로 빈 걸로 처리되는 문제 방지
             .version(HttpClient.Version.HTTP_1_1)
             .build();
 
-    public static class AnalyzeResult {
-        public final List<Double> embedding;
-        public final Double similarity;
+    // 탐지된 사람 한 명의 바운딩 박스 (프레임 대비 0~1 비율 좌표)
+    public static class DetectedPerson {
+        public final double confidence;
+        public final double xRatio;
+        public final double yRatio;
+        public final double wRatio;
+        public final double hRatio;
+
+        public DetectedPerson(double confidence, double xRatio, double yRatio, double wRatio, double hRatio) {
+            this.confidence = confidence;
+            this.xRatio = xRatio;
+            this.yRatio = yRatio;
+            this.wRatio = wRatio;
+            this.hRatio = hRatio;
+        }
+    }
+
+    public static class DetectResult {
+        public final List<DetectedPerson> people;
         public final String modelVersion;
 
-        public AnalyzeResult(List<Double> embedding, Double similarity, String modelVersion) {
-            this.embedding = embedding;
-            this.similarity = similarity;
+        public DetectResult(List<DetectedPerson> people, String modelVersion) {
+            this.people = people;
             this.modelVersion = modelVersion;
         }
     }
 
-    // baselineEmbedding이 null이면 embedding만 채워서 돌아옴 (기준 캡처용)
-    // baselineEmbedding이 있으면 similarity도 같이 채워서 돌아옴 (실시간 비교용)
-    public AnalyzeResult analyze(String imageBase64, List<Double> baselineEmbedding) {
+    // 카메라 전체 프레임을 보내 "사람"으로 탐지된 위치(비율 좌표) 목록을 받아온다.
+    // 안전영역 사각형과 겹치는지 판정은 여기서 하지 않고 HomeCamAnalyzeService가 한다.
+    public DetectResult detectPeople(String imageBase64) {
 
         JsonObject body = new JsonObject();
         body.addProperty("imageBase64", imageBase64);
-
-        if (baselineEmbedding != null) {
-            JsonArray baseline = new JsonArray();
-            baselineEmbedding.forEach(baseline::add);
-            body.add("baselineEmbedding", baseline);
-        }
 
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(baseUrl + "/api/v1/homecam/analyze"))
@@ -72,19 +83,22 @@ public class HomeCamAiClient {
 
             JsonObject responseBody = JsonParser.parseString(response.body()).getAsJsonObject();
 
-            List<Double> embedding = new ArrayList<>();
-            for (JsonElement e : responseBody.getAsJsonArray("embedding")) {
-                embedding.add(e.getAsDouble());
+            List<DetectedPerson> people = new ArrayList<>();
+            JsonArray peopleArray = responseBody.getAsJsonArray("people");
+            for (JsonElement e : peopleArray) {
+                JsonObject p = e.getAsJsonObject();
+                people.add(new DetectedPerson(
+                        p.get("confidence").getAsDouble(),
+                        p.get("xRatio").getAsDouble(),
+                        p.get("yRatio").getAsDouble(),
+                        p.get("wRatio").getAsDouble(),
+                        p.get("hRatio").getAsDouble()
+                ));
             }
-
-            JsonElement similarityEl = responseBody.get("similarity");
-            Double similarity = (similarityEl == null || similarityEl.isJsonNull())
-                    ? null
-                    : similarityEl.getAsDouble();
 
             String modelVersion = responseBody.get("modelVersion").getAsString();
 
-            return new AnalyzeResult(embedding, similarity, modelVersion);
+            return new DetectResult(people, modelVersion);
 
         } catch (java.io.IOException | InterruptedException e) {
             log.error("홈캠 AI서버 호출 실패: " + e.getMessage());
