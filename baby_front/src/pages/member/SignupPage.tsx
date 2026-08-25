@@ -4,6 +4,7 @@ import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { signupMember } from "../../api/memberApi";
 import BasicLayout from "../../layouts/BasicLayout";
+import SkyBackground from "../../components/common/SkyBackground";
 import { login } from "../../slices/loginSlice";
 import type { AppDispatch } from "../../store";
 import type { MemberSignupParam } from "../../types/member";
@@ -67,7 +68,8 @@ const SignupPage = () => {
 
   return (
     <BasicLayout>
-      <div className="flex min-h-[70vh] items-center justify-center">
+      <SkyBackground />
+      <div className="page-sky-content flex min-h-[70vh] items-center justify-center">
         <div className="w-full max-w-md border border-neutral-300 bg-white p-8">
           <h1 className="mb-6 text-center text-2xl font-bold">회원가입</h1>
 
@@ -130,5 +132,6 @@ const SignupPage = () => {
     </BasicLayout>
   );
 };
+
 
 export default SignupPage;

@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -33,6 +34,8 @@ public class KakaoLocalClient {
             .build();
 
     // 내 위치 기준 반경(radiusM) 안의 공원을 거리순으로 조회
+    @Cacheable(value = "nearbyParks",
+            key = "T(java.lang.Math).round(#lat * 1000) + '_' + T(java.lang.Math).round(#lng * 1000) + '_' + #radiusM")
     public List<KakaoPlace> searchNearbyParks(double lat, double lng, int radiusM) {
         if (restApiKey == null || restApiKey.isBlank()) {
             throw new IllegalStateException("KAKAO_REST_API_KEY is empty.");

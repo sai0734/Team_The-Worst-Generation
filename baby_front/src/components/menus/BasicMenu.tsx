@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import useCurrentProfile from "../../hooks/useCurrentProfile";
 import useCustomLogin from "../../hooks/useCustomLogin";
 import useHomeCamMonitor from "../../hooks/useHomeCamMonitor";
@@ -27,10 +27,7 @@ const NAV_ITEMS: NavItem[] = [
     code: "home",
     label: "홈",
     to: "/",
-    subItems: [
-      { label: "메인", to: "/" },
-      { label: "대시보드", to: "/dashboard" },
-    ],
+    subItems: [{ label: "대시보드", to: "/dashboard" }],
   },
   {
     code: "baby",
@@ -38,6 +35,7 @@ const NAV_ITEMS: NavItem[] = [
     to: "/babyInfo",
     subItems: [
       { label: "우리아이", to: "/babyInfo" },
+      { label: "아이등록", to: "/babyInfo/input" },
       { label: "육아일기", to: "/diary" },
     ],
   },
@@ -80,8 +78,9 @@ const NAV_ITEMS: NavItem[] = [
     subItems: [
       { label: "행동교정 상담", to: "/ai/behavior" },
       { label: "울음소리 분석", to: "/ai/cry-check" },
-      { label: "성분표 검사", to: "/allergy" },
+      { label: "맞춤 동화 생성", to: "/ai/story" },
       { label: "산책로 추천", to: "/walk" },
+      { label: "성분표 검사", to: "/allergy" },
       { label: "건강 체크", to: "/health" },
     ],
   },
@@ -91,12 +90,25 @@ const BasicMenu = () => {
   const loginState = useSelector((state: RootState) => state.loginSlice);
   const currentProfile = useCurrentProfile();
   const { doLogout, moveToPath } = useCustomLogin();
+  const location = useLocation();
   const [hovered, setHovered] = useState<string | null>(null);
   const [subnavLeft, setSubnavLeft] = useState<number | undefined>(undefined);
   const topWrapRef = useRef<HTMLElement | null>(null);
   const tabRefs = useRef<Record<string, HTMLAnchorElement | null>>({});
 
-  const activeItem = NAV_ITEMS.find((item) => item.code === hovered);
+  // 현재 주소가 어느 주메뉴의 서브메뉴에 속하는지 찾는다 ("/"는 정확히 일치할 때만, 나머지는 접두사 중 가장 긴 것 우선)
+  const routeActiveCode = NAV_ITEMS.flatMap((item) =>
+    item.subItems.map((sub) => ({ code: item.code, to: sub.to })),
+  )
+    .filter((sub) =>
+      sub.to === "/" ? location.pathname === "/" : location.pathname.startsWith(sub.to),
+    )
+    .sort((a, b) => b.to.length - a.to.length)[0]?.code;
+
+  // hover 중이면 그걸 우선 보여주고, hover가 끝나면 현재 위치한 메뉴의 서브메뉴로 되돌아간다(완전히 닫히지 않음)
+  const activeItem = NAV_ITEMS.find(
+    (item) => item.code === (hovered ?? routeActiveCode),
+  );
   const closeSubnav = () => setHovered(null);
 
   // 좁은 화면에서는 상단 탭(.primary-nav)이 숨겨지므로 햄버거 버튼으로 대체 메뉴를 연다.
@@ -118,6 +130,8 @@ const BasicMenu = () => {
 
   const [isSosModalOpen, setIsSosModalOpen] = useState(false);
   const [isHomeCamOpen, setIsHomeCamOpen] = useState(false);
+  const [fabOpen, setFabOpen] = useState(false);
+  const toggleFab = () => setFabOpen((prev) => !prev);
   const { isMonitoring, isAlertActive } = useHomeCamMonitor();
 
   // 홈캠을 안 보고 있어도(감시만 켜둔 상태) 안전영역 이탈이 감지되면 화면을 강제로 띄움
@@ -127,8 +141,8 @@ const BasicMenu = () => {
     }
   }, [isAlertActive]);
 
-  const handleTabEnter = (code: string) => {
-    setHovered(code);
+  const alignSubnavTo = (code: string | undefined) => {
+    if (!code) return;
     const tabEl = tabRefs.current[code];
     const wrapEl = topWrapRef.current;
     if (tabEl && wrapEl) {
@@ -137,6 +151,18 @@ const BasicMenu = () => {
       setSubnavLeft(tabRect.left - wrapRect.left);
     }
   };
+
+  const handleTabEnter = (code: string) => {
+    setHovered(code);
+    alignSubnavTo(code);
+  };
+
+  // 클릭으로 페이지가 바뀌었을 때도(마우스를 다시 움직이지 않아도) 고정된 서브메뉴 위치를 현재 메뉴 쪽으로 맞춘다.
+  useEffect(() => {
+    if (hovered) return;
+    alignSubnavTo(routeActiveCode);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [routeActiveCode, hovered]);
 
   useEffect(() => {
     if (!isSosModalOpen) return;
@@ -173,8 +199,8 @@ const BasicMenu = () => {
             {NAV_ITEMS.map((item) => (
               <Link
                 key={item.code}
-                to={item.to}
-                className="nav-tab"
+                to={item.subItems[0]?.to ?? item.to}
+                className={`nav-tab${routeActiveCode === item.code ? " active" : ""}`}
                 ref={(el) => {
                   tabRefs.current[item.code] = el;
                 }}
@@ -237,7 +263,7 @@ const BasicMenu = () => {
         </div>
 
         <div
-          className={`subnav${activeItem ? " open" : ""}`}
+          className={`subnav${activeItem && activeItem.subItems.length > 1 ? " open" : ""}`}
           style={{ paddingLeft: subnavLeft }}
         >
           {activeItem?.subItems.map((sub, idx) => (
@@ -292,47 +318,76 @@ const BasicMenu = () => {
         </>
       )}
 
-      <div className="floating-tools">
+      <div className={`fab${fabOpen ? " open" : ""}`}>
+        <div className="fab-actions">
+          <button
+            type="button"
+            className="tool tool--sos fab-action"
+            aria-label="긴급 도움 요청"
+            aria-haspopup="dialog"
+            aria-expanded={isSosModalOpen}
+            style={{
+              transitionDelay: fabOpen ? "0ms" : "240ms",
+              transform: fabOpen ? "translateY(-58px)" : "translateY(0)",
+            }}
+            onClick={() => setIsSosModalOpen(true)}
+          >
+            <i aria-hidden="true">!</i>
+            <span>SOS</span>
+          </button>
+          <button
+            type="button"
+            className="tool fab-action"
+            style={{
+              transitionDelay: fabOpen ? "80ms" : "160ms",
+              transform: fabOpen ? "translateY(-116px)" : "translateY(0)",
+            }}
+            onClick={() => window.dispatchEvent(new Event("open-chatbot"))}
+          >
+            <i>💬</i>
+            <span>AI 챗봇</span>
+          </button>
+          <button
+            type="button"
+            className={`tool tool--monitor fab-action${isMonitoring ? " is-active" : ""}`}
+            aria-pressed={isMonitoring}
+            title="AI가 화면에서 빠른 움직임을 감지하면 알림을 드려요. (이 사이트가 켜져 있는 동안만 동작해요)"
+            style={{
+              transitionDelay: fabOpen ? "160ms" : "80ms",
+              transform: fabOpen ? "translateY(-174px)" : "translateY(0)",
+            }}
+            onClick={toggleMonitoring}
+          >
+            <i>{isMonitoring ? "👁️" : "🚫"}</i>
+            <span>{isMonitoring ? "감시 중지" : "감시 시작"}</span>
+            {isMonitoring && <b className="live"></b>}
+          </button>
+          <button
+            type="button"
+            className="tool fab-action"
+            aria-haspopup="dialog"
+            aria-expanded={isHomeCamOpen}
+            style={{
+              transitionDelay: fabOpen ? "240ms" : "0ms",
+              transform: fabOpen ? "translateY(-232px)" : "translateY(0)",
+            }}
+            onClick={() => setIsHomeCamOpen(true)}
+          >
+            <i>📹</i>
+            <span>홈캠</span>
+            {isMonitoring && <b className="live"></b>}
+          </button>
+        </div>
+
         <button
           type="button"
-          className="tool tool--sos"
-          aria-label="긴급 도움 요청"
-          aria-haspopup="dialog"
-          aria-expanded={isSosModalOpen}
-          onClick={() => setIsSosModalOpen(true)}
+          className="fab-trigger"
+          aria-label={fabOpen ? "빠른 메뉴 닫기" : "빠른 메뉴 열기"}
+          aria-expanded={fabOpen}
+          onClick={toggleFab}
         >
-          <i aria-hidden="true">!</i>
-          <span>SOS</span>
-        </button>
-        <button
-          type="button"
-          className="tool"
-          onClick={() => window.dispatchEvent(new Event("open-chatbot"))}
-        >
-          <i>💬</i>
-          <span>AI 챗봇</span>
-        </button>
-        <button
-          type="button"
-          className={`tool tool--monitor${isMonitoring ? " is-active" : ""}`}
-          aria-pressed={isMonitoring}
-          title="AI가 화면에서 빠른 움직임을 감지하면 알림을 드려요. (이 사이트가 켜져 있는 동안만 동작해요)"
-          onClick={toggleMonitoring}
-        >
-          <i>{isMonitoring ? "👁️" : "🚫"}</i>
-          <span>{isMonitoring ? "감시 중지" : "감시 시작"}</span>
-          {isMonitoring && <b className="live"></b>}
-        </button>
-        <button
-          type="button"
-          className="tool"
-          aria-haspopup="dialog"
-          aria-expanded={isHomeCamOpen}
-          onClick={() => setIsHomeCamOpen(true)}
-        >
-          <i>📹</i>
-          <span>홈캠</span>
-          {isMonitoring && <b className="live"></b>}
+          <span className="fab-trigger-bar fab-trigger-bar--h" />
+          <span className="fab-trigger-bar fab-trigger-bar--v" />
         </button>
       </div>
 

@@ -3,6 +3,7 @@ import HospitalReservationComponent from "../../components/hospital/HospitalRese
 import useCurrentProfile from "../../hooks/useCurrentProfile";
 import useCustomLogin from "../../hooks/useCustomLogin";
 import BasicLayout from "../../layouts/BasicLayout";
+import SkyBackground from "../../components/common/SkyBackground";
 import "../../styles/hospital.css";
 
 const HospitalReservationPage = () => {
@@ -14,7 +15,10 @@ const HospitalReservationPage = () => {
 
   return (
     <BasicLayout>
-      <HospitalReservationComponent />
+      <SkyBackground />
+      <div className="page-sky-content">
+        <HospitalReservationComponent />
+      </div>
     </BasicLayout>
   );
 };

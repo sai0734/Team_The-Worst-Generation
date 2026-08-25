@@ -222,7 +222,7 @@ const LandingTimeline = () => {
       chars.forEach((ch, i) => {
         const span = document.createElement("span");
         span.className = "dchar";
-        span.textContent = ch === " " ? " " : ch;
+        span.textContent = ch === " " ? " " : ch;
         span.style.animationDelay = i * 0.06 + "s";
         h2.appendChild(span);
       });
