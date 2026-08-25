@@ -51,9 +51,37 @@ def _to_item(doc_id: str, meta: dict) -> SubsidyItem:
     )
 
 
-def structured_search(months: int, sido: str) -> list[SubsidyItem]:
-    result = _collection.get(where=_where_clause(months, sido))
-    return [_to_item(i, m) for i, m in zip(result["ids"], result["metadatas"])]
+def _profile_query_text(months: int, sido: str, household_size: int | None, income_tags: list[str]) -> str:
+    stage = life_stage(months)
+    parts = [f"{months}개월({stage}) 아이"]
+    if sido:
+        parts.append(f"{sido} 거주")
+    if household_size:
+        parts.append(f"가구원 {household_size}인")
+    if income_tags:
+        parts.append(", ".join(income_tags) + "가구")
+    parts.append("가 받을 수 있는 지원금")
+    return " ".join(parts)
+
+def search_profile(
+        months: int,
+        sido: str,
+        household_size: int | None = None,
+        income_tags: list[str] | None = None,
+        n_results: int = 20,
+) -> list[SubsidyItem]: 
+    where = _where_clause(months, sido)  #나이/지역은 1차필터로 거른다
+    query_text = _profile_query_text(months, sido, household_size, income_tags or [])
+    query_vec = _embedder.encode([query_text]).tolist()
+
+    result = _collection.query(
+        query_embeddings=query_vec,
+        n_results=n_results,
+        where=where,
+    )
+    ids = result["ids"][0]
+    metas = result["metadatas"][0]
+    return [_to_item(i, m) for i, m in zip(ids, metas)]
 
 
 def ask(question: str, months: int, sido: str) -> tuple[str, list[SubsidyItem]]:
