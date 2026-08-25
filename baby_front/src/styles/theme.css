@@ -40,59 +40,6 @@
   bottom: -300px;
 }
 
-/* ===== 페이지 전환 와이프 ===== */
-.app .page-wipe {
-  position: fixed;
-  inset: 0;
-  background: var(--accent);
-  z-index: 200;
-  transform: translateY(101%);
-  pointer-events: none;
-}
-.app .page-wipe.run {
-  animation: page-wipe-in-out 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-@keyframes page-wipe-in-out {
-  0% {
-    transform: translateY(101%);
-  }
-  45% {
-    transform: translateY(0%);
-  }
-  55% {
-    transform: translateY(0%);
-  }
-  100% {
-    transform: translateY(-101%);
-  }
-}
-.app .page-wipe-label {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  color: #fff;
-  font-weight: 900;
-  font-size: 14px;
-  letter-spacing: 2px;
-  opacity: 0;
-}
-.app .page-wipe.run .page-wipe-label {
-  animation: page-wipe-label-fade 0.9s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-@keyframes page-wipe-label-fade {
-  0%,
-  40% {
-    opacity: 0;
-  }
-  50%,
-  60% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0;
-  }
-}
 .app .top-wrap {
   position: relative;
   z-index: 8;
@@ -148,10 +95,12 @@
   transform: scaleX(0);
   transition: transform 0.18s ease;
 }
-.app .nav-tab:hover {
+.app .nav-tab:hover,
+.app .nav-tab.active {
   color: var(--accent);
 }
-.app .nav-tab:hover:after {
+.app .nav-tab:hover:after,
+.app .nav-tab.active:after {
   transform: scaleX(1);
 }
 .app .subnav {
@@ -295,27 +244,42 @@
 .app .mobile-nav-sub a:hover {
   color: var(--accent);
 }
-.app .floating-tools {
+.app .fab {
   position: fixed;
   right: 24px;
   bottom: 24px;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 10px;
+  width: 46px;
+  height: 46px;
   z-index: 30;
 }
-.app .floating-tools .tool {
+.app .fab-actions {
+  pointer-events: none;
+}
+.app .fab .fab-action {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: max-content;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    transform 0.35s ease,
+    opacity 0.3s ease;
   box-shadow: 0 10px 30px rgba(0, 45, 90, 0.22);
 }
-.app .floating-tools .tool--sos {
+.app .fab.open .fab-action {
+  opacity: 1;
+  pointer-events: auto;
+}
+.app .fab-action.tool--sos {
   background: #c83d3d;
   box-shadow: 0 8px 22px rgba(137, 31, 31, 0.24);
 }
-.app .floating-tools .tool--sos:hover {
+.app .fab-action.tool--sos:hover {
   background: #b82f2f;
 }
-.app .floating-tools .tool--sos i {
+.app .fab-action.tool--sos i {
   display: grid;
   width: 18px;
   height: 18px;
@@ -325,6 +289,44 @@
   font-size: 12px;
   line-height: 1;
   font-weight: 900;
+}
+.app .fab-trigger {
+  position: relative;
+  width: 46px;
+  height: 46px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 10px 30px rgba(0, 45, 90, 0.28);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+}
+.app .fab-trigger-bar {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  background: #fff;
+  border-radius: 2px;
+  transition: transform 0.5s ease;
+}
+.app .fab-trigger-bar--h {
+  width: 18px;
+  height: 2px;
+  margin-top: -1px;
+  margin-left: -9px;
+}
+.app .fab-trigger-bar--v {
+  width: 2px;
+  height: 18px;
+  margin-top: -9px;
+  margin-left: -1px;
+}
+.app .fab.open .fab-trigger .fab-trigger-bar--h {
+  transform: rotate(45deg);
+}
+.app .fab.open .fab-trigger .fab-trigger-bar--v {
+  transform: rotate(-45deg);
 }
 .app .sos-modal-backdrop {
   position: fixed;
@@ -477,17 +479,17 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 10px;
-  border: 1px solid var(--line);
-  border-radius: 10px;
+  padding: 8px 14px;
+  border: 1px solid #1a1a1a;
+  border-radius: 99px;
   background: rgba(255, 255, 255, 0.68);
-  transition:
-    border-color 0.18s ease,
-    background 0.18s ease;
+  transition: background 0.18s ease;
 }
 .app .account .current-profile-link:hover {
-  border-color: rgba(0, 91, 178, 0.3);
   background: #fff;
+}
+.app .account .account-link {
+  border: 1px solid #1a1a1a;
 }
 .app .current-profile-dot {
   width: 8px;
@@ -919,97 +921,6 @@
   height: clamp(150px, 17vw, 220px);
   object-fit: contain;
   flex-shrink: 0;
-}
-
-/* 기차 모양 마퀴 텔리커 - 기관차가 끌고가는 객차 창문 안으로 글씨가 흘러감 */
-.app .home-train {
-  width: 100%;
-  margin: 0 auto;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-.app .home-train-engine {
-  flex-shrink: 0;
-  font-size: 26px;
-  line-height: 1;
-  filter: drop-shadow(0 3px 6px rgba(0, 45, 90, 0.18));
-  animation: home-train-chug 1.4s ease-in-out infinite;
-}
-.app .home-train-car {
-  position: relative;
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  border: 2px solid var(--accent);
-  border-radius: 14px;
-  background: var(--soft);
-  padding: 5px 14px;
-  white-space: nowrap;
-  /* 창 양 끝에서 글자가 뚝 잘리지 않고 자연스럽게 사라지도록 페이드 처리 */
-  mask-image: linear-gradient(
-    to right,
-    transparent 0,
-    black 24px,
-    black calc(100% - 24px),
-    transparent 100%
-  );
-  -webkit-mask-image: linear-gradient(
-    to right,
-    transparent 0,
-    black 24px,
-    black calc(100% - 24px),
-    transparent 100%
-  );
-}
-.app .home-marquee-track {
-  display: inline-flex;
-  gap: 28px;
-  animation: home-marquee 55s linear infinite;
-}
-.app .home-marquee-track span {
-  font-size: 11px;
-  font-weight: 800;
-  color: var(--accent);
-  letter-spacing: 0.4px;
-}
-.app .home-train-wheel {
-  position: absolute;
-  bottom: -5px;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: var(--accent);
-  box-shadow: 0 0 0 2px var(--bg);
-  animation: home-train-chug 1.4s ease-in-out infinite;
-}
-.app .home-train-wheel.w1 {
-  left: 12%;
-}
-.app .home-train-wheel.w2 {
-  left: 50%;
-  animation-delay: 0.1s;
-}
-.app .home-train-wheel.w3 {
-  left: 88%;
-  animation-delay: 0.2s;
-}
-@keyframes home-train-chug {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-2px);
-  }
-}
-@keyframes home-marquee {
-  from {
-    transform: translateX(0);
-  }
-  to {
-    transform: translateX(-50%);
-  }
 }
 
 .app .home-grid {
@@ -1519,30 +1430,10 @@
   letter-spacing: -0.5px;
   margin: 10px 0 22px;
 }
-/* 하늘 배경 위에 바로 얹힌 제목/탭은 구름이 뒤로 지나가면 글자와 겹쳐 시인성이 떨어지므로,
-   다른 카드들과 같은 톤의 유리 패널을 하나 더 깔아준다 */
-.app .page-header-card {
-  position: relative;
-  z-index: 1;
-  padding: 16px 20px 8px;
-  border-radius: 24px;
-  background: linear-gradient(
-    150deg,
-    rgba(255, 255, 255, 0.6) 0%,
-    rgba(255, 255, 255, 0.38) 55%,
-    rgba(255, 255, 255, 0.26) 100%
-  );
-  border: 1px solid rgba(255, 255, 255, 0.65);
-  backdrop-filter: blur(24px) saturate(100%) brightness(1.1);
-  -webkit-backdrop-filter: blur(24px) saturate(100%) brightness(1.1);
-  box-shadow: 0 16px 40px rgba(90, 100, 160, 0.14);
-  margin-bottom: 20px;
-}
-.app .page-header-card .page-title {
-  margin: 0 0 14px;
-}
-.app .page-header-card .community-tabs {
-  margin-bottom: 0;
+/* 아기 이름이 들어가는 큰 제목(응애관리/육아일기/성장앨범/행동교정 등)에 공통으로 쓰는 폰트 */
+.app .baby-name-heading {
+  font-family: "Maplestory", "Noto Sans KR", sans-serif;
+  font-size: 16px;
 }
 .app .recall-header {
   display: flex;
@@ -2296,25 +2187,6 @@
   z-index: 1;
   width: min(760px, 100%);
   margin: 0 auto;
-}
-.app .community-tabs {
-  display: flex;
-  gap: 6px;
-  margin-bottom: 20px;
-}
-.app .community-tab {
-  padding: 10px 18px;
-  border-radius: 99px;
-  font-size: 13px;
-  font-weight: 800;
-  color: var(--muted);
-}
-.app .community-tab:hover {
-  color: var(--accent);
-}
-.app .community-tab.active {
-  background: var(--accent);
-  color: #fff;
 }
 .app .community-search {
   display: flex;

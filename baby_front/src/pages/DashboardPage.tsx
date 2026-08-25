@@ -18,11 +18,7 @@ import { questApi, type MemberQuest, type QuestHome } from "../api/questApi";
 import AssistantPanel from "../components/assistant/AssistantPanel";
 import SkyBackground from "../components/common/SkyBackground";
 import heroBaby from "../assets/hero-baby.png";
-import { triggerWipe } from "../utils/pageTransition";
 import "../styles/dashboard-home.css";
-
-const MARQUEE_TEXT =
-  "오늘의 육아일기 남겨보세요 ✦ AI로 우리 동네 지원금 찾아보세요 ✦ 가계부로 육아비 한눈에 정리해보세요 ✦ 육아용품 리콜 알림 받아보세요 ✦ 홈캠으로 낮잠시간 안심하게 지켜보세요 ✦ 감자마켓에서 육아템 거래해보세요 ✦ 믿을 수 있는 베이비시터 찾아보세요 ✦ AI 울음소리 분석 써보세요 ✦ ";
 
 const SplitHeading = ({
   text,
@@ -284,7 +280,7 @@ const DashboardPage = () => {
             className="submit-btn home-hero-cta"
             onClick={(e) => {
               e.preventDefault();
-              triggerWipe(() => navigate("/babyInfo/input"));
+              navigate("/babyInfo/input");
             }}
           >
             우리 아이 등록하기
@@ -297,15 +293,23 @@ const DashboardPage = () => {
         />
       </section>
 
-      <div className="home-train">
-        <span className="home-train-engine" aria-hidden="true">🚂</span>
-        <div className="home-train-car">
-          <div className="home-marquee-track">
-            <span>{MARQUEE_TEXT.repeat(2)}</span>
-          </div>
-          <span className="home-train-wheel w1" aria-hidden="true" />
-          <span className="home-train-wheel w2" aria-hidden="true" />
-          <span className="home-train-wheel w3" aria-hidden="true" />
+      <div className="home-ticker">
+        <div className="home-ticker-track">
+          <span className="home-ticker-chip"><i>📔</i>오늘의 육아일기 남겨보세요</span>
+          <span className="home-ticker-chip"><i>💸</i>AI로 우리 동네 지원금 찾아보세요</span>
+          <span className="home-ticker-chip"><i>💰</i>가계부로 육아비 한눈에 정리해보세요</span>
+          <span className="home-ticker-chip"><i>📷</i>홈캠으로 낮잠시간 안심하게 지켜보세요</span>
+          <span className="home-ticker-chip"><i>🥕</i>감자마켓에서 육아템 거래해보세요</span>
+          <span className="home-ticker-chip"><i>👶</i>믿을 수 있는 베이비시터 찾아보세요</span>
+          <span className="home-ticker-chip"><i>🍼</i>AI 울음소리 분석 써보세요</span>
+          {/* 끊김 없이 흐르도록 동일 세트를 한 번 더 반복 (총 2세트) */}
+          <span className="home-ticker-chip"><i>📔</i>오늘의 육아일기 남겨보세요</span>
+          <span className="home-ticker-chip"><i>💸</i>AI로 우리 동네 지원금 찾아보세요</span>
+          <span className="home-ticker-chip"><i>💰</i>가계부로 육아비 한눈에 정리해보세요</span>
+          <span className="home-ticker-chip"><i>📷</i>홈캠으로 낮잠시간 안심하게 지켜보세요</span>
+          <span className="home-ticker-chip"><i>🥕</i>감자마켓에서 육아템 거래해보세요</span>
+          <span className="home-ticker-chip"><i>👶</i>믿을 수 있는 베이비시터 찾아보세요</span>
+          <span className="home-ticker-chip"><i>🍼</i>AI 울음소리 분석 써보세요</span>
         </div>
       </div>
       </div>
@@ -437,7 +441,7 @@ const DashboardPage = () => {
           style={{ "--i": 2 } as CSSProperties}
           onClick={(e) => {
             e.preventDefault();
-            triggerWipe(() => navigate("/ledger"));
+            navigate("/ledger");
           }}
         >
           <small className="eyebrow">우리집 가계부</small>
@@ -486,7 +490,7 @@ const DashboardPage = () => {
           style={{ "--i": 3 } as CSSProperties}
           onClick={(e) => {
             e.preventDefault();
-            triggerWipe(() => navigate("/recall"));
+            navigate("/recall");
           }}
         >
           <small className="eyebrow">AI 육아용품 리콜</small>

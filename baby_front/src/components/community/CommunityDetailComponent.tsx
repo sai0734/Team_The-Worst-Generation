@@ -393,6 +393,7 @@ const CommunityDetailComponent = () => {
         ← 목록으로
       </button>
 
+      <div className="card community-detail-card">
       <span
         className={`community-badge ${CATEGORY_BADGE_CLASS[post.category]}`}
         style={{ marginBottom: 6, display: "inline-flex" }}
@@ -457,6 +458,7 @@ const CommunityDetailComponent = () => {
           </button>
         </div>
       )}
+      </div>
 
       <div className="card community-comment-section">
         <h3>댓글 {post.commentCount}</h3>

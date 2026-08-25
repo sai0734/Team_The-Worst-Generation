@@ -136,7 +136,7 @@ const BabyInfoPage = () => {
           <p className="text-[11px] font-extrabold tracking-[3px] text-[#5AB2FF]">
             BABY BOM
           </p>
-          <h1 className="mt-1 text-[24px] font-bold text-[#2A2926]">
+          <h1 className="baby-name-heading mt-1 font-bold text-[#2A2926]">
             {babyInfo.babyName} ({getAgeInMonths(babyInfo.birthDate)}개월)
           </h1>
           <div className="mt-3 flex flex-col gap-2">

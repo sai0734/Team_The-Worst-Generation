@@ -2,7 +2,6 @@ import logging
 import os
 
 from fastapi import FastAPI
-
 from app.routers import emergency, homecam, recall, story, subsidy
 from app.routers import health as health_router
 
