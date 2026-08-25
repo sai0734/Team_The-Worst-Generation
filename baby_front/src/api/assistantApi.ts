@@ -16,6 +16,8 @@ export interface ChildContext {
   gender?: string;
   regionSido?: string;
   regionSigungu?: string;
+  householdSize?: number;
+  incomeTags?: string[];
 }
 
 export interface AssistItem {

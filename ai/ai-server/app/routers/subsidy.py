@@ -14,8 +14,9 @@ router = APIRouter()
 
 @router.post("/search", response_model=SubsidySearchResponse)
 def search(req: SubsidySearchRequest) -> SubsidySearchResponse:
-    """Deterministic metadata-filtered search. No LLM call."""
-    items = subsidy_rag_service.structured_search(req.baby_months, req.region_sido)
+    items = subsidy_rag_service.search_profile(
+        req.baby_months, req.region_sido, req.household_size, req.income_tags,
+    )
     return SubsidySearchResponse(items=items)
 
 

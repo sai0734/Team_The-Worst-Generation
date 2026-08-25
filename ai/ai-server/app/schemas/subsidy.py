@@ -18,7 +18,9 @@ class SubsidySearchRequest(BaseModel):
 
     baby_months: int = Field(alias="babyMonths")
     region_sido: str = Field(default="", alias="regionSido")
-
+    household_size: int | None = Field(default=None, alias="householdSize")
+    income_tags: list[str] = Field(default_factory=list, alias="incomeTags")
+    
 
 class SubsidySearchResponse(BaseModel):
     items: list[SubsidyItem]
