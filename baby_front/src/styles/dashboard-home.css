@@ -2,8 +2,7 @@
   align-items: start;
   grid-template-areas:
     "tip    tip"
-    "quest  side"
-    "assist assist";
+    "quest  side";
 }
 
 .app .home-grid.home-grid-v2 .area-side {
@@ -25,17 +24,6 @@
   height: auto;
   /* 내용 크기부터 시작해서(auto), 남는 세로 공간은 두 카드가 나눠 가짐 */
   flex: 1 1 auto;
-}
-
-.app .home-grid.home-grid-v2 .area-assist {
-  grid-area: assist;
-  align-self: stretch;
-}
-
-.app .home-grid.home-grid-v2 .support-panel.info {
-  min-height: 0;
-  height: auto;
-  justify-content: flex-start;
 }
 
 .app .assist-panel-head {
@@ -92,6 +80,15 @@
   background: transparent;
 }
 
+/* 정책 찾기 = 이 패널의 대표 CTA라 진하게 강조 */
+.app .assist-edit {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
+  padding: 9px 20px;
+  font-size: 12.5px;
+}
+
 .app .assist-edit:disabled,
 .app .assist-save:disabled {
   opacity: 0.6;
@@ -100,13 +97,81 @@
 
 .app .assist-filters {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 8px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
   margin: 0 0 10px;
   padding: 8px;
   border: 1px solid var(--line);
   border-radius: 12px;
   background: var(--soft);
+}
+@media (max-width: 520px) {
+  .app .assist-filters {
+    grid-template-columns: 1fr;
+  }
+}
+
+.app .gov-subsidy-panel {
+  padding: 20px 22px;
+}
+
+.app .gov-subsidy-close {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 10px auto;
+  border: 1px solid var(--line);
+  background: var(--glass);
+  border-radius: 99px;
+  padding: 6px 14px;
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--muted);
+  cursor: pointer;
+}
+.app .gov-subsidy-close:hover {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+/* 접힌 상태: 필드 한 줄 + 큰 CTA 버튼만 (참고 캡처와 동일한 구성) */
+.app .gov-subsidy-collapsed {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  text-align: center;
+}
+.app .gov-subsidy-collapsed h3 {
+  margin: 0;
+}
+.app .gov-subsidy-collapsed .assist-hint {
+  margin: -8px 0 0;
+}
+.app .gov-subsidy-collapsed .assist-filters {
+  width: 100%;
+  margin: 0;
+  background: transparent;
+  border: none;
+  padding: 0;
+}
+.app .gov-subsidy-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 48px;
+  padding: 0 32px;
+  border: none;
+  border-radius: 99px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.app .gov-subsidy-cta:disabled {
+  opacity: 0.6;
+  cursor: wait;
 }
 
 .app .assist-tag-group {
@@ -427,17 +492,7 @@
     grid-template-areas:
       "tip"
       "quest"
-      "side"
-      "assist";
-  }
-
-  .app .home-grid.home-grid-v2 {
-    grid-template-columns: 1fr;
-    grid-template-areas:
-      "tip"
-      "quest"
-      "side"
-      "assist";
+      "side";
   }
 }
 
@@ -498,4 +553,209 @@
   to {
     transform: translateX(-50%);
   }
+}
+
+/* 대시보드는 좌우 여백 없이 꽉 채워서 씀 (theme.css의 1040px 중앙정렬 캡 무시) */
+.app .home-content .home-hero-group,
+.app .home-content .home-grid.home-grid-v2 {
+  width: 100%;
+  margin: 0;
+}
+
+/* ===== 공공포털 스타일 리스킨: 히어로 슬라이더 ===== */
+.app .gov-hero {
+  position: relative;
+  width: 100%;
+  border-radius: 24px;
+  overflow: hidden;
+  background: linear-gradient(120deg, #e8663c 0%, #ffa365 100%);
+  color: #fff;
+  /* 고정 높이 — 슬라이드마다 h1이 1줄/2줄로 달라도 배너 자체 크기가 안 흔들리게 함 */
+  height: 260px;
+}
+.app .gov-hero-slide {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  /* 패딩을 부모가 아니라 슬라이드 자신에 줘서, 배경 사진은 여백 없이 끝까지 꽉 차고
+     글자·아이콘 같은 콘텐츠만 안쪽으로 밀리게 함 */
+  padding: 0 44px;
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: right center;
+  /* 카드마다 이동하는 느낌을 주는 크로스페이드 전환 */
+  opacity: 0;
+  transform: scale(1.03);
+  transition:
+    opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+    transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+}
+.app .gov-hero-slide.active {
+  opacity: 1;
+  transform: scale(1);
+  pointer-events: auto;
+  z-index: 1;
+}
+/* 사진 위에 텍스트가 읽히도록 왼쪽만 살짝 어둡게 하고, 나머지는 사진이 그대로 보이게 함 */
+.app .gov-hero-slide::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    rgba(196, 82, 45, 0.82) 0%,
+    rgba(196, 82, 45, 0.6) 28%,
+    rgba(196, 82, 45, 0.15) 52%,
+    rgba(196, 82, 45, 0) 70%
+  );
+}
+.app .gov-hero-slide > div,
+.app .gov-hero-emoji,
+.app .gov-hero-art {
+  position: relative;
+  z-index: 1;
+}
+.app .gov-hero-slide .eyebrow {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: #ffe4cc;
+  margin: 0 0 8px;
+}
+.app .gov-hero-slide h1 {
+  font-size: 26px;
+  margin: 0 0 10px;
+  letter-spacing: -0.5px;
+  line-height: 1.32;
+}
+.app .gov-hero-slide h1 b {
+  color: #fff;
+}
+.app .gov-hero-slide p {
+  font-size: 14px;
+  margin: 0 0 16px;
+  color: #fff1e6;
+  line-height: 1.7;
+  max-width: 46ch;
+}
+.app .gov-hero-cta {
+  display: inline-flex;
+  padding: 10px 18px;
+  border-radius: 8px;
+  background: #fff;
+  color: #c2452d;
+  font-size: 12.5px;
+  font-weight: 800;
+  text-decoration: none;
+}
+.app .gov-hero-emoji {
+  font-size: 84px;
+  flex-shrink: 0;
+  filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.25));
+}
+.app .gov-hero-art {
+  width: clamp(120px, 14vw, 170px);
+  height: clamp(120px, 14vw, 170px);
+  object-fit: contain;
+  flex-shrink: 0;
+}
+.app .gov-hero-dots {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
+  z-index: 2;
+}
+.app .gov-hero-dots button {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  padding: 0;
+}
+.app .gov-hero-dots button.active {
+  background: #fff;
+  width: 22px;
+  border-radius: 99px;
+}
+@media (max-width: 700px) {
+  .app .gov-hero {
+    height: 240px;
+    padding: 0 24px;
+  }
+  .app .gov-hero-emoji,
+  .app .gov-hero-art {
+    display: none;
+  }
+}
+
+/* AI 정부지원금: 히어로 바로 아래 위치 — .home-hero-group의 기본 gap(16px)만큼만 띄움, 겹치지 않게 */
+.app .gov-subsidy-hero-slot {
+  width: 100%;
+}
+
+/* ===== 오늘의 할 일 / 가계부·리콜 / 오늘의 꿀팁: 플랫 화이트 카드 (글래스 대신) ===== */
+.app .gov-card {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: 0 4px 16px rgba(0, 45, 90, 0.06);
+}
+
+.app .gov-quest-card {
+  padding: 22px 24px;
+}
+.app .gov-quest-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.app .gov-quest-head h2 {
+  font-size: 16px;
+  margin: 0;
+  font-weight: 800;
+}
+.app .gov-quest-head b {
+  color: var(--accent);
+  font-size: 12px;
+}
+
+.app .gov-stat-card {
+  padding: 20px 22px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+  text-decoration: none;
+  color: inherit;
+  transition:
+    border-color 0.15s,
+    transform 0.15s;
+}
+.app .gov-stat-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+
+.app .gov-tip-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 18px;
+  font-size: 13px;
+}
+.app .gov-tip-row .ico {
+  font-size: 17px;
+  flex-shrink: 0;
+}
+.app .gov-tip-row p {
+  margin: 0;
+  color: var(--muted);
 }

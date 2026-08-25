@@ -89,6 +89,11 @@ const AssistantPanel = ({ className, style }: AssistantPanelProps) => {
   const [saving, setSaving] = useState(false);
   const [savingRegion, setSavingRegion] = useState(false);
   const [savedMsg, setSavedMsg] = useState("");
+  const [expanded, setExpanded] = useState(false);
+  const [question, setQuestion] = useState("");
+  const [asking, setAsking] = useState(false);
+  const [askAnswer, setAskAnswer] = useState("");
+  const [askSources, setAskSources] = useState<AssistItem[]>([]);
 
   useEffect(() => {
     if (!isLogin) {
@@ -170,6 +175,7 @@ const AssistantPanel = ({ className, style }: AssistantPanelProps) => {
   };
 
   const saveAndSearch = async () => {
+    setExpanded(true);
     setSaving(true);
     setSavedMsg("");
     try {
@@ -203,121 +209,255 @@ const AssistantPanel = ({ className, style }: AssistantPanelProps) => {
       prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag],
     );
 
+  const askQuestion = async () => {
+    if (!question.trim()) return;
+    setAsking(true);
+    setAskAnswer("");
+    setAskSources([]);
+    try {
+      const res = await assistantApi.ask({
+        query: question.trim(),
+        child: { babyMonths: months, regionSido: sido },
+      });
+      setAskAnswer(res.answer);
+      setAskSources(res.items ?? []);
+    } catch (e) {
+      console.error(e);
+      setAskAnswer("답변을 가져오지 못했어요.");
+    } finally {
+      setAsking(false);
+    }
+  };
+
   return (
     <article
       id="ai-subsidy-panel"
-      className={`card info supportbox support-panel${className ? ` ${className}` : ""}`}
+      className={`gov-card gov-subsidy-panel${className ? ` ${className}` : ""}`}
       style={style}
     >
-      <div className="assist-panel-head">
-        <div className="assist-panel-copy">
+      {!expanded ? (
+        <div className="gov-subsidy-collapsed">
           <h3>
             <span className="assist-ai-mark" aria-hidden>
               ✦
             </span>
             AI 정부지원금
           </h3>
-          {isLogin ? <p className="assist-profile">{profileLine}</p> : null}
           <p className="assist-hint">
             아이 나이(개월)와 거주지를 입력한 뒤 정책 찾기를 눌러 주세요.
           </p>
-          {updatedAt && !Number.isNaN(new Date(updatedAt).getTime()) ? (
-            <p className="assist-hint">
-              마지막 갱신 {new Date(updatedAt).toLocaleTimeString("ko-KR")}
-            </p>
-          ) : null}
-          {savedMsg ? <p className="assist-hint">{savedMsg}</p> : null}
-        </div>
-        {isLogin ? (
-          <div className="assist-panel-actions">
-            <button
-              type="button"
-              className="assist-save"
-              onClick={() => void saveRegionOnly()}
-              disabled={savingRegion}
-            >
-              {savingRegion ? "저장 중…" : "지역 저장"}
-            </button>
-            <button
-              type="button"
-              className="assist-edit"
-              onClick={() => void saveAndSearch()}
-              disabled={saving}
-            >
-              {saving ? "찾는 중…" : "정책 찾기"}
-            </button>
-          </div>
-        ) : null}
-      </div>
 
-      <div className="assist-filters">
-        <div className="assist-filter-group">
-          <label htmlFor="assist-months">아이 나이(개월)</label>
-          <input
-            id="assist-months"
-            type="number"
-            min={0}
-            placeholder="예: 8"
-            value={months}
-            disabled={!isLogin || hasBaby}
-            onChange={(e) => setMonths(Number(e.target.value) || 0)}
-          />
-          {hasBaby ? (
-            <small className="assist-hint">등록된 아이 정보로 자동 계산됨</small>
-          ) : null}
-        </div>
-        <div className="assist-filter-group">
-          <label htmlFor="assist-sido">시/도</label>
-          <input
-            id="assist-sido"
-            type="text"
-            placeholder="예: 서울"
-            value={sido}
-            disabled={!isLogin}
-            onChange={(e) => setSido(e.target.value)}
-          />
-        </div>
-        <div className="assist-filter-group">
-          <label htmlFor="assist-sigungu">시/군/구</label>
-          <input
-            id="assist-sigungu"
-            type="text"
-            placeholder="예: 강남구"
-            value={sigungu}
-            disabled={!isLogin}
-            onChange={(e) => setSigungu(e.target.value)}
-          />
-        </div>
-        <div className="assist-filter-group">
-          <label htmlFor="assist-household">가족구성원수</label>
-          <input
-          id="assist-household"
-          type="number"
-          min={1}
-          placeholder="예:4"
-          value={householdSize}
-          disabled={!isLogin}
-          onChange={(e) => setHouseholdSize(e.target.value ? Number(e.target.value) : ""
-          )}
-          />
+          <div className="assist-filters">
+            <div className="assist-filter-group">
+              <label htmlFor="assist-months">아이 나이(개월)</label>
+              <input
+                id="assist-months"
+                type="number"
+                min={0}
+                placeholder="예: 8"
+                value={months}
+                disabled={!isLogin || hasBaby}
+                onChange={(e) => setMonths(Number(e.target.value) || 0)}
+              />
+              {hasBaby ? (
+                <small className="assist-hint">등록된 아이 정보로 자동 계산됨</small>
+              ) : null}
+            </div>
+            <div className="assist-filter-group">
+              <label htmlFor="assist-sido">시/도</label>
+              <input
+                id="assist-sido"
+                type="text"
+                placeholder="예: 서울"
+                value={sido}
+                disabled={!isLogin}
+                onChange={(e) => setSido(e.target.value)}
+              />
+            </div>
+            <div className="assist-filter-group">
+              <label htmlFor="assist-sigungu">시/군/구</label>
+              <input
+                id="assist-sigungu"
+                type="text"
+                placeholder="예: 강남구"
+                value={sigungu}
+                disabled={!isLogin}
+                onChange={(e) => setSigungu(e.target.value)}
+              />
+            </div>
           </div>
-      </div>
 
-      <div className="assist-tag-group" role="group" aria-label="가구유형">
-        {INCOME_TAGS.map((tag) => (
           <button
-            key={tag}
             type="button"
-            className={`assist-tag${incomeTags.includes(tag) ? " is-on" : ""}`}
-            onClick={() => toggleIncomeTags(tag)}
-            disabled={!isLogin}
+            className="gov-subsidy-cta"
+            onClick={() => void saveAndSearch()}
+            disabled={!isLogin || saving}
           >
-            {tag}
+            {saving ? "찾는 중…" : "AI 정부지원금 찾기"}
           </button>
-        ))}
-      </div>
+        </div>
+      ) : (
+        <>
+          <button
+            type="button"
+            className="gov-subsidy-close"
+            onClick={() => setExpanded(false)}
+          >
+            <span aria-hidden>▲</span>
+            검색창으로 접기
+          </button>
+          <div className="assist-panel-head">
+            <div className="assist-panel-copy">
+              <h3>
+                <span className="assist-ai-mark" aria-hidden>
+                  ✦
+                </span>
+                AI 정부지원금
+              </h3>
+              {isLogin ? <p className="assist-profile">{profileLine}</p> : null}
+              <p className="assist-hint">
+                아이 나이(개월)와 거주지를 입력한 뒤 정책 찾기를 눌러 주세요.
+              </p>
+              {updatedAt && !Number.isNaN(new Date(updatedAt).getTime()) ? (
+                <p className="assist-hint">
+                  마지막 갱신 {new Date(updatedAt).toLocaleTimeString("ko-KR")}
+                </p>
+              ) : null}
+              {savedMsg ? <p className="assist-hint">{savedMsg}</p> : null}
+            </div>
+            {isLogin ? (
+              <div className="assist-panel-actions">
+                <button
+                  type="button"
+                  className="assist-save"
+                  onClick={() => void saveRegionOnly()}
+                  disabled={savingRegion}
+                >
+                  {savingRegion ? "저장 중…" : "지역 저장"}
+                </button>
+                <button
+                  type="button"
+                  className="assist-edit"
+                  onClick={() => void saveAndSearch()}
+                  disabled={saving}
+                >
+                  {saving ? "찾는 중…" : "정책 찾기"}
+                </button>
+              </div>
+            ) : null}
+          </div>
 
-      <PolicyCards items={items} />
+          <div className="assist-filters">
+            <div className="assist-filter-group">
+              <label htmlFor="assist-months">아이 나이(개월)</label>
+              <input
+                id="assist-months"
+                type="number"
+                min={0}
+                placeholder="예: 8"
+                value={months}
+                disabled={!isLogin || hasBaby}
+                onChange={(e) => setMonths(Number(e.target.value) || 0)}
+              />
+              {hasBaby ? (
+                <small className="assist-hint">등록된 아이 정보로 자동 계산됨</small>
+              ) : null}
+            </div>
+            <div className="assist-filter-group">
+              <label htmlFor="assist-sido">시/도</label>
+              <input
+                id="assist-sido"
+                type="text"
+                placeholder="예: 서울"
+                value={sido}
+                disabled={!isLogin}
+                onChange={(e) => setSido(e.target.value)}
+              />
+            </div>
+            <div className="assist-filter-group">
+              <label htmlFor="assist-sigungu">시/군/구</label>
+              <input
+                id="assist-sigungu"
+                type="text"
+                placeholder="예: 강남구"
+                value={sigungu}
+                disabled={!isLogin}
+                onChange={(e) => setSigungu(e.target.value)}
+              />
+            </div>
+            <div className="assist-filter-group">
+              <label htmlFor="assist-household">가족구성원수</label>
+              <input
+                id="assist-household"
+                type="number"
+                min={1}
+                placeholder="예: 4"
+                value={householdSize}
+                disabled={!isLogin}
+                onChange={(e) =>
+                  setHouseholdSize(e.target.value ? Number(e.target.value) : "")
+                }
+              />
+            </div>
+          </div>
+
+          <div className="assist-tag-group" role="group" aria-label="가구유형">
+            {INCOME_TAGS.map((tag) => (
+              <button
+                key={tag}
+                type="button"
+                className={`assist-tag${incomeTags.includes(tag) ? " is-on" : ""}`}
+                onClick={() => toggleIncomeTags(tag)}
+                disabled={!isLogin}
+              >
+                {tag}
+              </button>
+            ))}
+          </div>
+
+          <div className="assist-ask">
+            <label htmlFor="assist-question">AI에게 물어보기</label>
+            <div>
+              <input
+                id="assist-question"
+                type="text"
+                placeholder="예: 다자녀 가구가 받을 수 있는 지원금은?"
+                value={question}
+                disabled={!isLogin}
+                onChange={(e) => setQuestion(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") void askQuestion();
+                }}
+              />
+            </div>
+            <div>
+              <button type="button" onClick={() => void askQuestion()} disabled={!isLogin || asking}>
+                {asking ? "생각 중…" : "질문하기"}
+              </button>
+            </div>
+            {askAnswer ? (
+              <div className="assist-ask-answer">
+                <p>{askAnswer}</p>
+                {askSources.length > 0 ? (
+                  <p className="assist-ask-sources">
+                    출처:{" "}
+                    {askSources.map((s, idx) => (
+                      <span key={s.id || idx}>
+                        <a href={s.link || "https://www.bokjiro.go.kr"} target="_blank" rel="noreferrer">
+                          {s.title}
+                        </a>
+                        {idx < askSources.length - 1 ? ", " : ""}
+                      </span>
+                    ))}
+                  </p>
+                ) : null}
+              </div>
+            ) : null}
+          </div>
+
+          <PolicyCards items={items} />
+        </>
+      )}
     </article>
   );
 };

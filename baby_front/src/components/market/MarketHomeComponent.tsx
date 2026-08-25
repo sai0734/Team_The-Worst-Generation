@@ -206,38 +206,41 @@ const MarketHomeComponent = () => {
 
   return (
     <div className="market-home">
-      <div className="market-search-bar">
-        <input
-          type="text"
-          className="market-search-input"
-          placeholder="제목이나 설명으로 검색"
-          value={searchText}
-          onChange={(e) => setSearchText(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") runSearch();
-          }}
-        />
-        <button
-          type="button"
-          className="btn market-search-btn"
-          onClick={runSearch}
-        >
-          검색
-        </button>
-      </div>
+      <div className="market-filter-row">
+        <div className="market-category-bar">
+          {CATEGORY_FILTERS.map((c) => (
+            <span
+              key={c}
+              className={`chip${category === c ? " is-active" : ""}`}
+              onClick={() => setCategory(c)}
+            >
+              {c}
+            </span>
+          ))}
+        </div>
 
-      <div className="market-category-bar">
-        {CATEGORY_FILTERS.map((c) => (
-          <span
-            key={c}
-            className={`chip${category === c ? " is-active" : ""}`}
-            onClick={() => setCategory(c)}
+        <div className="market-search-bar">
+          <input
+            type="text"
+            className="market-search-input"
+            placeholder="제목이나 설명으로 검색"
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") runSearch();
+            }}
+          />
+          <button
+            type="button"
+            className="btn market-search-btn"
+            onClick={runSearch}
           >
-            {c}
-          </span>
-        ))}
+            검색
+          </button>
+        </div>
       </div>
 
+      <div className="card">
       <div className="market-home-split">
         <div className="market-home-list-pane">
           <div className="market-home-filter">
@@ -373,6 +376,7 @@ const MarketHomeComponent = () => {
             <MarketMapComponent items={filteredItems} center={center} />
           </div>
         </div>
+      </div>
       </div>
     </div>
   );

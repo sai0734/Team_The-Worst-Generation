@@ -164,7 +164,7 @@ const MarketMapComponent = ({ items, center }: MarketMapComponentProps) => {
     <div
       ref={mapContainerRef}
       className="market-map-canvas"
-      style={{ width: "100%", height: "100%", minHeight: 500 }}
+      style={{ width: "100%", height: "100%" }}
     />
   );
 };
