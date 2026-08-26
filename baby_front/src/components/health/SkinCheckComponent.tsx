@@ -82,59 +82,53 @@ const SkinCheckComponent = ({ babyNo }: SkinCheckComponentProps) => {
   };
 
   return (
-    <div className="card">
-      <div className="head">
-        <h2>아기 피부 사진 등록</h2>
+    <div className="health-check-layout">
+      <div className="card">
+        <div className="head">
+          <h2>아기 피부 사진 등록</h2>
+        </div>
+
+        <form onSubmit={handleSubmit}>
+          <div className="photo-upload">
+            <p>피부 사진 등록</p>
+            <input type="file" accept="image/*" onChange={handleFileChange} />
+            <p className="photo-hint">
+              증상이 잘 보이는 부위를 촬영해서 올려주세요.
+            </p>
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="submit-btn"
+            style={{ marginTop: 14, width: "100%" }}
+          >
+            {loading ? "분석 중..." : "피부 상태 분석"}
+          </button>
+        </form>
+
+        {result && (
+          <div className="card" style={{ marginTop: 16 }}>
+            <p className="eyebrow">분석 결과</p>
+            <div style={{ marginTop: 8 }}>
+              <ResultBlock aiResult={result.aiResult} />
+            </div>
+          </div>
+        )}
       </div>
 
-      <form onSubmit={handleSubmit}>
-        <div className="photo-upload">
-          <p>피부 사진 등록</p>
-          <input type="file" accept="image/*" onChange={handleFileChange} />
-          <p className="photo-hint">
-            증상이 잘 보이는 부위를 촬영해서 올려주세요.
-          </p>
-        </div>
-
-        <button
-          type="submit"
-          disabled={loading}
-          className="submit-btn"
-          style={{ marginTop: 14, width: "100%" }}
-        >
-          {loading ? "분석 중..." : "피부 상태 분석"}
-        </button>
-      </form>
-
-      {result && (
-        <div className="card" style={{ marginTop: 16 }}>
-          <p className="eyebrow">분석 결과</p>
-          <div style={{ marginTop: 8 }}>
-            <ResultBlock aiResult={result.aiResult} />
-          </div>
-        </div>
-      )}
-
-      <div style={{ marginTop: 20 }}>
-        <p className="eyebrow" style={{ marginBottom: 10 }}>
+      <div className="card">
+        <p className="eyebrow" style={{ marginBottom: 12 }}>
           검사 이력
         </p>
         {history.length === 0 ? (
           <p className="empty-hint">검사 이력이 없습니다.</p>
         ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          <div className="health-check-history-list">
             {history.map((item) => (
-              <div
-                key={item.checkNo}
-                className="card"
-                style={{ padding: "10px 14px" }}
-              >
-                <p style={{ fontSize: 11, color: "var(--muted)" }}>
-                  {item.regTime}
-                </p>
-                <div style={{ marginTop: 4 }}>
-                  <ResultBlock aiResult={item.aiResult} />
-                </div>
+              <div key={item.checkNo} className="health-check-history-item">
+                <p className="date">{item.regTime}</p>
+                <ResultBlock aiResult={item.aiResult} />
               </div>
             ))}
           </div>

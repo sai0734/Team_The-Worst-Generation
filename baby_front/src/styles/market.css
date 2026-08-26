@@ -548,7 +548,8 @@
   display: grid;
   grid-template-columns: 1.4fr 1fr;
   gap: 16px;
-  align-items: start;
+  /* 상품목록/지도 중 더 짧은 쪽을 긴 쪽 높이에 맞춰 늘려서, 밑에 빈 여백이 안 남게 함 */
+  align-items: stretch;
 }
 @media (max-width: 980px) {
   .app .market-home-split {
@@ -569,9 +570,11 @@
   flex-shrink: 0;
 }
 
-/* 매물 카드만 자체 스크롤 (필터/서브탭/지도는 스크롤 영향 안 받음) */
+/* 2열 x 2행(4개)만 스크롤 없이 딱 보이고, 그 이상은 자체 스크롤로 넘김
+   (필터/서브탭/지도는 스크롤 영향 안 받음). 높이는 실제 카드 2행 렌더링 높이에 맞춘 값 */
 .app .market-home-grid {
-  max-height: 460px;
+  grid-template-columns: repeat(2, 1fr);
+  max-height: 600px;
   overflow-y: auto;
   align-content: start;
   padding-right: 4px;
@@ -671,13 +674,13 @@
   order: -1;
   position: sticky;
   top: 0;
-  align-self: start;
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 .app .market-home-map-canvas-wrap {
-  height: 460px;
+  flex: 1;
+  min-height: 460px;
   border-radius: var(--radius, 24px);
   overflow: hidden;
   border: 1px solid var(--line);

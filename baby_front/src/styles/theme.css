@@ -259,7 +259,8 @@
   position: absolute;
   right: 0;
   bottom: 0;
-  width: max-content;
+  width: 110px;
+  justify-content: center;
   white-space: nowrap;
   opacity: 0;
   pointer-events: none;
@@ -1999,6 +2000,37 @@
   color: var(--muted);
   font-size: 13px;
   line-height: 1.6;
+}
+.app .health-check-layout {
+  display: grid;
+  grid-template-columns: minmax(280px, 380px) 1fr;
+  gap: 24px;
+  align-items: start;
+}
+@media (max-width: 900px) {
+  .app .health-check-layout {
+    grid-template-columns: 1fr;
+  }
+}
+.app .health-check-history-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+@media (min-width: 640px) {
+  .app .health-check-history-list {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+.app .health-check-history-item {
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+}
+.app .health-check-history-item .date {
+  font-size: 11px;
+  color: var(--muted);
+  margin: 0 0 8px;
 }
 
 /* ===== 가계부 ===== */

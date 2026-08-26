@@ -195,14 +195,9 @@ const BabyInfoInputComponent = () => {
         </button>
       )}
 
-      <div className="text-center">
-        <p className="text-[11px] font-extrabold tracking-[3px] text-[#5AB2FF]">
-          BABY BOM
-        </p>
-        <h1 className="mt-1 text-[22px] font-bold text-[#2A2926] sm:text-[26px]">
-          {isEditMode ? "아이 정보 수정" : "아이 등록하기"}
-        </h1>
-      </div>
+      <h1 className="page-hero-title">
+        {isEditMode ? "아이 정보 수정" : "아이 등록하기"}
+      </h1>
 
       <div className="grid grid-cols-1 gap-4 items-start lg:grid-cols-[260px_1fr]">
         <div className="flex flex-col items-center gap-4 rounded-[24px] border border-[rgba(42,41,38,0.1)] bg-[#FAF6F0] p-4 sm:p-6">
@@ -300,6 +295,7 @@ const BabyInfoInputComponent = () => {
           </div>
         </div>
 
+        <div className="flex flex-col gap-4">
         <div className="grid grid-cols-1 gap-4 rounded-[24px] border border-[rgba(42,41,38,0.1)] bg-[#FAF6F0] p-4 sm:grid-cols-2 sm:p-6 xl:grid-cols-3">
           <div>
             <p className={labelClass}>생년월일 (필수)</p>
@@ -365,30 +361,32 @@ const BabyInfoInputComponent = () => {
               placeholder="출생 시 키(cm)"
             />
           </div>
-          {!isEditMode && (
-            <>
-              <div>
-                <p className={labelClass}>현재 체중(kg) (선택)</p>
-                <input
-                  className={inputClass}
-                  name="weight"
-                  value={weight}
-                  onChange={(e) => setWeight(e.target.value)}
-                  placeholder="현재 체중(kg)"
-                />
-              </div>
-              <div>
-                <p className={labelClass}>현재 키(cm) (선택)</p>
-                <input
-                  className={inputClass}
-                  name="height"
-                  value={height}
-                  onChange={(e) => setHeight(e.target.value)}
-                  placeholder="현재 키(cm)"
-                />
-              </div>
-            </>
-          )}
+        </div>
+
+        {!isEditMode && (
+          <div className="grid grid-cols-1 gap-4 rounded-[24px] border border-[rgba(42,41,38,0.1)] bg-[#FAF6F0] p-4 sm:grid-cols-2 sm:p-6">
+            <div>
+              <p className={labelClass}>현재 체중(kg) (선택)</p>
+              <input
+                className={inputClass}
+                name="weight"
+                value={weight}
+                onChange={(e) => setWeight(e.target.value)}
+                placeholder="현재 체중(kg)"
+              />
+            </div>
+            <div>
+              <p className={labelClass}>현재 키(cm) (선택)</p>
+              <input
+                className={inputClass}
+                name="height"
+                value={height}
+                onChange={(e) => setHeight(e.target.value)}
+                placeholder="현재 키(cm)"
+              />
+            </div>
+          </div>
+        )}
         </div>
       </div>
 

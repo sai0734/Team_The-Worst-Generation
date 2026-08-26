@@ -63,6 +63,8 @@ const CryCheckPage = () => {
         </div>
       )}
 
+      <h1 className="page-hero-title">{currentBaby.babyName}의 울음소리 분석</h1>
+
       <CryCheckRecorderComponent onAnalyzed={handleAnalyzed} />
       <CryCheckHistoryComponent reloadTrigger={reloadTrigger} />
     </div>

@@ -44,6 +44,18 @@ const openRouteWindow = (
 
 type LocationSource = "gps" | "manual" | "default";
 
+// 다른 페이지 갔다가 돌아와도 AI 추천 결과가 그대로 보이도록 세션 동안 유지
+const AI_RESULT_STORAGE_KEY = "walkAiResult";
+
+const loadStoredAiResult = (): WalkAiRecommendation | null => {
+  try {
+    const saved = sessionStorage.getItem(AI_RESULT_STORAGE_KEY);
+    return saved ? (JSON.parse(saved) as WalkAiRecommendation) : null;
+  } catch {
+    return null;
+  }
+};
+
 const WalkTrailMapComponent = () => {
   const { isLogin } = useCustomLogin();
   const mapContainerRef = useRef<HTMLDivElement>(null);
@@ -63,7 +75,9 @@ const WalkTrailMapComponent = () => {
   const [locationHint, setLocationHint] = useState<string | null>(null);
 
   const [aiLoading, setAiLoading] = useState(false);
-  const [aiResult, setAiResult] = useState<WalkAiRecommendation | null>(null);
+  const [aiResult, setAiResult] = useState<WalkAiRecommendation | null>(
+    loadStoredAiResult,
+  );
   const [aiError, setAiError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -205,6 +219,11 @@ const WalkTrailMapComponent = () => {
     try {
       const result = await walkApi.getAiRecommendation(center.lat, center.lng);
       setAiResult(result);
+      try {
+        sessionStorage.setItem(AI_RESULT_STORAGE_KEY, JSON.stringify(result));
+      } catch {
+        // 세션스토리지 저장 실패는 무시(용량 초과 등) - 결과 표시 자체엔 영향 없음
+      }
     } catch (err) {
       console.error(err);
       setAiError("AI 추천을 불러오지 못했습니다.");
@@ -272,7 +291,7 @@ const WalkTrailMapComponent = () => {
           ref={mapContainerRef}
           style={{
             width: "100%",
-            height: 460,
+            height: 600,
             borderRadius: 20,
             overflow: "hidden",
             border: pickMode
@@ -287,7 +306,7 @@ const WalkTrailMapComponent = () => {
             display: "flex",
             flexDirection: "column",
             gap: 12,
-            maxHeight: 460,
+            maxHeight: 600,
             overflowY: "auto",
           }}
         >

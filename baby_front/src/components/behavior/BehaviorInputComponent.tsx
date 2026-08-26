@@ -86,19 +86,19 @@ const BehaviorInputComponent = ({ onCreated }: BehaviorInputProps) => {
         </div>
       </div>
 
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch">
+      <div className="flex flex-col gap-3">
         <textarea
-          className="min-h-[52px] flex-1 resize-none rounded-[16px] border border-[rgba(42,41,38,0.12)] bg-white p-3.5 text-sm text-[#2A2926] outline-none transition-colors focus:border-[#5AB2FF]"
+          className="min-h-[80px] w-full resize-none rounded-[16px] border border-[rgba(42,41,38,0.12)] bg-white p-3.5 text-sm text-[#2A2926] outline-none transition-colors focus:border-[#5AB2FF]"
           value={situation}
           onChange={(e) => setSituation(e.target.value)}
           placeholder="상황을 좀 더 자세히 알려주세요"
-          rows={2}
+          rows={3}
         />
 
         <button
           type="submit"
           disabled={loading}
-          className="flex flex-shrink-0 items-center justify-center gap-2 rounded-full bg-[#2A2926] px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-[#453f38] disabled:cursor-not-allowed disabled:bg-[#CBD5E1]"
+          className="flex w-full items-center justify-center gap-2 rounded-full bg-[#2A2926] px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-[#453f38] disabled:cursor-not-allowed disabled:bg-[#CBD5E1]"
         >
           {loading && (
             <span className="h-3.5 w-3.5 flex-shrink-0 animate-spin rounded-full border-2 border-white/40 border-t-white" />

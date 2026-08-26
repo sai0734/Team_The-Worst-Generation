@@ -9,7 +9,7 @@ interface BehaviorHistoryProps {
   reloadTrigger: number;
 }
 
-const PAGE_SIZE = 5;
+const PAGE_SIZE = 3;
 
 const CATEGORY_ICON: Record<string, string> = {
   편식: "🍎",
