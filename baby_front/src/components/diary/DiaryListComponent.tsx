@@ -179,6 +179,7 @@ const DiaryListComponent = ({ reloadTrigger }: DiaryListProps) => {
         </div>
       )}
 
+      <div className="grid grid-cols-1 gap-3 lg:grid-cols-2 2xl:grid-cols-3">
       {list.map((diary) => {
         const isVideoSelected = selectedVideoDiary?.diaryNo === diary.diaryNo;
 
@@ -333,6 +334,7 @@ const DiaryListComponent = ({ reloadTrigger }: DiaryListProps) => {
           </div>
         );
       })}
+      </div>
 
       <div className="flex items-center justify-center gap-1.5">
         {prev && (

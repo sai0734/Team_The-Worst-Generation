@@ -359,37 +359,36 @@
 .landing-page .tl-panel { width: 100vw; height: 100%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; padding: 0 8vw; }
 .landing-page .tl-card { display: grid; grid-template-columns: .9fr 1.1fr; gap: 60px; align-items: center; max-width: 1100px; width: 100%; }
 .landing-page .tl-media {
-  aspect-ratio: 4/3; border-radius: 28px; background: var(--l-soft);
+  aspect-ratio: 4/3;
   display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 24px 60px rgba(42,41,38,.12);
-  position: relative; overflow: hidden;
+  position: relative;
 }
-.landing-page .quest-media { background: linear-gradient(160deg,#F7F2E8,var(--l-accent-soft)); }
 .landing-page .quest-mock {
-  position: relative; width: 82%; max-width: 280px;
-  background: var(--l-glass); border-radius: 18px;
-  box-shadow: 0 20px 50px rgba(42,41,38,.12); overflow: hidden;
+  position: relative; width: 100%; height: 100%;
+  background: var(--l-glass); border-radius: 28px;
+  box-shadow: 0 24px 60px rgba(42,41,38,.12); overflow: hidden;
+  display: flex; flex-direction: column;
   animation: landingQuestFade 7s ease-in-out infinite;
 }
-.landing-page .quest-mock-bar { height: 26px; background: var(--l-soft); display: flex; align-items: center; gap: 5px; padding: 0 10px; }
-.landing-page .qm-dot { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,.7); }
-.landing-page .quest-mock-body { padding: 18px 18px 20px; text-align: left; }
-.landing-page .qm-title { font-size: 13px; font-weight: 900; margin-bottom: 14px; }
-.landing-page .qm-row { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.landing-page .quest-mock-bar { height: 30px; background: var(--l-soft); display: flex; align-items: center; gap: 6px; padding: 0 14px; flex-shrink: 0; }
+.landing-page .qm-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,.7); }
+.landing-page .quest-mock-body { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 28px 34px 32px; text-align: left; }
+.landing-page .qm-title { font-size: 17px; font-weight: 900; margin-bottom: 20px; }
+.landing-page .qm-row { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
 .landing-page .q-check {
-  width: 20px; height: 20px; border-radius: 50%;
-  background: var(--l-accent); color: #fff; font-size: 11px; font-weight: 900;
+  width: 25px; height: 25px; border-radius: 50%;
+  background: var(--l-accent); color: #fff; font-size: 13px; font-weight: 900;
   display: flex; align-items: center; justify-content: center; flex-shrink: 0;
   transform: scale(0); opacity: 0;
 }
 .landing-page .q-check.i1 { animation: landingQCheck1 7s ease infinite; }
 .landing-page .q-check.i2 { animation: landingQCheck2 7s ease infinite; }
 .landing-page .q-check.i3 { animation: landingQCheck3 7s ease infinite; }
-.landing-page .qm-label { font-size: 12px; font-weight: 700; color: var(--l-ink); }
-.landing-page .qm-progress { height: 6px; border-radius: 99px; background: var(--l-soft); margin-top: 14px; overflow: hidden; }
+.landing-page .qm-label { font-size: 14px; font-weight: 700; color: var(--l-ink); }
+.landing-page .qm-progress { height: 8px; border-radius: 99px; background: var(--l-soft); margin-top: 20px; overflow: hidden; }
 .landing-page .qm-progress-fill { height: 100%; width: 0%; background: var(--l-accent); border-radius: 99px; animation: landingQProgress 7s linear infinite; }
 .landing-page .qm-badge {
-  margin-top: 14px; text-align: center; font-size: 12px; font-weight: 900; color: var(--l-accent);
+  margin-top: 20px; text-align: center; font-size: 14px; font-weight: 900; color: var(--l-accent);
   transform: scale(0) translateY(6px); opacity: 0; animation: landingQBadge 7s ease infinite;
 }
 @keyframes landingQuestFade { 0% { opacity: 0; } 4% { opacity: 1; } 92% { opacity: 1; } 100% { opacity: 0; } }
@@ -400,10 +399,10 @@
 @keyframes landingQBadge { 0%, 78% { transform: scale(0) translateY(6px); opacity: 0; } 84% { transform: scale(1.1) translateY(0); opacity: 1; } 90%, 100% { transform: scale(1) translateY(0); opacity: 1; } }
 
 .landing-page .scan-box {
-  position: relative; height: 66px; border-radius: 10px; background: var(--l-soft); overflow: hidden;
-  display: flex; align-items: center; justify-content: center; margin-bottom: 12px;
+  position: relative; height: 92px; border-radius: 14px; background: var(--l-soft); overflow: hidden;
+  display: flex; align-items: center; justify-content: center; margin-bottom: 18px;
 }
-.landing-page .scan-label { font-size: 10px; color: var(--l-muted); font-weight: 700; }
+.landing-page .scan-label { font-size: 12px; color: var(--l-muted); font-weight: 700; }
 .landing-page .scan-line {
   position: absolute; left: 0; right: 0; height: 2px; top: 0;
   background: linear-gradient(90deg,transparent,var(--l-accent),transparent);
@@ -413,16 +412,16 @@
   0%, 10% { top: 0; opacity: 0; } 14% { opacity: 1; } 45% { top: 100%; opacity: 1; } 50%, 100% { top: 100%; opacity: 0; }
 }
 .landing-page .scan-result {
-  display: inline-block; padding: 6px 10px; border-radius: 99px;
-  font-size: 11px; font-weight: 800; margin: 0 6px 6px 0; transform: scale(0); opacity: 0;
+  display: inline-block; padding: 8px 14px; border-radius: 99px;
+  font-size: 13px; font-weight: 800; margin: 0 8px 8px 0; transform: scale(0); opacity: 0;
 }
 .landing-page .scan-result.r1 { background: #FFE1DE; color: #EF6262; animation: landingQCheck2 7s ease infinite; }
 .landing-page .scan-result.r2 { background: var(--l-accent-soft); color: var(--l-accent-deep); animation: landingQCheck3 7s ease infinite; }
 
-.landing-page .ledger-row { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
-.landing-page .ledger-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-.landing-page .ledger-label { font-size: 11px; font-weight: 700; width: 46px; flex-shrink: 0; }
-.landing-page .ledger-bar { flex: 1; height: 6px; border-radius: 99px; background: var(--l-soft); overflow: hidden; }
+.landing-page .ledger-row { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+.landing-page .ledger-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.landing-page .ledger-label { font-size: 13px; font-weight: 700; width: 56px; flex-shrink: 0; }
+.landing-page .ledger-bar { flex: 1; height: 8px; border-radius: 99px; background: var(--l-soft); overflow: hidden; }
 .landing-page .ledger-fill { display: block; height: 100%; width: 0%; border-radius: 99px; }
 .landing-page .ledger-fill.f1 { background: #A0DEFF; animation: landingLFill1 7s ease infinite; }
 .landing-page .ledger-fill.f2 { background: #CAF4FF; animation: landingLFill2 7s ease infinite; }
@@ -644,25 +643,33 @@
 }
 
 .landing-page .site-footer { background: var(--l-tool); color: #fff; }
-.landing-page .footer-cta { text-align: center; padding: 90px 8vw 60px; border-bottom: 1px solid rgba(255,255,255,.12); }
-.landing-page .footer-cta h3 { font-family: var(--l-display); font-size: clamp(22px,2.6vw,32px); letter-spacing: -1px; margin-bottom: 26px; }
-.landing-page .footer-cta .btn {
-  display: inline-block; padding: 14px 28px; border-radius: 99px; font-size: 13px; font-weight: 800;
-  background: var(--l-accent); color: #fff; border: 1px solid var(--l-accent);
+.landing-page .footer-top {
+  display: flex; justify-content: space-between; gap: 64px;
+  padding: 72px 8vw 52px; border-bottom: 1px solid rgba(255,255,255,.12);
 }
-.landing-page .footer-nav {
-  display: flex; flex-wrap: wrap; gap: 40px;
-  padding: 44px 8vw; border-bottom: 1px solid rgba(255,255,255,.12);
-}
-.landing-page .footer-nav-col { display: flex; flex-direction: column; gap: 12px; min-width: 120px; }
-.landing-page .footer-nav-title { font-size: 11px; font-weight: 800; letter-spacing: 1.5px; color: rgba(255,255,255,.45); margin: 0 0 2px; }
-.landing-page .footer-nav-col a { font-size: 13px; font-weight: 600; color: rgba(255,255,255,.82); }
-.landing-page .footer-nav-col a:hover { color: var(--l-nav-active); }
-.landing-page .footer-bottom { padding: 30px 8vw 40px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px; }
-.landing-page .footer-logo { font-family: var(--l-display); font-size: 16px; font-weight: 700; }
+.landing-page .footer-brand { max-width: 300px; flex-shrink: 0; }
+.landing-page .footer-logo { font-family: var(--l-display); font-size: 19px; font-weight: 700; }
 .landing-page .footer-logo b { color: var(--l-nav-active); }
-.landing-page .footer-links { display: flex; gap: 18px; font-size: 12px; color: rgba(255,255,255,.65); }
-.landing-page .footer-copy { font-size: 11px; color: rgba(255,255,255,.4); }
+.landing-page .footer-tagline { margin: 16px 0 0; font-size: 13px; line-height: 1.7; color: rgba(255,255,255,.6); }
+.landing-page .footer-brand-cta {
+  display: inline-flex; align-items: center; gap: 6px; margin-top: 22px;
+  font-size: 13px; font-weight: 800; color: var(--l-nav-active);
+  transition: gap .2s ease;
+}
+.landing-page .footer-brand-cta:hover { gap: 10px; }
+.landing-page .footer-nav { display: flex; flex-wrap: wrap; gap: 48px; }
+.landing-page .footer-nav-col { display: flex; flex-direction: column; gap: 13px; min-width: 120px; }
+.landing-page .footer-nav-title { font-size: 11px; font-weight: 800; letter-spacing: 1.5px; color: rgba(255,255,255,.4); margin: 0 0 4px; }
+.landing-page .footer-nav-col a { font-size: 13px; font-weight: 600; color: rgba(255,255,255,.78); transition: color .2s ease; }
+.landing-page .footer-nav-col a:hover { color: var(--l-nav-active); }
+.landing-page .footer-bottom {
+  padding: 22px 8vw; display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 14px;
+}
+.landing-page .footer-links { display: flex; gap: 20px; font-size: 12px; color: rgba(255,255,255,.6); }
+.landing-page .footer-links a { color: inherit; transition: color .2s ease; }
+.landing-page .footer-links a:hover { color: var(--l-nav-active); }
+.landing-page .footer-copy { font-size: 11.5px; color: rgba(255,255,255,.4); }
 
 @media (max-width: 900px) {
   .landing-page .timeline-wrap { height: auto; }
@@ -697,5 +704,7 @@
   .landing-page .story-slide--quick { background: var(--bg); }
   .landing-page .story-dots { display: none; }
   .landing-page .reviews-grid { grid-template-columns: 1fr; }
+  .landing-page .footer-top { flex-direction: column; gap: 40px; }
+  .landing-page .footer-brand { max-width: none; }
   .landing-page .footer-bottom { flex-direction: column; text-align: center; }
 }

@@ -122,13 +122,16 @@ const BehaviorHistoryComponent = ({ reloadTrigger }: BehaviorHistoryProps) => {
     <div className="flex flex-col gap-3">
       <p className="text-xs font-bold text-[#7A756C]">지난 상담</p>
 
+      <div className="grid grid-cols-1 items-start gap-3 md:grid-cols-2 xl:grid-cols-3">
       {list.map((consult) => {
         const isOpen = expandedNo === consult.consultNo;
 
         return (
           <div
             key={consult.consultNo}
-            className="rounded-[20px] border border-[rgba(42,41,38,0.1)] bg-white"
+            className={`rounded-[20px] border border-[rgba(42,41,38,0.1)] bg-white ${
+              isOpen ? "md:col-span-2 xl:col-span-3" : ""
+            }`}
           >
             <div className="flex w-full items-center gap-2 p-4">
               <button
@@ -180,6 +183,7 @@ const BehaviorHistoryComponent = ({ reloadTrigger }: BehaviorHistoryProps) => {
           </div>
         );
       })}
+      </div>
 
       <div className="flex items-center justify-center gap-1.5">
         {prev && (

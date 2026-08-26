@@ -60,6 +60,14 @@ const BabysitterRequestsReceivedComponent = () => {
 
   return (
     <div>
+      <button
+        type="button"
+        className="btn ghost sitter-back-link"
+        onClick={() => navigate("/community/babysitter")}
+      >
+        ← 목록으로
+      </button>
+
       <h2 className="page-title">요청내역</h2>
 
       <div className="seg" style={{ marginBottom: 12 }}>
@@ -127,12 +135,6 @@ const BabysitterRequestsReceivedComponent = () => {
             </article>
           );
         })}
-      </div>
-
-      <div className="sitter-back-link">
-        <button type="button" className="btn ghost" onClick={() => navigate("/community/babysitter")}>
-          목록으로
-        </button>
       </div>
     </div>
   );

@@ -14,6 +14,14 @@ const BabysitterMyPicksComponent = () => {
 
   return (
     <div>
+      <button
+        type="button"
+        className="btn ghost sitter-back-link"
+        onClick={() => navigate("/community/babysitter")}
+      >
+        ← 목록으로
+      </button>
+
       {list.length === 0 && <div className="empty-hint">찜한 시터가 없습니다.</div>}
 
       <div className="sitter-list">
@@ -36,12 +44,6 @@ const BabysitterMyPicksComponent = () => {
             </div>
           </article>
         ))}
-      </div>
-
-      <div className="sitter-back-link">
-        <button type="button" className="btn ghost" onClick={() => navigate("/community/babysitter")}>
-          목록으로
-        </button>
       </div>
     </div>
   );

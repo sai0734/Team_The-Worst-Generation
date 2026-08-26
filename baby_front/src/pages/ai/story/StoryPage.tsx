@@ -60,7 +60,7 @@ const StoryPage = () => {
   if (pageState === "result" && story) return (
     <main className="story-page story-result-page">
       <header className="story-result-head"><div><span className="story-kicker">A STORY JUST FOR YOU</span><h1>{story.title}</h1><p>{selectedBaby?.babyName}만을 위해 만든 오늘의 동화예요.</p></div><img src="/story-fantasy-book.png" alt="펼쳐진 판타지 동화책" /></header>
-      <article className="story-paper card">{story.content.split(/\n\n+/).map((scene, index) => <section key={`${story.storyId}-${index}`}><span>{index + 1}</span><p>{scene}</p></section>)}</article>
+      <article className="story-paper card"><div className="story-paper-inner">{story.content.split(/\n\n+/).map((scene, index) => <section key={`${story.storyId}-${index}`}><span>{index + 1}</span><p>{scene}</p></section>)}</div></article>
       {error && <p className="story-error" role="alert">{error}</p>}
       <div className="story-result-actions"><button type="button" className="story-secondary" onClick={() => { setPageState("form"); setError(""); }}>새 동화 만들기</button><button type="button" className="story-primary" onClick={handleListen} disabled={audioLoading}>{audioLoading ? "목소리를 준비하는 중..." : "▷ 동화 읽어주기"}</button></div>
       {audioUrl && <audio id="story-audio" className="story-audio" src={audioUrl} controls autoPlay />}
@@ -71,11 +71,13 @@ const StoryPage = () => {
     <main className="story-page">
       <header className="story-hero"><div><span className="story-kicker">AI STORY MAKER</span><h1>우리 아이가 주인공인<br /><em>단 하나의 동화</em></h1><p>좋아하는 것들을 들려주면, 상상 가득한 작은 세계를 만들어 드려요.</p></div><img src="/story-fantasy-book.png" alt="마법 같은 이야기가 펼쳐지는 책" /></header>
       <section className="story-form card">
-        <div className="story-field"><div className="story-label"><b>1</b><div><h2>오늘 이야기의 주인공</h2><p>동화를 선물할 아이를 선택해 주세요.</p></div></div>
-          {babies.length ? <div className="story-babies">{babies.map((baby) => <button type="button" key={baby.babyNo} className={baby.babyNo === selectedBabyNo ? "is-selected" : ""} onClick={() => setSelectedBabyNo(baby.babyNo)}><span className="story-avatar">{baby.profileImageFileName ? <img src={babyInfoApi.getViewUrl(baby.profileImageFileName)} alt="" /> : baby.babyName.slice(0, 1)}</span><strong>{baby.babyName}</strong><small>{ageInMonths(baby.birthDate)}개월</small></button>)}</div> : <button type="button" className="story-empty-baby" onClick={() => navigate("/babyInfo/input")}>+ 먼저 아이를 등록해 주세요</button>}
+        <div className="story-field-row">
+          <div className="story-field"><div className="story-label"><b>1</b><div><h2>오늘 이야기의 주인공</h2><p>동화를 선물할 아이를 선택해 주세요.</p></div></div>
+            {babies.length ? <div className="story-babies">{babies.map((baby) => <button type="button" key={baby.babyNo} className={baby.babyNo === selectedBabyNo ? "is-selected" : ""} onClick={() => setSelectedBabyNo(baby.babyNo)}><span className="story-avatar">{baby.profileImageFileName ? <img src={babyInfoApi.getViewUrl(baby.profileImageFileName)} alt="" /> : baby.babyName.slice(0, 1)}</span><strong>{baby.babyName}</strong><small>{ageInMonths(baby.birthDate)}개월</small></button>)}</div> : <button type="button" className="story-empty-baby" onClick={() => navigate("/babyInfo/input")}>+ 먼저 아이를 등록해 주세요</button>}
+          </div>
+          <div className="story-field"><div className="story-label"><b>2</b><div><h2>좋아하는 것과 관심사</h2><p>쉼표로 나누어 최대 8개까지 적을 수 있어요.</p></div></div><textarea value={preferences} onChange={(event) => setPreferences(event.target.value)} maxLength={320} placeholder="예: 토끼, 우주, 분홍 인형, 공룡" /></div>
+          <div className="story-field"><div className="story-label"><b>3</b><div><h2>어떤 이야기를 만들까요?</h2><p>오늘 아이에게 들려주고 싶은 분위기를 골라 주세요.</p></div></div><div className="story-themes">{THEMES.map((item) => <button type="button" key={item.value} className={theme === item.value ? "is-selected" : ""} onClick={() => setTheme(item.value)}><i>{item.icon}</i>{item.label}</button>)}</div></div>
         </div>
-        <div className="story-field"><div className="story-label"><b>2</b><div><h2>좋아하는 것과 관심사</h2><p>쉼표로 나누어 최대 8개까지 적을 수 있어요.</p></div></div><textarea value={preferences} onChange={(event) => setPreferences(event.target.value)} maxLength={320} placeholder="예: 토끼, 우주, 분홍 인형, 공룡" /></div>
-        <div className="story-field"><div className="story-label"><b>3</b><div><h2>어떤 이야기를 만들까요?</h2><p>오늘 아이에게 들려주고 싶은 분위기를 골라 주세요.</p></div></div><div className="story-themes">{THEMES.map((item) => <button type="button" key={item.value} className={theme === item.value ? "is-selected" : ""} onClick={() => setTheme(item.value)}><i>{item.icon}</i>{item.label}</button>)}</div></div>
         {error && <p className="story-error" role="alert">{error}</p>}
         <button type="button" className="story-create-button" disabled={!selectedBaby} onClick={handleCreate}><span>✦</span> 이야기 생성하기</button>
       </section><p className="story-asset-credit">Book illustration: Openclipart · j4p4n</p>

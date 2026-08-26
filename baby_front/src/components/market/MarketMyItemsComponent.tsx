@@ -4,6 +4,7 @@ import * as marketApi from "../../api/marketApi";
 import type { MarketItem } from "../../api/marketApi";
 import useCustomLogin from "../../hooks/useCustomLogin";
 import { formatRelativeTime } from "../../util/relativeTime";
+import "../../styles/market.css";
 
 const MarketMyItemsComponent = () => {
   const navigate = useNavigate();
@@ -53,7 +54,7 @@ const MarketMyItemsComponent = () => {
   };
 
   return (
-    <div className="card market-page-centered">
+    <div className="card market-page-wide">
       <div className="head">
         <h2>내 매물</h2>
       </div>

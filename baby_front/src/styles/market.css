@@ -1,4 +1,29 @@
 /* ===== 감자마켓 전용 (theme.css에서 이동, 다른 기능 페이지와 파일 충돌 방지) ===== */
+.app .market-map-marker {
+  width: 30px;
+  height: 38px;
+  cursor: pointer;
+  transform-origin: bottom center;
+  transform: translateY(0) scale(1);
+  transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
+  filter: drop-shadow(0 2px 3px rgba(20, 50, 77, 0.25));
+}
+.app .market-map-marker svg path,
+.app .market-map-marker svg circle {
+  transition: fill 0.18s ease, stroke 0.18s ease;
+}
+.app .market-map-marker.is-hovered {
+  transform: translateY(-10px) scale(1.18);
+  z-index: 30;
+}
+.app .market-map-marker.is-hovered svg path {
+  fill: var(--accent);
+  stroke: var(--accent);
+}
+.app .market-map-marker.is-hovered svg circle {
+  fill: #ffffff;
+}
+
 .app .market-form-location-map {
   width: 100%;
   height: 220px;
@@ -8,9 +33,20 @@
   margin-top: 10px;
 }
 
-/* 매물등록/내매물/채팅 3개 페이지 폭·가운데정렬 통일 */
-.app .market-page-centered {
-  max-width: 720px;
+/* 내매물/채팅목록: 그리드로 넓게 펼치는 페이지 (폭 제한 없음) */
+.app .market-page-wide {
+  width: 100%;
+}
+
+/* 매물등록/채팅방: 입력·대화 위주라 과도하게 넓어지면 오히려 보기 불편해서 적당히 넓힌 폭으로 가운데 정렬 */
+.app .market-page-form {
+  max-width: 920px;
+  width: 100%;
+  margin: 0 auto;
+}
+.app .market-page-chat {
+  max-width: 920px;
+  width: 100%;
   margin: 0 auto;
 }
 
@@ -174,8 +210,13 @@
 }
 .app .form-row {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 12px;
+}
+@media (max-width: 560px) {
+  .app .form-row {
+    grid-template-columns: 1fr;
+  }
 }
 .app .checkbox-field {
   display: flex;
@@ -328,6 +369,56 @@
 }
 .app .list-row:first-child {
   border-top: 0;
+}
+
+.app .chat-room-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 12px;
+}
+.app .chat-room-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--glass);
+  cursor: pointer;
+  font-size: 13px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.app .chat-room-card:hover {
+  border-color: rgba(0, 91, 178, 0.3);
+  box-shadow: 0 10px 26px rgba(0, 45, 90, 0.1);
+}
+.app .chat-room-card-title {
+  font-weight: 700;
+}
+.app .chat-room-card-peer {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.app .market-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 18px;
+}
+.app .market-pagination .entry-action-btn {
+  border: 1px solid var(--line);
+  background: var(--glass);
+}
+.app .market-pagination .entry-action-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.app .market-pagination-status {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--muted);
 }
 
 .app .chat-deal-status {

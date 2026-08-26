@@ -66,19 +66,32 @@ const onResponseSuccess = (response: AxiosResponse) => {
   return response;
 };
 
+// responseType이 "blob"인 요청(예: TTS 오디오)은 401이 나도 에러 바디까지 Blob으로 오기 때문에
+// 그냥 .error로 꺼내 보면 항상 undefined임 - 텍스트로 읽어서 JSON으로 직접 파싱해줘야 함
+const readErrorCode = async (data: unknown): Promise<string | undefined> => {
+  if (data instanceof Blob) {
+    try {
+      return (JSON.parse(await data.text()) as { error?: string }).error;
+    } catch {
+      return undefined;
+    }
+  }
+  return (data as { error?: string } | undefined)?.error;
+};
+
 const onResponseError = async (error: unknown) => {
-  if (!axios.isAxiosError<{ error?: string }>(error)) {
+  if (!axios.isAxiosError(error)) {
     return Promise.reject(error);
   }
 
   const originalRequest = error.config as RetryableRequestConfig | undefined;
 
-  if (
-    error.response?.status !== 401 ||
-    error.response.data?.error !== "ERROR_ACCESS_TOKEN" ||
-    !originalRequest ||
-    originalRequest._retry
-  ) {
+  if (error.response?.status !== 401 || !originalRequest || originalRequest._retry) {
+    return Promise.reject(error);
+  }
+
+  const errorCode = await readErrorCode(error.response.data);
+  if (errorCode !== "ERROR_ACCESS_TOKEN") {
     return Promise.reject(error);
   }
 

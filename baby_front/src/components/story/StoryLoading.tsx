@@ -31,7 +31,7 @@ const StoryLoading = ({ babyName, completed, onFinish }: StoryLoadingProps) => {
 
   const progress = canFinish ? 100 : Math.min(16 + step * 8, 88);
   return (
-    <section className="story-loading card" aria-live="polite" aria-busy={!canFinish}>
+    <section className="story-loading" aria-live="polite" aria-busy={!canFinish}>
       <span className="story-kicker">MAKING A LITTLE WORLD</span>
       <div className="story-book-stage">
         <span className="story-spark spark-one">✦</span><span className="story-spark spark-two">✧</span>

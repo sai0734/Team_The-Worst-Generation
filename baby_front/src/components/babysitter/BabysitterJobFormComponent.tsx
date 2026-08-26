@@ -118,7 +118,7 @@ const BabysitterJobFormComponent = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="recall-form">
+    <form onSubmit={handleSubmit} className="recall-form wide-form">
       <h2 className="page-title" style={{ margin: 0 }}>돌봄 구인글 작성</h2>
 
       <div className="field">
@@ -133,7 +133,7 @@ const BabysitterJobFormComponent = () => {
 
       <div className="field">
         <label>지역 (직접 입력 불가 - 현재 위치로만 설정됩니다)</label>
-        <div className="sitter-actions" style={{ margin: 0, alignItems: "center" }}>
+        <div className="sitter-location-picker">
           <button
             type="button"
             className="btn ghost"
@@ -142,17 +142,12 @@ const BabysitterJobFormComponent = () => {
           >
             {locating ? "위치 확인 중..." : region ? "위치 다시 설정" : "현재 위치로 설정"}
           </button>
-          {region && (
-            <span className="meta">
-              {region} ({latitude?.toFixed(5)}, {longitude?.toFixed(5)})
-            </span>
-          )}
+          <span className="sitter-location-picker-hint">
+            {region
+              ? `${region} (${latitude?.toFixed(5)}, ${longitude?.toFixed(5)})`
+              : "신뢰를 위해 구인글 지역은 위치 설정 버튼으로만 등록할 수 있어요."}
+          </span>
         </div>
-        {!region && (
-          <p className="field-hint">
-            신뢰를 위해 구인글 지역은 위치 설정 버튼으로만 등록할 수 있어요.
-          </p>
-        )}
       </div>
 
       <div className="field">
@@ -173,13 +168,18 @@ const BabysitterJobFormComponent = () => {
 
       <div className="field">
         <label>시간대</label>
-        <select value={timeSlot} onChange={(e) => setTimeSlot(e.target.value as TimeSlot)}>
+        <div className="seg">
           {(Object.keys(TIME_SLOT_LABELS) as TimeSlot[]).map((slot) => (
-            <option key={slot} value={slot}>
+            <button
+              key={slot}
+              type="button"
+              className={timeSlot === slot ? "is-active" : ""}
+              onClick={() => setTimeSlot(slot)}
+            >
               {TIME_SLOT_LABELS[slot]}
-            </option>
+            </button>
           ))}
-        </select>
+        </div>
       </div>
 
       <div className="field">

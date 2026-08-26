@@ -56,7 +56,7 @@ const CommunityListComponent = () => {
   return (
     <div>
       <div className="recall-header">
-        <h2>자유게시판</h2>
+        <h2 className="page-hero-title">이웃 부모들과 나누는 이야기</h2>
         {isLogin && (
           <button
             type="button"

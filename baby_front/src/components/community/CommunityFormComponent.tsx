@@ -99,7 +99,7 @@ const CommunityFormComponent = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="recall-form">
+    <form onSubmit={handleSubmit} className="recall-form wide-form">
       <h2 className="page-title" style={{ margin: 0 }}>
         {isEdit ? "글 수정" : "글쓰기"}
       </h2>

@@ -17,6 +17,14 @@ const BabysitterMyApplicationsComponent = () => {
 
   return (
     <div>
+      <button
+        type="button"
+        className="btn ghost sitter-back-link"
+        onClick={() => navigate("/community/babysitter/jobs")}
+      >
+        ← 구인글 목록으로
+      </button>
+
       {list.length === 0 && <div className="empty-hint">지원한 구인글이 없습니다.</div>}
 
       <div className="sitter-list">
@@ -37,12 +45,6 @@ const BabysitterMyApplicationsComponent = () => {
             </div>
           </article>
         ))}
-      </div>
-
-      <div className="sitter-back-link">
-        <button type="button" className="btn ghost" onClick={() => navigate("/community/babysitter/jobs")}>
-          구인글 목록으로
-        </button>
       </div>
     </div>
   );

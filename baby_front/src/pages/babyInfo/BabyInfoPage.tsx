@@ -100,7 +100,7 @@ const BabyInfoPage = () => {
   );
 
   return (
-    <div className="max-w-[900px] mx-auto flex flex-col gap-4 py-4">
+    <div className="w-full flex flex-col gap-4 py-4">
       {babyList.length > 1 && (
         <div className="flex flex-wrap gap-2">
           {babyList.map((baby) => (
@@ -168,14 +168,20 @@ const BabyInfoPage = () => {
         </div>
       </div>
 
-      {babyInfo.babyNo && <BabyGrowthCardComponent babyNo={babyInfo.babyNo} />}
-      {babyInfo.babyNo && (
-        <BabyVaccinationCardComponent
-          babyNo={babyInfo.babyNo}
-          birthDate={babyInfo.birthDate}
-        />
-      )}
-      {babyInfo.babyNo && <BabySleepCardComponent babyNo={babyInfo.babyNo} />}
+      <div className="grid grid-cols-1 gap-4 items-start xl:grid-cols-2">
+        {babyInfo.babyNo && (
+          <div className="xl:col-span-2">
+            <BabyGrowthCardComponent babyNo={babyInfo.babyNo} />
+          </div>
+        )}
+        {babyInfo.babyNo && (
+          <BabyVaccinationCardComponent
+            babyNo={babyInfo.babyNo}
+            birthDate={babyInfo.birthDate}
+          />
+        )}
+        {babyInfo.babyNo && <BabySleepCardComponent babyNo={babyInfo.babyNo} />}
+      </div>
     </div>
   );
 };

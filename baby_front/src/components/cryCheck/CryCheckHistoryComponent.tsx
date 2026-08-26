@@ -72,7 +72,11 @@ const CryCheckHistoryComponent = ({ reloadTrigger }: CryCheckHistoryProps) => {
             const isOpen = openNo === item.cryCheckNo;
 
             return (
-              <div className="cry-check-history-item" key={item.cryCheckNo}>
+              <div
+                className="cry-check-history-item"
+                key={item.cryCheckNo}
+                style={isOpen ? { gridColumn: "1 / -1" } : undefined}
+              >
                 <div
                   className="row-top"
                   onClick={() => toggleOpen(item.cryCheckNo)}

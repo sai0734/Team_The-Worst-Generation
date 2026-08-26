@@ -9,13 +9,14 @@ import * as wishApi from "../../api/wishApi";
 import useCustomLogin from "../../hooks/useCustomLogin";
 import MarketMapComponent from "./MarketMapComponent";
 import { formatRelativeTime } from "../../util/relativeTime";
+import { DEFAULT_MAP_CENTER, GEO_OPTIONS } from "../../util/mapLocation";
+import "../../styles/market.css";
 
 const CATEGORY_FILTERS = ["전체", ...MARKET_CATEGORIES];
-const DEFAULT_CENTER = { lat: 37.566826, lng: 126.9786567 }; // 서울시청 (내 동네도 GPS도 없을 때 기본값)
 const RADIUS_KM = 5;
 
 type ListFilter = "nearby" | "wish";
-type CenterSource = "profile" | "gps" | "default";
+type CenterSource = "gps" | "default";
 
 const MarketHomeComponent = () => {
   const navigate = useNavigate();
@@ -25,13 +26,14 @@ const MarketHomeComponent = () => {
   const [searchText, setSearchText] = useState("");
   const [appliedSearch, setAppliedSearch] = useState("");
   const [listFilter, setListFilter] = useState<ListFilter>("nearby");
-  const [center, setCenter] = useState(DEFAULT_CENTER);
+  const [center, setCenter] = useState(DEFAULT_MAP_CENTER);
   const [centerSource, setCenterSource] = useState<CenterSource>("default");
   const [locating, setLocating] = useState(false);
   const [items, setItems] = useState<MarketItem[]>([]);
   const [wishedSet, setWishedSet] = useState<Set<number>>(new Set());
   const [profile, setProfile] = useState<MarketProfile | null>(null);
   const [loading, setLoading] = useState(false);
+  const [hoveredItemNo, setHoveredItemNo] = useState<number | null>(null);
 
   const useGpsLocation = () => {
     if (!navigator.geolocation) {
@@ -51,47 +53,37 @@ const MarketHomeComponent = () => {
         );
         setLocating(false);
       },
+      GEO_OPTIONS,
     );
   };
 
-  // 최초 1회 - 로그인 상태면 "내 동네"(MarketProfile) 우선, 없으면 GPS, 그것도 안 되면 기본값
+  // 닉네임/매너온도 위젯에 쓸 내 프로필 정보 로드 (위치와는 무관)
   useEffect(() => {
+    if (!isLogin) return;
+
+    marketProfileApi
+      .getMyProfile()
+      .then(setProfile)
+      .catch((err) => console.error(err));
+  }, [isLogin]);
+
+  // 로그인 상태일 때만 자동으로 현재 위치를 시도 - 로그인 전에는 기본값(서울시청) 유지,
+  // 로그인 후이거나 "현재 위치로 보기"를 눌렀을 때만 실제 GPS 위치로 이동
+  useEffect(() => {
+    if (!isLogin || !navigator.geolocation) return;
+
     let cancelled = false;
-
-    const resolveInitialCenter = async () => {
-      if (isLogin) {
-        try {
-          const myProfile = await marketProfileApi.getMyProfile();
-          if (!cancelled) setProfile(myProfile);
-
-          if (
-            !cancelled &&
-            myProfile.latitude != null &&
-            myProfile.longitude != null
-          ) {
-            setCenter({ lat: myProfile.latitude, lng: myProfile.longitude });
-            setCenterSource("profile");
-            return;
-          }
-        } catch (err) {
-          console.error(err);
-        }
-      }
-
-      if (cancelled || !navigator.geolocation) return;
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          if (cancelled) return;
-          setCenter({ lat: pos.coords.latitude, lng: pos.coords.longitude });
-          setCenterSource("gps");
-        },
-        () => {
-          // 기본 좌표(서울시청) 유지
-        },
-      );
-    };
-
-    resolveInitialCenter();
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        if (cancelled) return;
+        setCenter({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        setCenterSource("gps");
+      },
+      () => {
+        // 기본 좌표(서울시청) 유지
+      },
+      GEO_OPTIONS,
+    );
 
     return () => {
       cancelled = true;
@@ -198,11 +190,7 @@ const MarketHomeComponent = () => {
       : items;
 
   const sourceLabel =
-    centerSource === "profile"
-      ? "내 동네 기준"
-      : centerSource === "gps"
-        ? "현재 위치 기준"
-        : "기본 위치(서울시청) 기준";
+    centerSource === "gps" ? "현재 위치 기준" : "기본 위치(서울시청) 기준";
 
   return (
     <div className="market-home">
@@ -290,6 +278,12 @@ const MarketHomeComponent = () => {
                   className="card market-card"
                   key={item.itemNo}
                   onClick={() => navigate(`/market/${item.itemNo}`)}
+                  onMouseEnter={() => setHoveredItemNo(item.itemNo ?? null)}
+                  onMouseLeave={() =>
+                    setHoveredItemNo((prev) =>
+                      prev === item.itemNo ? null : prev,
+                    )
+                  }
                 >
                   <div className="thumb-wrap">
                     {item.uploadFileNames && item.uploadFileNames.length > 0 ? (
@@ -373,7 +367,11 @@ const MarketHomeComponent = () => {
           )}
 
           <div className="market-home-map-canvas-wrap">
-            <MarketMapComponent items={filteredItems} center={center} />
+            <MarketMapComponent
+              items={filteredItems}
+              center={center}
+              hoveredItemNo={hoveredItemNo}
+            />
           </div>
         </div>
       </div>
