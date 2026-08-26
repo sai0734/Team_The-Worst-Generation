@@ -3440,6 +3440,15 @@
     height: 66px;
     padding: 0 20px;
   }
+  /* 이 화면폭에서는 .stage/.main이 자체 스크롤 대신 페이지 전체 스크롤로 바뀌는데,
+     .app에 걸린 overflow:hidden 때문에 position:sticky가 안 먹어서 fixed로 고정하고
+     그만큼 .stage 위쪽에 패딩을 줘서 콘텐츠가 헤더 밑에 가려지지 않게 함 */
+  .app .top-wrap {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+  }
   .app .top-right {
     gap: 8px;
   }
@@ -3463,12 +3472,19 @@
   .app .primary-nav {
     display: none;
   }
+  /* primary-nav 자체가 안 보이니 호버로 열 방법이 없는데, 라우트 일치만으로도 subnav가 열릴 수
+     있어서(hover 없이 routeActiveCode로도 열림) 명시적으로 숨김 — 하위 메뉴는 햄버거로 이동 */
+  .app .subnav {
+    display: none;
+  }
   .app .hamburger-btn {
     display: flex;
   }
   .app .stage {
     height: auto;
     flex-direction: column;
+    /* 헤더가 fixed로 빠져나가서, 그만큼 위쪽에 패딩을 줘서 콘텐츠가 가려지지 않게 함 */
+    padding-top: 66px;
   }
   .app .main {
     height: auto;

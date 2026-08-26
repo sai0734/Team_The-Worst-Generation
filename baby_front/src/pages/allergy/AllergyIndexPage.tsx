@@ -19,48 +19,38 @@ const SIDE_ITEMS: { label: string; action: AllergyAction }[] = [
   { label: "추가 알레르기 관리", action: "custom" },
 ];
 
-const layoutStyle: CSSProperties = {
-  display: "grid",
-  gridTemplateColumns: "220px 1fr",
-  gap: 24,
-  alignItems: "start",
-};
-
-const navStyle: CSSProperties = {
+const navRowStyle: CSSProperties = {
   display: "flex",
-  flexDirection: "column",
-  gap: 6,
+  flexWrap: "wrap",
+  alignItems: "center",
+  gap: 8,
   background: "var(--glass)",
   border: "1px solid var(--line)",
   borderRadius: "var(--radius, 24px)",
-  padding: 14,
+  padding: 10,
   backdropFilter: "blur(15px)",
   boxShadow: "0 18px 55px rgba(0, 45, 90, 0.08)",
   position: "sticky",
   top: "clamp(38px, 5vh, 68px)",
+  zIndex: 3,
 };
 
 const navItemStyle = (active: boolean, disabled: boolean): CSSProperties => ({
-  padding: "12px 14px",
-  borderRadius: 14,
+  padding: "10px 16px",
+  borderRadius: 999,
   fontSize: 14,
   fontWeight: 700,
-  color: disabled ? "var(--line)" : active ? "var(--accent)" : "var(--muted)",
-  background: active && !disabled ? "var(--soft)" : "transparent",
+  whiteSpace: "nowrap",
+  color: disabled ? "var(--line)" : active ? "#fff" : "var(--muted)",
+  background: active && !disabled ? "var(--accent)" : "transparent",
   cursor: disabled ? "not-allowed" : "pointer",
 });
 
-const navSectionLabelStyle: CSSProperties = {
-  fontSize: 11,
-  fontWeight: 700,
-  color: "var(--muted)",
-  padding: "4px 14px 2px",
-};
-
 const navDividerStyle: CSSProperties = {
-  height: 1,
+  width: 1,
+  alignSelf: "stretch",
   background: "var(--line)",
-  margin: "6px 4px",
+  margin: "4px 2px",
 };
 
 const contentStyle: CSSProperties = {
@@ -112,16 +102,8 @@ const AllergyIndexPage = () => {
           ? list.find((baby) => String(baby.babyNo) === effectiveBabyNo)
           : undefined;
 
-        let resolved: BabyInfo | null;
-        if (matched) {
-          resolved = matched;
-        } else if (list.length === 1) {
-          // 아이가 한 명뿐이면 고를 필요가 없으니 자동 선택
-          resolved = list[0];
-        } else {
-          // 여러 명일 땐 직접 선택하기 전까지 검사/관리로 못 들어가게 막음
-          resolved = null;
-        }
+        // 여러 명이어도 일단 첫 번째 아이로 바로 들어가고, 다른 아이는 위 선택 버튼으로 바꾸면 됨
+        const resolved = matched ?? list[0];
         setSelectedBaby(resolved);
 
         // 서브메뉴로 바로 들어온 경우(=/allergy 그 자체) 사이드바 첫 탭으로 자동 이동.
@@ -198,31 +180,28 @@ const AllergyIndexPage = () => {
 
         <h1 className="page-hero-title">{pageTitle}</h1>
 
-        <div style={layoutStyle}>
-          <nav style={navStyle}>
-            <span style={navSectionLabelStyle}>아이별 관리</span>
-            {SIDE_ITEMS.map((item) => (
-              <span
-                key={item.action}
-                style={navItemStyle(isActionActive(item.action), !selectedBaby)}
-                onClick={() => goWithBaby(item.action)}
-              >
-                {item.label}
-              </span>
-            ))}
-
-            <div style={navDividerStyle} />
-            <span style={navSectionLabelStyle}>참고자료</span>
-            <NavLink
-              to="ingredient"
-              style={({ isActive }) => navItemStyle(isActive, false)}
+        <nav style={navRowStyle}>
+          {SIDE_ITEMS.map((item) => (
+            <span
+              key={item.action}
+              style={navItemStyle(isActionActive(item.action), !selectedBaby)}
+              onClick={() => goWithBaby(item.action)}
             >
-              알레르기 유발 성분
-            </NavLink>
-          </nav>
-          <div style={contentStyle}>
-            <Outlet />
-          </div>
+              {item.label}
+            </span>
+          ))}
+
+          <div style={navDividerStyle} />
+          <NavLink
+            to="ingredient"
+            style={({ isActive }) => navItemStyle(isActive, false)}
+          >
+            알레르기 유발 성분
+          </NavLink>
+        </nav>
+
+        <div style={contentStyle}>
+          <Outlet />
         </div>
       </div>
     </BasicLayout>

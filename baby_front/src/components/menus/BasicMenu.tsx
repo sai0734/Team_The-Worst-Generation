@@ -22,9 +22,6 @@ interface NavItem {
   subItems: SubItem[];
 }
 
-// 이 메뉴들은 상단 호버 서브메뉴를 띄우지 않는다(하위 페이지 자체 탭이나 햄버거 메뉴로 이동 가능하기 때문)
-const SUBNAV_HIDDEN_CODES = new Set(["market", "community", "ai"]);
-
 const NAV_ITEMS: NavItem[] = [
   {
     code: "home",
@@ -56,7 +53,7 @@ const NAV_ITEMS: NavItem[] = [
     subItems: [
       { label: "홈", to: "/market" },
       { label: "매물 등록", to: "/market/write" },
-      { label: "내 매물", to: "/market/my-items" },
+      { label: "내가 올린 육아템", to: "/market/my-items" },
       { label: "채팅목록", to: "/market/chat" },
     ],
   },
@@ -137,6 +134,13 @@ const BasicMenu = () => {
   const [fabOpen, setFabOpen] = useState(false);
   const toggleFab = () => setFabOpen((prev) => !prev);
   const { isMonitoring, isAlertActive } = useHomeCamMonitor();
+
+  // 대시보드 히어로 슬라이드의 "홈캠" 카드처럼, 다른 페이지에서도 이 이벤트만 쏘면 홈캠 모달을 열 수 있음
+  useEffect(() => {
+    const openHandler = () => setIsHomeCamOpen(true);
+    window.addEventListener("open-homecam", openHandler);
+    return () => window.removeEventListener("open-homecam", openHandler);
+  }, []);
 
   // 홈캠을 안 보고 있어도(감시만 켜둔 상태) 안전영역 이탈이 감지되면 화면을 강제로 띄움
   useEffect(() => {
@@ -268,9 +272,7 @@ const BasicMenu = () => {
 
         <div
           className={`subnav${
-            activeItem &&
-            activeItem.subItems.length > 1 &&
-            !SUBNAV_HIDDEN_CODES.has(activeItem.code)
+            activeItem && activeItem.subItems.length > 1
               ? " open"
               : ""
           }`}
