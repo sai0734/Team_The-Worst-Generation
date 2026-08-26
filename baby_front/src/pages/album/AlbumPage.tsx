@@ -79,14 +79,7 @@ const AlbumPage = () => {
             ))}
           </div>
         )}
-        <div>
-          <p className="text-[11px] font-extrabold tracking-[3px] text-[#5AB2FF]">
-            ALBUM
-          </p>
-          <h1 className="baby-name-heading mt-1 font-bold text-[#2A2926]">
-            {currentBaby.babyName}의 성장앨범
-          </h1>
-        </div>
+        <h1 className="page-hero-title">{currentBaby.babyName}의 성장앨범</h1>
         {pageView === "grid" ? (
           <>
             <AlbumUploadComponent onRegistered={handleRegistered} />

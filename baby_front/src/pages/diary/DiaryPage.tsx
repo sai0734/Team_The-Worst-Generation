@@ -38,14 +38,7 @@ const DiaryPage = () => {
           ))}
         </div>
       )}
-      <div>
-        <p className="text-[11px] font-extrabold tracking-[3px] text-[#5AB2FF]">
-          DIARY
-        </p>
-        <h1 className="baby-name-heading mt-1 font-bold text-[#2A2926]">
-          {currentBaby.babyName}의 육아일기
-        </h1>
-      </div>
+      <h1 className="page-hero-title">{currentBaby.babyName}의 육아일기</h1>
       <DiaryWriteComponent onRegistered={handleRegistered} />
       <DiaryListComponent reloadTrigger={reloadTrigger} />
     </div>

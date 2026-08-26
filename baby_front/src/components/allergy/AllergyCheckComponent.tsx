@@ -47,7 +47,7 @@ const AllergyCheckComponent = ({ babyNo }: AllergyCheckComponentProps) => {
   const customMatches = splitList(result?.detectedCustom);
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-[minmax(280px,380px)_1fr]">
       <form
         onSubmit={handleSubmit}
         className="flex flex-col gap-3 rounded-[24px] border border-[rgba(42,41,38,0.1)] bg-[#FAF6F0] p-4 sm:p-6"
@@ -85,6 +85,18 @@ const AllergyCheckComponent = ({ babyNo }: AllergyCheckComponentProps) => {
           {loading ? "분석 중..." : "알레르기 성분 분석"}
         </button>
       </form>
+
+      {!result && (
+        <div className="flex min-h-[220px] flex-col items-center justify-center gap-2 rounded-[24px] border border-dashed border-[rgba(42,41,38,0.15)] bg-white p-8 text-center">
+          <span className="text-2xl">🧾</span>
+          <p className="text-sm font-bold text-[#2A2926]">
+            아직 분석 결과가 없어요
+          </p>
+          <p className="text-xs text-[#7A756C]">
+            왼쪽에서 성분표 사진을 올리고 분석을 시작해보세요.
+          </p>
+        </div>
+      )}
 
       {result && (
         <div className="flex flex-col gap-4 rounded-[24px] border border-[rgba(42,41,38,0.1)] bg-white p-4 sm:p-6">

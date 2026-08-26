@@ -120,6 +120,10 @@ const BabyInfoPage = () => {
         </div>
       )}
 
+      <h1 className="page-hero-title">
+        {babyInfo.babyName} ({getAgeInMonths(babyInfo.birthDate)}개월)
+      </h1>
+
       <div className="flex flex-col items-center gap-4 rounded-[24px] border border-[rgba(42,41,38,0.1)] bg-[#FAF6F0] p-4 sm:flex-row sm:p-6">
         {babyInfo.profileImageFileName ? (
           <img
@@ -133,13 +137,7 @@ const BabyInfoPage = () => {
           </div>
         )}
         <div className="min-w-0 text-center sm:text-left">
-          <p className="text-[11px] font-extrabold tracking-[3px] text-[#5AB2FF]">
-            BABY BOM
-          </p>
-          <h1 className="baby-name-heading mt-1 font-bold text-[#2A2926]">
-            {babyInfo.babyName} ({getAgeInMonths(babyInfo.birthDate)}개월)
-          </h1>
-          <div className="mt-3 flex flex-col gap-2">
+          <div className="flex flex-col gap-2">
             {infoGroups.map((group, groupIdx) =>
               group.length > 0 ? (
                 <div
