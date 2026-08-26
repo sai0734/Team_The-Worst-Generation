@@ -105,7 +105,7 @@ const CustomAllergyListComponent = ({
           <button
             type="button"
             onClick={handleAdd}
-            className="flex-shrink-0 rounded-full bg-[#2A2926] px-6 py-2.5 text-sm font-bold text-white transition-colors hover:bg-[#453f38]"
+            className="flex-shrink-0 rounded-full bg-[#005BB2] px-6 py-2.5 text-sm font-bold text-white transition-colors hover:bg-[#004A99]"
           >
             추가
           </button>

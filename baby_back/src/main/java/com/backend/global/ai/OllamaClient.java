@@ -37,6 +37,10 @@ public class OllamaClient {
             .build();
 
     public String chat(String userMessage) {
+        return chat(userMessage, null);
+    }
+
+    public String chat(String userMessage, Double temperature) {
 
         JsonObject message = new JsonObject();
         message.addProperty("role", "user");
@@ -50,6 +54,12 @@ public class OllamaClient {
         body.add("messages", messages);
         body.addProperty("think", false);
         body.addProperty("stream", false);
+
+        if (temperature != null) {
+            JsonObject options = new JsonObject();
+            options.addProperty("temperature", temperature);
+            body.add("options", options);
+        }
 
         return send(body, 60);
     }

@@ -7,7 +7,10 @@ const WalkIndexPage = () => {
     <BasicLayout>
       <SkyBackground />
       <div className="page-sky-content">
-        <WalkTrailMapComponent />
+        <div className="flex w-full flex-col gap-5 py-4">
+          <h1 className="page-hero-title">AI 산책로 추천</h1>
+          <WalkTrailMapComponent />
+        </div>
       </div>
     </BasicLayout>
   );

@@ -15,7 +15,8 @@
   display: grid;
   grid-template-columns: minmax(280px, 400px) 1fr;
   gap: 28px;
-  align-items: start;
+  /* 입력/결과 중 더 짧은 쪽을 긴 쪽 높이에 맞춰 늘려서, 밑에 빈 여백이 안 남게 함 */
+  align-items: stretch;
 }
 @media (max-width: 900px) {
   .app .cry-check-layout {
@@ -75,6 +76,11 @@
 }
 
 .app .cry-check-record-zone {
+  min-height: 160px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   text-align: center;
   padding: 10px 10px 4px;
 }
@@ -109,16 +115,49 @@
 .app .cry-check-upload {
   padding: 6px 0 2px;
 }
-.app .cry-check-hint {
-  font-size: 12px;
-  color: var(--muted);
-  margin: 0 0 10px;
+.app .cry-check-dropzone {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 160px;
+  padding: 24px 16px;
+  border: 2px dashed var(--line);
+  border-radius: 16px;
+  background: #fff;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.15s ease;
 }
-.app .cry-check-filename {
-  display: inline-block;
-  margin-top: 8px;
+.app .cry-check-dropzone:hover {
+  border-color: var(--accent);
+}
+.app .cry-check-dropzone-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--soft);
+  font-size: 20px;
+}
+.app .cry-check-dropzone-label {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--ink);
+}
+.app .cry-check-dropzone-hint {
   font-size: 12px;
   color: var(--muted);
+}
+.app .cry-check-dropzone-input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
 }
 
 .app .cry-check-analyze-btn {
@@ -129,6 +168,10 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
+  background: var(--accent);
+}
+.app .cry-check-analyze-btn:hover {
+  background: #004a99;
 }
 
 .app .cry-check-spinner {

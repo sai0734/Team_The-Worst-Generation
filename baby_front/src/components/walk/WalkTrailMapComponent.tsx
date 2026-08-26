@@ -63,13 +63,10 @@ const WalkTrailMapComponent = () => {
   const mapRef = useRef<any>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const overlaysRef = useRef<any[]>([]);
-  const pickModeRef = useRef(false);
 
   const [center, setCenter] = useState(DEFAULT_CENTER);
-  const [locationSource, setLocationSource] =
-    useState<LocationSource>("default");
+  const [, setLocationSource] = useState<LocationSource>("default");
   const [locating, setLocating] = useState(false);
-  const [pickMode, setPickMode] = useState(false);
   const [mapLoading, setMapLoading] = useState(true);
   const [mapError, setMapError] = useState<string | null>(null);
   const [locationHint, setLocationHint] = useState<string | null>(null);
@@ -79,10 +76,6 @@ const WalkTrailMapComponent = () => {
     loadStoredAiResult,
   );
   const [aiError, setAiError] = useState<string | null>(null);
-
-  useEffect(() => {
-    pickModeRef.current = pickMode;
-  }, [pickMode]);
 
   const useGpsLocation = () => {
     if (!navigator.geolocation) {
@@ -95,11 +88,10 @@ const WalkTrailMapComponent = () => {
         setCenter({ lat: pos.coords.latitude, lng: pos.coords.longitude });
         setLocationSource("gps");
         setLocating(false);
-        setPickMode(false);
       },
       () => {
         alert(
-          "위치 정보를 가져오지 못했습니다. 아래 '지도 클릭으로 위치 설정' 버튼으로 직접 선택해주세요.",
+          "위치 정보를 가져오지 못했습니다. 지도의 마커를 드래그하거나 클릭해서 직접 선택해주세요.",
         );
         setLocating(false);
       },
@@ -161,17 +153,16 @@ const WalkTrailMapComponent = () => {
             },
           );
 
+          // 지도를 클릭하면 바로 그 위치로 마커가 이동 (별도 "선택 모드" 없이 항상 동작)
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           (window as any).kakao.maps.event.addListener(
             mapRef.current,
             "click",
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             (mouseEvent: any) => {
-              if (!pickModeRef.current) return;
               const latlng = mouseEvent.latLng;
               setCenter({ lat: latlng.getLat(), lng: latlng.getLng() });
               setLocationSource("manual");
-              setPickMode(false);
             },
           );
         } else {
@@ -195,8 +186,21 @@ const WalkTrailMapComponent = () => {
           map: mapRef.current,
           image: myLocationImage,
           zIndex: 10,
+          draggable: true,
         });
         overlaysRef.current.push(myMarker);
+
+        // 마커를 직접 드래그해서 정확한 위치로 미세조정 가능
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        (window as any).kakao.maps.event.addListener(
+          myMarker,
+          "dragend",
+          () => {
+            const pos = myMarker.getPosition();
+            setCenter({ lat: pos.getLat(), lng: pos.getLng() });
+            setLocationSource("manual");
+          },
+        );
       } catch (err) {
         console.error(err);
         if (!cancelled) setMapError("지도를 불러오지 못했습니다.");
@@ -232,17 +236,9 @@ const WalkTrailMapComponent = () => {
     }
   };
 
-  const sourceLabel =
-    locationSource === "gps"
-      ? "현재 위치 기준"
-      : locationSource === "manual"
-        ? "직접 선택한 위치 기준"
-        : "기본 위치(서울시청) 기준";
-
   return (
     <div className="card">
       <div className="head">
-        <h2>AI 산책로 추천</h2>
         <div
           style={{
             display: "flex",
@@ -251,24 +247,6 @@ const WalkTrailMapComponent = () => {
             flexWrap: "wrap",
           }}
         >
-          <span style={{ fontSize: 11, color: "var(--muted)" }}>
-            {sourceLabel}
-          </span>
-          <button
-            type="button"
-            className="btn ghost"
-            onClick={useGpsLocation}
-            disabled={locating}
-          >
-            {locating ? "위치 확인 중..." : "현재 위치로 보기"}
-          </button>
-          <button
-            type="button"
-            className={pickMode ? "btn" : "btn ghost"}
-            onClick={() => setPickMode((prev) => !prev)}
-          >
-            {pickMode ? "지도를 클릭하세요" : "지도 클릭으로 위치 설정"}
-          </button>
           {locationHint && (
             <p style={{ color: "#ef6262", fontSize: 12, width: "100%" }}>
               {locationHint}
@@ -287,19 +265,35 @@ const WalkTrailMapComponent = () => {
           marginTop: 14,
         }}
       >
-        <div
-          ref={mapContainerRef}
-          style={{
-            width: "100%",
-            height: 600,
-            borderRadius: 20,
-            overflow: "hidden",
-            border: pickMode
-              ? "2px solid var(--accent)"
-              : "1px solid var(--line)",
-            cursor: pickMode ? "crosshair" : "default",
-          }}
-        />
+        <div style={{ position: "relative" }}>
+          <div
+            ref={mapContainerRef}
+            style={{
+              width: "100%",
+              height: 600,
+              borderRadius: 20,
+              overflow: "hidden",
+              border: "1px solid var(--line)",
+            }}
+          />
+
+          <button
+            type="button"
+            className="btn ghost"
+            onClick={useGpsLocation}
+            disabled={locating}
+            style={{
+              position: "absolute",
+              top: 12,
+              right: 12,
+              zIndex: 5,
+              backdropFilter: "blur(10px)",
+              boxShadow: "0 4px 14px rgba(0, 0, 0, 0.12)",
+            }}
+          >
+            {locating ? "위치 확인 중..." : "현재 위치로 보기"}
+          </button>
+        </div>
 
         <div
           style={{
@@ -312,11 +306,12 @@ const WalkTrailMapComponent = () => {
         >
           <button
             type="button"
-            className="btn"
+            className={`btn${aiLoading ? " is-loading" : ""}`}
             onClick={fetchAiRecommendation}
             disabled={aiLoading || mapLoading}
             style={{ flexShrink: 0 }}
           >
+            {aiLoading && <span className="btn-spinner" />}
             {aiLoading ? "추천 받는 중..." : "AI 추천받기"}
           </button>
 
@@ -403,6 +398,10 @@ const WalkTrailMapComponent = () => {
           )}
         </div>
       </div>
+
+      <p style={{ marginTop: 10, fontSize: 12, color: "var(--muted)" }}>
+        지도의 마커를 드래그하거나 지도를 클릭해서 정확한 위치로 조정할 수 있어요.
+      </p>
     </div>
   );
 };

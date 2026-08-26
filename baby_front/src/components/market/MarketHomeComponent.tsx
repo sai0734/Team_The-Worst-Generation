@@ -16,7 +16,6 @@ const CATEGORY_FILTERS = ["전체", ...MARKET_CATEGORIES];
 const RADIUS_KM = 5;
 
 type ListFilter = "nearby" | "wish";
-type CenterSource = "gps" | "default";
 
 const MarketHomeComponent = () => {
   const navigate = useNavigate();
@@ -27,7 +26,6 @@ const MarketHomeComponent = () => {
   const [appliedSearch, setAppliedSearch] = useState("");
   const [listFilter, setListFilter] = useState<ListFilter>("nearby");
   const [center, setCenter] = useState(DEFAULT_MAP_CENTER);
-  const [centerSource, setCenterSource] = useState<CenterSource>("default");
   const [locating, setLocating] = useState(false);
   const [items, setItems] = useState<MarketItem[]>([]);
   const [wishedSet, setWishedSet] = useState<Set<number>>(new Set());
@@ -44,7 +42,6 @@ const MarketHomeComponent = () => {
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         setCenter({ lat: pos.coords.latitude, lng: pos.coords.longitude });
-        setCenterSource("gps");
         setLocating(false);
       },
       () => {
@@ -77,7 +74,6 @@ const MarketHomeComponent = () => {
       (pos) => {
         if (cancelled) return;
         setCenter({ lat: pos.coords.latitude, lng: pos.coords.longitude });
-        setCenterSource("gps");
       },
       () => {
         // 기본 좌표(서울시청) 유지
@@ -189,45 +185,8 @@ const MarketHomeComponent = () => {
           })
       : items;
 
-  const sourceLabel =
-    centerSource === "gps" ? "현재 위치 기준" : "기본 위치(서울시청) 기준";
-
   return (
     <div className="market-home">
-      <div className="market-filter-row">
-        <div className="market-category-bar">
-          {CATEGORY_FILTERS.map((c) => (
-            <span
-              key={c}
-              className={`chip${category === c ? " is-active" : ""}`}
-              onClick={() => setCategory(c)}
-            >
-              {c}
-            </span>
-          ))}
-        </div>
-
-        <div className="market-search-bar">
-          <input
-            type="text"
-            className="market-search-input"
-            placeholder="제목이나 설명으로 검색"
-            value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") runSearch();
-            }}
-          />
-          <button
-            type="button"
-            className="btn market-search-btn"
-            onClick={runSearch}
-          >
-            검색
-          </button>
-        </div>
-      </div>
-
       <div className="card">
       <div className="market-home-split">
         <div className="market-home-list-pane">
@@ -248,21 +207,25 @@ const MarketHomeComponent = () => {
                 내찜목록
               </button>
             </div>
-            {listFilter === "nearby" && (
-              <div className="market-home-location">
-                <span className="market-map-sub">
-                  {sourceLabel} · 반경 {RADIUS_KM}km 이내 매물 표시 중
-                </span>
-                <button
-                  type="button"
-                  className="btn ghost"
-                  onClick={useGpsLocation}
-                  disabled={locating}
-                >
-                  {locating ? "위치 확인 중..." : "현재 위치로 보기"}
-                </button>
-              </div>
-            )}
+            <div className="market-search-bar">
+              <input
+                type="text"
+                className="market-search-input"
+                placeholder="제목이나 설명으로 검색"
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") runSearch();
+                }}
+              />
+              <button
+                type="button"
+                className="btn market-search-btn"
+                onClick={runSearch}
+              >
+                검색
+              </button>
+            </div>
           </div>
 
           <div className="market-grid market-home-grid">
@@ -367,6 +330,27 @@ const MarketHomeComponent = () => {
           )}
 
           <div className="market-home-map-canvas-wrap">
+            <div className="market-map-overlay-topleft">
+              {CATEGORY_FILTERS.map((c) => (
+                <span
+                  key={c}
+                  className={`chip${category === c ? " is-active" : ""}`}
+                  onClick={() => setCategory(c)}
+                >
+                  {c}
+                </span>
+              ))}
+            </div>
+
+            <button
+              type="button"
+              className="btn ghost market-map-overlay-topright"
+              onClick={useGpsLocation}
+              disabled={locating}
+            >
+              {locating ? "위치 확인 중..." : "현재 위치로 보기"}
+            </button>
+
             <MarketMapComponent
               items={filteredItems}
               center={center}

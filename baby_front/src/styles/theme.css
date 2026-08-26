@@ -2002,15 +2002,65 @@
   line-height: 1.6;
 }
 .app .health-check-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.app .health-check-columns {
   display: grid;
-  grid-template-columns: minmax(280px, 380px) 1fr;
-  gap: 24px;
-  align-items: start;
+  grid-template-columns: minmax(280px, 400px) 1fr;
+  gap: 28px;
+  align-items: stretch;
 }
 @media (max-width: 900px) {
-  .app .health-check-layout {
+  .app .health-check-columns {
     grid-template-columns: 1fr;
   }
+}
+.app .health-check-input-col {
+  display: flex;
+  flex-direction: column;
+}
+.app .health-check-result-col {
+  min-height: 220px;
+  padding-left: 28px;
+  border-left: 1px dashed var(--line);
+}
+@media (max-width: 900px) {
+  .app .health-check-result-col {
+    padding-left: 0;
+    border-left: 0;
+    padding-top: 20px;
+    border-top: 1px dashed var(--line);
+  }
+}
+.app .health-check-result-empty {
+  height: 100%;
+  min-height: 220px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 6px;
+  padding: 24px;
+  border-radius: 20px;
+  border: 1px dashed var(--line);
+  background: var(--hover);
+}
+.app .health-check-result-empty-icon {
+  font-size: 28px;
+  margin-bottom: 4px;
+}
+.app .health-check-result-empty-title {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--ink);
+}
+.app .health-check-result-empty-desc {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.6;
 }
 .app .health-check-history-list {
   display: grid;
@@ -2031,6 +2081,52 @@
   font-size: 11px;
   color: var(--muted);
   margin: 0 0 8px;
+}
+.app .health-dropzone {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 160px;
+  padding: 24px 16px;
+  border: 2px dashed var(--line);
+  border-radius: 16px;
+  background: #fff;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+}
+.app .health-dropzone:hover,
+.app .health-dropzone.is-dragging {
+  border-color: var(--accent);
+  background: var(--soft);
+}
+.app .health-dropzone-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--soft);
+  font-size: 20px;
+}
+.app .health-dropzone-label {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--ink);
+}
+.app .health-dropzone-hint {
+  font-size: 12px;
+  color: var(--muted);
+}
+.app .health-dropzone-input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
 }
 
 /* ===== 가계부 ===== */
@@ -2537,6 +2633,32 @@
   background: var(--soft);
   color: var(--accent);
   border-color: var(--accent);
+}
+.app .btn.is-loading,
+.app .submit-btn.is-loading {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: #cbd5e1;
+  color: #fff;
+  cursor: default;
+  opacity: 1;
+}
+.app .btn-spinner {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  border: 2px solid rgba(255, 255, 255, 0.45);
+  border-top-color: #fff;
+  border-radius: 50%;
+  display: inline-block;
+  animation: btn-spin 0.7s linear infinite;
+}
+@keyframes btn-spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 .app .chip {
   cursor: pointer;
@@ -3349,8 +3471,10 @@
     flex-direction: column;
   }
   .app .main {
+    height: auto;
     min-height: 680px;
     padding: 38px 22px 40px;
+    overflow-y: visible;
   }
   .app .home-hero {
     flex-direction: column;

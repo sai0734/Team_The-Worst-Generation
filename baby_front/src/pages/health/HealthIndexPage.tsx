@@ -157,6 +157,13 @@ const HealthIndexPage = () => {
   const isActionActive = (action: HealthAction) =>
     location.pathname.includes(`/health/${action}/`);
 
+  const activeLabel =
+    SIDE_ITEMS.find((item) => isActionActive(item.action))?.label ??
+    "건강 체크";
+  const pageTitle = selectedBaby
+    ? `${selectedBaby.babyName}의 ${activeLabel}`
+    : activeLabel;
+
   return (
     <BasicLayout>
       <SkyBackground />
@@ -178,6 +185,8 @@ const HealthIndexPage = () => {
             ))}
           </div>
         )}
+
+        <h1 className="page-hero-title">{pageTitle}</h1>
 
         <div style={layoutStyle}>
           <nav style={navStyle}>
