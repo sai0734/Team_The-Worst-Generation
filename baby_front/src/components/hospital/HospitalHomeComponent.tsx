@@ -23,7 +23,6 @@ const HospitalHomeComponent = () => {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [locating, setLocating] = useState(false);
-  const [locationMessage, setLocationMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [refreshingWaiting, setRefreshingWaiting] = useState(false);
   const [waitingMessage, setWaitingMessage] = useState("");
@@ -50,39 +49,24 @@ const HospitalHomeComponent = () => {
     if (!navigator.geolocation) {
       setLocating(false);
       setLoading(false);
-      setLocationMessage("이 브라우저에서는 현재 위치를 사용할 수 없어요. 지도를 이동해 찾아보세요.");
       return;
     }
 
     setLocating(true);
-    setLocationMessage("");
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const location = { lat: position.coords.latitude, lng: position.coords.longitude };
-        const accuracy = Math.round(position.coords.accuracy);
         setUserLocation(location);
         setSearchCenter(location);
         setMapCenter(location);
         setPendingCenter(location);
         setFocusKey((value) => value + 1);
         setLocating(false);
-        setLocationMessage(
-          accuracy <= 500
-            ? `현재 위치를 기준으로 가까운 소아과를 보여드리고 있어요. (오차 약 ${accuracy}m)`
-            : `현재 위치의 정확도가 낮아요. (오차 약 ${accuracy.toLocaleString()}m) 기기의 위치 기능을 켜면 더 정확해져요.`,
-        );
         void loadHospitals(location);
       },
-      (error) => {
+      () => {
         setLocating(false);
         setLoading(false);
-        setLocationMessage(
-          error.code === error.PERMISSION_DENIED
-            ? "위치 권한이 꺼져 있어요. 브라우저 설정에서 위치 권한을 허용하거나, 지도를 이동해 찾아보세요."
-            : error.code === error.POSITION_UNAVAILABLE
-              ? "현재 위치 정보를 확인할 수 없어요. 기기의 위치 기능을 켠 뒤 다시 시도해주세요."
-              : "위치 확인 시간이 초과됐어요. 잠시 후 다시 시도해주세요.",
-        );
       },
       GEO_OPTIONS,
     );
@@ -160,8 +144,6 @@ const HospitalHomeComponent = () => {
           <h1>우리 아이 주변 소아과</h1>
         </div>
       </header>
-
-      {locationMessage && <div className="hospital-location-message">{locationMessage}</div>}
 
       <div className="card">
       <div className="hospital-content">

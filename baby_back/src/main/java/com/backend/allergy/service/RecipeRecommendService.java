@@ -34,7 +34,7 @@ public class RecipeRecommendService implements RecipeRecommendServiceImpl {
 
         String prompt = buildPrompt(babyAllergyCheck, productType);
 
-        String recipeText = ollamaClient.chat(prompt);
+        String recipeText = ollamaClient.chat(prompt, 1.0);
 
         RecipeRecommend recipeRecommend = new RecipeRecommend();
         recipeRecommend.setCheckNo(checkNo);
@@ -49,9 +49,11 @@ public class RecipeRecommendService implements RecipeRecommendServiceImpl {
     private String buildPrompt(BabyAllergyCheck babyAllergyCheck, String productType){
 
         StringBuilder sb = new StringBuilder();
-        sb.append("아기용").append(productType).append("레시피를 추천해줘.\n");
+        sb.append("아기용 ").append(productType).append(" 레시피를 추천해줘.\n")
+                .append("반드시 '").append(productType).append("' 카테고리에 맞는 레시피여야 해 (예: 이유식=부드럽게 으깨거나 무른 형태의 유아식, 간식=아이가 손으로 집어먹기 좋은 작은 간식, 국=국물이 있는 국/탕 요리). ")
+                .append("이유식·간식·국을 각각 추천받을 때마다 매번 서로 다른 요리와 재료로 다양하게 제안해줘.\n");
 
-        if(babyAllergyCheck.getDetectedCustom()!=null && !babyAllergyCheck.getDetectedAllergens().isBlank()){
+        if(babyAllergyCheck.getDetectedAllergens()!=null && !babyAllergyCheck.getDetectedAllergens().isBlank()){
             sb.append("다음 알레르기 유발 성분은 반드시 피해줘: ")
                     .append(babyAllergyCheck.getDetectedAllergens()).append("\n");
         }

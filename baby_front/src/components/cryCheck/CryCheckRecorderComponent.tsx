@@ -202,17 +202,23 @@ const CryCheckRecorderComponent = ({ onAnalyzed }: CryCheckRecorderProps) => {
             </div>
           ) : (
             <div className="cry-check-upload">
-              <p className="cry-check-hint">
-                아기 울음이 담긴 음성/영상 파일을 올려주세요. (영상이어도 소리만 분석·재생됩니다)
-              </p>
-              <input
-                type="file"
-                accept="audio/*,video/*"
-                onChange={handleFileChange}
-              />
-              {uploadedFile && (
-                <span className="cry-check-filename">{uploadedFile.name}</span>
-              )}
+              <label className="cry-check-dropzone">
+                <span className="cry-check-dropzone-icon">🎙️</span>
+                <span className="cry-check-dropzone-label">
+                  {uploadedFile
+                    ? uploadedFile.name
+                    : "파일을 선택하거나 이 영역에 끌어다 놓으세요"}
+                </span>
+                <span className="cry-check-dropzone-hint">
+                  아기 울음이 담긴 음성/영상 파일 (영상이어도 소리만 분석·재생됩니다)
+                </span>
+                <input
+                  type="file"
+                  accept="audio/*,video/*"
+                  onChange={handleFileChange}
+                  className="cry-check-dropzone-input"
+                />
+              </label>
             </div>
           )}
 

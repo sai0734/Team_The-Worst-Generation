@@ -363,10 +363,6 @@ const DashboardPage = () => {
         </div>
       </section>
 
-      <AssistantPanel
-        className={`gov-subsidy-hero-slot home-rise-up${cardsIn ? " in-view" : ""}`}
-      />
-
       <div className="home-ticker">
         <div className="home-ticker-track">
           <span className="home-ticker-chip"><i>📔</i>오늘의 육아일기 남겨보세요</span>
@@ -595,6 +591,10 @@ const DashboardPage = () => {
         </Link>
         </div>
       </div>
+
+      <AssistantPanel
+        className={`gov-subsidy-hero-slot home-rise-up${cardsIn ? " in-view" : ""}`}
+      />
       </div>
       </div>
     </BasicLayout>

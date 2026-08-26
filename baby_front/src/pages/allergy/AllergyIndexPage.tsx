@@ -164,6 +164,16 @@ const AllergyIndexPage = () => {
   const isActionActive = (action: AllergyAction) =>
     location.pathname.includes(`/allergy/${action}/`);
 
+  const isIngredientPage = location.pathname.includes("/allergy/ingredient");
+  const activeLabel = isIngredientPage
+    ? "알레르기 유발 성분"
+    : (SIDE_ITEMS.find((item) => isActionActive(item.action))?.label ??
+      "성분표 검사");
+  const pageTitle =
+    !isIngredientPage && selectedBaby
+      ? `${selectedBaby.babyName}의 ${activeLabel}`
+      : activeLabel;
+
   return (
     <BasicLayout>
       <SkyBackground />
@@ -185,6 +195,8 @@ const AllergyIndexPage = () => {
             ))}
           </div>
         )}
+
+        <h1 className="page-hero-title">{pageTitle}</h1>
 
         <div style={layoutStyle}>
           <nav style={navStyle}>

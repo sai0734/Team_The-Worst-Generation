@@ -366,12 +366,22 @@ const MarketFormComponent = () => {
 
       <div className="form-field">
         <label>사진 첨부 (여러 장 선택 가능)</label>
-        <input
-          type="file"
-          accept="image/*"
-          multiple
-          onChange={handleFileChange}
-        />
+        <label className="market-dropzone">
+          <span className="market-dropzone-icon">📷</span>
+          <span className="market-dropzone-label">
+            사진을 선택하거나 이 영역에 끌어다 놓으세요
+          </span>
+          <span className="market-dropzone-hint">
+            여러 장을 한 번에 선택할 수 있어요
+          </span>
+          <input
+            type="file"
+            accept="image/*"
+            multiple
+            onChange={handleFileChange}
+            className="market-dropzone-input"
+          />
+        </label>
         {newFiles.length > 0 && (
           <div className="thumb-list">
             {newFiles.map((file, idx) => (

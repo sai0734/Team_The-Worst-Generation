@@ -98,7 +98,7 @@ const BehaviorInputComponent = ({ onCreated }: BehaviorInputProps) => {
         <button
           type="submit"
           disabled={loading}
-          className="flex w-full items-center justify-center gap-2 rounded-full bg-[#2A2926] px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-[#453f38] disabled:cursor-not-allowed disabled:bg-[#CBD5E1]"
+          className="flex w-full items-center justify-center gap-2 rounded-full bg-[#005BB2] px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-[#004A99] disabled:cursor-not-allowed disabled:bg-[#CBD5E1]"
         >
           {loading && (
             <span className="h-3.5 w-3.5 flex-shrink-0 animate-spin rounded-full border-2 border-white/40 border-t-white" />

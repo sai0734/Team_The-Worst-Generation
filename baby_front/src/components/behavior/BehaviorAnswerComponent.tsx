@@ -145,7 +145,7 @@ const BehaviorAnswerComponent = ({ consult }: BehaviorAnswerProps) => {
           <button
             type="submit"
             disabled={sending}
-            className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-[#2A2926] text-white transition-colors hover:bg-[#453f38] disabled:cursor-not-allowed disabled:bg-[#CBD5E1]"
+            className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-[#005BB2] text-white transition-colors hover:bg-[#004A99] disabled:cursor-not-allowed disabled:bg-[#CBD5E1]"
           >
             {sending ? (
               <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/40 border-t-white" />

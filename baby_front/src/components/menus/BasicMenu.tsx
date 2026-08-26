@@ -22,6 +22,9 @@ interface NavItem {
   subItems: SubItem[];
 }
 
+// 이 메뉴들은 상단 호버 서브메뉴를 띄우지 않는다(하위 페이지 자체 탭이나 햄버거 메뉴로 이동 가능하기 때문)
+const SUBNAV_HIDDEN_CODES = new Set(["market", "community", "ai"]);
+
 const NAV_ITEMS: NavItem[] = [
   {
     code: "home",
@@ -264,7 +267,13 @@ const BasicMenu = () => {
         </div>
 
         <div
-          className={`subnav${activeItem && activeItem.subItems.length > 1 ? " open" : ""}`}
+          className={`subnav${
+            activeItem &&
+            activeItem.subItems.length > 1 &&
+            !SUBNAV_HIDDEN_CODES.has(activeItem.code)
+              ? " open"
+              : ""
+          }`}
           style={{ paddingLeft: subnavLeft }}
         >
           {activeItem?.subItems.map((sub, idx) => (
@@ -286,7 +295,7 @@ const BasicMenu = () => {
               <div className="mobile-nav-item" key={item.code}>
                 <div className="mobile-nav-row">
                   <Link
-                    to={item.to}
+                    to={item.subItems[0]?.to ?? item.to}
                     className="mobile-nav-label"
                     onClick={closeMobileNav}
                   >

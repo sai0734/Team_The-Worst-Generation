@@ -78,9 +78,9 @@ const DiaryWriteComponent = ({ onRegistered }: DiaryWriteProps) => {
       className="flex flex-col gap-3 rounded-[24px] border border-[rgba(42,41,38,0.1)] bg-[#FAF6F0] p-4 sm:p-6"
     >
       <div className="flex flex-col gap-3 sm:flex-row">
-        <div className="flex w-full flex-shrink-0 flex-col gap-2 sm:w-[160px]">
+        <div className="flex w-full flex-shrink-0 flex-col items-center gap-2 sm:w-[200px]">
           <div
-            className={`relative h-[160px] w-full rounded-[16px] ${
+            className={`relative h-[200px] w-[200px] rounded-full ${
               isDragOver ? "ring-4 ring-[#5AB2FF] ring-offset-2" : ""
             }`}
             onDragOver={(e: DragEvent<HTMLDivElement>) => {
@@ -103,20 +103,20 @@ const DiaryWriteComponent = ({ onRegistered }: DiaryWriteProps) => {
           >
             {preview ? (
               <img
-                className="h-full w-full rounded-[16px] object-cover border-4 border-[#CAF4FF]"
+                className="h-full w-full rounded-full object-cover border-4 border-[#CAF4FF]"
                 src={preview}
                 alt="미리보기"
               />
             ) : (
-              <div className="flex h-full w-full flex-col items-center justify-center gap-1 rounded-[16px] bg-gradient-to-br from-[#A0DEFF] to-[#5AB2FF] text-white">
-                <span className="text-2xl font-bold leading-none">+</span>
-                <span className="text-xs font-bold">사진 추가</span>
+              <div className="flex h-full w-full flex-col items-center justify-center gap-1.5 rounded-full bg-gradient-to-br from-[#A0DEFF] to-[#5AB2FF] text-white">
+                <span className="text-4xl font-bold leading-none">+</span>
+                <span className="text-sm font-bold">사진 추가</span>
               </div>
             )}
             <input
               type="file"
               accept="image/*"
-              className="absolute inset-0 cursor-pointer rounded-[16px] opacity-0"
+              className="absolute inset-0 cursor-pointer rounded-full opacity-0"
               onChange={(e) => {
                 const selected = e.target.files?.[0] ?? null;
                 setFile(selected);
@@ -126,7 +126,7 @@ const DiaryWriteComponent = ({ onRegistered }: DiaryWriteProps) => {
             {preview && (
               <button
                 type="button"
-                className="absolute -right-1.5 -top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-white text-xs font-bold text-[#7A756C] shadow transition-colors hover:bg-[#f3d9d9] hover:text-[#c0392b]"
+                className="absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-white text-xs font-bold text-[#7A756C] shadow transition-colors hover:bg-[#f3d9d9] hover:text-[#c0392b]"
                 onClick={(e) => {
                   e.stopPropagation();
                   setFile(null);
@@ -140,7 +140,7 @@ const DiaryWriteComponent = ({ onRegistered }: DiaryWriteProps) => {
           </div>
         </div>
         <textarea
-          className="h-[160px] flex-1 min-w-0 resize-none rounded-[16px] border border-[rgba(42,41,38,0.12)] bg-white p-4 text-sm text-[#2A2926] outline-none transition-colors focus:border-[#5AB2FF]"
+          className="h-[200px] flex-1 min-w-0 resize-none rounded-[16px] border border-[rgba(42,41,38,0.12)] bg-white p-4 text-sm text-[#2A2926] outline-none transition-colors focus:border-[#5AB2FF]"
           value={content}
           onChange={(e) => setContent(e.target.value)}
           placeholder="오늘 하루는 어땠나요?"
@@ -151,24 +151,24 @@ const DiaryWriteComponent = ({ onRegistered }: DiaryWriteProps) => {
           type="button"
           onClick={handleGenerateContent}
           disabled={!file || aiLoading}
-          className="flex items-center gap-2 rounded-[12px] bg-[#5AB2FF] px-3 py-2 text-xs font-bold text-white transition-colors hover:bg-[#1E6FCC] disabled:cursor-not-allowed disabled:bg-[#CBD5E1]"
+          className="flex h-11 w-[200px] flex-shrink-0 items-center justify-center gap-1.5 rounded-full bg-[#5AB2FF] px-3 text-xs font-bold text-white transition-colors hover:bg-[#1E6FCC] disabled:cursor-not-allowed disabled:bg-[#CBD5E1]"
         >
           {aiLoading && (
             <span className="h-3 w-3 flex-shrink-0 animate-spin rounded-full border-2 border-white/40 border-t-white" />
           )}
-          {aiLoading ? "AI가 작성중..." : "AI로 일기 쓰기"}
+          {aiLoading ? "AI가 작성중..." : "AI로 일기 쓰기 ✨"}
         </button>
         <div className="flex items-center gap-3">
           <span className="text-xs font-bold text-[#7A756C]">날짜 선택하기</span>
           <input
             type="date"
-            className="rounded-[12px] border border-[rgba(42,41,38,0.12)] bg-white px-3 py-2 text-sm font-bold text-[#7A756C] outline-none transition-colors focus:border-[#5AB2FF]"
+            className="h-11 rounded-[12px] border border-[rgba(42,41,38,0.12)] bg-white px-3 text-sm font-bold text-[#7A756C] outline-none transition-colors focus:border-[#5AB2FF]"
             value={diaryDate}
             onChange={(e) => setDiaryDate(e.target.value)}
           />
           <button
             type="submit"
-            className="rounded-full bg-[#5AB2FF] px-6 py-2.5 text-sm font-bold text-white transition-colors hover:bg-[#1E6FCC]"
+            className="h-11 rounded-full bg-[#5AB2FF] px-6 text-sm font-bold text-white transition-colors hover:bg-[#1E6FCC]"
           >
             저장하기
           </button>
