@@ -55,33 +55,6 @@ public class RagClient {
         }
     }
 
-    public AskResult ask(String question, int months, String regionSido) {
-        JsonObject body = new JsonObject();
-        body.addProperty("question", question);
-        body.addProperty("babyMonths", months);
-        body.addProperty("regionSido", regionSido == null ? "" : regionSido);
-
-        try {
-            HttpRequest req = HttpRequest.newBuilder()
-                    .uri(URI.create(BASE_URL + "/ask"))
-                    .header("Content-Type", "application/json")
-                    .timeout(Duration.ofSeconds(60))
-                    .POST(HttpRequest.BodyPublishers.ofString(body.toString()))
-                    .build();
-            HttpResponse<String> res = http.send(req, HttpResponse.BodyHandlers.ofString());
-            if (res.statusCode() != 200) {
-                log.warn("RAG 서버 HTTP {}", res.statusCode());
-                return new AskResult("지원금 안내를 가져오지 못했습니다.", List.of());
-            }
-            return new Gson().fromJson(res.body(), AskResult.class);
-        } catch (Exception e) {
-            log.warn("RAG 서버 연결 실패: {}", e.getMessage());
-            return new AskResult("지원금 안내 서버에 연결하지 못했습니다.", List.of());
-        }
-    }
-
-    public record AskResult(String answer, List<AssistItemDTO> sources) {}
-
     private static class SearchResponse {
         List<AssistItemDTO> items;
     }

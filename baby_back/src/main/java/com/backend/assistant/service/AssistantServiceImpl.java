@@ -104,19 +104,6 @@ public class AssistantServiceImpl implements AssistantService {
     }
 
     @Override
-    public AssistRecommendresponse ask(AssistRecommendRequest request) {
-        int months = request.getChild() != null && request.getChild().getBabyMonths() != null
-                ? request.getChild().getBabyMonths() : 0;
-        String sido = AssistRegionNames.sido(
-                request.getChild() != null ? request.getChild().getRegionSido() : "");
-        RagClient.AskResult result = ragClient.ask(request.getQuery(), months, sido);
-        return AssistRecommendresponse.builder()
-                .answer(result.answer())
-                .items(result.sources())
-                .build();
-    }
-
-    @Override
     public AssistRecommendresponse loadSnapshot(String email) {
         List<AssistSnapshot> rows = snapshotMapper.selectByEmail(email);
         List<AssistItemDTO> items = new ArrayList<>();

@@ -11,6 +11,11 @@ class SubsidyItem(BaseModel):
     status: str = "APPLY"
     source: str
     link: str
+    sigungu: str = ""
+    thema: str = ""
+    srv_pvsn: str = Field(default="", alias="srvPvsn")
+    sprt_cyc: str = Field(default="", alias="sprtCyc")
+    amount: str = ""
 
 
 class SubsidySearchRequest(BaseModel):
@@ -24,18 +29,3 @@ class SubsidySearchRequest(BaseModel):
 
 class SubsidySearchResponse(BaseModel):
     items: list[SubsidyItem]
-
-
-class SubsidyAskRequest(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
-
-    question: str
-    baby_months: int = Field(alias="babyMonths")
-    region_sido: str = Field(default="", alias="regionSido")
-
-
-class SubsidyAskResponse(BaseModel):
-    model_config = ConfigDict(populate_by_name=True)
-
-    answer: str
-    sources: list[SubsidyItem]
