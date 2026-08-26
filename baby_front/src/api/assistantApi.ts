@@ -28,6 +28,11 @@ export interface AssistItem {
   source?: string;
   link?: string;
   status?: AssistStatus;
+  sigungu?: string;
+  thema?: string;
+  srvPvsn?: string;
+  sprtCyc?: string;
+  amount?: string;
 }
 
 export interface AssistRecommendRequest {
@@ -41,6 +46,7 @@ export interface AssistRecommendResponse {
   items: AssistItem[];
   updatedAt?: string;
 }
+
 
 export interface AssistRegion {
   regionSido: string;
@@ -74,13 +80,6 @@ export const assistantApi = {
 
   refresh: async (): Promise<AssistRecommendResponse> => {
     const res = await jwtAxios.post(`${prefix}/refresh`);
-    return res.data;
-  },
-
-  ask: async (
-    payload: AssistRecommendRequest,
-  ): Promise<AssistRecommendResponse> => {
-    const res = await jwtAxios.post(`${prefix}/ask`, payload);
     return res.data;
   },
 };

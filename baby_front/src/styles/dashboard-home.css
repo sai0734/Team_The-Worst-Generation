@@ -331,6 +331,28 @@
   color: var(--muted);
 }
 
+.app .assist-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 2px 0 4px !important;
+}
+
+.app .assist-badge {
+  font-size: 9px;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 99px;
+  background: var(--soft);
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.app .assist-badge.amount {
+  color: var(--accent);
+  border: 1px solid var(--accent);
+}
+
 .app .assist-empty {
   margin: 4px 0 0;
   font-size: 11px;

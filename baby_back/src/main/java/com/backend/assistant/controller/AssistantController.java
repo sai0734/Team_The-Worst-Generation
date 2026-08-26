@@ -27,12 +27,6 @@ public class AssistantController {
     }
 
     @PreAuthorize("hasAnyRole('ROLE_USER')")
-    @PostMapping("/ask")
-    public AssistRecommendresponse ask(@RequestBody AssistRecommendRequest request) {
-        return assistantService.ask(request);
-    }
-
-    @PreAuthorize("hasAnyRole('ROLE_USER')")
     @PostMapping("/refresh")
     public AssistRecommendresponse refresh(Principal principal) {
         assistBatchService.refreshEmail(principal.getName());

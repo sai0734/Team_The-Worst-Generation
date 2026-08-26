@@ -1,16 +1,14 @@
 import os
 
 import chromadb
-import requests
 from sentence_transformers import SentenceTransformer
 
 from app.schemas.subsidy import SubsidyItem
 
 CHROMA_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "data", "chroma_subsidies")
-OLLAMA_URL = os.environ.get("OLLAMA_BASE_URL", "http://127.0.0.1:11434")
-OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "parenting-qwen:8b")
 
 _embedder = SentenceTransformer("jhgan/ko-sroberta-multitask")
+_embedder.max_seq_length = 512
 _client = chromadb.PersistentClient(path=CHROMA_PATH)
 _collection = _client.get_or_create_collection("subsidies")
 
@@ -50,6 +48,23 @@ def _to_item(doc_id: str, meta: dict) -> SubsidyItem:
         link=meta["link"],
     )
 
+def _to_item(doc_id: str, meta: dict) -> SubsidyItem:
+    summary = meta.get("summary", "")
+    target = meta.get("target", "")
+    if target:
+        summary = f"[{target} 가구 대상 {summary}]"
+    return SubsidyItem(
+        id=doc_id,
+        title=meta["title"],
+        summary=summary,
+        source=meta["source"],
+        link=meta["link"],
+        sigungu=meta.get("sigungu", ""),
+        thema=meta.get("thema", ""),
+        srv_pvsn=meta.get("srv_pvsn", ""),
+        sprt_cyc=meta.get("sprt_cyc", ""),
+        amount=meta.get("amount", ""),
+    )
 
 def _profile_query_text(months: int, sido: str, household_size: int | None, income_tags: list[str]) -> str:
     stage = life_stage(months)
@@ -82,40 +97,3 @@ def search_profile(
     ids = result["ids"][0]
     metas = result["metadatas"][0]
     return [_to_item(i, m) for i, m in zip(ids, metas)]
-
-
-def ask(question: str, months: int, sido: str) -> tuple[str, list[SubsidyItem]]:
-    where = _where_clause(months, sido)
-    query_vec = _embedder.encode([question]).tolist()
-    result = _collection.query(query_embeddings=query_vec, n_results=5, where=where)
-
-    ids = result["ids"][0]
-    docs = result["documents"][0]
-    metas = result["metadatas"][0]
-    if not docs:
-        return "조건에 맞는 지원금 정보를 찾지 못했습니다.", []
-
-    context = "\n".join(f"- {d}" for d in docs)
-    prompt = f"""너는 육아 지원금 안내자다. 아래 [근거] 안에 있는 내용만 사용해서 답한다.
-[근거]에 없는 내용은 "정보 없음"이라고 답하고 지어내지 마라.
-
-[근거]
-{context}
-
-[질문]
-{question}
-"""
-    res = requests.post(
-        f"{OLLAMA_URL}/api/chat",
-        json={
-            "model": OLLAMA_MODEL,
-            "messages": [{"role": "user", "content": prompt}],
-            "think": False,
-            "stream": False,
-        },
-        timeout=60,
-    )
-    res.raise_for_status()
-    answer = res.json()["message"]["content"]
-    sources = [_to_item(i, m) for i, m in zip(ids, metas)]
-    return answer, sources

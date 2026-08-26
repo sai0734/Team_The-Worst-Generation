@@ -230,7 +230,7 @@ def subsidy_index_is_empty(executable: Path) -> bool:
     )
     if completed.returncode != 0:
         return True
-    return completed.stdout.strip() in("", 0)
+    return completed.stdout.strip() in("", "0")
 
 def ensure_subsidy_index(executable: Path, child_env: dict[str, str]) -> None:
     if not subsidy_index_is_empty(executable):
@@ -511,7 +511,6 @@ def run(services: list[Service]) -> int:
         print(f"[env] Loaded {len(root_env_values)} variables from {ROOT_ENV}")
     else:
         print(f"[env] Root environment file is missing: {ROOT_ENV}")
-        #지원금 벡터DB가 비어있으면 색인을 해라
         ensure_subsidy_index(python_executable(), child_env)
     managed_processes: list[ManagedProcess] = []
     try:

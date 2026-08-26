@@ -1,8 +1,5 @@
 import { useEffect, useMemo, useState, type CSSProperties } from "react";
-import {
-  assistantApi,
-  type AssistItem,
-} from "../../api/assistantApi";
+import { assistantApi, type AssistItem } from "../../api/assistantApi";
 import * as babyInfoApi from "../../api/babyInfoApi";
 import useCustomLogin from "../../hooks/useCustomLogin";
 
@@ -16,7 +13,13 @@ const ageInMonthsFromBirth = (birthDate: string): number => {
   return Math.max(months, 0);
 };
 
-const INCOME_TAGS = ["저소득층", "차상위계층", "한부모·조손", "다자녀", "장애인가구"];
+const INCOME_TAGS = [
+  "저소득층",
+  "차상위계층",
+  "한부모·조손",
+  "다자녀",
+  "장애인가구",
+];
 
 const PAGE_SIZE = 5;
 
@@ -28,7 +31,11 @@ const PolicyCards = ({ items }: { items: AssistItem[] }) => {
   }, [items]);
 
   if (items.length === 0) {
-    return <p className="assist-empty">아이 나이와 거주지를 입력하고 정책 찾기를 눌러 주세요.</p>;
+    return (
+      <p className="assist-empty">
+        아이 나이와 거주지를 입력하고 정책 찾기를 눌러 주세요.
+      </p>
+    );
   }
 
   const visible = items.slice(0, shown);
@@ -43,6 +50,21 @@ const PolicyCards = ({ items }: { items: AssistItem[] }) => {
             <li key={it.id || `${it.title}-${idx}`}>
               <div>
                 <h4>{it.title}</h4>
+                {(it.thema || it.amount || it.sigungu) && (
+                  <p className="assist-card-tags">
+                    {it.thema ? (
+                      <span className="assist-badge">
+                        {it.thema.split(",")[0].trim()}
+                      </span>
+                    ) : null}
+                    {it.amount ? (
+                      <span className="assist-badge amount">{it.amount}</span>
+                    ) : null}
+                    {it.sigungu ? (
+                      <span className="assist-badge">{it.sigungu}</span>
+                    ) : null}
+                  </p>
+                )}
                 <p>{it.summary}</p>
               </div>
               {done ? (
@@ -62,7 +84,11 @@ const PolicyCards = ({ items }: { items: AssistItem[] }) => {
         })}
       </ul>
       {rest > 0 ? (
-        <button type="button" className="assist-more" onClick={() => setShown((n) => n + PAGE_SIZE)}>
+        <button
+          type="button"
+          className="assist-more"
+          onClick={() => setShown((n) => n + PAGE_SIZE)}
+        >
           {rest}개 더보기
         </button>
       ) : null}
@@ -90,10 +116,6 @@ const AssistantPanel = ({ className, style }: AssistantPanelProps) => {
   const [savingRegion, setSavingRegion] = useState(false);
   const [savedMsg, setSavedMsg] = useState("");
   const [expanded, setExpanded] = useState(false);
-  const [question, setQuestion] = useState("");
-  const [asking, setAsking] = useState(false);
-  const [askAnswer, setAskAnswer] = useState("");
-  const [askSources, setAskSources] = useState<AssistItem[]>([]);
 
   useEffect(() => {
     if (!isLogin) {
@@ -154,7 +176,6 @@ const AssistantPanel = ({ className, style }: AssistantPanelProps) => {
     () => `${months}개월 · ${regionLabel || "거주지 미입력"}`,
     [months, regionLabel],
   );
-  
 
   const saveRegionOnly = async () => {
     setSavingRegion(true);
@@ -174,23 +195,18 @@ const AssistantPanel = ({ className, style }: AssistantPanelProps) => {
     }
   };
 
-  const saveAndSearch = async () => {
+  const runSearch = async (tags: string[]) => {
     setExpanded(true);
     setSaving(true);
     setSavedMsg("");
     try {
-      await assistantApi.saveRegion({
-        regionSido: sido.trim(),
-        regionSigungu: sigungu.trim(),
-        babyMonths: months,
-      });
       const res = await assistantApi.recommend({
         categories: ["SUBSIDY"],
         child: {
           babyMonths: months,
           regionSido: sido,
           householdSize: householdSize === "" ? undefined : householdSize,
-          incomeTags,
+          incomeTags: tags,
         },
       });
       setAnswer(res.answer);
@@ -198,35 +214,29 @@ const AssistantPanel = ({ className, style }: AssistantPanelProps) => {
       setUpdatedAt(new Date().toISOString());
     } catch (e) {
       console.error(e);
-      setAnswer("지원금 목록을 만들지 못했어요. 백엔드와 공공 API 키를 확인해 주세요.");
+      setAnswer(
+        "지원금 목록을 만들지 못했어요. 백엔드와 공공 API키를 확인해주세요",
+      );
     } finally {
       setSaving(false);
     }
   };
 
-  const toggleIncomeTags = (tag: string) =>
-    setIncomeTags((prev) =>
-      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag],
-    );
+  const saveAndSearch = async () => {
+    await assistantApi.saveRegion({
+      regionSido: sido.trim(),
+      regionSigungu: sigungu.trim(),
+      babyMonths: months,
+    });
+    await runSearch(incomeTags);
+  };
 
-  const askQuestion = async () => {
-    if (!question.trim()) return;
-    setAsking(true);
-    setAskAnswer("");
-    setAskSources([]);
-    try {
-      const res = await assistantApi.ask({
-        query: question.trim(),
-        child: { babyMonths: months, regionSido: sido },
-      });
-      setAskAnswer(res.answer);
-      setAskSources(res.items ?? []);
-    } catch (e) {
-      console.error(e);
-      setAskAnswer("답변을 가져오지 못했어요.");
-    } finally {
-      setAsking(false);
-    }
+  const toggleIncomeTags = (tag: string) => {
+    const next = incomeTags.includes(tag)
+      ? incomeTags.filter((t) => t != tag)
+      : [...incomeTags, tag];
+    setIncomeTags(next);
+    void runSearch(next);
   };
 
   return (
@@ -260,7 +270,9 @@ const AssistantPanel = ({ className, style }: AssistantPanelProps) => {
                 onChange={(e) => setMonths(Number(e.target.value) || 0)}
               />
               {hasBaby ? (
-                <small className="assist-hint">등록된 아이 정보로 자동 계산됨</small>
+                <small className="assist-hint">
+                  등록된 아이 정보로 자동 계산됨
+                </small>
               ) : null}
             </div>
             <div className="assist-filter-group">
@@ -360,7 +372,9 @@ const AssistantPanel = ({ className, style }: AssistantPanelProps) => {
                 onChange={(e) => setMonths(Number(e.target.value) || 0)}
               />
               {hasBaby ? (
-                <small className="assist-hint">등록된 아이 정보로 자동 계산됨</small>
+                <small className="assist-hint">
+                  등록된 아이 정보로 자동 계산됨
+                </small>
               ) : null}
             </div>
             <div className="assist-filter-group">
@@ -413,46 +427,6 @@ const AssistantPanel = ({ className, style }: AssistantPanelProps) => {
                 {tag}
               </button>
             ))}
-          </div>
-
-          <div className="assist-ask">
-            <label htmlFor="assist-question">AI에게 물어보기</label>
-            <div>
-              <input
-                id="assist-question"
-                type="text"
-                placeholder="예: 다자녀 가구가 받을 수 있는 지원금은?"
-                value={question}
-                disabled={!isLogin}
-                onChange={(e) => setQuestion(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") void askQuestion();
-                }}
-              />
-            </div>
-            <div>
-              <button type="button" onClick={() => void askQuestion()} disabled={!isLogin || asking}>
-                {asking ? "생각 중…" : "질문하기"}
-              </button>
-            </div>
-            {askAnswer ? (
-              <div className="assist-ask-answer">
-                <p>{askAnswer}</p>
-                {askSources.length > 0 ? (
-                  <p className="assist-ask-sources">
-                    출처:{" "}
-                    {askSources.map((s, idx) => (
-                      <span key={s.id || idx}>
-                        <a href={s.link || "https://www.bokjiro.go.kr"} target="_blank" rel="noreferrer">
-                          {s.title}
-                        </a>
-                        {idx < askSources.length - 1 ? ", " : ""}
-                      </span>
-                    ))}
-                  </p>
-                ) : null}
-              </div>
-            ) : null}
           </div>
 
           <PolicyCards items={items} />
