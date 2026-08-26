@@ -56,7 +56,7 @@ const MarketMyItemsComponent = () => {
   return (
     <div className="card market-page-wide">
       <div className="head">
-        <h2>내 매물</h2>
+        <h2>내가 올린 육아템</h2>
       </div>
 
       {loading ? (

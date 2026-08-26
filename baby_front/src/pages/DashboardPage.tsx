@@ -4,7 +4,7 @@ import {
   type CSSProperties,
   type FormEvent,
 } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import BasicLayout from "../layouts/BasicLayout";
 import useCustomLogin from "../hooks/useCustomLogin";
 import useQuestRealtime from "../hooks/useQuestRealtime";
@@ -17,6 +17,10 @@ import { questApi, type MemberQuest, type QuestHome } from "../api/questApi";
 import AssistantPanel from "../components/assistant/AssistantPanel";
 import SkyBackground from "../components/common/SkyBackground";
 import heroBaby from "../assets/hero-baby.png";
+import heroBaby0 from "../assets/hero-baby0-wide.jpg";
+import heroCry from "../assets/hero-cry-wide-v2.png";
+import heroHomecam from "../assets/hero-homecam-wide-v2.png";
+import heroMarket from "../assets/hero-market-wide.jpg";
 import "../styles/dashboard-home.css";
 
 const emptyHome: QuestHome = {
@@ -59,21 +63,36 @@ const questErrorMsg = (err: unknown) => {
 const HERO_SLIDE_COUNT = 4;
 const HERO_INTERVAL_MS = 5000;
 
-// 슬라이드별 배경 사진 (Unsplash, 무료 라이선스 — 출처 링크는 각 항목의 사진작가 크레딧)
-const HERO_SLIDE_IMAGES = [
-  // Daniel Thomas – "baby in pink shirt lying on white textile"
-  "https://images.unsplash.com/photo-1608365151231-7dbed3034787?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
-  // Arwan Sutanto – "selective focus photography of girl crying"
-  "https://images.unsplash.com/photo-1517545084371-4a575dde2a02?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
-  // DIANA HAUAN – "mother tucking in her baby in a crib"
-  "https://images.unsplash.com/photo-1770407780059-be1a0b3059c6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
-  // Kyaw Zay Ya – "red and black stroller"
-  "https://images.unsplash.com/photo-1559135141-2bea6465fccf?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&q=80&w=1080",
+// 슬라이드별 배경 사진 — Unsplash CDN의 자동 crop 파라미터를 신뢰할 수 없어서(요청 해상도를
+// 무시하고 작은 이미지를 내려주는 경우가 있었음), 전부 원본 사진을 직접 와이드 구도로 잘라
+// 좌측에 문구 여백을 확보한 project asset으로 박아넣음 (Unsplash 원본이 아니라서 사진작가
+// 크레딧 없음)
+const HERO_SLIDE_IMAGES = [heroBaby0, heroCry, heroHomecam, heroMarket];
+
+// 홈 티커(좌측으로 흐르는 칩들) — 클릭하면 해당 기능으로 이동. 리콜/AI 정부지원금처럼
+// 별도 페이지가 없는 기능은 이 대시보드 안의 카드 위치로 스크롤, 홈캠은 모달을 염
+type TickerAction =
+  | { type: "nav"; to: string }
+  | { type: "scroll"; id: string }
+  | { type: "homecam" };
+
+const TICKER_ITEMS: { icon: string; label: string; action: TickerAction }[] = [
+  { icon: "📔", label: "오늘의 육아일기 남겨보세요", action: { type: "nav", to: "/diary" } },
+  { icon: "💸", label: "AI로 우리 동네 지원금 찾아보세요", action: { type: "scroll", id: "dashboard-subsidy" } },
+  { icon: "💰", label: "가계부로 육아비 한눈에 정리해보세요", action: { type: "nav", to: "/ledger" } },
+  { icon: "📷", label: "홈캠으로 낮잠시간 안심하게 지켜보세요", action: { type: "homecam" } },
+  { icon: "🥕", label: "감자마켓에서 육아템 거래해보세요", action: { type: "nav", to: "/market" } },
+  { icon: "👶", label: "믿을 수 있는 베이비시터 찾아보세요", action: { type: "nav", to: "/community/babysitter" } },
+  { icon: "🍼", label: "AI 울음소리 분석 써보세요", action: { type: "nav", to: "/ai/cry-check" } },
+  { icon: "🏥", label: "우리 아이 주변 소아과 찾아보세요", action: { type: "nav", to: "/hospital" } },
+  { icon: "💬", label: "커뮤니티에서 육아 정보 나눠보세요", action: { type: "nav", to: "/community" } },
+  { icon: "🔔", label: "육아용품 리콜 알림 확인해보세요", action: { type: "scroll", id: "dashboard-recall" } },
 ];
 
 const DashboardPage = () => {
   const { isLogin, loginState } = useCustomLogin();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const [ledgerSummary, setLedgerSummary] = useState<LedgerSummary | null>(
     null,
@@ -106,6 +125,19 @@ const DashboardPage = () => {
     );
     return () => clearInterval(interval);
   }, []);
+
+  // 랜딩페이지 MORE 섹션에서 "/dashboard#dashboard-recall" 같은 링크로 들어왔을 때,
+  // 해당 카드 위치로 자동 스크롤 (리콜/AI 정부지원금처럼 별도 페이지가 없는 기능용)
+  useEffect(() => {
+    if (!location.hash) return;
+    const id = location.hash.slice(1);
+    const target = document.getElementById(id);
+    if (!target) return;
+    const t = setTimeout(() => {
+      target.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 100);
+    return () => clearTimeout(t);
+  }, [location.hash]);
 
   const loadQuests = async () => {
     try {
@@ -180,6 +212,18 @@ const DashboardPage = () => {
       await loadQuests();
     } finally {
       setCompletingId(null);
+    }
+  };
+
+  const handleTickerClick = (action: TickerAction) => {
+    if (action.type === "nav") {
+      navigate(action.to);
+    } else if (action.type === "homecam") {
+      window.dispatchEvent(new Event("open-homecam"));
+    } else {
+      document
+        .getElementById(action.id)
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   };
 
@@ -319,7 +363,13 @@ const DashboardPage = () => {
               다른 일 하세요
             </h1>
             <p>안전영역을 벗어나면 바로 알려드려요.</p>
-            <span className="gov-hero-cta">우측 하단 + 버튼으로 감시 시작</span>
+            <button
+              type="button"
+              className="gov-hero-cta"
+              onClick={() => window.dispatchEvent(new Event("open-homecam"))}
+            >
+              지금 홈캠 열기
+            </button>
           </div>
           <span className="gov-hero-emoji">📷</span>
         </div>
@@ -365,27 +415,18 @@ const DashboardPage = () => {
 
       <div className="home-ticker">
         <div className="home-ticker-track">
-          <span className="home-ticker-chip"><i>📔</i>오늘의 육아일기 남겨보세요</span>
-          <span className="home-ticker-chip"><i>💸</i>AI로 우리 동네 지원금 찾아보세요</span>
-          <span className="home-ticker-chip"><i>💰</i>가계부로 육아비 한눈에 정리해보세요</span>
-          <span className="home-ticker-chip"><i>📷</i>홈캠으로 낮잠시간 안심하게 지켜보세요</span>
-          <span className="home-ticker-chip"><i>🥕</i>감자마켓에서 육아템 거래해보세요</span>
-          <span className="home-ticker-chip"><i>👶</i>믿을 수 있는 베이비시터 찾아보세요</span>
-          <span className="home-ticker-chip"><i>🍼</i>AI 울음소리 분석 써보세요</span>
-          <span className="home-ticker-chip"><i>🏥</i>우리 아이 주변 소아과 찾아보세요</span>
-          <span className="home-ticker-chip"><i>💬</i>커뮤니티에서 육아 정보 나눠보세요</span>
-          <span className="home-ticker-chip"><i>🔔</i>육아용품 리콜 알림 확인해보세요</span>
           {/* 끊김 없이 흐르도록 동일 세트를 한 번 더 반복 (총 2세트) */}
-          <span className="home-ticker-chip"><i>📔</i>오늘의 육아일기 남겨보세요</span>
-          <span className="home-ticker-chip"><i>💸</i>AI로 우리 동네 지원금 찾아보세요</span>
-          <span className="home-ticker-chip"><i>💰</i>가계부로 육아비 한눈에 정리해보세요</span>
-          <span className="home-ticker-chip"><i>📷</i>홈캠으로 낮잠시간 안심하게 지켜보세요</span>
-          <span className="home-ticker-chip"><i>🥕</i>감자마켓에서 육아템 거래해보세요</span>
-          <span className="home-ticker-chip"><i>👶</i>믿을 수 있는 베이비시터 찾아보세요</span>
-          <span className="home-ticker-chip"><i>🍼</i>AI 울음소리 분석 써보세요</span>
-          <span className="home-ticker-chip"><i>🏥</i>우리 아이 주변 소아과 찾아보세요</span>
-          <span className="home-ticker-chip"><i>💬</i>커뮤니티에서 육아 정보 나눠보세요</span>
-          <span className="home-ticker-chip"><i>🔔</i>육아용품 리콜 알림 확인해보세요</span>
+          {[...TICKER_ITEMS, ...TICKER_ITEMS].map((item, i) => (
+            <button
+              type="button"
+              key={i}
+              className="home-ticker-chip"
+              onClick={() => handleTickerClick(item.action)}
+            >
+              <i>{item.icon}</i>
+              {item.label}
+            </button>
+          ))}
         </div>
       </div>
       </div>
@@ -561,6 +602,7 @@ const DashboardPage = () => {
         </Link>
 
         <Link
+          id="dashboard-recall"
           to="/recall"
           className={`gov-card gov-stat-card home-rise-up${cardsIn ? " in-view" : ""}`}
           style={{ "--i": 3 } as CSSProperties}
@@ -592,9 +634,11 @@ const DashboardPage = () => {
         </div>
       </div>
 
-      <AssistantPanel
-        className={`gov-subsidy-hero-slot home-rise-up${cardsIn ? " in-view" : ""}`}
-      />
+      <div id="dashboard-subsidy">
+        <AssistantPanel
+          className={`gov-subsidy-hero-slot home-rise-up${cardsIn ? " in-view" : ""}`}
+        />
+      </div>
       </div>
       </div>
     </BasicLayout>
