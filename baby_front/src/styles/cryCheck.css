@@ -1,9 +1,7 @@
 /* ===== AI 울음소리 분석 (다른 기능 페이지와 파일 충돌 방지 위해 별도 파일) ===== */
 
-/* AI 기능 사이드바 옆에 들어가도록 폭 제한 (감자마켓 .market-page-centered와 동일 패턴) */
 .app .cry-check-page {
-  max-width: 720px;
-  margin: 0 auto;
+  width: 100%;
   display: flex;
   flex-direction: column;
   gap: 20px;
@@ -67,8 +65,9 @@
 }
 
 .app .cry-check-analyze-btn {
-  margin-top: 14px;
+  margin: 14px auto 0;
   width: 100%;
+  max-width: 360px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -194,9 +193,20 @@
   color: var(--muted);
 }
 .app .cry-check-history-list {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: 1fr;
+  align-items: start;
   gap: 10px;
+}
+@media (min-width: 768px) {
+  .app .cry-check-history-list {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (min-width: 1280px) {
+  .app .cry-check-history-list {
+    grid-template-columns: repeat(3, 1fr);
+  }
 }
 .app .cry-check-history-item {
   padding: 12px 14px;

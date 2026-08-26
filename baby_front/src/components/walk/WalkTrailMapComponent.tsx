@@ -2,8 +2,10 @@ import { useEffect, useRef, useState } from "react";
 import * as walkApi from "../../api/walkApi";
 import type { WalkAiRecommendation, WalkPlace } from "../../types/walk";
 import { loadKakaoMapScript } from "../../util/kakaoMapLoader";
+import useCustomLogin from "../../hooks/useCustomLogin";
+import { DEFAULT_MAP_CENTER, GEO_OPTIONS } from "../../util/mapLocation";
 
-const DEFAULT_CENTER = { lat: 37.566826, lng: 126.9786567 }; // 서울시청 (위치 정보 없을 때 기본값)
+const DEFAULT_CENTER = DEFAULT_MAP_CENTER;
 
 // 유모차 동반 도보 속도 기준(약 시속 3km). 직선거리 기준이라 실제보다 짧게 나올 수 있어 "약" 표기.
 const STROLLER_WALK_SPEED_KMH = 3;
@@ -43,6 +45,7 @@ const openRouteWindow = (
 type LocationSource = "gps" | "manual" | "default";
 
 const WalkTrailMapComponent = () => {
+  const { isLogin } = useCustomLogin();
   const mapContainerRef = useRef<HTMLDivElement>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const mapRef = useRef<any>(null);
@@ -86,12 +89,14 @@ const WalkTrailMapComponent = () => {
         );
         setLocating(false);
       },
+      GEO_OPTIONS,
     );
   };
 
-  // 최초 1회 - GPS 우선 시도, 실패하면 기본값(서울시청) 유지
+  // 로그인 상태일 때만 자동으로 현재 위치를 시도 - 로그인 전에는 기본값(서울시청) 유지,
+  // 로그인 후이거나 "현재 위치로 보기"를 눌렀을 때만 실제 GPS 위치로 이동
   useEffect(() => {
-    if (!navigator.geolocation) return;
+    if (!isLogin || !navigator.geolocation) return;
 
     let cancelled = false;
     navigator.geolocation.getCurrentPosition(
@@ -108,12 +113,13 @@ const WalkTrailMapComponent = () => {
           );
         }
       },
+      GEO_OPTIONS,
     );
 
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [isLogin]);
 
   // center가 바뀔 때마다(최초 마운트 + 위치 확인/선택 완료 시) 지도 초기화/이동
   useEffect(() => {

@@ -218,32 +218,33 @@ const BabysitterFormComponent = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="recall-form">
+    <form onSubmit={handleSubmit} className="recall-form wide-form">
       <h2 className="page-title" style={{ margin: 0 }}>
         {exists ? "내 시터 프로필 수정" : "시터 프로필 등록"}
       </h2>
 
       <div className="field">
         <label>프로필 사진 (필수)</label>
-        {(pendingPhotoPreview || photoFileName) && (
-          <img
-            src={pendingPhotoPreview ?? babysitterApi.getFileUrl(photoFileName!)}
-            className="sitter-avatar-lg"
-            style={{ marginBottom: 8 }}
+        <div className="sitter-location-picker">
+          {(pendingPhotoPreview || photoFileName) && (
+            <img
+              src={pendingPhotoPreview ?? babysitterApi.getFileUrl(photoFileName!)}
+              className="sitter-avatar-lg"
+            />
+          )}
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handlePhotoChange}
+            disabled={photoUploading}
+            required={!photoFileName && !pendingPhotoFile}
           />
-        )}
-        <input
-          type="file"
-          accept="image/*"
-          onChange={handlePhotoChange}
-          disabled={photoUploading}
-          required={!photoFileName && !pendingPhotoFile}
-        />
-        {!exists && (
-          <p className="field-hint">
-            선택한 사진은 등록과 동시에 함께 저장돼요.
-          </p>
-        )}
+          {!exists && (
+            <span className="sitter-location-picker-hint">
+              선택한 사진은 등록과 동시에 함께 저장돼요.
+            </span>
+          )}
+        </div>
       </div>
 
       <div className="field">
@@ -263,7 +264,7 @@ const BabysitterFormComponent = () => {
 
       <div className="field">
         <label>활동 지역 (직접 입력 불가 - 현재 위치로만 설정됩니다)</label>
-        <div className="sitter-actions" style={{ margin: 0, alignItems: "center" }}>
+        <div className="sitter-location-picker">
           <button
             type="button"
             className="btn ghost"
@@ -272,17 +273,12 @@ const BabysitterFormComponent = () => {
           >
             {locating ? "위치 확인 중..." : region ? "위치 다시 설정" : "현재 위치로 설정"}
           </button>
-          {region && (
-            <span className="meta">
-              {region} ({latitude?.toFixed(5)}, {longitude?.toFixed(5)})
-            </span>
-          )}
+          <span className="sitter-location-picker-hint">
+            {region
+              ? `${region} (${latitude?.toFixed(5)}, ${longitude?.toFixed(5)})`
+              : "신뢰를 위해 활동 지역은 위치 설정 버튼으로만 등록할 수 있어요."}
+          </span>
         </div>
-        {!region && (
-          <p className="field-hint">
-            신뢰를 위해 활동 지역은 위치 설정 버튼으로만 등록할 수 있어요.
-          </p>
-        )}
       </div>
 
       <div className="field">

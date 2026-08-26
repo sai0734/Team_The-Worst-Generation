@@ -7,6 +7,7 @@ import * as chatApi from "../../api/chatApi";
 import useCustomLogin from "../../hooks/useCustomLogin";
 import MarketSellerQuickInfo from "./MarketSellerQuickInfo";
 import MarketDetailSidebar from "./MarketDetailSidebar";
+import "../../styles/market.css";
 
 const MarketDetailComponent = () => {
   const { itemNo } = useParams();

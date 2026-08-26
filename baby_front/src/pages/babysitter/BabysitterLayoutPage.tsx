@@ -82,19 +82,22 @@ const BabysitterLayoutPage = () => {
 
   return (
     <div>
-      <div className="sitter-common-row">
-        <NavLink to="/community/babysitter/chat" className={commonIconClass}>
-          <span className="icon-wrap">
-            <span className="icon">💬</span>
-            {unreadTotal > 0 && (
-              <span className="sitter-unread-badge">{unreadTotal > 99 ? "99+" : unreadTotal}</span>
-            )}
-          </span>
-          채팅
-        </NavLink>
-        <NavLink to="/community/babysitter/me/edit" className={commonIconClass}>
-          <span className="icon">👤</span>시터프로필
-        </NavLink>
+      <div className={`sitter-common-row${onCommon ? " icons-only" : ""}`}>
+        {!onCommon && <h2 className="page-hero-title">우리 동네 베이비시터</h2>}
+        <div className="sitter-common-icons">
+          <NavLink to="/community/babysitter/chat" className={commonIconClass}>
+            <span className="icon-wrap">
+              <span className="icon">💬</span>
+              {unreadTotal > 0 && (
+                <span className="sitter-unread-badge">{unreadTotal > 99 ? "99+" : unreadTotal}</span>
+              )}
+            </span>
+            채팅
+          </NavLink>
+          <NavLink to="/community/babysitter/me/edit" className={commonIconClass}>
+            <span className="icon">👤</span>시터프로필
+          </NavLink>
+        </div>
       </div>
 
       {isSitter === false && !onCommon && (

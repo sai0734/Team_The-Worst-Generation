@@ -6,6 +6,7 @@ import type { MarketItem } from "../../api/marketApi";
 import * as marketProfileApi from "../../api/marketProfileApi";
 import useCustomLogin from "../../hooks/useCustomLogin";
 import { loadKakaoMapScript } from "../../util/kakaoMapLoader";
+import "../../styles/market.css";
 
 const MarketFormComponent = () => {
   const { itemNo } = useParams();
@@ -247,27 +248,29 @@ const MarketFormComponent = () => {
   };
 
   return (
-    <form className="card market-page-centered" onSubmit={handleSubmit}>
+    <form className="card market-page-form" onSubmit={handleSubmit}>
       <h2 style={{ marginTop: 0 }}>{isEdit ? "매물 수정" : "매물 등록"}</h2>
 
-      <div className="form-field">
-        <label>제목</label>
-        <input
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          required
-        />
-      </div>
+      <div className="form-row">
+        <div className="form-field">
+          <label>제목</label>
+          <input
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            required
+          />
+        </div>
 
-      <div className="form-field">
-        <label>가격</label>
-        <input
-          type="text"
-          inputMode="numeric"
-          value={price ? Number(price).toLocaleString() : ""}
-          onChange={(e) => setPrice(e.target.value.replace(/[^0-9]/g, ""))}
-          required
-        />
+        <div className="form-field">
+          <label>가격</label>
+          <input
+            type="text"
+            inputMode="numeric"
+            value={price ? Number(price).toLocaleString() : ""}
+            onChange={(e) => setPrice(e.target.value.replace(/[^0-9]/g, ""))}
+            required
+          />
+        </div>
       </div>
 
       <div className="form-field">

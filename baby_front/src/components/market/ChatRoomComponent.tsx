@@ -8,6 +8,7 @@ import * as marketApi from "../../api/marketApi";
 import * as reviewApi from "../../api/reviewApi";
 import useCustomLogin from "../../hooks/useCustomLogin";
 import { getAccessToken } from "../../util/accessTokenStore";
+import "../../styles/market.css";
 
 const API_SERVER_HOST = "http://localhost:8080";
 
@@ -195,7 +196,7 @@ const ChatRoomComponent = () => {
   };
 
   return (
-    <div className="card market-page-centered">
+    <div className="card market-page-chat">
       <div className="market-toolbar">
         <h2 style={{ margin: 0 }}>
           {counterpartEmail ? `${counterpartEmail}님과의 채팅방` : "채팅방"}

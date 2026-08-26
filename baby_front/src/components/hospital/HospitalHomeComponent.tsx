@@ -2,15 +2,18 @@ import axios from "axios";
 import { useCallback, useEffect, useState } from "react";
 import { getNearbyPediatricHospitals, refreshHospitalWaitingCounts } from "../../api/hospitalApi";
 import type { MapCoordinate, PediatricHospital } from "../../types/hospital";
+import useCustomLogin from "../../hooks/useCustomLogin";
+import { DEFAULT_MAP_CENTER, GEO_OPTIONS } from "../../util/mapLocation";
 import HospitalList from "./HospitalList";
 import HospitalMap from "./HospitalMap";
 
-const DEFAULT_CENTER: MapCoordinate = { lat: 37.5007, lng: 127.0365 };
+const DEFAULT_CENTER: MapCoordinate = DEFAULT_MAP_CENTER;
 
 const sameArea = (left: MapCoordinate, right: MapCoordinate): boolean =>
   Math.abs(left.lat - right.lat) < 0.0003 && Math.abs(left.lng - right.lng) < 0.0003;
 
 const HospitalHomeComponent = () => {
+  const { isLogin } = useCustomLogin();
   const [userLocation, setUserLocation] = useState<MapCoordinate | null>(null);
   const [searchCenter, setSearchCenter] = useState(DEFAULT_CENTER);
   const [mapCenter, setMapCenter] = useState(DEFAULT_CENTER);
@@ -19,7 +22,7 @@ const HospitalHomeComponent = () => {
   const [hospitals, setHospitals] = useState<PediatricHospital[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [locating, setLocating] = useState(true);
+  const [locating, setLocating] = useState(false);
   const [locationMessage, setLocationMessage] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [refreshingWaiting, setRefreshingWaiting] = useState(false);
@@ -81,13 +84,19 @@ const HospitalHomeComponent = () => {
               : "위치 확인 시간이 초과됐어요. 잠시 후 다시 시도해주세요.",
         );
       },
-      { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 },
+      GEO_OPTIONS,
     );
   }, [loadHospitals]);
 
+  // 로그인 상태일 때만 자동으로 현재 위치를 시도 - 로그인 전에는 기본값(서울시청) 기준으로만 조회하고,
+  // 로그인 후이거나 "현재 위치로 이동"을 눌렀을 때만 실제 GPS 위치로 이동
   useEffect(() => {
-    locateUser();
-  }, [locateUser]);
+    if (isLogin) {
+      locateUser();
+    } else {
+      void loadHospitals(DEFAULT_CENTER);
+    }
+  }, [isLogin, locateUser, loadHospitals]);
 
   const handleSelect = useCallback((hospital: PediatricHospital) => {
     setSelectedId(hospital.hospitalId);
@@ -148,9 +157,7 @@ const HospitalHomeComponent = () => {
     <section className="hospital-shell">
       <header className="hospital-heading">
         <div>
-          <p className="eyebrow">NEARBY PEDIATRICS</p>
           <h1>우리 아이 주변 소아과</h1>
-          <p className="desc">현재 위치에서 가까운 소아청소년과를 확인해보세요.</p>
         </div>
       </header>
 

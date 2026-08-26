@@ -112,7 +112,27 @@ const AllergyIndexPage = () => {
           ? list.find((baby) => String(baby.babyNo) === effectiveBabyNo)
           : undefined;
 
-        setSelectedBaby(matched ?? list[0]);
+        let resolved: BabyInfo | null;
+        if (matched) {
+          resolved = matched;
+        } else if (list.length === 1) {
+          // 아이가 한 명뿐이면 고를 필요가 없으니 자동 선택
+          resolved = list[0];
+        } else {
+          // 여러 명일 땐 직접 선택하기 전까지 검사/관리로 못 들어가게 막음
+          resolved = null;
+        }
+        setSelectedBaby(resolved);
+
+        // 서브메뉴로 바로 들어온 경우(=/allergy 그 자체) 사이드바 첫 탭으로 자동 이동.
+        // 단, 아이가 확정된 경우에만 - 여러 명이라 아직 못 고른 상태에서는 이동시키지 않음
+        const isBareIndex = location.pathname.replace(/\/$/, "") === "/allergy";
+        if (isBareIndex && resolved?.babyNo !== undefined) {
+          navigate(
+            { pathname: `${SIDE_ITEMS[0].action}/${resolved.babyNo}` },
+            { replace: true },
+          );
+        }
       })
       .catch((err) => {
         console.error(err);

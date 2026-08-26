@@ -37,6 +37,7 @@ const NAV_ITEMS: NavItem[] = [
       { label: "우리아이", to: "/babyInfo" },
       { label: "아이등록", to: "/babyInfo/input" },
       { label: "육아일기", to: "/diary" },
+      { label: "육아앨범", to: "/diary/album" },
     ],
   },
   {
@@ -67,7 +68,7 @@ const NAV_ITEMS: NavItem[] = [
     label: "커뮤니티",
     to: "/community",
     subItems: [
-      { label: "게시판", to: "/community" },
+      { label: "자유게시판", to: "/community" },
       { label: "베이비시터", to: "/community/babysitter" },
     ],
   },

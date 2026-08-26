@@ -183,7 +183,7 @@ const BabyInfoInputComponent = () => {
   return (
     <form
       onSubmit={handleSubmit}
-      className="max-w-[720px] mx-auto flex flex-col gap-5 px-4 py-4 sm:gap-6 sm:px-0 sm:py-6"
+      className="w-full max-w-[1200px] mx-auto flex flex-col gap-5 px-4 py-4 sm:gap-6 sm:px-0 sm:py-6"
     >
       {isEditMode && (
         <button
@@ -204,79 +204,104 @@ const BabyInfoInputComponent = () => {
         </h1>
       </div>
 
-      <div
-        className={`relative mx-auto h-[96px] w-[96px] rounded-full sm:h-[120px] sm:w-[120px] ${
-          isDragOver ? "ring-4 ring-[#5AB2FF] ring-offset-2" : ""
-        }`}
-        onDragOver={(e: DragEvent<HTMLDivElement>) => {
-          e.preventDefault();
-          setIsDragOver(true);
-        }}
-        onDragLeave={() => setIsDragOver(false)}
-        onDrop={(e: DragEvent<HTMLDivElement>) => {
-          e.preventDefault();
-          setIsDragOver(false);
+      <div className="grid grid-cols-1 gap-4 items-start lg:grid-cols-[260px_1fr]">
+        <div className="flex flex-col items-center gap-4 rounded-[24px] border border-[rgba(42,41,38,0.1)] bg-[#FAF6F0] p-4 sm:p-6">
+          <div
+            className={`relative h-[96px] w-[96px] rounded-full sm:h-[120px] sm:w-[120px] ${
+              isDragOver ? "ring-4 ring-[#5AB2FF] ring-offset-2" : ""
+            }`}
+            onDragOver={(e: DragEvent<HTMLDivElement>) => {
+              e.preventDefault();
+              setIsDragOver(true);
+            }}
+            onDragLeave={() => setIsDragOver(false)}
+            onDrop={(e: DragEvent<HTMLDivElement>) => {
+              e.preventDefault();
+              setIsDragOver(false);
 
-          const dropped = e.dataTransfer.files?.[0] ?? null;
-          if (dropped && !dropped.type.startsWith("image/")) {
-            alert("이미지 파일만 등록할 수 있습니다.");
-            return;
-          }
-          setFile(dropped);
-          setPreview(dropped ? URL.createObjectURL(dropped) : null);
-        }}
-      >
-        {preview ? (
-          <img
-            className="h-[96px] w-[96px] rounded-full object-cover border-4 border-[#CAF4FF] sm:h-[120px] sm:w-[120px]"
-            src={preview}
-            alt="미리보기"
-          />
-        ) : (
-          <div className="h-[96px] w-[96px] rounded-full bg-gradient-to-br from-[#A0DEFF] to-[#5AB2FF] flex flex-col items-center justify-center gap-0.5 text-white sm:h-[120px] sm:w-[120px]">
-            <span className="text-2xl font-bold leading-none">+</span>
-            <span className="text-[10px] font-bold">사진 등록</span>
-          </div>
-        )}
-        <input
-          type="file"
-          accept="image/*"
-          className="absolute inset-0 cursor-pointer rounded-full opacity-0"
-          onChange={(e) => {
-            const selected = e.target.files?.[0] ?? null;
-            setFile(selected);
-            setPreview(selected ? URL.createObjectURL(selected) : null);
-          }}
-        />
-        {preview && (
-          <button
-            type="button"
-            className="absolute -right-1.5 -top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-white text-xs font-bold text-[#7A756C] shadow transition-colors hover:bg-[#f3d9d9] hover:text-[#c0392b]"
-            onClick={(e) => {
-              e.stopPropagation();
-              setFile(null);
-              setPreview(null);
+              const dropped = e.dataTransfer.files?.[0] ?? null;
+              if (dropped && !dropped.type.startsWith("image/")) {
+                alert("이미지 파일만 등록할 수 있습니다.");
+                return;
+              }
+              setFile(dropped);
+              setPreview(dropped ? URL.createObjectURL(dropped) : null);
             }}
           >
-            ✕
-          </button>
-        )}
-      </div>
+            {preview ? (
+              <img
+                className="h-[96px] w-[96px] rounded-full object-cover border-4 border-[#CAF4FF] sm:h-[120px] sm:w-[120px]"
+                src={preview}
+                alt="미리보기"
+              />
+            ) : (
+              <div className="h-[96px] w-[96px] rounded-full bg-gradient-to-br from-[#A0DEFF] to-[#5AB2FF] flex flex-col items-center justify-center gap-0.5 text-white sm:h-[120px] sm:w-[120px]">
+                <span className="text-2xl font-bold leading-none">+</span>
+                <span className="text-[10px] font-bold">사진 등록</span>
+              </div>
+            )}
+            <input
+              type="file"
+              accept="image/*"
+              className="absolute inset-0 cursor-pointer rounded-full opacity-0"
+              onChange={(e) => {
+                const selected = e.target.files?.[0] ?? null;
+                setFile(selected);
+                setPreview(selected ? URL.createObjectURL(selected) : null);
+              }}
+            />
+            {preview && (
+              <button
+                type="button"
+                className="absolute -right-1.5 -top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-white text-xs font-bold text-[#7A756C] shadow transition-colors hover:bg-[#f3d9d9] hover:text-[#c0392b]"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setFile(null);
+                  setPreview(null);
+                }}
+              >
+                ✕
+              </button>
+            )}
+          </div>
 
-      <div className="flex flex-col gap-4 rounded-[24px] border border-[rgba(42,41,38,0.1)] bg-[#FAF6F0] p-4 sm:p-6">
-        <div>
-          <p className={labelClass}>이름 (필수)</p>
-          <input
-            className={inputClass}
-            name="babyName"
-            type="text"
-            value={babyName}
-            onChange={(e) => setBabyName(e.target.value)}
-            placeholder="이름"
-          />
+          <div className="w-full">
+            <p className={labelClass}>이름 (필수)</p>
+            <input
+              className={inputClass}
+              name="babyName"
+              type="text"
+              value={babyName}
+              onChange={(e) => setBabyName(e.target.value)}
+              placeholder="이름"
+            />
+          </div>
+
+          <div className="w-full">
+            <p className={labelClass}>성별 (필수)</p>
+            <div className="flex gap-2">
+              <button
+                className={pillBtn(gender === "남자")}
+                type="button"
+                value={"남자"}
+                onClick={() => setGender("남자")}
+              >
+                남자
+              </button>
+              <button
+                className={pillBtn(gender === "여자")}
+                type="button"
+                value={"여자"}
+                onClick={() => setGender("여자")}
+              >
+                여자
+              </button>
+            </div>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 sm:flex-row">
-          <div className="flex-1 min-w-0">
+
+        <div className="grid grid-cols-1 gap-4 rounded-[24px] border border-[rgba(42,41,38,0.1)] bg-[#FAF6F0] p-4 sm:grid-cols-2 sm:p-6 xl:grid-cols-3">
+          <div>
             <p className={labelClass}>생년월일 (필수)</p>
             <input
               className={inputClass}
@@ -286,7 +311,7 @@ const BabyInfoInputComponent = () => {
               onChange={(e) => setBirthDate(e.target.value)}
             />
           </div>
-          <div className="flex-1 min-w-0">
+          <div>
             <p className={labelClass}>혈액형 (선택)</p>
             <select
               className={inputClass}
@@ -299,30 +324,7 @@ const BabyInfoInputComponent = () => {
               <option value={"O"}>O형</option>
             </select>
           </div>
-        </div>
-        <div>
-          <p className={labelClass}>성별 (필수)</p>
-          <div className="flex gap-2">
-            <button
-              className={pillBtn(gender === "남자")}
-              type="button"
-              value={"남자"}
-              onClick={() => setGender("남자")}
-            >
-              남자
-            </button>
-            <button
-              className={pillBtn(gender === "여자")}
-              type="button"
-              value={"여자"}
-              onClick={() => setGender("여자")}
-            >
-              여자
-            </button>
-          </div>
-        </div>
-        <div className="flex flex-col gap-4 sm:flex-row">
-          <div className="flex-1 min-w-0">
+          <div>
             <p className={labelClass}>출생 주수 (선택)</p>
             <input
               className={inputClass}
@@ -333,7 +335,7 @@ const BabyInfoInputComponent = () => {
               placeholder="출생 주수"
             />
           </div>
-          <div className="flex-1 min-w-0">
+          <div>
             <p className={labelClass}>머리둘레(cm) (선택)</p>
             <input
               className={inputClass}
@@ -343,9 +345,7 @@ const BabyInfoInputComponent = () => {
               placeholder="머리둘레(cm)"
             />
           </div>
-        </div>
-        <div className="flex flex-col gap-4 sm:flex-row">
-          <div className="flex-1 min-w-0">
+          <div>
             <p className={labelClass}>출생 시 체중(kg) (선택)</p>
             <input
               className={inputClass}
@@ -355,7 +355,7 @@ const BabyInfoInputComponent = () => {
               placeholder="출생 시 체중(kg)"
             />
           </div>
-          <div className="flex-1 min-w-0">
+          <div>
             <p className={labelClass}>출생 시 키(cm) (선택)</p>
             <input
               className={inputClass}
@@ -365,31 +365,31 @@ const BabyInfoInputComponent = () => {
               placeholder="출생 시 키(cm)"
             />
           </div>
+          {!isEditMode && (
+            <>
+              <div>
+                <p className={labelClass}>현재 체중(kg) (선택)</p>
+                <input
+                  className={inputClass}
+                  name="weight"
+                  value={weight}
+                  onChange={(e) => setWeight(e.target.value)}
+                  placeholder="현재 체중(kg)"
+                />
+              </div>
+              <div>
+                <p className={labelClass}>현재 키(cm) (선택)</p>
+                <input
+                  className={inputClass}
+                  name="height"
+                  value={height}
+                  onChange={(e) => setHeight(e.target.value)}
+                  placeholder="현재 키(cm)"
+                />
+              </div>
+            </>
+          )}
         </div>
-        {!isEditMode && (
-          <div className="flex flex-col gap-4 sm:flex-row">
-            <div className="flex-1 min-w-0">
-              <p className={labelClass}>현재 체중(kg) (선택)</p>
-              <input
-                className={inputClass}
-                name="weight"
-                value={weight}
-                onChange={(e) => setWeight(e.target.value)}
-                placeholder="현재 체중(kg)"
-              />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className={labelClass}>현재 키(cm) (선택)</p>
-              <input
-                className={inputClass}
-                name="height"
-                value={height}
-                onChange={(e) => setHeight(e.target.value)}
-                placeholder="현재 키(cm)"
-              />
-            </div>
-          </div>
-        )}
       </div>
 
       <button
@@ -402,7 +402,7 @@ const BabyInfoInputComponent = () => {
       {!isEditMode && (
         <div className="flex flex-col gap-3 border-t border-[rgba(42,41,38,0.1)] pt-5">
           <p className={labelClass}>등록된 아이</p>
-          <div className="flex flex-col gap-2">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 xl:grid-cols-3">
             {registeredList.map((baby) => (
               <div
                 key={baby.babyNo}
@@ -441,7 +441,7 @@ const BabyInfoInputComponent = () => {
               </div>
             ))}
             <div
-              className="flex cursor-pointer items-center justify-center gap-2 rounded-full border border-dashed border-[rgba(42,41,38,0.2)] py-2.5 text-sm font-bold text-[#7A756C]"
+              className="col-span-full flex cursor-pointer items-center justify-center gap-2 rounded-full border border-dashed border-[rgba(42,41,38,0.2)] py-2.5 text-sm font-bold text-[#7A756C]"
               onClick={handleClickAddNew}
             >
               <span>+</span>

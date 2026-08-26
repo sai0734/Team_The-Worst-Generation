@@ -59,48 +59,53 @@ const BehaviorInputComponent = ({ onCreated }: BehaviorInputProps) => {
   return (
     <form
       onSubmit={handleSubmit}
-      className="flex flex-col gap-3 rounded-[24px] border border-[rgba(42,41,38,0.1)] bg-[#FAF6F0] p-4 sm:p-6"
+      className="flex flex-col gap-4 rounded-[24px] border border-[rgba(42,41,38,0.1)] bg-[#FAF6F0] p-4 sm:p-6"
     >
-      <p className="text-sm font-bold text-[#2A2926]">
-        어떤 행동이 고민이세요?
-      </p>
-      <div className="grid grid-cols-3 gap-2">
-        {CATEGORIES.map((cat) => (
-          <button
-            key={cat.label}
-            type="button"
-            onClick={() => setCategory(cat.label)}
-            className={`flex flex-col items-center gap-1.5 rounded-[16px] border p-3 transition-colors ${
-              category === cat.label
-                ? "border-[#5AB2FF] bg-[#EAF6FF]"
-                : "border-[rgba(42,41,38,0.12)] bg-white"
-            }`}
-          >
-            <span className="text-xl">{cat.icon}</span>
-            <span className="text-xs font-bold text-[#2A2926]">
-              {cat.label}
-            </span>
-          </button>
-        ))}
+      <div className="flex flex-col gap-2">
+        <p className="text-sm font-bold text-[#2A2926]">
+          어떤 행동이 고민이세요?
+        </p>
+        <div className="flex flex-wrap gap-2">
+          {CATEGORIES.map((cat) => (
+            <button
+              key={cat.label}
+              type="button"
+              onClick={() => setCategory(cat.label)}
+              className={`flex items-center gap-1.5 whitespace-nowrap rounded-full border px-3.5 py-2 transition-colors ${
+                category === cat.label
+                  ? "border-[#5AB2FF] bg-[#EAF6FF]"
+                  : "border-[rgba(42,41,38,0.12)] bg-white"
+              }`}
+            >
+              <span className="text-base">{cat.icon}</span>
+              <span className="text-xs font-bold text-[#2A2926]">
+                {cat.label}
+              </span>
+            </button>
+          ))}
+        </div>
       </div>
 
-      <textarea
-        className="min-h-[90px] resize-none rounded-[16px] border border-[rgba(42,41,38,0.12)] bg-white p-4 text-sm text-[#2A2926] outline-none transition-colors focus:border-[#5AB2FF]"
-        value={situation}
-        onChange={(e) => setSituation(e.target.value)}
-        placeholder="상황을 좀 더 자세히 알려주세요"
-      />
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch">
+        <textarea
+          className="min-h-[52px] flex-1 resize-none rounded-[16px] border border-[rgba(42,41,38,0.12)] bg-white p-3.5 text-sm text-[#2A2926] outline-none transition-colors focus:border-[#5AB2FF]"
+          value={situation}
+          onChange={(e) => setSituation(e.target.value)}
+          placeholder="상황을 좀 더 자세히 알려주세요"
+          rows={2}
+        />
 
-      <button
-        type="submit"
-        disabled={loading}
-        className="flex items-center justify-center gap-2 rounded-full bg-[#2A2926] px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-[#453f38] disabled:cursor-not-allowed disabled:bg-[#CBD5E1]"
-      >
-        {loading && (
-          <span className="h-3.5 w-3.5 flex-shrink-0 animate-spin rounded-full border-2 border-white/40 border-t-white" />
-        )}
-        {loading ? "AI가 답변을 준비하고 있어요..." : "AI에게 물어보기"}
-      </button>
+        <button
+          type="submit"
+          disabled={loading}
+          className="flex flex-shrink-0 items-center justify-center gap-2 rounded-full bg-[#2A2926] px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-[#453f38] disabled:cursor-not-allowed disabled:bg-[#CBD5E1]"
+        >
+          {loading && (
+            <span className="h-3.5 w-3.5 flex-shrink-0 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+          )}
+          {loading ? "답변 준비 중..." : "AI에게 물어보기"}
+        </button>
+      </div>
     </form>
   );
 };

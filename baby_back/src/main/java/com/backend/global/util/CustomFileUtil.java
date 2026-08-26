@@ -84,7 +84,14 @@ public class CustomFileUtil {
     Resource resource = new FileSystemResource(uploadPath + File.separator + fileName);
 
     if( !resource.isReadable()){
-      resource = new FileSystemResource(uploadPath + File.separator + "winter.jpg"); 
+      resource = new FileSystemResource(uploadPath + File.separator + "winter.jpg");
+    }
+
+    if( !resource.isReadable()){
+      // 원본 파일도, 기본이미지(winter.jpg)도 없는 경우 - 여기서 안 막으면 밑에서
+      // 존재하지 않는 파일을 그대로 응답 본문으로 쓰려다 예외가 나고, 그 예외가
+      // /error로 넘어가면서 인증 필요 경로라 403으로 잘못 표시되는 문제가 있었음
+      return ResponseEntity.notFound().build();
     }
 
     HttpHeaders headers = new HttpHeaders();

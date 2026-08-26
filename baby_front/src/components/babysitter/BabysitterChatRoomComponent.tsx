@@ -271,7 +271,7 @@ const BabysitterChatRoomComponent = () => {
   };
 
   return (
-    <div className="card" style={{ maxWidth: 480 }}>
+    <div className="card market-page-chat">
       <div className="market-toolbar">
         <h2 style={{ margin: 0 }}>채팅방 #{roomNo}</h2>
         <span style={{ fontSize: 12, color: connected ? "green" : "gray" }}>

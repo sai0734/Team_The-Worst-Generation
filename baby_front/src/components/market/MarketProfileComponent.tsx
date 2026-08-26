@@ -4,6 +4,7 @@ import * as marketProfileApi from "../../api/marketProfileApi";
 import type { MarketProfile } from "../../api/marketProfileApi";
 import * as reviewApi from "../../api/reviewApi";
 import type { Review } from "../../api/reviewApi";
+import "../../styles/market.css";
 
 const MarketProfileComponent = () => {
   const { email } = useParams();

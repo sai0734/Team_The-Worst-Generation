@@ -216,7 +216,7 @@ const AlbumGridComponent = ({
         </div>
       )}
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-[repeat(auto-fill,minmax(150px,1fr))]">
         {filteredList.map((album) => {
           const isSelected = selectedItems.some(
             (item) => item.album.albumNo === album.albumNo,

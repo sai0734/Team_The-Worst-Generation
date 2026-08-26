@@ -418,8 +418,7 @@ const LedgerComponent = () => {
 
   return (
     <section className="ledger-page">
-      <p className="eyebrow">THIS MONTH</p>
-      <h2 className="page-title">우리집 가계부</h2>
+      <h2 className="page-hero-title">우리집 가계부</h2>
 
       <div className="month-select-row">
         <select
@@ -459,36 +458,43 @@ const LedgerComponent = () => {
       </div>
 
       {summary && (
-        <>
-          <div className="ledger-top-grid">
-            <div className="card donut-card area-donut">
-              <div className="head">
-                <h2>카테고리별 지출</h2>
-              </div>
-              <CategoryDonutChart categoryBreakdown={monthCategoryBreakdown} />
+        <div className="ledger-top-grid">
+          <div className="card donut-card area-donut">
+            <div className="head">
+              <h2>카테고리별 지출</h2>
             </div>
-
-            <div className="card stat-card income area-income">
-              <small>{monthLabel} 수입</small>
-              <strong>{formatWon(monthIncome)}</strong>
-            </div>
-            <div className="card stat-card expense area-expense">
-              <small>{monthLabel} 지출</small>
-              <strong>{formatWon(monthExpense)}</strong>
-              {isCurrentMonth && (
-                <div className="delta">
-                  {expenseDelta === 0
-                    ? "지난 달과 동일해요"
-                    : expenseDelta > 0
-                      ? `지난 달보다 ${formatWon(expenseDelta)} 더 썼어요`
-                      : `지난 달보다 ${formatWon(-expenseDelta)} 아꼈어요`}
-                </div>
-              )}
-            </div>
+            <CategoryDonutChart categoryBreakdown={monthCategoryBreakdown} />
           </div>
 
+          <div className="card stat-card income area-income">
+            <small>{monthLabel} 수입</small>
+            <strong>{formatWon(monthIncome)}</strong>
+          </div>
+          <div className="card stat-card expense area-expense">
+            <small>{monthLabel} 지출</small>
+            <strong>{formatWon(monthExpense)}</strong>
+            {isCurrentMonth && (
+              <div className="delta">
+                {expenseDelta === 0
+                  ? "지난 달과 동일해요"
+                  : expenseDelta > 0
+                    ? `지난 달보다 ${formatWon(expenseDelta)} 더 썼어요`
+                    : `지난 달보다 ${formatWon(-expenseDelta)} 아꼈어요`}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      <div className="quick-add-form">
+        <div className="quick-add-row">
           {isCurrentMonth && (
-            <button type="button" className="tool" onClick={handleBriefing} disabled={briefingLoading}>
+            <button
+              type="button"
+              className="tool"
+              onClick={handleBriefing}
+              disabled={briefingLoading}
+            >
               {briefingLoading ? (
                 <span className="h-3 w-3 flex-shrink-0 animate-spin rounded-full border-2 border-white/40 border-t-white" />
               ) : (
@@ -503,26 +509,7 @@ const LedgerComponent = () => {
               </span>
             </button>
           )}
-
-          {isCurrentMonth && briefingText && (
-            <div className="card briefing-box" style={{ marginTop: 12 }}>
-              <p>{briefingText}</p>
-            </div>
-          )}
-        </>
-      )}
-
-      <div className={`quick-add-form${pendingItems.length > 0 ? " has-pending" : ""}`}>
-        <div className="quick-add-input-col">
-          <textarea
-            className="bulk-input"
-            rows={4}
-            placeholder={"예:\n기저귀 32000원\n분유 45000원\n택시 12000원\n\n(한 줄에 한 항목씩, 여러 개 한번에 입력 가능해요)"}
-            value={bulkText}
-            onChange={(e) => setBulkText(e.target.value)}
-            onKeyDown={handleBulkTextKeyDown}
-          />
-          <div className="quick-add-row">
+          <div className="quick-add-row-right">
             <button
               type="button"
               className="tool"
@@ -558,77 +545,100 @@ const LedgerComponent = () => {
           </div>
         </div>
 
-        {pendingItems.length > 0 && (
-          <div className="pending-panel">
-            <div className="pending-date-row">
-              <label>날짜</label>
-              <input type="date" value={batchDate} onChange={(e) => setBatchDate(e.target.value)} />
-            </div>
-
-            <div className="pending-scroll">
-              {pendingItems.map((item) => (
-                <div className="pending-item" key={item.id}>
-                  <input
-                    type="text"
-                    placeholder="내용"
-                    value={item.memo}
-                    onChange={(e) => updateItem(item.id, { memo: e.target.value })}
-                  />
-                  <select
-                    value={item.type}
-                    onChange={(e) => updateItem(item.id, { type: e.target.value as LedgerType })}
-                  >
-                    <option value="EXPENSE">지출</option>
-                    <option value="INCOME">수입</option>
-                  </select>
-                  <select
-                    className={item.category ? "" : "unselected"}
-                    value={item.category}
-                    onChange={(e) =>
-                      updateItem(item.id, { category: e.target.value as LedgerCategory | "" })
-                    }
-                  >
-                    <option value="">카테고리 선택</option>
-                    {CATEGORY_ORDER.map((cat) => (
-                      <option key={cat} value={cat}>
-                        {CATEGORY_LABELS[cat]}
-                      </option>
-                    ))}
-                  </select>
-                  <input
-                    type="number"
-                    min={0}
-                    placeholder="금액"
-                    value={item.amount}
-                    onChange={(e) => updateItem(item.id, { amount: e.target.value })}
-                  />
-                  <div className="pending-date-cell">
-                    <input
-                      type="date"
-                      value={item.txDate}
-                      onChange={(e) => updateItem(item.id, { txDate: e.target.value })}
-                    />
-                    {!isSameMonth(item.txDate, getCurrentYM().year, getCurrentYM().month) && (
-                      <small className="date-warn-badge">이번 달 아님</small>
-                    )}
-                  </div>
-                  <button
-                    type="button"
-                    className="icon-btn-ghost"
-                    onClick={() => removeItem(item.id)}
-                    aria-label="제외"
-                  >
-                    ✕
-                  </button>
-                </div>
-              ))}
-            </div>
-
-            <button type="button" className="submit-btn" onClick={handleSaveAll} disabled={savingAll}>
-              {savingAll ? "추가 중..." : `${pendingItems.length}개 항목 한번에 추가`}
-            </button>
+        <div className="quick-add-columns">
+          <div className="card briefing-box quick-add-col-left">
+            {briefingText ? (
+              <p>{briefingText}</p>
+            ) : (
+              <p className="briefing-placeholder">
+                AI 브리핑을 받아보면 이번 달 소비 총평이 여기에 표시돼요.
+              </p>
+            )}
           </div>
-        )}
+
+          <div className="quick-add-input-col">
+            <textarea
+              className="bulk-input"
+              rows={4}
+              placeholder={"예:\n기저귀 32000원\n분유 45000원\n택시 12000원\n\n(한 줄에 한 항목씩, 여러 개 한번에 입력 가능해요)"}
+              value={bulkText}
+              onChange={(e) => setBulkText(e.target.value)}
+              onKeyDown={handleBulkTextKeyDown}
+            />
+
+            {pendingItems.length > 0 && (
+              <div className="pending-panel">
+                <div className="pending-date-row">
+                  <label>날짜</label>
+                  <input type="date" value={batchDate} onChange={(e) => setBatchDate(e.target.value)} />
+                </div>
+
+                <div className="pending-scroll">
+                  {pendingItems.map((item) => (
+                    <div className="pending-item" key={item.id}>
+                      <input
+                        type="text"
+                        placeholder="내용"
+                        value={item.memo}
+                        onChange={(e) => updateItem(item.id, { memo: e.target.value })}
+                      />
+                      <select
+                        value={item.type}
+                        onChange={(e) => updateItem(item.id, { type: e.target.value as LedgerType })}
+                      >
+                        <option value="EXPENSE">지출</option>
+                        <option value="INCOME">수입</option>
+                      </select>
+                      <select
+                        className={item.category ? "" : "unselected"}
+                        value={item.category}
+                        onChange={(e) =>
+                          updateItem(item.id, { category: e.target.value as LedgerCategory | "" })
+                        }
+                      >
+                        <option value="">카테고리 선택</option>
+                        {CATEGORY_ORDER.map((cat) => (
+                          <option key={cat} value={cat}>
+                            {CATEGORY_LABELS[cat]}
+                          </option>
+                        ))}
+                      </select>
+                      <input
+                        type="number"
+                        min={0}
+                        placeholder="금액"
+                        value={item.amount}
+                        onChange={(e) => updateItem(item.id, { amount: e.target.value })}
+                      />
+                      <div className="pending-date-cell">
+                        <input
+                          type="date"
+                          value={item.txDate}
+                          onChange={(e) => updateItem(item.id, { txDate: e.target.value })}
+                        />
+                        {!isSameMonth(item.txDate, getCurrentYM().year, getCurrentYM().month) && (
+                          <small className="date-warn-badge">이번 달 아님</small>
+                        )}
+                      </div>
+                      <button
+                        type="button"
+                        className="icon-btn-ghost"
+                        onClick={() => removeItem(item.id)}
+                        aria-label="제외"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ))}
+                </div>
+
+                <button type="button" className="submit-btn" onClick={handleSaveAll} disabled={savingAll}>
+                  {savingAll ? "추가 중..." : `${pendingItems.length}개 항목 한번에 추가`}
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
       </div>
 
       {displayEntries.length > 0 && (

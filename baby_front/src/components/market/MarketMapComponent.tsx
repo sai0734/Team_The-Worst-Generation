@@ -7,15 +7,24 @@ import { loadKakaoMapScript } from "../../util/kakaoMapLoader";
 interface MarketMapComponentProps {
   items: MarketItem[];
   center: { lat: number; lng: number };
+  hoveredItemNo?: number | null;
 }
 
-const MarketMapComponent = ({ items, center }: MarketMapComponentProps) => {
+const markerPinHtml = () =>
+  `<svg width="30" height="38" viewBox="0 0 30 38" xmlns="http://www.w3.org/2000/svg">` +
+  `<path d="M15 1C7.8 1 2 6.8 2 14c0 9.6 13 22.6 13 22.6S28 23.6 28 14C28 6.8 22.2 1 15 1z" fill="#ffffff" stroke="#6f8294" stroke-width="1.6"/>` +
+  `<circle cx="15" cy="14" r="7" fill="#edf2f6"/>` +
+  `</svg>`;
+
+const MarketMapComponent = ({ items, center, hoveredItemNo }: MarketMapComponentProps) => {
   const navigate = useNavigate();
   const mapContainerRef = useRef<HTMLDivElement>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const mapRef = useRef<any>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const overlaysRef = useRef<any[]>([]);
+  // 리스트에 마우스를 올렸을 때 지도 위 해당 마커를 강조 애니메이션 시키기 위한 DOM 참조
+  const markerElsRef = useRef<Map<number, HTMLDivElement>>(new Map());
   // 마커 클릭 시 뜨는 매물 정보 팝업 (한 번에 하나만 떠있게)
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const activeOverlayRef = useRef<any>(null);
@@ -112,6 +121,7 @@ const MarketMapComponent = ({ items, center }: MarketMapComponentProps) => {
 
       overlaysRef.current.forEach((overlay) => overlay.setMap(null));
       overlaysRef.current = [];
+      markerElsRef.current = new Map();
       closeItemPopup();
 
       const myLocationImage = new (window as any).kakao.maps.MarkerImage(
@@ -132,22 +142,31 @@ const MarketMapComponent = ({ items, center }: MarketMapComponentProps) => {
       overlaysRef.current.push(myMarker);
 
       items.forEach((item) => {
-        if (item.latitude == null || item.longitude == null) return;
+        if (item.latitude == null || item.longitude == null || item.itemNo == null) return;
 
         const position = new (window as any).kakao.maps.LatLng(
           item.latitude,
           item.longitude,
         );
 
-        const marker = new (window as any).kakao.maps.Marker({
+        const pinEl = document.createElement("div");
+        pinEl.className = "market-map-marker";
+        pinEl.innerHTML = markerPinHtml();
+        // 카카오맵이 드래그 감지용으로 지도 컨테이너의 mousedown/touchstart를 가로채는 것을 방지
+        pinEl.addEventListener("mousedown", (e) => e.stopPropagation());
+        pinEl.addEventListener("touchstart", (e) => e.stopPropagation());
+        pinEl.addEventListener("click", () => openItemPopup(item, position));
+
+        const marker = new (window as any).kakao.maps.CustomOverlay({
           position,
-          map: mapRef.current,
+          content: pinEl,
+          yAnchor: 1,
+          xAnchor: 0.5,
+          zIndex: 3,
         });
+        marker.setMap(mapRef.current);
 
-        (window as any).kakao.maps.event.addListener(marker, "click", () => {
-          openItemPopup(item, position);
-        });
-
+        markerElsRef.current.set(item.itemNo, pinEl);
         overlaysRef.current.push(marker);
       });
     };
@@ -159,6 +178,13 @@ const MarketMapComponent = ({ items, center }: MarketMapComponentProps) => {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [items, center.lat, center.lng]);
+
+  // 리스트 항목에 마우스를 올리면 지도 위 해당 마커만 강조 애니메이션
+  useEffect(() => {
+    markerElsRef.current.forEach((el, itemNo) => {
+      el.classList.toggle("is-hovered", itemNo === hoveredItemNo);
+    });
+  }, [hoveredItemNo]);
 
   return (
     <div

@@ -81,63 +81,50 @@ const CustomAllergyListComponent = ({
   };
 
   return (
-    <div className="card">
-      <div className="head">
-        <h2>추가 알레르기 성분 관리</h2>
-      </div>
-
-      {loadError && (
-        <p style={{ color: "#ef6262", fontSize: 13, marginBottom: 10 }}>
-          {loadError}
+    <div className="flex flex-col gap-5">
+      <div className="flex flex-col gap-3 rounded-[24px] border border-[rgba(42,41,38,0.1)] bg-[#FAF6F0] p-4 sm:p-6">
+        <p className="text-sm font-bold text-[#2A2926]">
+          추가 알레르기 성분 관리
         </p>
-      )}
+        <p className="text-xs text-[#7A756C]">
+          공식 알레르기 유발 성분 목록에 없어도, 우리 아이가 특별히 조심해야
+          하는 성분을 직접 등록해두면 성분표 검사할 때 같이 확인해드려요.
+        </p>
 
-      <div
-        className="field"
-        style={{ display: "flex", gap: 8, alignItems: "flex-end" }}
-      >
-        <div style={{ flex: 1 }}>
-          <label>성분명</label>
+        {loadError && <p className="text-sm text-[#C0392B]">{loadError}</p>}
+
+        <div className="flex gap-2">
           <input
             type="text"
             value={ingredientName}
             onChange={(e) => setIngredientName(e.target.value)}
-            placeholder="성분명 입력"
+            onKeyDown={(e) => e.key === "Enter" && handleAdd()}
+            placeholder="성분명 입력 (예: 땅콩)"
+            className="flex-1 rounded-full border border-[rgba(42,41,38,0.12)] bg-white px-4 py-2.5 text-sm text-[#2A2926] outline-none transition-colors focus:border-[#5AB2FF]"
           />
+          <button
+            type="button"
+            onClick={handleAdd}
+            className="flex-shrink-0 rounded-full bg-[#2A2926] px-6 py-2.5 text-sm font-bold text-white transition-colors hover:bg-[#453f38]"
+          >
+            추가
+          </button>
         </div>
-        <button
-          type="button"
-          onClick={handleAdd}
-          className="submit-btn"
-          style={{ padding: "0 20px" }}
-        >
-          추가
-        </button>
       </div>
 
       {list.length === 0 ? (
-        <p className="empty-hint">등록된 추가 알레르기 성분이 없습니다.</p>
+        <div className="flex flex-col items-center justify-center gap-2 rounded-[20px] border border-dashed border-[rgba(42,41,38,0.15)] bg-white p-8 text-center">
+          <span className="text-2xl">🌿</span>
+          <p className="text-sm font-bold text-[#2A2926]">
+            등록된 추가 알레르기 성분이 없어요
+          </p>
+        </div>
       ) : (
-        <ul
-          style={{
-            listStyle: "none",
-            padding: 0,
-            marginTop: 14,
-            display: "flex",
-            flexDirection: "column",
-            gap: 8,
-          }}
-        >
+        <div className="flex flex-wrap gap-2">
           {list.map((item) => (
-            <li
+            <div
               key={item.customAllergyNo}
-              className="card"
-              style={{
-                padding: "10px 14px",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-              }}
+              className="flex items-center gap-2 rounded-full border border-[rgba(42,41,38,0.1)] bg-white py-2 pl-4 pr-2"
             >
               {editingNo === item.customAllergyNo ? (
                 <>
@@ -145,71 +132,53 @@ const CustomAllergyListComponent = ({
                     type="text"
                     value={editingName}
                     onChange={(e) => setEditingName(e.target.value)}
-                    style={{
-                      flex: 1,
-                      marginRight: 10,
-                      padding: "8px 10px",
-                      border: "1px solid var(--line)",
-                      borderRadius: 10,
-                    }}
+                    onKeyDown={(e) =>
+                      e.key === "Enter" && handleUpdate(item.customAllergyNo)
+                    }
+                    autoFocus
+                    className="w-24 border-b border-[#5AB2FF] bg-transparent text-sm text-[#2A2926] outline-none"
                   />
-                  <div style={{ display: "flex", gap: 10 }}>
-                    <span
-                      style={{
-                        cursor: "pointer",
-                        color: "var(--accent)",
-                        fontWeight: 700,
-                        fontSize: 13,
-                      }}
-                      onClick={() => handleUpdate(item.customAllergyNo)}
-                    >
-                      저장
-                    </span>
-                    <span
-                      style={{
-                        cursor: "pointer",
-                        color: "var(--muted)",
-                        fontWeight: 700,
-                        fontSize: 13,
-                      }}
-                      onClick={cancelEdit}
-                    >
-                      취소
-                    </span>
-                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleUpdate(item.customAllergyNo)}
+                    className="rounded-full bg-[#5AB2FF] px-3 py-1 text-xs font-bold text-white"
+                  >
+                    저장
+                  </button>
+                  <button
+                    type="button"
+                    onClick={cancelEdit}
+                    className="rounded-full bg-[rgba(42,41,38,0.06)] px-3 py-1 text-xs font-bold text-[#7A756C]"
+                  >
+                    취소
+                  </button>
                 </>
               ) : (
                 <>
-                  <span>{item.ingredientName}</span>
-                  <div style={{ display: "flex", gap: 14 }}>
-                    <span
-                      style={{
-                        cursor: "pointer",
-                        color: "var(--accent)",
-                        fontWeight: 700,
-                        fontSize: 13,
-                      }}
-                      onClick={() => startEdit(item)}
-                    >
-                      수정
-                    </span>
-                    <span
-                      style={{
-                        cursor: "pointer",
-                        color: "#ef6262",
-                        fontWeight: 700,
-                        fontSize: 13,
-                      }}
-                      onClick={() => handleRemove(item.customAllergyNo)}
-                    >
-                      삭제
-                    </span>
-                  </div>
+                  <span className="text-sm font-bold text-[#2A2926]">
+                    {item.ingredientName}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => startEdit(item)}
+                    className="flex h-6 w-6 items-center justify-center rounded-full text-xs text-[#7A756C] transition-colors hover:bg-[rgba(42,41,38,0.06)]"
+                    aria-label="수정"
+                  >
+                    ✎
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleRemove(item.customAllergyNo)}
+                    className="flex h-6 w-6 items-center justify-center rounded-full text-xs text-[#7A756C] transition-colors hover:bg-[#f3d9d9] hover:text-[#c0392b]"
+                    aria-label="삭제"
+                  >
+                    ✕
+                  </button>
                 </>
               )}
-            </li>
+            </div>
           ))}
-        </ul>
+        </div>
       )}
     </div>
   );
