@@ -27,6 +27,7 @@ PROJECT_ROOT = AI_ROOT.parent
 BACKEND_ROOT = PROJECT_ROOT / "baby_back"
 FRONTEND_ROOT = PROJECT_ROOT / "baby_front"
 PYTHON_SERVER_ROOT = AI_ROOT / "ai-server"
+SUBSIDY_INDEX_SCRIPT = PYTHON_SERVER_ROOT / "training" / "index_subsidies.py"
 OPENCLAW_ROOT = AI_ROOT / "openclaw"
 ROOT_ENV = PROJECT_ROOT / ".env"
 LOG_ROOT = Path(tempfile.gettempdir()) / "babycare-dev-logs"
@@ -208,6 +209,44 @@ def python_server_dependency_error(executable: Path) -> str | None:
         return None
     details = completed.stdout.strip() or completed.stderr.strip()
     return details or "Unknown Python dependency error"
+
+def subsidy_index_is_empty(executable: Path) -> bool:
+    completed = subprocess.run(
+        [
+            str(executable),
+            "-c",
+            (
+                "import chromadb; "
+                "client = chromadb.PersistentClient(path='data/chroma_subsidies');"
+                "print(client.get_or_create_collection('subsidies').count())"
+            ),
+        ],
+        cwd=PYTHON_SERVER_ROOT,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        check=False,
+    )
+    if completed.returncode != 0:
+        return True
+    return completed.stdout.strip() in("", 0)
+
+def ensure_subsidy_index(executable: Path, child_env: dict[str, str]) -> None:
+    if not subsidy_index_is_empty(executable):
+        return
+    # 정부지원금 데이터 비었으면 이 명령어 자동실행시켜서 채워넣음
+    print("[index] Subsidy vector DB is empty. Running training/index_subsidies.py once...")
+    completed = subprocess.run(
+        [str(executable), str(SUBSIDY_INDEX_SCRIPT)],
+        cwd=PYTHON_SERVER_ROOT,
+        env=child_env,
+        check=False,
+    )
+    if completed.returncode != 0:
+        print("[warining] Subsidy indexing failed; subsidy search wil return empty results until it succeeds.")
+    else:
+        print("[index] Subsidy vector DB indexed.")
 
 
 def windows_batch_command(script_or_command: str, *arguments: str) -> list[str]:
@@ -472,6 +511,8 @@ def run(services: list[Service]) -> int:
         print(f"[env] Loaded {len(root_env_values)} variables from {ROOT_ENV}")
     else:
         print(f"[env] Root environment file is missing: {ROOT_ENV}")
+        #지원금 벡터DB가 비어있으면 색인을 해라
+        ensure_subsidy_index(python_executable(), child_env)
     managed_processes: list[ManagedProcess] = []
     try:
         print(f"[logs] {LOG_ROOT}")
