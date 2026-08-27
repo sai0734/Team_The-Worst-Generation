@@ -488,9 +488,11 @@ CREATE TABLE IF NOT EXISTS tbl_babysitter_job_application (
     mod_time       DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (application_no),
     CONSTRAINT fk_babysitter_job_application_job FOREIGN KEY (job_no) REFERENCES tbl_babysitter_job_post (job_no),
-    CONSTRAINT fk_babysitter_job_application_sitter FOREIGN KEY (sitter_email) REFERENCES tbl_babysitter_profile (email),
-    CONSTRAINT uq_babysitter_job_application UNIQUE (job_no, sitter_email)
+    CONSTRAINT fk_babysitter_job_application_sitter FOREIGN KEY (sitter_email) REFERENCES tbl_babysitter_profile (email)
+    -- 취소(CANCELED) 후 재지원을 허용해야 해서 (job_no, sitter_email) DB 유니크 제약은 두지 않음.
+    -- 활성 지원(PENDING/ACCEPTED/REJECTED) 중복 방지는 BabysitterJobApplicationServiceImpl.apply()의 애플리케이션 레벨 체크로 처리함.
 );
+CREATE INDEX IF NOT EXISTS idx_babysitter_job_application_job ON tbl_babysitter_job_application (job_no);
 
 -- KYI - 베이비시터 후기 (요청 1건당 후기 1개)
 CREATE TABLE IF NOT EXISTS tbl_babysitter_review (

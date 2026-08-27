@@ -272,6 +272,14 @@ const BabysitterChatRoomComponent = () => {
 
   return (
     <div className="card market-page-chat">
+      <button
+        type="button"
+        className="btn ghost sitter-back-link"
+        onClick={() => navigate(-1)}
+      >
+        ← 이전으로
+      </button>
+
       <div className="market-toolbar">
         <h2 style={{ margin: 0 }}>채팅방 #{roomNo}</h2>
         <span style={{ fontSize: 12, color: connected ? "green" : "gray" }}>

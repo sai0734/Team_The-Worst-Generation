@@ -69,4 +69,16 @@ public class BabysitterJobApplicationController {
 
         return Map.of("RESULT", "SUCCESS");
     }
+
+    @PutMapping("/{jobNo}/applications/{applicationNo}/cancel")
+    public Map<String, String> cancel(
+        @PathVariable Long jobNo,
+        @PathVariable Long applicationNo,
+        Principal principal
+    ) {
+
+        babysitterJobApplicationService.cancel(applicationNo, principal.getName());
+
+        return Map.of("RESULT", "SUCCESS");
+    }
 }

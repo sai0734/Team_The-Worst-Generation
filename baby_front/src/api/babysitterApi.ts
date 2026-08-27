@@ -339,7 +339,11 @@ export const JOB_STATUS_BADGE_CLASS: Record<JobStatus, string> = {
   CANCELED: "danger",
 };
 
-export type JobApplicationStatus = "PENDING" | "ACCEPTED" | "REJECTED";
+export type JobApplicationStatus =
+  | "PENDING"
+  | "ACCEPTED"
+  | "REJECTED"
+  | "CANCELED";
 
 export const JOB_APPLICATION_STATUS_LABELS: Record<
   JobApplicationStatus,
@@ -348,6 +352,7 @@ export const JOB_APPLICATION_STATUS_LABELS: Record<
   PENDING: "대기중",
   ACCEPTED: "수락됨",
   REJECTED: "거절됨",
+  CANCELED: "취소됨",
 };
 
 export const JOB_APPLICATION_STATUS_BADGE_CLASS: Record<
@@ -357,6 +362,7 @@ export const JOB_APPLICATION_STATUS_BADGE_CLASS: Record<
   PENDING: "pending",
   ACCEPTED: "safe",
   REJECTED: "danger",
+  CANCELED: "danger",
 };
 
 export interface BabysitterJobPost {
@@ -501,6 +507,17 @@ export const rejectJobApplication = async (
 ): Promise<{ RESULT: string }> => {
   const res = await jwtAxios.put(
     `${jobPrefix}/${jobNo}/applications/${applicationNo}/reject`,
+  );
+
+  return res.data;
+};
+
+export const cancelJobApplication = async (
+  jobNo: number,
+  applicationNo: number,
+): Promise<{ RESULT: string }> => {
+  const res = await jwtAxios.put(
+    `${jobPrefix}/${jobNo}/applications/${applicationNo}/cancel`,
   );
 
   return res.data;

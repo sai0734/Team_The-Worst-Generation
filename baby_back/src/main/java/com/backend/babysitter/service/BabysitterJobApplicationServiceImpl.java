@@ -120,6 +120,22 @@ public class BabysitterJobApplicationServiceImpl implements BabysitterJobApplica
         babysitterJobApplicationMapper.updateStatus(applicationNo, BabysitterJobApplicationStatus.REJECTED);
     }
 
+    @Override
+    public void cancel(Long applicationNo, String sitterEmail) {
+
+        BabysitterJobApplication application = Optional.ofNullable(
+                babysitterJobApplicationMapper.selectByApplicationNo(applicationNo))
+            .orElseThrow(() -> new NoSuchElementException("존재하지 않는 지원입니다."));
+
+        if (!application.getSitterEmail().equals(sitterEmail)) {
+            throw new AccessDeniedException("본인이 지원한 내역만 취소할 수 있습니다.");
+        }
+
+        requirePending(application);
+
+        babysitterJobApplicationMapper.updateStatus(applicationNo, BabysitterJobApplicationStatus.CANCELED);
+    }
+
     private BabysitterJobApplication findOwnedByParentOrThrow(Long applicationNo, String parentEmail) {
 
         BabysitterJobApplication application = Optional.ofNullable(

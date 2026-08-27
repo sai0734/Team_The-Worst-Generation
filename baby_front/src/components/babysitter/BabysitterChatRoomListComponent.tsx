@@ -59,6 +59,14 @@ const BabysitterChatRoomListComponent = () => {
 
   return (
     <div className="card market-page-wide">
+      <button
+        type="button"
+        className="btn ghost sitter-back-link"
+        onClick={() => navigate(-1)}
+      >
+        ← 이전으로
+      </button>
+
       <h2 style={{ marginTop: 0 }}>채팅</h2>
 
       {rooms.length === 0 && <p>채팅방이 없습니다.</p>}

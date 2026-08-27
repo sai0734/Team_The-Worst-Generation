@@ -74,7 +74,6 @@ const LedgerComponent = () => {
 
   const [bulkText, setBulkText] = useState("");
   const [pendingItems, setPendingItems] = useState<PendingItem[]>([]);
-  const [batchDate, setBatchDate] = useState(todayStr());
   const [aiLoading, setAiLoading] = useState(false);
   const [receiptLoading, setReceiptLoading] = useState(false);
   const [savingAll, setSavingAll] = useState(false);
@@ -149,7 +148,7 @@ const LedgerComponent = () => {
         type: "EXPENSE",
         category: "",
         amount: "",
-        txDate: batchDate,
+        txDate: todayStr(),
       },
     ]);
   };
@@ -201,7 +200,7 @@ const LedgerComponent = () => {
           type: result?.type ?? "EXPENSE",
           category: result?.category && CATEGORY_ORDER.includes(result.category) ? result.category : "",
           amount: result?.amount != null ? String(result.amount) : "",
-          txDate: batchDate,
+          txDate: todayStr(),
         };
       });
 
@@ -241,7 +240,7 @@ const LedgerComponent = () => {
               type: result.type,
               category: result.category && CATEGORY_ORDER.includes(result.category) ? result.category : "",
               amount: result.amount != null ? String(result.amount) : "",
-              txDate: result.txDate || batchDate,
+              txDate: result.txDate || todayStr(),
             });
           });
         } catch (err) {
@@ -290,7 +289,6 @@ const LedgerComponent = () => {
       }
 
       setPendingItems([]);
-      setBatchDate(todayStr());
       loadAll();
     } catch (err) {
       alert("추가 중 일부 항목이 실패했을 수 있어요. 목록을 확인해주세요.");
@@ -568,11 +566,6 @@ const LedgerComponent = () => {
 
             {pendingItems.length > 0 && (
               <div className="pending-panel">
-                <div className="pending-date-row">
-                  <label>날짜</label>
-                  <input type="date" value={batchDate} onChange={(e) => setBatchDate(e.target.value)} />
-                </div>
-
                 <div className="pending-scroll">
                   {pendingItems.map((item) => (
                     <div className="pending-item" key={item.id}>

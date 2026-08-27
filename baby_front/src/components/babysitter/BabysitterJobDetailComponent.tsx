@@ -1,5 +1,5 @@
 import { FormEvent, useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
 import * as babysitterApi from "../../api/babysitterApi";
 import {
   DAY_OF_WEEK_LABELS,
@@ -24,7 +24,14 @@ const describeError = (err: any): string =>
 const BabysitterJobDetailComponent = () => {
   const { jobNo } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { isLogin, loginState } = useCustomLogin();
+
+  // 지원내역 목록에서 들어온 경우 - 재지원 유도 없이, 그때 그 지원 건의 결과만 그대로 보여주는 읽기 전용 화면
+  const navState = location.state as
+    | { fromApplications?: boolean; applicationNo?: number }
+    | null;
+  const cameFromApplications = Boolean(navState?.fromApplications);
 
   const [job, setJob] = useState<BabysitterJobPost | null>(null);
   const [applications, setApplications] = useState<BabysitterJobApplication[]>([]);
@@ -49,7 +56,19 @@ const BabysitterJobDetailComponent = () => {
       babysitterApi.getJobApplications(Number(jobNo)).then(setApplications);
     } else {
       babysitterApi.getMyApplications().then((list) => {
-        setMyApplication(list.find((a) => a.jobNo === Number(jobNo)) ?? null);
+        if (cameFromApplications) {
+          // 지원내역에서 클릭한 그 지원 건 그대로 보여줌 (취소됐어도 재지원 폼으로 안 바꿈)
+          setMyApplication(
+            list.find((a) => a.applicationNo === navState?.applicationNo) ??
+              list.find((a) => a.jobNo === Number(jobNo)) ??
+              null,
+          );
+        } else {
+          // 구인글 목록 등에서 들어온 경우 - 취소된(CANCELED) 지원은 없는 셈 치고 재지원 폼을 보여줌
+          setMyApplication(
+            list.find((a) => a.jobNo === Number(jobNo) && a.status !== "CANCELED") ?? null,
+          );
+        }
       });
     }
   };
@@ -190,8 +209,8 @@ const BabysitterJobDetailComponent = () => {
       )}
 
       <div className="sitter-back-link">
-        <button type="button" className="btn ghost" onClick={() => navigate("/community/babysitter/jobs")}>
-          구인글 목록으로
+        <button type="button" className="btn ghost" onClick={() => navigate(-1)}>
+          ← 이전으로
         </button>
       </div>
     </div>
