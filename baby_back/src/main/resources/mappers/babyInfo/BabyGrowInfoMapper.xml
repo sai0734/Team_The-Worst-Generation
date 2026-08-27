@@ -29,10 +29,4 @@
         WHERE g.baby_grow_no = #{babyGrowNo} AND b.email = #{email}
     </delete>
 
-    <delete id="removeByBabyNo">
-        DELETE g FROM tbl_baby_grow_info g
-        JOIN tbl_baby_info b ON g.baby_no = b.baby_no
-        WHERE g.baby_no = #{babyNo} AND b.email = #{email}
-    </delete>
-
 </mapper>

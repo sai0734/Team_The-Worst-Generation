@@ -22,8 +22,6 @@ public interface BabyDiaryMapper {
 
     void delete (@Param("diaryNo") Long diaryNo, @Param("email") String email);
 
-    void deleteByBabyNo(@Param("babyNo") Long babyNo, @Param("email") String email);
-
     List<String> selectPhotoFileNamesByBabyNo(@Param("babyNo") Long babyNo, @Param("email") String email);
 
 }

@@ -19,6 +19,4 @@ public interface BabySleepMapper {
 
     void delete(@Param("sleepNo") Long sleepNo, @Param("email") String email);
 
-    void deleteByBabyNo(@Param("babyNo") Long babyNo, @Param("email") String email);
-
 }

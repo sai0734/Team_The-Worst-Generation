@@ -38,10 +38,4 @@
         AND baby_no IN (SELECT baby_no FROM tbl_baby_info WHERE email = #{email})
     </delete>
 
-    <delete id="deleteByBabyNo">
-        DELETE FROM tbl_baby_sleep
-        WHERE baby_no = #{babyNo}
-        AND baby_no IN (SELECT baby_no FROM tbl_baby_info WHERE email = #{email})
-    </delete>
-
 </mapper>

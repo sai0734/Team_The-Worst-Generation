@@ -55,17 +55,6 @@
         WHERE order_id = #{orderId}
     </update>
 
-    <delete id="deleteItemsByBabyNo">
-        DELETE FROM tbl_print_order_item
-        WHERE order_no IN (
-        SELECT order_no FROM tbl_print_order WHERE baby_no = #{babyNo}
-        )
-    </delete>
-
-    <delete id="deleteByBabyNo">
-        DELETE FROM tbl_print_order WHERE baby_no = #{babyNo}
-    </delete>
-
     <delete id="deleteItemsByAlbumNo">
         DELETE FROM tbl_print_order_item WHERE album_no = #{albumNo}
     </delete>

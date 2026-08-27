@@ -3,12 +3,8 @@ package com.backend.babyInfo.service;
 import com.backend.album.mapper.BabyAlbumMapper;
 import com.backend.babyInfo.domain.BabyInfo;
 import com.backend.babyInfo.dto.BabyInfoDTO;
-import com.backend.babyInfo.mapper.BabyGrowInfoMapper;
 import com.backend.babyInfo.mapper.BabyInfoMapper;
 import com.backend.diary.mapper.BabyDiaryMapper;
-import com.backend.vaccination.mapper.BabyVaccinationMapper;
-import com.backend.sleep.mapper.BabySleepMapper;
-import com.backend.printorder.mapper.PrintOrderMapper;
 import com.backend.global.util.CustomFileUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -28,17 +24,9 @@ public class BabyInfoServiceImpl implements BabyInfoService{
 
     private final BabyInfoMapper babyInfoMapper;
 
-    private final BabyGrowInfoMapper babyGrowInfoMapper;
-
-    private final BabyVaccinationMapper babyVaccinationMapper;
-
-    private final BabySleepMapper babySleepMapper;
-
     private final BabyDiaryMapper babyDiaryMapper;
 
     private final BabyAlbumMapper babyAlbumMapper;
-
-    private final PrintOrderMapper printOrderMapper;
 
     private final ModelMapper modelMapper;
 
@@ -118,6 +106,7 @@ public class BabyInfoServiceImpl implements BabyInfoService{
 
     }
 
+    // 수정 시작 - 6개 Mapper 개별 호출 대신 deleteCascade() 한 번으로 18개 테이블 삭제
     @Override
     public void remove(Long babyNo, String email) {
 
@@ -131,28 +120,16 @@ public class BabyInfoServiceImpl implements BabyInfoService{
             photoFileNames.add(babyInfo.getProfileImageFileName());
         }
 
+        // DB 캐스케이드는 물리 파일까지는 못 지우므로, row가 지워지기 전에 파일명부터 수집
         photoFileNames.addAll(babyDiaryMapper.selectPhotoFileNamesByBabyNo(babyNo, email));
         photoFileNames.addAll(babyAlbumMapper.selectPhotoFileNamesByBabyNo(babyNo, email));
 
-        babyGrowInfoMapper.removeByBabyNo(babyNo, email);
-
-        babyVaccinationMapper.deleteByBabyNo(babyNo, email);
-
-        babySleepMapper.deleteByBabyNo(babyNo, email);
-
-        babyDiaryMapper.deleteByBabyNo(babyNo, email);
-
-        babyAlbumMapper.deleteByBabyNo(babyNo, email);
-
-        printOrderMapper.deleteItemsByBabyNo(babyNo);
-
-        printOrderMapper.deleteByBabyNo(babyNo);
+        babyInfoMapper.deleteCascade(babyNo, email);
 
         customFileUtil.deleteFiles(photoFileNames);
 
-        babyInfoMapper.delete(babyNo, email);
-
     }
+    // 수정 끝
 
     private void validateRequiredFields(BabyInfoDTO babyInfoDTO) {
         if(babyInfoDTO.getBabyName() == null || babyInfoDTO.getBabyName().isEmpty()
