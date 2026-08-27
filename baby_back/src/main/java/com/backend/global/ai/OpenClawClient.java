@@ -1,8 +1,6 @@
 package com.backend.global.ai;
 
-import com.backend.assistant.dto.AssistItemDTO;
 import com.backend.quest.dto.DailyQuestDraft;
-import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -35,61 +33,6 @@ public class OpenClawClient {
             .connectTimeout(Duration.ofSeconds(5))
             .version(HttpClient.Version.HTTP_1_1)
             .build();
-
-    private static final int PICK_MAX_ATTEMPTS = 2;
-    /** 실패하면 null. OpenClaw가 [] 를 주면 빈 목록. 공공 API 원본은 호출 쪽에서 쓰지 않는다. */
- public List<AssistItemDTO> pick(int months, String region, String babyName,String gender,
-                                 List<AssistItemDTO> candidates) {
-     if (candidates == null || candidates.isEmpty()) {
-         return List.of();
-     }
-     String message = buildPrompt(months, region, babyName, gender, candidates);
-
-     for (int attempt = 1; attempt <= PICK_MAX_ATTEMPTS; attempt++) {
-         List<AssistItemDTO> result = pickOnce(message);
-         if (result != null) {
-             return result;
-         }
-         log.warn("Openclaw 지원금 필터링 실패(시도 {}/{})", attempt,
-                 PICK_MAX_ATTEMPTS);
-     }
-     return null;
- }
-
- private List<AssistItemDTO> pickOnce(String message) {
-     JsonObject user = new JsonObject();
-     user.addProperty("role", "user");
-     user.addProperty("content", message);
-     JsonArray messages = new JsonArray();
-     messages.add(user);
-
-     JsonObject body = new JsonObject();
-     body.addProperty("model", "openclaw/default");
-     body.add("messages", messages);
-
-     try {
-         String root = baseUrl.endsWith("/") ? baseUrl.substring(0, baseUrl.length() - 1) : baseUrl;
-         String token = resolveToken();
-         HttpRequest.Builder builder = HttpRequest.newBuilder()
-                 .uri(URI.create(root + "/v1/chat/completions"))
-                 .header("Content-Type", "application/json")
-                 .timeout(Duration.ofSeconds(60))
-                 .POST(HttpRequest.BodyPublishers.ofString(body.toString()));
-         if (!token.isBlank()) {
-             builder.header("Authorization","Bearer " +token);
-         }
-         HttpResponse<String> res = http.send(builder.build(),
-                 HttpResponse.BodyHandlers.ofString());
-         if (res.statusCode() != 200) {
-             log.warn("Openclaw HTTP {} body={}", res.statusCode(), res.body());
-             return null;
-         }
-         return parseItems(res.body());
-     } catch (Exception e) {
-         log.warn("Openclaw 연결실패: {}", e.getMessage());
-         return null;
-     }
- }
 
     public List<DailyQuestDraft> generateDailyQuests(int months, String parentType, String weekday) {
         String message = buildDailyQuestPrompt(months, parentType, weekday);
@@ -188,58 +131,6 @@ public class OpenClawClient {
         }
     }
 
-    static String buildPrompt(int months, String region, String babyName, String gender,
-                              List<AssistItemDTO> candidates) {
-        String safeRegion = (region == null || region.isBlank()) ? "미입력" : region.trim();
-        String safeName = (babyName == null || babyName.isBlank()) ? "미입력" : babyName.trim();
-        String safeGender = (gender == null || gender.isBlank()) ? "미입력" : gender.trim();
-
-        List<AssistItemDTO> trimmed = candidates.stream()
-                .limit(40)
-                .map(it -> AssistItemDTO.builder()
-                        .id(it.getId())
-                        .category(it.getCategory())
-                        .title(it.getTitle())
-                        .summary(truncate(it.getSummary(), 80))
-                        .status(it.getStatus())
-                        .link(it.getLink())
-                        .source(it.getSource())
-                        .build())
-        .toList();
-        String candidatesJson = new Gson().toJson(trimmed);
-
-        return """
-                너는 육아 지원 목록을 거르는 필터다. 상담사처럼 설명하지 마라.
-
-                [프로필]
-                - 아이 이름: %s
-                - 아이 월령: %d
-                - 성별: %s
-                - 거주지: %s
-
-                [할 일]
-                CANDIDATES 배열에서 이 프로필과 맞을 가능성이 있는 항목만 남긴다.
-
-                [금지]
-                - CANDIDATES에 없는 id/title/link를 만들지 마라.
-                - 마크다운, 코드펜스, 주석, 앞뒤 설명을 쓰지 마라.
-                - JSON 배열 이외의 문자를 출력하지 마라.
-
-                [유지 규칙]
-                - id, title, link, category, source 는 원본 값을 그대로 복사한다.
-                - summary 는 원본을 유지하거나 한 줄로만 줄인다.
-                - status 는 APPLY 또는 DONE 만 사용한다. 원본이 DONE 이면 DONE, 그 외는 APPLY.
-                - 월령/거주지와 명백히 무관한 항목만 뺀다. 애매하면 남긴다.
-                - 남을 항목이 없으면 [] 만 출력한다.
-
-                [출력]
-                [{"id":"","title":"","summary":"","status":"APPLY","link":"","category":"","source":""}]
-
-                [CANDIDATES]
-                """.formatted(safeName, months, safeGender, safeRegion)
-                + candidatesJson;
-    }
-
     private String resolveToken() {
         if (gatewayToken != null && !gatewayToken.isBlank()) {
             return gatewayToken.trim();
@@ -261,43 +152,6 @@ public class OpenClawClient {
         } catch (Exception e) {
             log.warn("OpenClaw 토큰 파일을 읽지 못함");
             return "";
-        }
-    }
-
-    private List<AssistItemDTO> parseItems(String raw) {
-        try {
-            String content = stripThinking(extractAssistantText(raw));
-            String json = extractJsonArray(content);
-            if (json == null) {
-                log.warn("OpenClaw 응답에 JSON 배열이 없음: {}",
-                content.length() > 500 ? content.substring(0, 500) + "..." : content);
-                return null;
-            }
-            JsonArray arr = JsonParser.parseString(json).getAsJsonArray();
-            List<AssistItemDTO> out = new ArrayList<>();
-            for (JsonElement el : arr) {
-                if (!el.isJsonObject()) {
-                    continue;
-                }
-                JsonObject o = el.getAsJsonObject();
-                String title = str(o, "title");
-                if (title.isBlank()) {
-                    continue;
-                }
-                out.add(AssistItemDTO.builder()
-                        .id(str(o, "id"))
-                        .title(title)
-                        .summary(str(o, "summary"))
-                        .status(normalizeStatus(str(o, "status")))
-                        .link(str(o, "link"))
-                        .category(str(o, "category"))
-                        .source(str(o, "source"))
-                        .build());
-            }
-            return out;
-        } catch (Exception e) {
-            log.warn("OpenClaw 응답 파싱 실패", e);
-            return null;
         }
     }
 
@@ -327,13 +181,6 @@ public class OpenClawClient {
             // 봉투가 JSON이 아니면 본문 전체를 모델 답으로 본다
         }
         return raw;
-    }
-
-    private static String stripThinking(String content) {
-     if (content == null) {
-         return "";
-     }
-     return content.replaceAll("(?is)<think>.*?</think>", "").trim();
     }
 
     private static String extractJsonArray(String content) {
@@ -385,18 +232,7 @@ public class OpenClawClient {
         return -1;
     }
 
-    private static String normalizeStatus(String status) {
-        return "DONE".equalsIgnoreCase(status) ? "DONE" : "APPLY";
-    }
-
     private static String str(JsonObject o, String key) {
         return o.has(key) && !o.get(key).isJsonNull() ? o.get(key).getAsString() : "";
-    }
-
-    private static String truncate(String s, int max) {
-        if (s == null || s.length() <= max) {
-            return s == null ? "" : s;
-        }
-        return s.substring(0, max);
     }
 }
