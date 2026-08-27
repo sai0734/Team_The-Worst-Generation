@@ -43,4 +43,31 @@
         WHERE baby_no = #{babyNo} AND email = #{email}
     </delete>
 
+    <!-- 추가 시작 - babyNo로 연결된 18개 테이블을 한 번의 멀티테이블 DELETE로 캐스케이드 삭제 -->
+    <delete id="deleteCascade">
+        DELETE bi, bg, bv, bs, bd, ba, po, poi,
+               bc, bcs, bcm, bcsrc,
+               cta, ac, rr, sc, skc, cc
+        FROM tbl_baby_info bi
+        LEFT JOIN tbl_baby_grow_info bg ON bg.baby_no = bi.baby_no
+        LEFT JOIN tbl_baby_vaccination bv ON bv.baby_no = bi.baby_no
+        LEFT JOIN tbl_baby_sleep bs ON bs.baby_no = bi.baby_no
+        LEFT JOIN tbl_baby_diary bd ON bd.baby_no = bi.baby_no
+        LEFT JOIN tbl_baby_album ba ON ba.baby_no = bi.baby_no
+        LEFT JOIN tbl_print_order po ON po.baby_no = bi.baby_no
+        LEFT JOIN tbl_print_order_item poi ON poi.order_no = po.order_no
+        LEFT JOIN tbl_baby_behavior_consult bc ON bc.baby_no = bi.baby_no
+        LEFT JOIN tbl_baby_behavior_step bcs ON bcs.consult_no = bc.consult_no
+        LEFT JOIN tbl_baby_behavior_message bcm ON bcm.consult_no = bc.consult_no
+        LEFT JOIN tbl_baby_behavior_source bcsrc ON bcsrc.consult_no = bc.consult_no
+        LEFT JOIN tbl_baby_custom_allergy cta ON cta.babyNo = bi.baby_no
+        LEFT JOIN tbl_baby_allergy_check ac ON ac.babyNo = bi.baby_no
+        LEFT JOIN tbl_recipe_recommend rr ON rr.checkNo = ac.checkNo
+        LEFT JOIN tbl_baby_stool_check sc ON sc.babyNo = bi.baby_no
+        LEFT JOIN tbl_baby_skin_check skc ON skc.babyNo = bi.baby_no
+        LEFT JOIN tbl_cry_check cc ON cc.baby_no = bi.baby_no
+        WHERE bi.baby_no = #{babyNo} AND bi.email = #{email}
+    </delete>
+    <!-- 추가 끝 -->
+
 </mapper>

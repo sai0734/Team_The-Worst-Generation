@@ -21,6 +21,4 @@ public interface BabyVaccinationMapper {
 
     void delete(@Param("vaccinationNo") Long vaccinationNo, @Param("email") String email);
 
-    void deleteByBabyNo(@Param("babyNo") Long babyNo, @Param("email") String email);
-
 }

@@ -16,6 +16,4 @@ public interface BabyGrowInfoMapper {
     void insert(BabyGrowInfo babyGrowInfo);
 
     void remove(@Param("babyGrowNo") Long babyGrowNo, @Param("email") String email);
-
-    void removeByBabyNo(@Param("babyNo") Long babyNo, @Param("email") String email);
 }

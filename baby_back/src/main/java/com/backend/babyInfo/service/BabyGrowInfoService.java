@@ -14,6 +14,4 @@ public interface BabyGrowInfoService {
 
     void remove(Long babyGrowNo, String email);
 
-    void removeAll(Long babyNo, String email);
-
 }

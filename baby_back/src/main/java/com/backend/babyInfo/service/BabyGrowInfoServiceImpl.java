@@ -91,13 +91,4 @@ public class BabyGrowInfoServiceImpl implements BabyGrowInfoService{
 
     }
 
-    @Override
-    public void removeAll(Long babyNo, String email) {
-
-        log.info("babyGrowInfo_Service_removeAll_실행~~~~~~~~~~~~");
-
-        babyGrowInfoMapper.removeByBabyNo(babyNo, email);
-
-    }
-
 }
