@@ -53,7 +53,7 @@ const NAV_ITEMS: NavItem[] = [
     subItems: [
       { label: "홈", to: "/market" },
       { label: "매물 등록", to: "/market/write" },
-      { label: "내 매물", to: "/market/my-items" },
+      { label: "내가 올린 육아템", to: "/market/my-items" },
       { label: "채팅목록", to: "/market/chat" },
     ],
   },
@@ -134,6 +134,13 @@ const BasicMenu = () => {
   const [fabOpen, setFabOpen] = useState(false);
   const toggleFab = () => setFabOpen((prev) => !prev);
   const { isMonitoring, isAlertActive } = useHomeCamMonitor();
+
+  // 대시보드 히어로 슬라이드의 "홈캠" 카드처럼, 다른 페이지에서도 이 이벤트만 쏘면 홈캠 모달을 열 수 있음
+  useEffect(() => {
+    const openHandler = () => setIsHomeCamOpen(true);
+    window.addEventListener("open-homecam", openHandler);
+    return () => window.removeEventListener("open-homecam", openHandler);
+  }, []);
 
   // 홈캠을 안 보고 있어도(감시만 켜둔 상태) 안전영역 이탈이 감지되면 화면을 강제로 띄움
   useEffect(() => {
@@ -264,7 +271,11 @@ const BasicMenu = () => {
         </div>
 
         <div
-          className={`subnav${activeItem && activeItem.subItems.length > 1 ? " open" : ""}`}
+          className={`subnav${
+            activeItem && activeItem.subItems.length > 1
+              ? " open"
+              : ""
+          }`}
           style={{ paddingLeft: subnavLeft }}
         >
           {activeItem?.subItems.map((sub, idx) => (
@@ -286,7 +297,7 @@ const BasicMenu = () => {
               <div className="mobile-nav-item" key={item.code}>
                 <div className="mobile-nav-row">
                   <Link
-                    to={item.to}
+                    to={item.subItems[0]?.to ?? item.to}
                     className="mobile-nav-label"
                     onClick={closeMobileNav}
                   >

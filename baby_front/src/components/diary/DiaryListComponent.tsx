@@ -10,7 +10,7 @@ interface DiaryListProps {
   reloadTrigger: number;
 }
 
-const PAGE_SIZE = 5;
+const PAGE_SIZE = 6;
 
 const inputClass =
   "w-full rounded-[14px] border border-[rgba(42,41,38,0.12)] bg-white p-3 text-sm text-[#2A2926] outline-none transition-colors focus:border-[#5AB2FF]";

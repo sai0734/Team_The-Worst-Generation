@@ -673,27 +673,22 @@
 
 @media (max-width: 900px) {
   .landing-page .timeline-wrap { height: auto; }
-  .landing-page .timeline-sticky { position: relative; height: auto; overflow: visible; padding: 90px 0 70px; }
+  .landing-page .timeline-sticky { position: relative; height: auto; overflow: hidden; padding: 90px 0 70px; }
   .landing-page .timeline-head { position: relative; top: auto; margin-bottom: 44px; }
   .landing-page .tl-sky { display: none; }
-  .landing-page .timeline-track { flex-direction: column; width: 100%; height: auto; gap: 70px; transform: none !important; }
-  .landing-page .tl-progress { display: none; }
-  .landing-page .tl-arrow { display: none; }
-  .landing-page .tl-panel { width: 100%; height: auto; padding: 0 6vw; }
+  /* 넓은 화면과 동일하게 한 번에 한 장씩, 화살표로 넘기는 구조 유지 — 세로로 쌓아서 다 보여주지 않음 */
+  .landing-page .timeline-track { height: 720px; }
+  /* width:100vw는 스크롤바 폭만큼 트랙의 600%(퍼센트 기준) 계산과 어긋나서 옆 카드가
+     살짝 비쳐 보이는 문제가 있었음 — flex-basis는 트랙 기준으로 똑같이 계산되어 정확히 맞음 */
+  .landing-page .tl-panel { width: auto; flex: 0 0 calc(100% / 6); height: 720px; padding: 0 6vw; }
+  .landing-page .tl-arrow { width: 46px; height: 46px; }
+  .landing-page .tl-arrow-prev { left: 10px; }
+  .landing-page .tl-arrow-next { right: 10px; }
   .landing-page .tl-card { grid-template-columns: 1fr; text-align: center; }
   .landing-page .tl-media { margin: 0 auto; max-width: 320px; }
   .landing-page .tl-chips { justify-content: center; }
-  .landing-page .features-wrap { height: auto; }
-  .landing-page .h-acc-section { position: relative; top: auto; height: auto; min-height: 0; }
-  .landing-page .h-acc-panel { opacity: 1 !important; transform: none !important; transition-delay: 0s !important; }
-  .landing-page .h-acc-heading { position: relative; top: auto; left: auto; padding: 2rem 1.25rem 0; }
-  .landing-page .h-acc { position: relative; inset: auto; flex-direction: column; }
-  .landing-page .h-acc-panel {
-    flex: none !important; border-left: none !important; border-bottom: 1px solid var(--l-line);
-    min-height: 84px; padding: 1.25rem;
-  }
-  .landing-page .h-acc-panel.is-active { min-height: 280px; padding-bottom: 1.75rem; }
-  .landing-page .h-acc-title { max-width: none; }
+  /* 반응형에서는 MORE(그 밖의 아이봄) 섹션 자체를 없앰 — 넓은 화면은 그대로 유지 */
+  .landing-page .features-wrap { display: none; }
   .landing-page .story-merge { height: auto; }
   .landing-page .story-merge-sticky { position: relative; top: auto; height: auto; overflow: visible; }
   .landing-page .story-slide {

@@ -31,7 +31,7 @@ const CommunityListComponent = () => {
 
     const res = await communityApi.getList({
       page: pageNum,
-      size: 10,
+      size: 12,
       keyword: keyword || undefined,
       category: activeCategory === "ALL" ? undefined : activeCategory,
     });

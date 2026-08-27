@@ -163,85 +163,105 @@ const CryCheckRecorderComponent = ({ onAnalyzed }: CryCheckRecorderProps) => {
 
   return (
     <div className="card cry-check-recorder">
-      <div className="head">
-        <h2 className="baby-name-heading">{currentBaby?.babyName}의 울음소리 분석</h2>
-      </div>
-
-      <div className="mx-auto flex w-full max-w-[560px] flex-col">
-        <div className="cry-check-mode-tabs">
-          <button
-            type="button"
-            className={`chip${mode === "record" ? " is-active" : ""}`}
-            onClick={() => setMode("record")}
-          >
-            마이크로 녹음
-          </button>
-          <button
-            type="button"
-            className={`chip${mode === "upload" ? " is-active" : ""}`}
-            onClick={() => setMode("upload")}
-          >
-            파일 업로드
-          </button>
-        </div>
-
-        {mode === "record" ? (
-          <div className="cry-check-record-zone">
+      <div className="cry-check-layout">
+        <div className="cry-check-input-col">
+          <div className="cry-check-mode-tabs">
             <button
               type="button"
-              className={`cry-check-mic-btn${recording ? " recording" : ""}`}
-              onClick={recording ? stopRecording : startRecording}
+              className={`chip${mode === "record" ? " is-active" : ""}`}
+              onClick={() => setMode("record")}
             >
-              {recording ? "■" : "●"}
+              마이크로 녹음
             </button>
-            <div className="cry-check-rec-state">
-              {recording
-                ? "녹음 중... (다시 누르면 종료)"
-                : recordedBlob
-                  ? `녹음 완료 (${(recordedBlob.size / 1024).toFixed(1)}KB)`
-                  : "탭하여 녹음 시작"}
+            <button
+              type="button"
+              className={`chip${mode === "upload" ? " is-active" : ""}`}
+              onClick={() => setMode("upload")}
+            >
+              파일 업로드
+            </button>
+          </div>
+
+          {mode === "record" ? (
+            <div className="cry-check-record-zone">
+              <button
+                type="button"
+                className={`cry-check-mic-btn${recording ? " recording" : ""}`}
+                onClick={recording ? stopRecording : startRecording}
+              >
+                {recording ? "■" : "●"}
+              </button>
+              <div className="cry-check-rec-state">
+                {recording
+                  ? "녹음 중... (다시 누르면 종료)"
+                  : recordedBlob
+                    ? `녹음 완료 (${(recordedBlob.size / 1024).toFixed(1)}KB)`
+                    : "탭하여 녹음 시작"}
+              </div>
+              <div className="cry-check-rec-timer">{timerLabel}</div>
             </div>
-            <div className="cry-check-rec-timer">{timerLabel}</div>
-          </div>
-        ) : (
-          <div className="cry-check-upload">
-            <p className="cry-check-hint">
-              아기 울음이 담긴 음성/영상 파일을 올려주세요. (영상이어도 소리만 분석·재생됩니다)
+          ) : (
+            <div className="cry-check-upload">
+              <label className="cry-check-dropzone">
+                <span className="cry-check-dropzone-icon">🎙️</span>
+                <span className="cry-check-dropzone-label">
+                  {uploadedFile
+                    ? uploadedFile.name
+                    : "파일을 선택하거나 이 영역에 끌어다 놓으세요"}
+                </span>
+                <span className="cry-check-dropzone-hint">
+                  아기 울음이 담긴 음성/영상 파일 (영상이어도 소리만 분석·재생됩니다)
+                </span>
+                <input
+                  type="file"
+                  accept="audio/*,video/*"
+                  onChange={handleFileChange}
+                  className="cry-check-dropzone-input"
+                />
+              </label>
+            </div>
+          )}
+
+          {error && (
+            <p className="alert" style={{ marginTop: 10 }}>
+              {error}
             </p>
-            <input
-              type="file"
-              accept="audio/*,video/*"
-              onChange={handleFileChange}
-            />
-            {uploadedFile && (
-              <span className="cry-check-filename">{uploadedFile.name}</span>
-            )}
-          </div>
-        )}
+          )}
 
-        {error && (
-          <p className="alert" style={{ marginTop: 10 }}>
-            {error}
-          </p>
-        )}
+          <button
+            type="button"
+            className="btn cry-check-analyze-btn"
+            onClick={handleAnalyze}
+            disabled={analyzing || !hasSource || recording}
+          >
+            {analyzing && <span className="cry-check-spinner" aria-hidden="true" />}
+            {analyzing ? "분석 중..." : "분석하기"}
+          </button>
 
-        <button
-          type="button"
-          className="btn cry-check-analyze-btn"
-          onClick={handleAnalyze}
-          disabled={analyzing || !hasSource || recording}
-        >
-          {analyzing && <span className="cry-check-spinner" aria-hidden="true" />}
-          {analyzing ? "분석 중..." : "분석하기"}
-        </button>
+          {analyzing && (
+            <p className="cry-check-analyzing-hint">
+              AI가 울음소리를 분석하고 있어요. 몇 초 정도 걸릴 수 있어요.
+            </p>
+          )}
+        </div>
 
-        {analyzing && (
-          <p className="cry-check-analyzing-hint">
-            AI가 울음소리를 분석하고 있어요. 몇 초 정도 걸릴 수 있어요.
-          </p>
-        )}
-
-        {result && <CryCheckResultView item={result} />}
+        <div className="cry-check-result-col">
+          {result ? (
+            <CryCheckResultView item={result} />
+          ) : (
+            <div className="cry-check-result-empty">
+              <span className="cry-check-result-empty-icon">🍼</span>
+              <p className="cry-check-result-empty-title">
+                아직 분석 결과가 없어요
+              </p>
+              <p className="cry-check-result-empty-desc">
+                왼쪽에서 녹음하거나 파일을 올리고 "분석하기"를 누르면
+                <br />
+                여기에 결과가 표시돼요
+              </p>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

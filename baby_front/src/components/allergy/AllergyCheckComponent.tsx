@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { ChangeEvent, FormEvent } from "react";
+import type { ChangeEvent, DragEvent, FormEvent } from "react";
 import { Link } from "react-router-dom";
 import * as allergyApi from "../../api/allergyApi";
 import type { BabyAllergyCheck } from "../../types/allergy";
@@ -18,9 +18,27 @@ const AllergyCheckComponent = ({ babyNo }: AllergyCheckComponentProps) => {
   const [image, setImage] = useState<File | null>(null);
   const [result, setResult] = useState<BabyAllergyCheck | null>(null);
   const [loading, setLoading] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     setImage(e.target.files?.[0] ?? null);
+  };
+
+  const handleDragOver = (e: DragEvent<HTMLLabelElement>) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: DragEvent<HTMLLabelElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: DragEvent<HTMLLabelElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) setImage(file);
   };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -47,7 +65,7 @@ const AllergyCheckComponent = ({ babyNo }: AllergyCheckComponentProps) => {
   const customMatches = splitList(result?.detectedCustom);
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="grid grid-cols-1 items-stretch gap-5 lg:grid-cols-[minmax(280px,380px)_1fr]">
       <form
         onSubmit={handleSubmit}
         className="flex flex-col gap-3 rounded-[24px] border border-[rgba(42,41,38,0.1)] bg-[#FAF6F0] p-4 sm:p-6"
@@ -56,7 +74,16 @@ const AllergyCheckComponent = ({ babyNo }: AllergyCheckComponentProps) => {
           성분표 사진을 올려주세요
         </p>
 
-        <label className="flex cursor-pointer flex-col items-center justify-center gap-2 rounded-[16px] border-2 border-dashed border-[rgba(42,41,38,0.18)] bg-white px-4 py-10 text-center transition-colors hover:border-[#5AB2FF]">
+        <label
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          className={`flex cursor-pointer flex-col items-center justify-center gap-2 rounded-[16px] border-2 border-dashed px-4 py-10 text-center transition-colors ${
+            isDragging
+              ? "border-[#5AB2FF] bg-[#EAF6FF]"
+              : "border-[rgba(42,41,38,0.18)] bg-white hover:border-[#5AB2FF]"
+          }`}
+        >
           <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[#EAF6FF] text-xl">
             📷
           </span>
@@ -77,7 +104,7 @@ const AllergyCheckComponent = ({ babyNo }: AllergyCheckComponentProps) => {
         <button
           type="submit"
           disabled={loading || !image}
-          className="flex items-center justify-center gap-2 rounded-full bg-[#2A2926] px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-[#453f38] disabled:cursor-not-allowed disabled:bg-[#CBD5E1]"
+          className="flex items-center justify-center gap-2 rounded-full bg-[#005BB2] px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-[#004A99] disabled:cursor-not-allowed disabled:bg-[#CBD5E1]"
         >
           {loading && (
             <span className="h-3.5 w-3.5 flex-shrink-0 animate-spin rounded-full border-2 border-white/40 border-t-white" />
@@ -86,14 +113,24 @@ const AllergyCheckComponent = ({ babyNo }: AllergyCheckComponentProps) => {
         </button>
       </form>
 
+      {!result && (
+        <div className="flex min-h-[220px] flex-col items-center justify-center gap-2 rounded-[24px] border border-dashed border-[rgba(42,41,38,0.15)] bg-white p-8 text-center">
+          <span className="text-2xl">🧾</span>
+          <p className="text-sm font-bold text-[#2A2926]">
+            아직 분석 결과가 없어요
+          </p>
+          <p className="text-xs text-[#7A756C]">
+            왼쪽에서 성분표 사진을 올리고 분석을 시작해보세요.
+          </p>
+        </div>
+      )}
+
       {result && (
         <div className="flex flex-col gap-4 rounded-[24px] border border-[rgba(42,41,38,0.1)] bg-white p-4 sm:p-6">
-          <p className="text-[11px] font-extrabold tracking-[2px] text-[#5AB2FF]">
-            분석 결과
-          </p>
+          <p className="text-lg font-extrabold text-[#5AB2FF]">분석 결과</p>
 
           <div>
-            <p className="mb-2 text-xs font-bold text-[#7A756C]">
+            <p className="mb-2 text-[15px] font-extrabold text-[#2A2926]">
               검출된 알레르기 성분
             </p>
             {allergens.length > 0 ? (
@@ -101,7 +138,7 @@ const AllergyCheckComponent = ({ babyNo }: AllergyCheckComponentProps) => {
                 {allergens.map((item) => (
                   <span
                     key={item}
-                    className="rounded-full border border-[#F3B8B0] bg-[#FDEEEC] px-3.5 py-1.5 text-xs font-bold text-[#C0392B]"
+                    className="rounded-full border border-[#F3B8B0] bg-[#FDEEEC] px-[18px] py-[9px] text-base font-bold text-[#C0392B]"
                   >
                     {item}
                   </span>
@@ -114,14 +151,14 @@ const AllergyCheckComponent = ({ babyNo }: AllergyCheckComponentProps) => {
 
           {customMatches.length > 0 && (
             <div>
-              <p className="mb-2 text-xs font-bold text-[#7A756C]">
+              <p className="mb-2 text-[15px] font-extrabold text-[#2A2926]">
                 직접 등록한 알레르기 성분과 일치
               </p>
               <div className="flex flex-wrap gap-2">
                 {customMatches.map((item) => (
                   <span
                     key={item}
-                    className="rounded-full border border-[#FBD38D] bg-[#FFF7E6] px-3.5 py-1.5 text-xs font-bold text-[#B7791F]"
+                    className="rounded-full border border-[#FBD38D] bg-[#FFF7E6] px-[18px] py-[9px] text-base font-bold text-[#B7791F]"
                   >
                     {item}
                   </span>
@@ -133,7 +170,8 @@ const AllergyCheckComponent = ({ babyNo }: AllergyCheckComponentProps) => {
           {result.checkNo && (
             <Link
               to={`/allergy/recipe/${result.checkNo}?babyNo=${babyNo}`}
-              className="inline-flex w-fit items-center gap-2 rounded-full bg-[#2A2926] px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-[#453f38]"
+              className="inline-flex w-fit items-center gap-2 rounded-full bg-[#005BB2] px-6 py-3 text-sm font-bold text-white transition-colors hover:bg-[#004A99]"
+              style={{ color: "#fff" }}
             >
               이 결과로 레시피 추천받기 →
             </Link>

@@ -224,6 +224,50 @@
   gap: 8px;
   font-size: 13px;
 }
+.app .form-field .market-dropzone {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 140px;
+  padding: 24px 16px;
+  border: 2px dashed var(--line);
+  border-radius: 16px;
+  background: #fff;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.15s ease;
+}
+.app .market-dropzone:hover {
+  border-color: var(--accent);
+}
+.app .market-dropzone-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--soft);
+  font-size: 20px;
+}
+.app .market-dropzone-label {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--ink);
+}
+.app .market-dropzone-hint {
+  font-size: 12px;
+  color: var(--muted);
+}
+.app .market-dropzone-input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
 .app .thumb-list {
   display: flex;
   gap: 8px;
@@ -548,7 +592,8 @@
   display: grid;
   grid-template-columns: 1.4fr 1fr;
   gap: 16px;
-  align-items: start;
+  /* 상품목록/지도 중 더 짧은 쪽을 긴 쪽 높이에 맞춰 늘려서, 밑에 빈 여백이 안 남게 함 */
+  align-items: stretch;
 }
 @media (max-width: 980px) {
   .app .market-home-split {
@@ -569,9 +614,11 @@
   flex-shrink: 0;
 }
 
-/* 매물 카드만 자체 스크롤 (필터/서브탭/지도는 스크롤 영향 안 받음) */
+/* 2열 x 2행(4개)만 스크롤 없이 딱 보이고, 그 이상은 자체 스크롤로 넘김
+   (필터/서브탭/지도는 스크롤 영향 안 받음). 높이는 실제 카드 2행 렌더링 높이에 맞춘 값 */
 .app .market-home-grid {
-  max-height: 460px;
+  grid-template-columns: repeat(2, 1fr);
+  max-height: 600px;
   overflow-y: auto;
   align-content: start;
   padding-right: 4px;
@@ -671,16 +718,45 @@
   order: -1;
   position: sticky;
   top: 0;
-  align-self: start;
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 .app .market-home-map-canvas-wrap {
-  height: 460px;
+  position: relative;
+  flex: 1;
+  min-height: 460px;
   border-radius: var(--radius, 24px);
   overflow: hidden;
   border: 1px solid var(--line);
+}
+.app .market-map-overlay-topleft {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 5;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  max-width: calc(100% - 24px);
+}
+.app .market-map-overlay-topleft .chip {
+  background: var(--glass);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+}
+.app .market-map-overlay-topleft .chip.is-active {
+  background: var(--soft);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.app .market-map-overlay-topright {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  z-index: 5;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
 }
 @media (max-width: 980px) {
   .app .market-home-map-pane {

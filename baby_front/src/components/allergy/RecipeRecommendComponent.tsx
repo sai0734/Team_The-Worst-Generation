@@ -40,14 +40,22 @@ const RecipeRecommendComponent = ({
   checkNo,
 }: RecipeRecommendComponentProps) => {
   const [productType, setProductType] = useState(productTypes[0]);
-  const [recipe, setRecipe] = useState<RecipeRecommend | null>(null);
+  const [recipes, setRecipes] = useState<
+    Partial<Record<string, RecipeRecommend>>
+  >({});
   const [loading, setLoading] = useState(false);
 
   const handleRecommend = async () => {
     setLoading(true);
     try {
-      const result = await allergyApi.recommendRecipe(checkNo, productType);
-      setRecipe(result);
+      const results = await Promise.all(
+        productTypes.map((type) => allergyApi.recommendRecipe(checkNo, type)),
+      );
+      const next: Partial<Record<string, RecipeRecommend>> = {};
+      productTypes.forEach((type, i) => {
+        next[type] = results[i];
+      });
+      setRecipes(next);
     } catch (err) {
       alert("레시피 추천에 실패했습니다.");
       console.error(err);
@@ -55,6 +63,9 @@ const RecipeRecommendComponent = ({
       setLoading(false);
     }
   };
+
+  const recipe = recipes[productType] ?? null;
+  const hasAnyRecipe = Object.keys(recipes).length > 0;
 
   const parsedRecipe = useMemo(
     () =>
@@ -126,18 +137,25 @@ const RecipeRecommendComponent = ({
           onClick={handleRecommend}
           style={{
             marginLeft: "auto",
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 8,
             padding: "10px 22px",
             borderRadius: 999,
             border: "none",
-            background: "var(--accent)",
+            background: loading ? "#CBD5E1" : "var(--accent)",
             color: "#fff",
             fontSize: 13,
             fontWeight: 700,
             cursor: loading ? "default" : "pointer",
-            opacity: loading ? 0.6 : 1,
           }}
         >
-          {loading ? "추천 받는 중..." : "레시피 추천받기 ✨"}
+          {loading && <span className="btn-spinner" />}
+          {loading
+            ? "추천 받는 중..."
+            : hasAnyRecipe
+              ? "다시 추천받기 ✨"
+              : "레시피 추천받기 ✨"}
         </button>
       </div>
 

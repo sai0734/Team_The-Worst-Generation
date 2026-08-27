@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from "react";
 import type { MemberProfile, ParentType, ProfileSaveRequest } from "../../../types/profile";
+import ProfileAvatar from "./ProfileAvatar";
 
 interface ProfileFormProps {
   profile: MemberProfile | null;
@@ -42,16 +43,22 @@ const ProfileForm = ({ profile, parentType, submitting, onSave, onCancel }: Prof
         </button>
       </div>
 
-      <label className="profile-field">
-        <span>프로필 이름</span>
-        <input
-          value={profileName}
-          maxLength={30}
-          placeholder="예: 엄마, 아빠"
-          onChange={(event) => setProfileName(event.target.value)}
-          autoFocus
+      <div className="profile-form-identity">
+        <ProfileAvatar
+          profileName={profileName || (parentType === "FATHER" ? "아빠" : "엄마")}
+          parentType={parentType}
         />
-      </label>
+        <label className="profile-field">
+          <span>프로필 이름</span>
+          <input
+            value={profileName}
+            maxLength={30}
+            placeholder="예: 엄마, 아빠"
+            onChange={(event) => setProfileName(event.target.value)}
+            autoFocus
+          />
+        </label>
+      </div>
 
       <div className="profile-parent-summary">
         <span>아빠인가요? 엄마인가요?</span>
