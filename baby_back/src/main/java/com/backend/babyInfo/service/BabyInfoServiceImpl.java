@@ -124,7 +124,9 @@ public class BabyInfoServiceImpl implements BabyInfoService{
         photoFileNames.addAll(babyDiaryMapper.selectPhotoFileNamesByBabyNo(babyNo, email));
         photoFileNames.addAll(babyAlbumMapper.selectPhotoFileNamesByBabyNo(babyNo, email));
 
+        babyInfoMapper.deleteCascadeGrandchildren(babyNo, email);
         babyInfoMapper.deleteCascade(babyNo, email);
+        babyInfoMapper.delete(babyNo, email);
 
         customFileUtil.deleteFiles(photoFileNames);
 
