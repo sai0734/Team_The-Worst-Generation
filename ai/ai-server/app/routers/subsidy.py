@@ -1,15 +1,38 @@
 from fastapi import APIRouter
 
-from app.schemas.subsidy import SubsidySearchRequest, SubsidySearchResponse
-from app.services import subsidy_rag_service
+from app.schemas.subsidy import (
+    SubsidyAskRequest,
+    SubsidyAskResponse,
+    SubsidyReindexResponse,
+)
+from app.services import subsidy_index_service, subsidy_rag_service
 
 
 router = APIRouter()
 
 
-@router.post("/search", response_model=SubsidySearchResponse)
-def search(req: SubsidySearchRequest) -> SubsidySearchResponse:
-    items = subsidy_rag_service.search_profile(
-        req.baby_months, req.region_sido, req.household_size, req.income_tags,
+@router.post("/ask", response_model=SubsidyAskResponse)
+def ask(req: SubsidyAskRequest) -> SubsidyAskResponse:
+    """가족 조건 검색 + 정책 상세 조회 + 근거 기반 LLM 안내."""
+    answer, sources = subsidy_rag_service.ask(
+        question=req.question,
+        months=req.baby_months,
+        sido=req.region_sido,
+        sigungu=req.region_sigungu,
+        household_size=req.household_size,
+        median_income_band=req.median_income_band,
+        household_types=req.household_types,
     )
-    return SubsidySearchResponse(items=items)
+    return SubsidyAskResponse(answer=answer, sources=sources)
+
+
+@router.post("/reindex", response_model=SubsidyReindexResponse)
+def reindex() -> SubsidyReindexResponse:
+    result = subsidy_index_service.reindex_subsidies()
+    return SubsidyReindexResponse.model_validate(result)
+
+
+@router.get("/reindex/status", response_model=SubsidyReindexResponse)
+def reindex_status() -> SubsidyReindexResponse:
+    result = subsidy_index_service.get_reindex_status()
+    return SubsidyReindexResponse.model_validate(result)

@@ -1,14 +1,18 @@
 import jwtAxios from "../util/jwtUtil";
 
 export type AssistCategory = "SUBSIDY" | "CARE" | "VACCINATION";
-
-export const ASSIST_CATEGORIES: AssistCategory[] = [
-  "SUBSIDY",
-  "CARE",
-  "VACCINATION",
-];
-
 export type AssistStatus = "APPLY" | "DONE";
+export type MedianIncomeBand =
+  | "UNDER_50"
+  | "50_TO_75"
+  | "75_TO_100"
+  | "100_TO_120"
+  | "120_TO_150"
+  | "150_TO_180"
+  | "180_TO_200"
+  | "200_TO_250"
+  | "OVER_250"
+  | "UNKNOWN";
 
 export interface ChildContext {
   babyMonths?: number;
@@ -17,7 +21,8 @@ export interface ChildContext {
   regionSido?: string;
   regionSigungu?: string;
   householdSize?: number;
-  incomeTags?: string[];
+  medianIncomeBand?: MedianIncomeBand;
+  householdTypes?: string[];
 }
 
 export interface AssistItem {
@@ -28,25 +33,17 @@ export interface AssistItem {
   source?: string;
   link?: string;
   status?: AssistStatus;
-  sigungu?: string;
-  thema?: string;
-  srvPvsn?: string;
-  sprtCyc?: string;
-  amount?: string;
 }
 
 export interface AssistRecommendRequest {
   query?: string;
-  categories?: AssistCategory[];
   child: ChildContext;
 }
 
 export interface AssistRecommendResponse {
   answer: string;
   items: AssistItem[];
-  updatedAt?: string;
 }
-
 
 export interface AssistRegion {
   regionSido: string;
@@ -55,20 +52,9 @@ export interface AssistRegion {
 }
 
 const prefix = "http://localhost:8080/api/assistant";
+const ASK_TIMEOUT_MS = 90_000;
 
 export const assistantApi = {
-  recommend: async (
-    payload: AssistRecommendRequest,
-  ): Promise<AssistRecommendResponse> => {
-    const res = await jwtAxios.post(`${prefix}/recommend`, payload);
-    return res.data;
-  },
-
-  snapshot: async (): Promise<AssistRecommendResponse> => {
-    const res = await jwtAxios.get(`${prefix}/snapshot`);
-    return res.data;
-  },
-
   getRegion: async (): Promise<AssistRegion> => {
     const res = await jwtAxios.get(`${prefix}/region`);
     return res.data;
@@ -78,8 +64,12 @@ export const assistantApi = {
     await jwtAxios.put(`${prefix}/region`, payload);
   },
 
-  refresh: async (): Promise<AssistRecommendResponse> => {
-    const res = await jwtAxios.post(`${prefix}/refresh`);
+  ask: async (
+    payload: AssistRecommendRequest,
+  ): Promise<AssistRecommendResponse> => {
+    const res = await jwtAxios.post(`${prefix}/ask`, payload, {
+      timeout: ASK_TIMEOUT_MS,
+    });
     return res.data;
   },
 };

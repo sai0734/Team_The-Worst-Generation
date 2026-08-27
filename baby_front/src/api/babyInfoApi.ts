@@ -19,7 +19,7 @@ export interface BabyInfo {
   modTime?: string;
 }
 
-export const getList = async () => {
+export const getList = async (): Promise<BabyInfo[]> => {
   const res = await jwtAxios.get(`${host}/list`);
 
   return res.data;

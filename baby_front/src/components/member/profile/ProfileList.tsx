@@ -11,8 +11,17 @@ interface ProfileListProps {
   onCreate: (parentType: ParentType) => void;
 }
 
-const ProfileList = ({ profiles, selectingId, onSelect, onEdit, onDelete, onCreate }: ProfileListProps) => {
-  const profilesByType = new Map(profiles.map((profile) => [profile.parentType, profile]));
+const ProfileList = ({
+  profiles,
+  selectingId,
+  onSelect,
+  onEdit,
+  onDelete,
+  onCreate,
+}: ProfileListProps) => {
+  const profilesByType = new Map(
+    profiles.map((profile) => [profile.parentType, profile]),
+  );
 
   return (
     <div className="profile-grid">
@@ -29,7 +38,11 @@ const ProfileList = ({ profiles, selectingId, onSelect, onEdit, onDelete, onCrea
             onDelete={onDelete}
           />
         ) : (
-          <EmptyProfileCard key={parentType} parentType={parentType} onCreate={onCreate} />
+          <EmptyProfileCard
+            key={parentType}
+            parentType={parentType}
+            onCreate={onCreate}
+          />
         );
       })}
     </div>
