@@ -15,4 +15,6 @@ public interface BabysitterJobApplicationService {
     void accept(Long applicationNo, String parentEmail);
 
     void reject(Long applicationNo, String parentEmail);
+
+    void cancel(Long applicationNo, String sitterEmail);
 }

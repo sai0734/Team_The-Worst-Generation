@@ -118,14 +118,6 @@ const BabysitterJobListComponent = () => {
 
   return (
     <div>
-      <button
-        type="button"
-        className="btn ghost sitter-back-link"
-        onClick={() => navigate("/community/babysitter")}
-      >
-        ← 시터 목록으로
-      </button>
-
       <div className="seg" style={{ marginBottom: 16 }}>
         <button
           type="button"

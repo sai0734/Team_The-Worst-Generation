@@ -10,10 +10,13 @@
         WHERE application_no = #{applicationNo}
     </select>
 
+    <!-- 취소된(CANCELED) 지원은 제외하고 확인 - 취소 후 재지원이 가능해야 하므로 -->
     <select id="selectOne" resultType="com.backend.babysitter.domain.BabysitterJobApplication">
         SELECT application_no, job_no, sitter_email, message, status, reg_time, mod_time
         FROM tbl_babysitter_job_application
-        WHERE job_no = #{jobNo} AND sitter_email = #{sitterEmail}
+        WHERE job_no = #{jobNo} AND sitter_email = #{sitterEmail} AND status != 'CANCELED'
+        ORDER BY application_no DESC
+        LIMIT 1
     </select>
 
     <select id="selectListByJob" resultType="com.backend.babysitter.domain.BabysitterJobApplication">

@@ -63,7 +63,7 @@ const BabysitterRequestsReceivedComponent = () => {
       <button
         type="button"
         className="btn ghost sitter-back-link"
-        onClick={() => navigate("/community/babysitter")}
+        onClick={() => navigate("/community/babysitter/jobs")}
       >
         ← 목록으로
       </button>

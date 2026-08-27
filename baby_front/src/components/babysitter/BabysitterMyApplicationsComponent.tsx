@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type MouseEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import * as babysitterApi from "../../api/babysitterApi";
 import {
@@ -14,6 +14,23 @@ const BabysitterMyApplicationsComponent = () => {
   useEffect(() => {
     babysitterApi.getMyApplications().then(setList);
   }, []);
+
+  const handleCancel = async (
+    e: MouseEvent,
+    jobNo: number,
+    applicationNo: number,
+  ) => {
+    e.stopPropagation();
+
+    if (!window.confirm("지원을 취소하시겠습니까?")) return;
+
+    await babysitterApi.cancelJobApplication(jobNo, applicationNo);
+    setList((prev) =>
+      prev.map((a) =>
+        a.applicationNo === applicationNo ? { ...a, status: "CANCELED" } : a,
+      ),
+    );
+  };
 
   return (
     <div>
@@ -32,7 +49,11 @@ const BabysitterMyApplicationsComponent = () => {
           <article
             key={a.applicationNo}
             className="card sitter-row"
-            onClick={() => navigate(`/community/babysitter/jobs/${a.jobNo}`)}
+            onClick={() =>
+              navigate(`/community/babysitter/jobs/${a.jobNo}`, {
+                state: { fromApplications: true, applicationNo: a.applicationNo },
+              })
+            }
           >
             <div className="sitter-row-body">
               <div className="name-row">
@@ -42,6 +63,15 @@ const BabysitterMyApplicationsComponent = () => {
                 </span>
               </div>
               {a.message && <div className="meta">{a.message}</div>}
+              {a.status === "PENDING" && (
+                <button
+                  type="button"
+                  className="btn ghost"
+                  onClick={(e) => handleCancel(e, a.jobNo, a.applicationNo)}
+                >
+                  지원 취소
+                </button>
+              )}
             </div>
           </article>
         ))}
