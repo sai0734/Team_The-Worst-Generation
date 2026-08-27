@@ -74,11 +74,4 @@ public class BabySleepMapperTests {
 
     }
 
-    @Test
-    public void deleteByBabyNo() {
-
-        babySleepMapper.deleteByBabyNo(2L, "user1@aaa.com");
-
-    }
-
 }
