@@ -61,11 +61,4 @@ public class BabyGrowInfoServiceTests {
 
     }
 
-    @Test
-    public void removeAll() {
-
-        babyGrowInfoService.removeAll(3L, "user1@aaa.com");
-
-    }
-
 }

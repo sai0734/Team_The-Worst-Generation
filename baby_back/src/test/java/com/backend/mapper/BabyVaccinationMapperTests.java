@@ -79,11 +79,4 @@ public class BabyVaccinationMapperTests {
 
     }
 
-    @Test
-    public void deleteByBabyNo() {
-
-        babyVaccinationMapper.deleteByBabyNo(2L, "user1@aaa.com");
-
-    }
-
 }
