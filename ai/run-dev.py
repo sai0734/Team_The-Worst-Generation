@@ -8,6 +8,7 @@ processes started by this launcher.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import os
 import shutil
 import socket
@@ -77,7 +78,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--setup-python",
         action="store_true",
-        help="Create ai-server/.venv and install its requirements before starting.",
+        help="Force reinstall of ai-server/.venv requirements even if the stamp is current.",
     )
     return parser.parse_args()
 
@@ -143,13 +144,50 @@ def python_executable() -> Path:
     return candidate
 
 
-def setup_python_environment() -> Path:
-    environment_root = PYTHON_SERVER_ROOT / ".venv"
-    if not environment_root.exists():
-        print("[setup] Creating Python virtual environment...")
-        venv.EnvBuilder(with_pip=True).create(environment_root)
+def python_requirements_path() -> Path:
+    return PYTHON_SERVER_ROOT / "requirements.txt"
 
-    executable = python_executable()
+
+def python_requirements_stamp_path() -> Path:
+    return PYTHON_SERVER_ROOT / ".venv" / ".requirements.sha256"
+
+
+def python_requirements_hash() -> str:
+    return hashlib.sha256(python_requirements_path().read_bytes()).hexdigest()
+
+
+def read_python_requirements_stamp() -> str | None:
+    stamp_path = python_requirements_stamp_path()
+    if not stamp_path.is_file():
+        return None
+    stamp = stamp_path.read_text(encoding="utf-8").strip()
+    return stamp or None
+
+
+def write_python_requirements_stamp(value: str) -> None:
+    stamp_path = python_requirements_stamp_path()
+    stamp_path.parent.mkdir(parents=True, exist_ok=True)
+    stamp_path.write_text(value + "\n", encoding="utf-8")
+
+
+def tts_models_ready() -> bool:
+    model_root = PYTHON_SERVER_ROOT / "models" / "tts"
+    supertonic_dir = model_root / "sherpa-onnx-supertonic-3-tts-int8-2026-05-11"
+    required_files = (
+        "duration_predictor.int8.onnx",
+        "text_encoder.int8.onnx",
+        "vector_estimator.int8.onnx",
+        "vocoder.int8.onnx",
+        "tts.json",
+        "unicode_indexer.bin",
+        "voice.bin",
+    )
+    if not all((supertonic_dir / file_name).is_file() for file_name in required_files):
+        return False
+    return (model_root / "ko_KR-kss-medium.onnx").is_file()
+
+
+def install_python_requirements(executable: Path) -> None:
     print("[setup] Installing Python AI server requirements...")
     subprocess.run(
         [
@@ -158,11 +196,15 @@ def setup_python_environment() -> Path:
             "pip",
             "install",
             "-r",
-            str(PYTHON_SERVER_ROOT / "requirements.txt"),
+            str(python_requirements_path()),
         ],
         cwd=PYTHON_SERVER_ROOT,
         check=True,
     )
+    write_python_requirements_stamp(python_requirements_hash())
+
+
+def prepare_tts_models(executable: Path) -> None:
     print("[setup] Preparing local Korean TTS model...")
     subprocess.run(
         [
@@ -173,7 +215,41 @@ def setup_python_environment() -> Path:
         env=load_root_env(),
         check=True,
     )
+
+
+def ensure_python_environment(*, force: bool = False) -> Path:
+    environment_root = PYTHON_SERVER_ROOT / ".venv"
+    created = False
+    if not environment_root.exists():
+        print("[setup] Creating Python virtual environment...")
+        venv.EnvBuilder(with_pip=True).create(environment_root)
+        created = True
+
+    executable = python_executable()
+    current_hash = python_requirements_hash()
+    stamp = read_python_requirements_stamp()
+    dependency_error = python_server_dependency_error(executable)
+    stamp_stale = stamp is not None and stamp != current_hash
+    needs_install = force or created or dependency_error is not None or stamp_stale
+
+    if needs_install:
+        install_python_requirements(executable)
+    elif stamp is None:
+        write_python_requirements_stamp(current_hash)
+        print("[setup] Python AI server requirements already installed. Recorded stamp.")
+    else:
+        print("[setup] Python AI server requirements are up to date.")
+
+    if force or not tts_models_ready():
+        prepare_tts_models(executable)
+    else:
+        print("[setup] Local TTS models already present.")
+
     return executable
+
+
+def setup_python_environment() -> Path:
+    return ensure_python_environment(force=True)
 
 
 def python_server_dependency_error(executable: Path) -> str | None:
@@ -192,9 +268,11 @@ def python_server_dependency_error(executable: Path) -> str | None:
                 "  errors.append(f'{module}: {type(error).__name__}: {error}')\"); "
                 "print('\\n'.join(errors)); sys.exit(bool(errors))"
             ),
+            "chromadb",
             "fastapi",
             "piper",
             "pydantic",
+            "sentence_transformers",
             "sherpa_onnx",
             "uvicorn",
         ],
@@ -210,15 +288,19 @@ def python_server_dependency_error(executable: Path) -> str | None:
     details = completed.stdout.strip() or completed.stderr.strip()
     return details or "Unknown Python dependency error"
 
-def subsidy_index_is_empty(executable: Path) -> bool:
+def subsidy_index_count(executable: Path) -> int | None:
     completed = subprocess.run(
         [
             str(executable),
             "-c",
             (
                 "import chromadb; "
+                "from app.subsidy_config import SUBSIDY_COLLECTION_NAME; "
                 "client = chromadb.PersistentClient(path='data/chroma_subsidies');"
-                "print(client.get_or_create_collection('subsidies').count())"
+                "names = [collection.name for collection in client.list_collections()];"
+                "print('SUBSIDY_INDEX_COUNT=' + "
+                "str(client.get_collection(SUBSIDY_COLLECTION_NAME, embedding_function=None).count() "
+                "if SUBSIDY_COLLECTION_NAME in names else 0))"
             ),
         ],
         cwd=PYTHON_SERVER_ROOT,
@@ -229,11 +311,28 @@ def subsidy_index_is_empty(executable: Path) -> bool:
         check=False,
     )
     if completed.returncode != 0:
-        return True
-    return completed.stdout.strip() in("", 0)
+        details = completed.stderr.strip() or completed.stdout.strip()
+        print(f"[warning] Could not inspect the subsidy vector DB: {details}")
+        return None
+
+    prefix = "SUBSIDY_INDEX_COUNT="
+    for line in reversed(completed.stdout.splitlines()):
+        if line.startswith(prefix):
+            try:
+                return int(line.removeprefix(prefix))
+            except ValueError:
+                break
+
+    print("[warning] Could not read the subsidy vector DB document count.")
+    return None
 
 def ensure_subsidy_index(executable: Path, child_env: dict[str, str]) -> None:
-    if not subsidy_index_is_empty(executable):
+    index_count = subsidy_index_count(executable)
+    if index_count is None:
+        print("[warning] Skipping automatic subsidy indexing because its current state is unknown.")
+        return
+    if index_count > 0:
+        print(f"[index] Existing subsidy vector DB found ({index_count} documents). Skipping initial indexing.")
         return
     # 정부지원금 데이터 비었으면 이 명령어 자동실행시켜서 채워넣음
     print("[index] Subsidy vector DB is empty. Running training/index_subsidies.py once...")
@@ -244,7 +343,7 @@ def ensure_subsidy_index(executable: Path, child_env: dict[str, str]) -> None:
         check=False,
     )
     if completed.returncode != 0:
-        print("[warining] Subsidy indexing failed; subsidy search wil return empty results until it succeeds.")
+        print("[warning] Subsidy indexing failed; subsidy search will return empty results until it succeeds.")
     else:
         print("[index] Subsidy vector DB indexed.")
 
@@ -512,7 +611,7 @@ def run(services: list[Service]) -> int:
     else:
         print(f"[env] Root environment file is missing: {ROOT_ENV}")
         #지원금 벡터DB가 비어있으면 색인을 해라
-        ensure_subsidy_index(python_executable(), child_env)
+    ensure_subsidy_index(python_executable(), child_env)
     managed_processes: list[ManagedProcess] = []
     try:
         print(f"[logs] {LOG_ROOT}")
@@ -564,7 +663,10 @@ def run(services: list[Service]) -> int:
 
 def main() -> int:
     args = parse_args()
-    executable = setup_python_environment() if args.setup_python else python_executable()
+    if args.status or args.stop:
+        executable = python_executable()
+    else:
+        executable = ensure_python_environment(force=args.setup_python)
     services = build_services(executable)
 
     if args.status:

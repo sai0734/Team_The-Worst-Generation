@@ -97,18 +97,39 @@ if /i "%~1"=="start-service" goto start_service
 if /i "%~1"=="stop-service" goto stop_service
 if /i "%~1"=="restart-service" goto restart_service
 
-REM Repair incomplete configuration before launch or service installation.
+REM Skip full setup when the current revision is already applied.
+REM Old installs keep their Node/CLI/plugin build and only refresh config.
 if /i "%~1"=="launch" (
     call :is_configured
     if not errorlevel 1 goto launch
+    call :can_migrate
+    if not errorlevel 1 goto migrate
     echo [setup] Repairing missing or incomplete OpenClaw configuration.
 )
 if /i "%~1"=="install-service" (
     call :is_configured
     if not errorlevel 1 goto install_service
+    call :can_migrate
+    if not errorlevel 1 goto migrate
     echo [setup] Repairing OpenClaw configuration before service installation.
 )
+if "%~1"=="" (
+    call :is_configured
+    if not errorlevel 1 (
+        echo [check] OpenClaw configuration is already up to date.
+        exit /b 0
+    )
+    call :can_migrate
+    if not errorlevel 1 goto migrate
+)
 
+goto apply_config
+
+:migrate
+echo [setup] Updating OpenClaw configuration to revision %SETUP_REVISION%...
+set "SKIP_PLUGIN_BUILD=1"
+
+:apply_config
 call "%OLLAMA_EXE%" show "%MODEL_NAME%" > nul 2>&1
 if errorlevel 1 (
     echo [error] Ollama model is missing: %MODEL_NAME%
@@ -121,9 +142,11 @@ REM Repair the message-dispatcher policy before invoking the CLI.
 call :configure_message_dispatcher_tools optional
 if errorlevel 1 exit /b 1
 
+if defined SKIP_PLUGIN_BUILD goto skip_onboard
 echo [setup] Connecting the OpenClaw Gateway to Ollama...
 call openclaw onboard --auth-choice ollama --skip-health --skip-channels --non-interactive --accept-risk
 if errorlevel 1 exit /b 1
+:skip_onboard
 
 call openclaw models set "ollama/%MODEL_NAME%"
 if errorlevel 1 exit /b 1
@@ -147,6 +170,13 @@ if not exist "%PLUGIN_DIR%\package.json" (
     exit /b 1
 )
 
+if defined SKIP_PLUGIN_BUILD (
+    if exist "%PLUGIN_DIR%\dist" (
+        echo [setup] Skipping Android SMS plugin rebuild because OpenClaw is already installed.
+        goto after_plugin
+    )
+)
+
 echo [setup] Building and validating the Android SMS plugin...
 pushd "%PLUGIN_DIR%"
 call npm ci
@@ -155,15 +185,19 @@ if errorlevel 1 goto plugin_error
 call npm run plugin:build
 if errorlevel 1 goto plugin_error
 
-call npm run plugin:validate
-if errorlevel 1 goto plugin_error
+if not defined SKIP_PLUGIN_BUILD (
+    call npm run plugin:validate
+    if errorlevel 1 goto plugin_error
 
-call npm test
-if errorlevel 1 goto plugin_error
+    call npm test
+    if errorlevel 1 goto plugin_error
+)
 
 call openclaw plugins install "%PLUGIN_DIR%" --force
 if errorlevel 1 goto plugin_error
 popd
+
+:after_plugin
 
 echo [setup] Configuring the message-only agent and loop detection...
 if not exist "%WORKSPACE_SOURCE%\AGENTS.md" (
@@ -333,6 +367,11 @@ if errorlevel 1 (
     exit /b 1
 )
 echo [check] Saved the Gateway token to .env without printing it.
+exit /b 0
+
+:can_migrate
+if not exist "%CONFIG_FILE%" exit /b 1
+if not exist "%OPENCLAW_BIN%\openclaw.cmd" exit /b 1
 exit /b 0
 
 :is_configured

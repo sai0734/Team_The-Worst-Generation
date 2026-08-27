@@ -96,19 +96,14 @@
 }
 
 .app .assist-filters {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
   margin: 0 0 10px;
   padding: 8px;
   border: 1px solid var(--line);
   border-radius: 12px;
   background: var(--soft);
-}
-@media (max-width: 520px) {
-  .app .assist-filters {
-    grid-template-columns: 1fr;
-  }
 }
 
 .app .gov-subsidy-panel {
@@ -266,19 +261,98 @@
 }
 
 .app .assist-filter-group label {
-  font-size: 10px;
+  font-size: 11.5px;
   font-weight: 800;
   color: var(--muted);
 }
 
-.app .assist-filter-group input {
+.app .assist-filter-group input,
+.app .assist-filter-group select {
   width: 100%;
   box-sizing: border-box;
   border: 1px solid var(--line);
   border-radius: 8px;
-  padding: 6px 8px;
-  font-size: 12px;
+  padding: 10px 11px;
+  font-size: 13px;
+  font-family: inherit;
   background: #fff;
+}
+
+.app .assist-filter-group label span {
+  margin-left: 4px;
+  font-weight: 600;
+}
+
+.app .assist-location-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.app .assist-current-location {
+  align-self: flex-start;
+  width: auto;
+  border: 1px solid var(--accent);
+  border-radius: 99px;
+  padding: 6px 11px;
+  background: var(--glass);
+  color: var(--accent);
+  font-family: inherit;
+  font-size: 10.5px;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.app .assist-current-location:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.app .assist-household-types .assist-tag-group {
+  margin-bottom: 0;
+}
+
+.app .assist-choice-section {
+  margin: 0 0 12px;
+}
+
+.app .assist-income-options {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.app .assist-guide-submit {
+  width: 100%;
+  margin-top: 4px;
+}
+
+.app .assist-guide-notice {
+  margin-top: 8px;
+  text-align: center;
+}
+
+.app .assist-guide-answer {
+  margin-top: 14px;
+}
+
+.app .assist-guide-answer > p {
+  white-space: pre-wrap;
+}
+
+.app .assist-guide-sources {
+  margin-top: 10px;
+  padding: 8px 0 0;
+  border-top: 1px dashed var(--line);
+  list-style: none;
+}
+
+.app .assist-guide-sources li + li {
+  margin-top: 6px;
+}
+
+@media (max-width: 520px) {
+  .app .assist-income-options {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
 .app .assist-sections {
@@ -329,6 +403,28 @@
   margin: 0;
   font-size: 10px;
   color: var(--muted);
+}
+
+.app .assist-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin: 2px 0 4px !important;
+}
+
+.app .assist-badge {
+  font-size: 9px;
+  font-weight: 800;
+  padding: 2px 6px;
+  border-radius: 99px;
+  background: var(--soft);
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.app .assist-badge.amount {
+  color: var(--accent);
+  border: 1px solid var(--accent);
 }
 
 .app .assist-empty {
@@ -529,8 +625,15 @@
   border: 1px solid var(--line);
   font-size: 13px;
   font-weight: 700;
+  font-family: inherit;
   color: var(--ink);
   white-space: nowrap;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.app .home-ticker-chip:hover {
+  background: var(--hover, var(--soft));
+  border-color: var(--accent);
 }
 
 .app .home-ticker-chip i {
@@ -643,12 +746,15 @@
 .app .gov-hero-cta {
   display: inline-flex;
   padding: 10px 18px;
+  border: 0;
   border-radius: 8px;
   background: #fff;
   color: #c2452d;
   font-size: 12.5px;
   font-weight: 800;
+  font-family: inherit;
   text-decoration: none;
+  cursor: pointer;
 }
 .app .gov-hero-emoji {
   font-size: 84px;
@@ -706,6 +812,12 @@
   border: 1px solid var(--line);
   border-radius: 14px;
   box-shadow: 0 4px 16px rgba(0, 45, 90, 0.06);
+}
+/* 랜딩페이지 MORE 섹션에서 해시 링크로 들어와 자동 스크롤될 때, 좁은 화면의 fixed 헤더에
+   가려지지 않도록 여유를 둠 */
+#dashboard-recall,
+#dashboard-subsidy {
+  scroll-margin-top: 90px;
 }
 
 .app .gov-quest-card {

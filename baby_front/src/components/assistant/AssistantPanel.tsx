@@ -2,9 +2,101 @@ import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import {
   assistantApi,
   type AssistItem,
+  type MedianIncomeBand,
 } from "../../api/assistantApi";
 import * as babyInfoApi from "../../api/babyInfoApi";
+import type { BabyInfo } from "../../api/babyInfoApi";
 import useCustomLogin from "../../hooks/useCustomLogin";
+import { loadKakaoMapScript } from "../../util/kakaoMapLoader";
+
+
+const SIDO_OPTIONS = [
+  "서울특별시", "부산광역시", "대구광역시", "인천광역시", "광주광역시",
+  "대전광역시", "울산광역시", "세종특별자치시", "경기도", "강원특별자치도",
+  "충청북도", "충청남도", "전북특별자치도", "전라남도", "경상북도",
+  "경상남도", "제주특별자치도",
+];
+
+const SIDO_ALIASES: Record<string, string> = {
+  서울: "서울특별시", 부산: "부산광역시", 대구: "대구광역시", 인천: "인천광역시",
+  광주: "광주광역시", 대전: "대전광역시", 울산: "울산광역시", 세종: "세종특별자치시",
+  경기: "경기도", 강원: "강원특별자치도", 충북: "충청북도", 충남: "충청남도",
+  전북: "전북특별자치도", 전남: "전라남도", 경북: "경상북도", 경남: "경상남도",
+  제주: "제주특별자치도",
+};
+
+const normalizeSido = (value: string): string => {
+  const trimmed = value.trim();
+  if (SIDO_OPTIONS.includes(trimmed)) return trimmed;
+  const alias = Object.keys(SIDO_ALIASES).find((key) => trimmed.includes(key));
+  return alias ? SIDO_ALIASES[alias] : trimmed;
+};
+
+const HOUSEHOLD_SIZES = Array.from({ length: 5 }, (_, index) => ({
+  value: index + 1,
+  label: `${index + 1}명`,
+}));
+
+const MEDIAN_INCOME_2026: Record<number, number> = {
+  1: 2_564_238,
+  2: 4_199_292,
+  3: 5_359_036,
+  4: 6_494_738,
+  5: 7_556_719,
+};
+
+interface IncomeRatioOption {
+  value: MedianIncomeBand;
+  minRatio?: number;
+  maxRatio?: number;
+}
+
+const INCOME_RATIO_OPTIONS: IncomeRatioOption[] = [
+  { value: "UNDER_50", maxRatio: 50 },
+  { value: "50_TO_75", minRatio: 50, maxRatio: 75 },
+  { value: "75_TO_100", minRatio: 75, maxRatio: 100 },
+  { value: "100_TO_120", minRatio: 100, maxRatio: 120 },
+  { value: "120_TO_150", minRatio: 120, maxRatio: 150 },
+  { value: "150_TO_180", minRatio: 150, maxRatio: 180 },
+  { value: "180_TO_200", minRatio: 180, maxRatio: 200 },
+  { value: "200_TO_250", minRatio: 200, maxRatio: 250 },
+  { value: "OVER_250", minRatio: 250 },
+];
+
+const incomeInTenThousands = (baseIncome: number, ratio: number): number =>
+  Math.round((baseIncome * ratio) / 100 / 10_000);
+
+const incomeOptionLabel = (
+  option: IncomeRatioOption,
+  householdSize: number,
+  index: number,
+): string => {
+  const baseIncome = MEDIAN_INCOME_2026[householdSize];
+  if (!baseIncome) return "가구원 수를 먼저 선택해 주세요";
+
+  const prefix = `${index + 1}구간 - `;
+  if (option.minRatio == null && option.maxRatio != null) {
+    return `${prefix}월 ${incomeInTenThousands(baseIncome, option.maxRatio)}만원 이하`;
+  }
+  if (option.minRatio != null && option.maxRatio == null) {
+    return `${prefix}월 ${incomeInTenThousands(baseIncome, option.minRatio)}만원 초과`;
+  }
+  return `${prefix}월 ${incomeInTenThousands(baseIncome, option.minRatio!)}~${incomeInTenThousands(baseIncome, option.maxRatio!)}만원`;
+};
+
+const HOUSEHOLD_TYPES = [
+  "맞벌이·양육공백",
+  "한부모·조손",
+  "다자녀",
+  "다태아·쌍둥이",
+  "장애아동",
+  "장애부모",
+  "다문화가정",
+  "입양·가정위탁",
+  "청소년 부모",
+  "미숙아·선천성이상아",
+  "임신·출산 예정",
+];
 
 const ageInMonthsFromBirth = (birthDate: string): number => {
   const birth = new Date(birthDate);
@@ -16,59 +108,127 @@ const ageInMonthsFromBirth = (birthDate: string): number => {
   return Math.max(months, 0);
 };
 
-const INCOME_TAGS = ["저소득층", "차상위계층", "한부모·조손", "다자녀", "장애인가구"];
+interface AdministrativeRegion {
+  sido: string;
+  sigungu: string;
+}
 
-const PAGE_SIZE = 5;
+interface KakaoRegionResult {
+  region_type: string;
+  region_1depth_name: string;
+  region_2depth_name: string;
+}
 
-const PolicyCards = ({ items }: { items: AssistItem[] }) => {
-  const [shown, setShown] = useState(PAGE_SIZE);
+interface KakaoMapsForRegion {
+  services?: {
+    Geocoder: new () => {
+      coord2RegionCode: (
+        longitude: number,
+        latitude: number,
+        callback: (result: KakaoRegionResult[], status: string) => void,
+      ) => void;
+    };
+    Status: { OK: string };
+  };
+}
 
-  useEffect(() => {
-    setShown(PAGE_SIZE);
-  }, [items]);
+interface KakaoWindowForRegion {
+  kakao?: { maps?: KakaoMapsForRegion };
+}
 
-  if (items.length === 0) {
-    return <p className="assist-empty">아이 나이와 거주지를 입력하고 정책 찾기를 눌러 주세요.</p>;
-  }
+const getCurrentPosition = (): Promise<GeolocationPosition> =>
+  new Promise((resolve, reject) => {
+    if (!navigator.geolocation) {
+      reject(new Error("이 브라우저에서는 현재 위치를 사용할 수 없습니다."));
+      return;
+    }
 
-  const visible = items.slice(0, shown);
-  const rest = items.length - visible.length;
+    navigator.geolocation.getCurrentPosition(resolve, reject, {
+      enableHighAccuracy: false,
+      timeout: 10_000,
+      maximumAge: 5 * 60 * 1_000,
+    });
+  });
 
-  return (
-    <>
-      <ul className="assist-cards">
-        {visible.map((it, idx) => {
-          const done = it.status === "DONE";
-          return (
-            <li key={it.id || `${it.title}-${idx}`}>
-              <div>
-                <h4>{it.title}</h4>
-                <p>{it.summary}</p>
-              </div>
-              {done ? (
-                <span className="assist-status done">지급완료</span>
-              ) : (
-                <a
-                  className="assist-status apply"
-                  href={it.link || "https://www.bokjiro.go.kr"}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  신청하기
-                </a>
-              )}
-            </li>
-          );
-        })}
-      </ul>
-      {rest > 0 ? (
-        <button type="button" className="assist-more" onClick={() => setShown((n) => n + PAGE_SIZE)}>
-          {rest}개 더보기
-        </button>
-      ) : null}
-    </>
-  );
+const coordinatesToRegion = async (
+  latitude: number,
+  longitude: number,
+): Promise<AdministrativeRegion> => {
+  await loadKakaoMapScript();
+
+  return new Promise((resolve, reject) => {
+    const kakaoMaps = (window as unknown as KakaoWindowForRegion).kakao?.maps;
+    if (!kakaoMaps?.services) {
+      reject(new Error("카카오 주소 변환 서비스를 불러오지 못했습니다."));
+      return;
+    }
+
+    const geocoder = new kakaoMaps.services.Geocoder();
+    geocoder.coord2RegionCode(
+      longitude,
+      latitude,
+      (result, status) => {
+        if (status !== kakaoMaps.services.Status.OK || result.length === 0) {
+          reject(new Error("현재 위치의 행정구역을 확인하지 못했습니다."));
+          return;
+        }
+
+        const region = result.find((item) => item.region_type === "H") ?? result[0];
+        resolve({
+          sido: normalizeSido(region.region_1depth_name ?? ""),
+          // 세종처럼 2단계 행정구역명이 비어 있는 경우에는 시·도명을 함께 사용한다.
+          sigungu: region.region_2depth_name || region.region_1depth_name || "",
+        });
+      },
+    );
+  });
 };
+
+const LINK_PATTERN = /(https?:\/\/[^\s]+)/g;
+const GUIDE_STORAGE_PREFIX = "babycare.subsidyGuide.";
+
+interface StoredSubsidyGuide {
+  answer: string;
+  sources: AssistItem[];
+  householdSize: number | null;
+  medianIncomeBand: MedianIncomeBand;
+  householdTypes: string[];
+}
+
+const guideStorageKey = (email: string) => `${GUIDE_STORAGE_PREFIX}${email}`;
+
+const loadStoredGuide = (email: string): StoredSubsidyGuide | null => {
+  if (!email) return null;
+  try {
+    const raw = localStorage.getItem(guideStorageKey(email));
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<StoredSubsidyGuide>;
+    if (typeof parsed.answer !== "string" || !parsed.answer.trim()) return null;
+    return {
+      answer: parsed.answer,
+      sources: Array.isArray(parsed.sources) ? parsed.sources : [],
+      householdSize: typeof parsed.householdSize === "number" ? parsed.householdSize : null,
+      medianIncomeBand: parsed.medianIncomeBand ?? "UNKNOWN",
+      householdTypes: Array.isArray(parsed.householdTypes) ? parsed.householdTypes : [],
+    };
+  } catch {
+    return null;
+  }
+};
+
+const saveStoredGuide = (email: string, guide: StoredSubsidyGuide) => {
+  if (!email) return;
+  localStorage.setItem(guideStorageKey(email), JSON.stringify(guide));
+};
+
+const linkedAnswer = (text: string) =>
+  text.split(LINK_PATTERN).map((part, index) =>
+    part.startsWith("http://") || part.startsWith("https://") ? (
+      <a key={`${part}-${index}`} href={part} target="_blank" rel="noreferrer">{part}</a>
+    ) : (
+      part
+    ),
+  );
 
 interface AssistantPanelProps {
   className?: string;
@@ -76,156 +236,160 @@ interface AssistantPanelProps {
 }
 
 const AssistantPanel = ({ className, style }: AssistantPanelProps) => {
-  const { isLogin } = useCustomLogin();
+  const { isLogin, loginState } = useCustomLogin();
+  const email = loginState.email ?? "";
   const [months, setMonths] = useState(6);
-  const [hasBaby, setHasBaby] = useState(false);
+  const [babies, setBabies] = useState<BabyInfo[]>([]);
+  const [selectedBabyNo, setSelectedBabyNo] = useState<number | null>(null);
   const [sido, setSido] = useState("");
   const [sigungu, setSigungu] = useState("");
-  const [householdSize, setHouseholdSize] = useState<number | "">("");
-  const [incomeTags, setIncomeTags] = useState<string[]>([]);
-  const [items, setItems] = useState<AssistItem[]>([]);
+  const [householdSize, setHouseholdSize] = useState<number | null>(null);
+  const [medianIncomeBand, setMedianIncomeBand] = useState<MedianIncomeBand>("UNKNOWN");
+  const [householdTypes, setHouseholdTypes] = useState<string[]>([]);
   const [answer, setAnswer] = useState("");
-  const [updatedAt, setUpdatedAt] = useState("");
-  const [saving, setSaving] = useState(false);
-  const [savingRegion, setSavingRegion] = useState(false);
-  const [savedMsg, setSavedMsg] = useState("");
-  const [expanded, setExpanded] = useState(false);
-  const [question, setQuestion] = useState("");
-  const [asking, setAsking] = useState(false);
-  const [askAnswer, setAskAnswer] = useState("");
-  const [askSources, setAskSources] = useState<AssistItem[]>([]);
+  const [sources, setSources] = useState<AssistItem[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [locating, setLocating] = useState(false);
 
   useEffect(() => {
     if (!isLogin) {
+      // 로그아웃한 사용자의 가족·지역 정보가 화면에 남지 않도록 즉시 초기화한다.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setSido("");
       setSigungu("");
       setMonths(6);
-      setHasBaby(false);
-      setItems([]);
+      setBabies([]);
+      setSelectedBabyNo(null);
+      setHouseholdSize(null);
+      setMedianIncomeBand("UNKNOWN");
+      setHouseholdTypes([]);
       setAnswer("");
-      setUpdatedAt("");
+      setSources([]);
       return;
     }
 
     let cancelled = false;
-    const load = async () => {
+    const stored = loadStoredGuide(email);
+    if (stored) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setAnswer(stored.answer);
+      setSources(stored.sources);
+      setHouseholdSize(stored.householdSize);
+      setMedianIncomeBand(stored.medianIncomeBand);
+      setHouseholdTypes(stored.householdTypes);
+    }
+
+    const loadProfile = async () => {
       try {
-        const [region, snap, babies] = await Promise.all([
+        const [region, babies] = await Promise.all([
           assistantApi.getRegion(),
-          assistantApi.snapshot(),
           babyInfoApi.getList().catch(() => []),
         ]);
         if (cancelled) return;
-        setSido(region.regionSido ?? "");
+        setSido(normalizeSido(region.regionSido ?? ""));
         setSigungu(region.regionSigungu ?? "");
 
+        setBabies(babies);
         if (babies.length > 0) {
           const youngest = [...babies].sort((a, b) =>
             b.birthDate.localeCompare(a.birthDate),
           )[0];
-          setHasBaby(true);
+          setSelectedBabyNo(youngest.babyNo ?? null);
           setMonths(ageInMonthsFromBirth(youngest.birthDate));
-        } else {
-          setHasBaby(false);
-          if (region.babyMonths != null && region.babyMonths >= 0) {
-            setMonths(region.babyMonths);
-          }
+        } else if (region.babyMonths != null && region.babyMonths >= 0) {
+          setMonths(region.babyMonths);
         }
-
-        setAnswer(snap.answer);
-        setItems(snap.items ?? []);
-        setUpdatedAt(snap.updatedAt ?? "");
-      } catch {
-        if (!cancelled) {
-          setAnswer("저장된 지원금 목록을 불러오지 못했습니다.");
-          setItems([]);
-        }
+      } catch (error) {
+        console.error(error);
       }
     };
 
-    void load();
+    void loadProfile();
     return () => {
       cancelled = true;
     };
-  }, [isLogin]);
+  }, [email, isLogin]);
 
-  const regionLabel = [sido, sigungu].filter(Boolean).join(" ");
-  const profileLine = useMemo(
-    () => `${months}개월 · ${regionLabel || "거주지 미입력"}`,
-    [months, regionLabel],
+  const selectedBaby = useMemo(
+    () => babies.find((baby) => baby.babyNo === selectedBabyNo) ?? null,
+    [babies, selectedBabyNo],
   );
-  
 
-  const saveRegionOnly = async () => {
-    setSavingRegion(true);
-    setSavedMsg("");
+  const profileLine = useMemo(
+    () => `${selectedBaby?.babyName ?? "아이"} ${months}개월 · ${[sido, sigungu].filter(Boolean).join(" ") || "거주지 미입력"}`,
+    [months, selectedBaby, sido, sigungu],
+  );
+
+  const changeBaby = (babyNo: number) => {
+    const baby = babies.find((item) => item.babyNo === babyNo);
+    setSelectedBabyNo(babyNo);
+    if (baby) setMonths(ageInMonthsFromBirth(baby.birthDate));
+  };
+
+  const handleUseCurrentLocation = async () => {
+    setLocating(true);
     try {
-      await assistantApi.saveRegion({
-        regionSido: sido.trim(),
-        regionSigungu: sigungu.trim(),
-        babyMonths: months,
-      });
-      setSavedMsg("지역이 저장되었습니다.");
-    } catch (e) {
-      console.error(e);
-      setSavedMsg("저장에 실패했어요.");
+      const position = await getCurrentPosition();
+      const region = await coordinatesToRegion(
+        position.coords.latitude,
+        position.coords.longitude,
+      );
+      setSido(region.sido);
+      setSigungu(region.sigungu);
+    } catch (error) {
+      console.error(error);
     } finally {
-      setSavingRegion(false);
+      setLocating(false);
     }
   };
 
-  const saveAndSearch = async () => {
-    setExpanded(true);
-    setSaving(true);
-    setSavedMsg("");
+  const toggleHouseholdType = (type: string) => {
+    setHouseholdTypes((current) =>
+      current.includes(type)
+        ? current.filter((item) => item !== type)
+        : [...current, type],
+    );
+  };
+
+  const requestGuide = async () => {
+    if (!sido.trim() || !sigungu.trim() || householdSize == null) {
+      setAnswer("거주지와 가족 구성원 수만 선택하면 바로 확인할 수 있어요.");
+      return;
+    }
+
+    setLoading(true);
+    setAnswer("");
+    setSources([]);
     try {
       await assistantApi.saveRegion({
         regionSido: sido.trim(),
         regionSigungu: sigungu.trim(),
         babyMonths: months,
       });
-      const res = await assistantApi.recommend({
-        categories: ["SUBSIDY"],
+      const response = await assistantApi.ask({
         child: {
           babyMonths: months,
-          regionSido: sido,
-          householdSize: householdSize === "" ? undefined : householdSize,
-          incomeTags,
+          regionSido: sido.trim(),
+          regionSigungu: sigungu.trim(),
+          householdSize,
+          medianIncomeBand,
+          householdTypes,
         },
       });
-      setAnswer(res.answer);
-      setItems(res.items ?? []);
-      setUpdatedAt(new Date().toISOString());
-    } catch (e) {
-      console.error(e);
-      setAnswer("지원금 목록을 만들지 못했어요. 백엔드와 공공 API 키를 확인해 주세요.");
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const toggleIncomeTags = (tag: string) =>
-    setIncomeTags((prev) =>
-      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag],
-    );
-
-  const askQuestion = async () => {
-    if (!question.trim()) return;
-    setAsking(true);
-    setAskAnswer("");
-    setAskSources([]);
-    try {
-      const res = await assistantApi.ask({
-        query: question.trim(),
-        child: { babyMonths: months, regionSido: sido },
+      setAnswer(response.answer);
+      setSources(response.items ?? []);
+      saveStoredGuide(email, {
+        answer: response.answer,
+        sources: response.items ?? [],
+        householdSize,
+        medianIncomeBand,
+        householdTypes,
       });
-      setAskAnswer(res.answer);
-      setAskSources(res.items ?? []);
-    } catch (e) {
-      console.error(e);
-      setAskAnswer("답변을 가져오지 못했어요.");
+    } catch (error) {
+      console.error(error);
+      setAnswer("맞춤 지원금 안내를 가져오지 못했어요. 잠시 후 다시 시도해 주세요.");
     } finally {
-      setAsking(false);
+      setLoading(false);
     }
   };
 
@@ -235,229 +399,157 @@ const AssistantPanel = ({ className, style }: AssistantPanelProps) => {
       className={`gov-card gov-subsidy-panel${className ? ` ${className}` : ""}`}
       style={style}
     >
-      {!expanded ? (
-        <div className="gov-subsidy-collapsed">
-          <h3>
-            <span className="assist-ai-mark" aria-hidden>
-              ✦
-            </span>
-            AI 정부지원금
-          </h3>
-          <p className="assist-hint">
-            아이 나이(개월)와 거주지를 입력한 뒤 정책 찾기를 눌러 주세요.
-          </p>
-
-          <div className="assist-filters">
-            <div className="assist-filter-group">
-              <label htmlFor="assist-months">아이 나이(개월)</label>
-              <input
-                id="assist-months"
-                type="number"
-                min={0}
-                placeholder="예: 8"
-                value={months}
-                disabled={!isLogin || hasBaby}
-                onChange={(e) => setMonths(Number(e.target.value) || 0)}
-              />
-              {hasBaby ? (
-                <small className="assist-hint">등록된 아이 정보로 자동 계산됨</small>
-              ) : null}
-            </div>
-            <div className="assist-filter-group">
-              <label htmlFor="assist-sido">시/도</label>
-              <input
-                id="assist-sido"
-                type="text"
-                placeholder="예: 서울"
-                value={sido}
-                disabled={!isLogin}
-                onChange={(e) => setSido(e.target.value)}
-              />
-            </div>
-            <div className="assist-filter-group">
-              <label htmlFor="assist-sigungu">시/군/구</label>
-              <input
-                id="assist-sigungu"
-                type="text"
-                placeholder="예: 강남구"
-                value={sigungu}
-                disabled={!isLogin}
-                onChange={(e) => setSigungu(e.target.value)}
-              />
-            </div>
-          </div>
-
-          <button
-            type="button"
-            className="gov-subsidy-cta"
-            onClick={() => void saveAndSearch()}
-            disabled={!isLogin || saving}
-          >
-            {saving ? "찾는 중…" : "AI 정부지원금 찾기"}
-          </button>
+      <div className="assist-panel-head">
+        <div className="assist-panel-copy">
+          <h3><span className="assist-ai-mark" aria-hidden>✦</span> 우리 가족 정부지원금 안내</h3>
+          <p className="assist-profile">{profileLine}</p>
         </div>
-      ) : (
-        <>
+      </div>
+
+      <div className="assist-filters">
+        <div className="assist-filter-group">
+          <label htmlFor={babies.length > 0 ? "assist-baby" : "assist-months"}>아이</label>
+          {babies.length > 0 ? (
+            <select
+              id="assist-baby"
+              value={selectedBabyNo ?? ""}
+              disabled={!isLogin}
+              onChange={(event) => changeBaby(Number(event.target.value))}
+            >
+              {babies.map((baby) => (
+                <option key={baby.babyNo ?? baby.babyName} value={baby.babyNo}>
+                  {baby.babyName} ({ageInMonthsFromBirth(baby.birthDate)}개월)
+                </option>
+              ))}
+            </select>
+          ) : (
+            <input
+              id="assist-months"
+              type="number"
+              min={0}
+              value={months}
+              disabled={!isLogin}
+              aria-label="아이 나이(개월)"
+              onChange={(event) => setMonths(Number(event.target.value) || 0)}
+            />
+          )}
+        </div>
+        <div className="assist-filter-group assist-location-group">
+          <label htmlFor="assist-sido">거주 지역</label>
           <button
             type="button"
-            className="gov-subsidy-close"
-            onClick={() => setExpanded(false)}
+            className="assist-current-location"
+            disabled={!isLogin || locating}
+            onClick={() => void handleUseCurrentLocation()}
           >
-            <span aria-hidden>▲</span>
-            검색창으로 접기
+            {locating ? "현재 위치 확인 중…" : "현재 위치로 지역 설정"}
           </button>
-          <div className="assist-panel-head">
-            <div className="assist-panel-copy">
-              <h3>
-                <span className="assist-ai-mark" aria-hidden>
-                  ✦
-                </span>
-                AI 정부지원금
-              </h3>
-              {isLogin ? <p className="assist-profile">{profileLine}</p> : null}
-              <p className="assist-hint">
-                아이 나이(개월)와 거주지를 입력한 뒤 정책 찾기를 눌러 주세요.
-              </p>
-              {updatedAt && !Number.isNaN(new Date(updatedAt).getTime()) ? (
-                <p className="assist-hint">
-                  마지막 갱신 {new Date(updatedAt).toLocaleTimeString("ko-KR")}
-                </p>
-              ) : null}
-              {savedMsg ? <p className="assist-hint">{savedMsg}</p> : null}
-            </div>
-            {isLogin ? (
-              <div className="assist-panel-actions">
-                <button
-                  type="button"
-                  className="assist-save"
-                  onClick={() => void saveRegionOnly()}
-                  disabled={savingRegion}
-                >
-                  {savingRegion ? "저장 중…" : "지역 저장"}
-                </button>
-                <button
-                  type="button"
-                  className="assist-edit"
-                  onClick={() => void saveAndSearch()}
-                  disabled={saving}
-                >
-                  {saving ? "찾는 중…" : "정책 찾기"}
-                </button>
-              </div>
-            ) : null}
+          <div className="assist-location-fields">
+            <select
+              id="assist-sido"
+              value={sido}
+              disabled={!isLogin}
+              aria-label="시·도"
+              onChange={(event) => {
+                setSido(event.target.value);
+                setSigungu("");
+              }}
+            >
+              <option value="">시·도 선택</option>
+              {SIDO_OPTIONS.map((option) => <option key={option}>{option}</option>)}
+            </select>
+            <input
+              id="assist-sigungu"
+              type="text"
+              placeholder="시·군·구"
+              value={sigungu}
+              disabled={!isLogin || !sido}
+              aria-label="시·군·구"
+              onChange={(event) => setSigungu(event.target.value)}
+            />
           </div>
-
-          <div className="assist-filters">
-            <div className="assist-filter-group">
-              <label htmlFor="assist-months">아이 나이(개월)</label>
-              <input
-                id="assist-months"
-                type="number"
-                min={0}
-                placeholder="예: 8"
-                value={months}
-                disabled={!isLogin || hasBaby}
-                onChange={(e) => setMonths(Number(e.target.value) || 0)}
-              />
-              {hasBaby ? (
-                <small className="assist-hint">등록된 아이 정보로 자동 계산됨</small>
-              ) : null}
-            </div>
-            <div className="assist-filter-group">
-              <label htmlFor="assist-sido">시/도</label>
-              <input
-                id="assist-sido"
-                type="text"
-                placeholder="예: 서울"
-                value={sido}
-                disabled={!isLogin}
-                onChange={(e) => setSido(e.target.value)}
-              />
-            </div>
-            <div className="assist-filter-group">
-              <label htmlFor="assist-sigungu">시/군/구</label>
-              <input
-                id="assist-sigungu"
-                type="text"
-                placeholder="예: 강남구"
-                value={sigungu}
-                disabled={!isLogin}
-                onChange={(e) => setSigungu(e.target.value)}
-              />
-            </div>
-            <div className="assist-filter-group">
-              <label htmlFor="assist-household">가족구성원수</label>
-              <input
-                id="assist-household"
-                type="number"
-                min={1}
-                placeholder="예: 4"
-                value={householdSize}
-                disabled={!isLogin}
-                onChange={(e) =>
-                  setHouseholdSize(e.target.value ? Number(e.target.value) : "")
-                }
-              />
-            </div>
-          </div>
-
-          <div className="assist-tag-group" role="group" aria-label="가구유형">
-            {INCOME_TAGS.map((tag) => (
+        </div>
+        <div className="assist-filter-group">
+          <label htmlFor="assist-household-size">가족 구성원 수</label>
+          <select
+            id="assist-household-size"
+            value={householdSize ?? ""}
+            disabled={!isLogin}
+            onChange={(event) => {
+              setHouseholdSize(Number(event.target.value) || null);
+              setMedianIncomeBand("UNKNOWN");
+            }}
+          >
+            <option value="">선택해 주세요</option>
+            {HOUSEHOLD_SIZES.map((option) => (
+              <option key={option.value} value={option.value}>{option.label}</option>
+            ))}
+          </select>
+        </div>
+        <div className="assist-filter-group">
+          <label htmlFor="assist-income">월 가구소득</label>
+          <select
+            id="assist-income"
+            value={medianIncomeBand}
+            disabled={!isLogin || householdSize == null}
+            onChange={(event) => setMedianIncomeBand(event.target.value as MedianIncomeBand)}
+          >
+            <option value="UNKNOWN">
+              {householdSize == null ? "가족 구성원 수를 먼저 선택해 주세요" : "잘 모르겠어요"}
+            </option>
+            {householdSize != null ? INCOME_RATIO_OPTIONS.map((option, index) => (
+              <option key={option.value} value={option.value}>
+                {incomeOptionLabel(option, householdSize, index)}
+              </option>
+            )) : null}
+          </select>
+        </div>
+        <div className="assist-filter-group assist-household-types">
+          <label>가구 특성</label>
+          <div className="assist-tag-group" role="group" aria-label="가구 특성">
+            {HOUSEHOLD_TYPES.map((type) => (
               <button
-                key={tag}
+                key={type}
                 type="button"
-                className={`assist-tag${incomeTags.includes(tag) ? " is-on" : ""}`}
-                onClick={() => toggleIncomeTags(tag)}
+                className={`assist-tag${householdTypes.includes(type) ? " is-on" : ""}`}
+                aria-pressed={householdTypes.includes(type)}
                 disabled={!isLogin}
+                onClick={() => toggleHouseholdType(type)}
               >
-                {tag}
+                {type}
               </button>
             ))}
           </div>
+        </div>
+      </div>
 
-          <div className="assist-ask">
-            <label htmlFor="assist-question">AI에게 물어보기</label>
-            <div>
-              <input
-                id="assist-question"
-                type="text"
-                placeholder="예: 다자녀 가구가 받을 수 있는 지원금은?"
-                value={question}
-                disabled={!isLogin}
-                onChange={(e) => setQuestion(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter") void askQuestion();
-                }}
-              />
-            </div>
-            <div>
-              <button type="button" onClick={() => void askQuestion()} disabled={!isLogin || asking}>
-                {asking ? "생각 중…" : "질문하기"}
-              </button>
-            </div>
-            {askAnswer ? (
-              <div className="assist-ask-answer">
-                <p>{askAnswer}</p>
-                {askSources.length > 0 ? (
-                  <p className="assist-ask-sources">
-                    출처:{" "}
-                    {askSources.map((s, idx) => (
-                      <span key={s.id || idx}>
-                        <a href={s.link || "https://www.bokjiro.go.kr"} target="_blank" rel="noreferrer">
-                          {s.title}
-                        </a>
-                        {idx < askSources.length - 1 ? ", " : ""}
-                      </span>
-                    ))}
-                  </p>
-                ) : null}
-              </div>
-            ) : null}
-          </div>
+      <button
+        type="button"
+        className="gov-subsidy-cta assist-guide-submit"
+        disabled={!isLogin || loading}
+        onClick={() => void requestGuide()}
+      >
+        {loading ? "우리 가족 지원금을 확인하는 중…" : "내 지원금 한 번에 확인"}
+      </button>
 
-          <PolicyCards items={items} />
-        </>
-      )}
+      {!isLogin ? <p className="assist-hint assist-guide-notice">로그인하면 가족 정보로 확인할 수 있어요.</p> : null}
+
+      {answer ? (
+        <div className="assist-ask-answer assist-guide-answer">
+          <p>{linkedAnswer(answer)}</p>
+          {sources.length > 0 ? (
+            <ul className="assist-guide-sources">
+              {sources.map((source) => (
+                <li key={source.id}>
+                  <a href={source.link || "https://www.bokjiro.go.kr"} target="_blank" rel="noreferrer">
+                    {source.title}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </div>
+      ) : null}
     </article>
   );
 };

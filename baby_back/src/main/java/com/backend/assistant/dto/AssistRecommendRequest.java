@@ -20,6 +20,7 @@ public static class ChildContext {
     private String regionSido;
     private String regionSigungu;
     private Integer householdSize;
-    private List<String> incomeTags;
+    private String medianIncomeBand;
+    private List<String> householdTypes;
     }
 }
