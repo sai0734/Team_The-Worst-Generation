@@ -65,9 +65,8 @@ const AlbumGridComponent = ({
       });
 
       setList((prev) => (reset ? result.dtoList : [...prev, ...result.dtoList]));
-      // 수정 시작 - 그룹 단위 페이지네이션용 result.next 대신, totalCount 기준으로 직접 계산
+      // 그룹 단위 페이지네이션용 result.next 대신, totalCount 기준으로 직접 계산
       setHasMore(pageToLoad * PAGE_SIZE < result.totalCount);
-      // 수정 끝
     } catch (err) {
       alert("앨범을 불러오지 못했습니다.");
       console.error(err);

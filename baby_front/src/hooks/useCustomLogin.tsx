@@ -1,9 +1,7 @@
 import { useDispatch, useSelector } from "react-redux";
 import { createSearchParams, Navigate, useNavigate } from "react-router-dom";
 import { loginPostAsync, logout } from "../slices/loginSlice";
-// 추가 시작
 import { clearCurrentBaby } from "../slices/babySlice";
-// 추가 끝
 import type { AppDispatch, RootState } from "../store";
 import type { LoginParam, LoginResponse } from "../types/member";
 
@@ -26,9 +24,7 @@ const useCustomLogin = () => {
     //---------------로그아웃 함수
 
     dispatch(logout());
-    // 추가 시작
     dispatch(clearCurrentBaby());
-    // 추가 끝
   };
 
   const moveToPath = (path: string) => {

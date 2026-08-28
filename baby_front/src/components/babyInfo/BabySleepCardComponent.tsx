@@ -148,16 +148,29 @@ const BabySleepCardComponent = ({ babyNo }: BabySleepCardProps) => {
   };
 
   const getTodaySegments = () => {
-    const todayStr = toDateStr(new Date());
+    // "시작일이 오늘"이 아니라 "오늘(0시~24시)과 겹치는 구간"으로 판단 + 음수 폭 방지
+    const today = new Date();
+    const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    const todayEnd = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
 
     return list
-      .filter((item) => item.startTime.slice(0, 10) === todayStr)
+      .filter((item) => {
+        const start = new Date(item.startTime);
+        const end = item.endTime ? new Date(item.endTime) : new Date();
+        return start < todayEnd && end > todayStart;
+      })
       .map((item) => {
         const start = new Date(item.startTime);
         const end = item.endTime ? new Date(item.endTime) : new Date();
 
-        const startMinutes = start.getHours() * 60 + start.getMinutes();
-        const endMinutes = end.getHours() * 60 + end.getMinutes();
+        const clampedStart = start < todayStart ? todayStart : start;
+        const clampedEnd = end > todayEnd ? todayEnd : end;
+
+        const startMinutes = (clampedStart.getTime() - todayStart.getTime()) / (60 * 1000);
+        const endMinutes = Math.max(
+          startMinutes,
+          (clampedEnd.getTime() - todayStart.getTime()) / (60 * 1000)
+        );
 
         const left = (startMinutes / (24 * 60)) * 100;
         const width = ((endMinutes - startMinutes) / (24 * 60)) * 100;
@@ -187,7 +200,8 @@ const BabySleepCardComponent = ({ babyNo }: BabySleepCardProps) => {
 
       const start = new Date(item.startTime);
       const end = item.endTime ? new Date(item.endTime) : new Date();
-      const hours = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
+      // 시작시간이 아직 안 지난 미래 시각이면 음수가 나오므로 0으로 clamp
+      const hours = Math.max(0, (end.getTime() - start.getTime()) / (1000 * 60 * 60));
 
       if (item.sleepType === "낮잠") {
         day.nap += hours;

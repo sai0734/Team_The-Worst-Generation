@@ -130,10 +130,8 @@ public class BabySleepServiceImpl implements BabySleepService {
         }
 
         Set<LocalDate> recordedDates = new HashSet<>();
-
         for (BabySleep sleep : allSleep) {
             LocalDate date = sleep.getStartTime().toLocalDate();
-
             if (date.isBefore(startDate) || date.isAfter(today)) {
                 continue;
             }
