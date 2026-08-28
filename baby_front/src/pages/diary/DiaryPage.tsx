@@ -19,7 +19,7 @@ const DiaryPage = () => {
   }
 
   return (
-    <div className="w-full flex flex-col gap-6 py-4">
+    <div className="w-full max-w-[1200px] mx-auto flex flex-col gap-6 py-4">
       {babyList.length > 1 && (
         <div className="flex flex-wrap gap-2">
           {babyList.map((baby) => (
