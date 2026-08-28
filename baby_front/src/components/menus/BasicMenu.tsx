@@ -106,10 +106,9 @@ const BasicMenu = () => {
     )
     .sort((a, b) => b.to.length - a.to.length)[0]?.code;
 
-  // hover 중이면 그걸 우선 보여주고, hover가 끝나면 현재 위치한 메뉴의 서브메뉴로 되돌아간다(완전히 닫히지 않음)
-  const activeItem = NAV_ITEMS.find(
-    (item) => item.code === (hovered ?? routeActiveCode),
-  );
+  // 수정 시작 - 호버 중일 때만 서브메뉴 표시(클릭해서 이동하거나 마우스가 벗어나면 완전히 닫힘)
+  const activeItem = NAV_ITEMS.find((item) => item.code === hovered);
+  // 수정 끝
   const closeSubnav = () => setHovered(null);
 
   // 좁은 화면에서는 상단 탭(.primary-nav)이 숨겨지므로 햄버거 버튼으로 대체 메뉴를 연다.
