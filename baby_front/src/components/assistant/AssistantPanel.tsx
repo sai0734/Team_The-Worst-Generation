@@ -16,6 +16,12 @@ const SIDO_OPTIONS = [
   "충청북도", "충청남도", "전북특별자치도", "전라남도", "경상북도",
   "경상남도", "제주특별자치도",
 ];
+const SEOUL_SIGUNGU_OPTIONS = [
+  "종로구", "중구", "용산구", "성동구", "광진구", "동대문구", "중랑구",
+  "성북구", "강북구", "도봉구", "노원구", "은평구", "서대문구", "마포구",
+  "양천구", "강서구", "구로구", "금천구", "영등포구", "동작구", "관악구",
+  "서초구", "강남구", "송파구", "강동구", "아이봄동",
+];
 
 const SIDO_ALIASES: Record<string, string> = {
   서울: "서울특별시", 부산: "부산광역시", 대구: "대구광역시", 인천: "인천광역시",
@@ -458,15 +464,30 @@ const AssistantPanel = ({ className, style }: AssistantPanelProps) => {
               <option value="">시·도 선택</option>
               {SIDO_OPTIONS.map((option) => <option key={option}>{option}</option>)}
             </select>
-            <input
-              id="assist-sigungu"
-              type="text"
-              placeholder="시·군·구"
-              value={sigungu}
-              disabled={!isLogin || !sido}
-              aria-label="시·군·구"
-              onChange={(event) => setSigungu(event.target.value)}
-            />
+            {sido === "서울특별시" ? (
+              <select
+                id="assist-sigungu"
+                value={sigungu}
+                disabled={!isLogin}
+                aria-label="시·군·구"
+                onChange={(event) => setSigungu(event.target.value)}
+              >
+                <option value="">시·군·구 선택</option>
+                {SEOUL_SIGUNGU_OPTIONS.map((option) => (
+                  <option key={option} value={option}>{option}</option>
+                ))}
+              </select>
+            ) : (
+              <input
+                id="assist-sigungu"
+                type="text"
+                placeholder="시·군·구"
+                value={sigungu}
+                disabled={!isLogin || !sido}
+                aria-label="시·군·구"
+                onChange={(event) => setSigungu(event.target.value)}
+              />
+            )}
           </div>
         </div>
         <div className="assist-filter-group">
@@ -544,6 +565,7 @@ const AssistantPanel = ({ className, style }: AssistantPanelProps) => {
                   <a href={source.link || "https://www.bokjiro.go.kr"} target="_blank" rel="noreferrer">
                     {source.title}
                   </a>
+                  {source.source ? <span> · {source.source}</span> : null}
                 </li>
               ))}
             </ul>

@@ -29,6 +29,7 @@ BACKEND_ROOT = PROJECT_ROOT / "baby_back"
 FRONTEND_ROOT = PROJECT_ROOT / "baby_front"
 PYTHON_SERVER_ROOT = AI_ROOT / "ai-server"
 SUBSIDY_INDEX_SCRIPT = PYTHON_SERVER_ROOT / "training" / "index_subsidies.py"
+SUBSIDY_DOCUMENT_INDEX_SCRIPT = PYTHON_SERVER_ROOT / "training" / "index_subsidy_documents.py"
 OPENCLAW_ROOT = AI_ROOT / "openclaw"
 ROOT_ENV = PROJECT_ROOT / ".env"
 LOG_ROOT = Path(tempfile.gettempdir()) / "babycare-dev-logs"
@@ -348,6 +349,76 @@ def ensure_subsidy_index(executable: Path, child_env: dict[str, str]) -> None:
         print("[index] Subsidy vector DB indexed.")
 
 
+def subsidy_document_index_state(executable: Path) -> tuple[int, int, bool] | None:
+    completed = subprocess.run(
+        [
+            str(executable),
+            "-c",
+            (
+                "import chromadb; "
+                "from app.subsidy_config import SUBSIDY_DOCUMENT_COLLECTION_NAME; "
+                "from app.services.subsidy_document_index_service import build_document_records; "
+                "expected=set(build_document_records()); "
+                "client = chromadb.PersistentClient(path='data/chroma_subsidies');"
+                "names = [collection.name for collection in client.list_collections()];"
+                "existing=set(client.get_collection(SUBSIDY_DOCUMENT_COLLECTION_NAME, embedding_function=None)"
+                ".get(include=['metadatas'])['ids']) "
+                "if SUBSIDY_DOCUMENT_COLLECTION_NAME in names else set();"
+                "print('SUBSIDY_DOCUMENT_INDEX_STATE=' + "
+                "f'{len(expected)},{len(existing)},{int(expected == existing)}')"
+            ),
+        ],
+        cwd=PYTHON_SERVER_ROOT,
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        check=False,
+    )
+    if completed.returncode != 0:
+        details = completed.stderr.strip() or completed.stdout.strip()
+        print(f"[warning] Could not inspect the subsidy document index: {details}")
+        return None
+    prefix = "SUBSIDY_DOCUMENT_INDEX_STATE="
+    for line in reversed(completed.stdout.splitlines()):
+        if line.startswith(prefix):
+            try:
+                expected, existing, current = line.removeprefix(prefix).split(",")
+                return int(expected), int(existing), bool(int(current))
+            except (ValueError, TypeError):
+                break
+    print("[warning] Could not read the subsidy document index state.")
+    return None
+
+
+def ensure_subsidy_document_index(executable: Path, child_env: dict[str, str]) -> None:
+    state = subsidy_document_index_state(executable)
+    if state is None:
+        print("[warning] Skipping automatic Word document indexing because its state is unknown.")
+        return
+    expected_count, existing_count, is_current = state
+    if expected_count == 0:
+        print("[warning] No Word source documents were found. Skipping document indexing.")
+        return
+    if is_current:
+        print(f"[index] Word document index is current ({existing_count} chunks). Skipping indexing.")
+        return
+    print(
+        "[index] Word document index changed "
+        f"(source={expected_count}, indexed={existing_count}). Reindexing..."
+    )
+    completed = subprocess.run(
+        [str(executable), str(SUBSIDY_DOCUMENT_INDEX_SCRIPT)],
+        cwd=PYTHON_SERVER_ROOT,
+        env=child_env,
+        check=False,
+    )
+    if completed.returncode != 0:
+        print("[warning] Word document indexing failed; owned-document RAG will be unavailable.")
+    else:
+        print("[index] Word document index created.")
+
+
 def windows_batch_command(script_or_command: str, *arguments: str) -> list[str]:
     if os.name != "nt":
         return [script_or_command, *arguments]
@@ -610,8 +681,9 @@ def run(services: list[Service]) -> int:
         print(f"[env] Loaded {len(root_env_values)} variables from {ROOT_ENV}")
     else:
         print(f"[env] Root environment file is missing: {ROOT_ENV}")
-        #지원금 벡터DB가 비어있으면 색인을 해라
+    #지원금 벡터DB가 비어있으면 색인을 해라
     ensure_subsidy_index(python_executable(), child_env)
+    ensure_subsidy_document_index(python_executable(), child_env)
     managed_processes: list[ManagedProcess] = []
     try:
         print(f"[logs] {LOG_ROOT}")
