@@ -64,8 +64,7 @@
 **[트러블슈팅](#-트러블슈팅)**
 
 **[주요 기능](#-주요-기능)** ·
-**[반응형 웹](#-반응형-웹)** ·
-**[배포](#-배포)** ·
+**[AWS 배포](#-aws-배포)** ·
 **[마무리](#-마무리)**
 
 </div>
@@ -141,6 +140,8 @@
 <td>
 
 ![Ollama](https://img.shields.io/badge/Ollama_qwen3-000000?style=for-the-badge&logo=ollama&logoColor=white)
+![Ollama Vision](https://img.shields.io/badge/Ollama_Vision_qwen2.5vl-000000?style=for-the-badge&logo=ollama&logoColor=white)
+![VARCO-VISION](https://img.shields.io/badge/VARCO--VISION_2.0-5C3EE8?style=for-the-badge)
 ![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)
 ![Python](https://img.shields.io/badge/Python-3776AB?style=for-the-badge&logo=python&logoColor=white)
 ![scikit-learn](https://img.shields.io/badge/scikit--learn-F7931E?style=for-the-badge&logo=scikitlearn&logoColor=white)
@@ -203,6 +204,8 @@
 <div align="center">
 
 ![Docker Compose](https://img.shields.io/badge/Docker_Compose-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+
+<sub>Docker Desktop 하나만 있으면 6개 서비스가 한 번에</sub>
 
 </div>
 
@@ -309,30 +312,6 @@ ai\openclaw\setup-openclaw.cmd launch
 
 ## 📁 프로젝트 구조
 
-```mermaid
-flowchart LR
-    ROOT["📦 Team_The-Worst-Generation"]
-
-    ROOT --> FE["🖥 baby_front<br/>React 18 · Vite · TS · RTK"]
-    ROOT --> BE["⚙️ baby_back<br/>Spring Boot 3.5 · Java 21 · MyBatis"]
-    ROOT --> AI["🤖 ai"]
-    ROOT --> DK["🐳 docker · docker-compose.yml<br/>6개 서비스 오케스트레이션"]
-
-    FE --> FES["src/<br/>api · components · pages · router<br/>slices · hooks · layouts · styles"]
-
-    BE --> BES["src/main/java/com/backend/<br/>도메인 패키지 26개 + global"]
-    BES --> BE1["auth · babyInfo · diary · album<br/>ledger · recall · babysitter · community"]
-    BES --> BE2["market · quest · assistant · health<br/>allergy · homecam · crycheck · hospital · story"]
-    BES --> BE3["global/<br/>config · security · advice"]
-
-    AI --> AIS["ai-server/<br/>FastAPI — 수면·홈캠·동화·리콜·지원금"]
-    AI --> AIO["ollama/<br/>Modelfile (parenting-qwen:8b)"]
-    AI --> AIC["openclaw/<br/>SMS 발송 에이전트 + Android 브리지"]
-```
-
-<details>
-<summary>텍스트 트리로 보기</summary>
-
 ```
 Team_The-Worst-Generation/
 ├── baby_front/                      # React 18 + Vite + TypeScript
@@ -356,8 +335,6 @@ Team_The-Worst-Generation/
 └── docker-compose.yml              # MariaDB · Backend · Frontend · Python AI · Ollama · OpenClaw
 ```
 
-</details>
-
 <div align="right"><a href="#-목차"><sub>▲ 목차로</sub></a></div>
 
 <img width="100%" src="https://capsule-render.vercel.app/api?type=rect&color=0:FFD6A5,100:FFAAA5&height=3" />
@@ -374,8 +351,9 @@ Team_The-Worst-Generation/
 <td align="center"><a href="https://github.com/GITHUB_ID"><img src="https://www.gravatar.com/avatar/0?d=mp&f=y&s=128" width="64" /></a></td>
 <td align="center"><a href="https://github.com/GITHUB_ID"><b>황용현</b></a><br/><sub>팀장</sub></td>
 <td><ul>
-<li>아이 등록·대시보드 — 성장·접종·수면 Recharts 시각화 + Python AI 수면 분석</li>
+<li>아이 등록·대시보드 — 성장·접종·수면 기록 Recharts 시각화</li>
 <li>육아일기·앨범 — 무한 스크롤·페이징, exifr, 드래그 앤 드롭, Toss 결제, AI 일기 자동 작성·영상 생성</li>
+<li>AI 수면 조언 — scikit-learn 패턴 분석 + qwen3 조언 생성</li>
 <li>AI 행동교정 — 뉴스·유튜브 + qwen3 3단계</li>
 <li>Custom Hooks — 아이 정보 RTK 전역</li>
 </ul></td>
@@ -425,6 +403,7 @@ Team_The-Worst-Generation/
 <li>알레르기 성분표 검사 — 성분표 OCR로 알레르기 성분 대조</li>
 <li>건강관리 — 피부/대변 사진 체크</li>
 <li>산책로 추천 — 도메인 프론트 구현</li>
+<li>전역 테마 — 공통 스타일 구축 (theme.css)</li>
 </ul></td>
 </tr>
 </table>
@@ -439,19 +418,23 @@ Team_The-Worst-Generation/
 
 ## 📐 설계 산출물
 
-### 핵심 ERD
+### 🗂 핵심 ERD
 
 <div align="center">
 <img src="image/erd-diagram.png" alt="핵심 ERD" width="90%" />
 </div>
 
-### 유스케이스 다이어그램
+---
+
+### 🔗 유스케이스 다이어그램
 
 <div align="center">
 <img src="image/usecase-diagram.png" alt="유스케이스 다이어그램" width="90%" />
 </div>
 
-### WBS
+---
+
+### 📅 WBS
 
 <div align="center">
 <img src="image/wbs.png" alt="WBS" width="90%" />
@@ -466,8 +449,6 @@ Team_The-Worst-Generation/
 <!-- ============================================================= -->
 
 ## ⚡ 성능 최적화
-
----
 
 ### ① 베이비시터 채팅 안읽음 배지 &nbsp;—&nbsp; 단일 쿼리 설계
 
@@ -497,11 +478,23 @@ Team_The-Worst-Generation/
 
 <kbd>React.lazy</kbd> <kbd>Suspense</kbd> <kbd>IntersectionObserver</kbd> <kbd>useCallback</kbd> &nbsp;·&nbsp; 적용 범위: 13/14 라우터
 
+**① 무한 스크롤 — 옵저버 재생성 방지 (`useCallback`)**
+
 <table>
-<tr><th align="center" width="50%">🔴 Before <sub>(렌더 시간)</sub></th><th align="center" width="50%">🟢 After <sub>(렌더 시간)</sub></th></tr>
+<tr><th align="center" width="50%">🔴 Before</th><th align="center" width="50%">🟢 After</th></tr>
 <tr>
-<td><img src="image/opt2-before.png" width="100%" /></td>
-<td><img src="image/opt2-after.png" width="100%" /></td>
+<td align="center"><img src="image/opt2-scroll-before.png" width="100%" /></td>
+<td align="center"><img src="image/opt2-scroll-after.png" width="100%" /></td>
+</tr>
+</table>
+
+**② 코드 스플리팅 — 라우트·벤더 청크 분리 (`React.lazy`)**
+
+<table>
+<tr><th align="center" width="50%">🔴 Before</th><th align="center" width="50%">🟢 After</th></tr>
+<tr>
+<td align="center"><img src="image/opt2-split-before.png" width="100%" /></td>
+<td align="center"><img src="image/opt2-split-after.png" width="100%" /></td>
 </tr>
 </table>
 
@@ -509,19 +502,32 @@ Team_The-Worst-Generation/
 - **무한 스크롤** — `IntersectionObserver`로 스크롤 하단을 감지해 다음 사진들을 자동으로 이어붙임
 - **`useCallback`** — 스크롤 감지 콜백을 고정해, 리렌더마다 옵저버가 재생성되어 감지가 끊기거나 오작동하는 문제를 방지
 
+**코드 — React.lazy + IntersectionObserver**
+
+```tsx
+// recallRouter.tsx (13/14개 라우터에 동일 패턴)
+const List = lazy(() => import("../pages/recall/RecallListPage"));
+<Suspense fallback={Loading}>...</Suspense>
+```
+
+```tsx
+// AlbumGridComponent.tsx:44-54
+const sentinelRef = useCallback((node: HTMLDivElement | null) => {
+  if (observerRef.current) observerRef.current.disconnect();
+  observerRef.current = new IntersectionObserver((entries) => {
+    if (entries[0].isIntersecting) {
+      setPage((prev) => prev + 1);
+    }
+  });
+  if (node) observerRef.current.observe(node);
+}, []);
+```
+
 ---
 
 ### ③ AI 산책 추천 &nbsp;—&nbsp; 좌표 기반 캐싱
 
 <kbd>@Cacheable</kbd> <kbd>Caffeine</kbd> &nbsp;·&nbsp; 적용 화면: 산책 코스 추천
-
-<table>
-<tr><th align="center" width="50%">🔴 Before <sub>(매 요청마다 호출)</sub></th><th align="center" width="50%">🟢 After <sub>(격자 캐시 공유)</sub></th></tr>
-<tr>
-<td><img src="image/opt3-before.png" width="100%" /></td>
-<td><img src="image/opt3-after.png" width="100%" /></td>
-</tr>
-</table>
 
 - `KakaoLocalClient.searchNearbyParks()`에 `@Cacheable` 적용 — 동일 조건 재요청 시 Kakao API를 다시 호출하지 않음
 - 캐시 키: 위·경도를 소수점 3자리로 반올림(약 90~111m 격자) — 같은 동네 사용자끼리 캐시 공유
@@ -533,7 +539,40 @@ Team_The-Worst-Generation/
 | 캐시 공유 범위 | 요청자 개별 (공유 없음) | 약 100m 격자 내 사용자끼리 공유 | 캐시 적중률 향상 |
 | 캐시 관리 | 없음 | Caffeine, TTL 30분, 최대 1000건 | 메모리 상한 확보 |
 
+**코드 — @Cacheable 키 설계 · Caffeine 설정**
+
+```java
+// KakaoLocalClient.java
+@Cacheable(value = "nearbyParks",
+    key = "Math.round(#lat*1000)+'_'+Math.round(#lng*1000)+'_'+#radiusM")
+public List<KakaoPlace> searchNearbyParks(double lat, double lng, int radiusM)
+```
+
+```java
+// CacheConfig.java  (알러지 성분 캐싱과 공유하는 전역 CacheManager)
+cacheManager.setCaffeine(
+  Caffeine.newBuilder()
+    .expireAfterWrite(30, TimeUnit.MINUTES)
+    .maximumSize(1000));
+```
+
 ---
+
+### ④ 반응형 웹 &nbsp;—&nbsp; 디바이스별 레이아웃 대응
+
+<kbd>CSS Flexbox/Grid</kbd> <kbd>Media Query</kbd>
+
+- PC·태블릿·모바일 등 다양한 디바이스 환경에 맞춰 레이아웃이 자동으로 변경되도록 구현해 어떤 화면에서도 최적의 UI 제공
+- 화면 크기에 따라 컴포넌트의 크기·배치·여백을 유동적으로 조정해 가독성과 사용성을 높이고 직관적인 사용자 경험 제공
+- 다양한 해상도·브라우저 환경에서도 일관된 UI/UX를 유지하도록 반응형 웹을 적용해 접근성과 호환성 향상
+
+<table>
+<tr><th align="center">💻 Web</th><th align="center">📱 App</th></tr>
+<tr>
+<td><img src="image/responsive-web.png" width="100%" /></td>
+<td><img src="image/responsive-app.png" width="100%" /></td>
+</tr>
+</table>
 
 <div align="right"><a href="#-목차"><sub>▲ 목차로</sub></a></div>
 
@@ -545,51 +584,82 @@ Team_The-Worst-Generation/
 
 ## 🧯 트러블슈팅
 
----
-
-### ① 정부지원금 RAG &nbsp;—&nbsp; 상세 정보 부족으로 답변이 모호함
-
-| 🔴 문제 | 🔍 원인 | 🟢 해결 |
-| --- | --- | --- |
-| 검색 결과는 나오지만 자격조건·선정기준·신청방법 답변이 모호하게 생성 | 벡터DB에 목록 API의 제목·요약·기본 대상만 저장, 선정기준·신청방법은 별도 상세 API에 존재 | 검색 상위 지원금만 국가·지자체 상세 API로 추가 조회, 병렬 호출 + `timeout(4.0)` + `lru_cache`, 실패 시 벡터DB 데이터로 fallback |
+### ① 지자체 지원금 색인 &nbsp;—&nbsp; 다른 정책의 대상 정보가 섞여 저장됨
 
 <table>
-<tr><th align="center" width="50%">🔴 Before</th><th align="center" width="50%">🟢 After</th></tr>
-<tr>
-<td><img src="image/trouble1-before.png" width="100%" /></td>
-<td><img src="image/trouble1-after.png" width="100%" /></td>
-</tr>
+<tr><td width="86" align="center">🔴<br/><b>문제</b></td><td>지자체 지원금을 색인할 때 그 정책이 아닌 <b>다른 정책의 대상 정보</b>가 저장되어, 실제 지원 대상과 RAG 답변의 대상 조건이 불일치. 여러 지자체 정책에 같은 대상 조건이 붙어 벡터 검색 결과가 왜곡됨</td></tr>
+<tr><td align="center">🔍<br/><b>원인</b></td><td><code>target</code> 변수를 중앙부처 지원금 반복문 안에서만 선언 → 지자체 반복문은 현재 <code>item</code>의 대상 정보를 다시 읽지 않고 <b>마지막 중앙부처 지원금의 <code>target</code>을 재사용</b>. 중앙부처·지자체 색인 로직이 중복돼 필드 초기화가 누락됨</td></tr>
+<tr><td align="center">🟢<br/><b>해결</b></td><td>정책 1건을 변환하는 <code>_policy_record()</code> 공통 함수로 통합 — 함수 안에서 매 <code>item</code>마다 대상·생애주기·지역을 새로 추출하고 중앙부처·지자체를 동일 로직으로 처리. 지자체 정책이 자기 대상 정보를 쓰는지 검증하는 테스트 추가</td></tr>
 </table>
 
-- 자격조건·선정기준·지원내용·신청방법·문의처·공식 링크를 AI 컨텍스트에 추가 → 구체적인 답변 생성
-- 상세 API 장애·timeout 발생 시에도 기존 데이터로 정상 답변 제공, 공식 링크를 함께 제공해 근거 확인 가능
+- 각 지자체 지원금에 해당 정책 고유의 대상 정보가 정상 저장 → 잘못된 값이 임베딩·Metadata에 섞이는 **데이터 오염 방지**
+- 중복 색인 로직을 공통 함수로 합쳐 유지보수성 향상, 대상·생애주기·지역에 대한 자동 테스트로 동일 문제 재발 방지
+
+**코드 — `_policy_record()`에서 item별 대상 정보 재추출**
+
+```python
+# 지원금 색인 — 정책 1건을 문서·메타데이터로 변환 (중앙부처·지자체 공통)
+target = str(
+    item.get("trgterIndvdlArray") or item.get("sprtTrgtCn") or ""
+).strip()
+life_stage = str(
+    item.get("lifeArray") or item.get("lifeNmArray") or ""
+).strip()
+sido = str(item.get("ctpvNm") or "").strip() if local else ""
+sigungu = str(item.get("sggNm") or "").strip() if local else ""
+
+document_parts = [f"정책명: {title}"]
+if target:     document_parts.append(f"대상: {target}")
+if life_stage: document_parts.append(f"생애주기: {life_stage}")
+region = " ".join(filter(None, (sido, sigungu)))
+if region:     document_parts.append(f"지역: {region}")
+
+metadata = {
+    **_stage_flags(life_stage),
+    "target": target, "life_stage": life_stage,
+    "sido": sido, "sigungu": sigungu,
+}
+```
 
 ---
 
 ### ② 문자 발송 중복 방지 &nbsp;(OpenClaw 연동)
 
-| 🔴 문제 | 🔍 원인 | 🟢 해결 |
-| --- | --- | --- |
-| 같은 요청이 재시도되면 문자가 중복 발송될 위험 | 발송 결과의 멱등성 보장 장치와 응답 무결성 검증이 없었음 | 문자 발송 전용 `message-dispatcher` 워크스페이스로 에이전트 분리, 요청/반환 `missionId` 불일치 시 즉시 실패, 같은 `missionId` 재전달 시 실제 발송 대신 기존 결과 반환 |
+<table>
+<tr><td width="86" align="center">🔴<br/><b>문제</b></td><td>LLM 에이전트가 도구를 반복 호출하거나 네트워크 재시도가 나면 <b>같은 문자가 여러 번 발송</b>될 수 있음. 응답 실패로 판단해도 Android에서는 이미 발송된 뒤라 단순 재시도가 곧 중복 발송</td></tr>
+<tr><td align="center">🔍<br/><b>원인</b></td><td>프롬프트로 "한 번만 호출"을 지시해도 도구 호출 횟수를 보장 못 함. 동일 요청과 새 요청을 구분할 공통 식별자가 없고, Spring·OpenClaw·네트워크 각 구간에서 재시도가 발생</td></tr>
+<tr><td align="center">🟢<br/><b>해결</b></td><td>요청마다 <code>msg_ + UUID</code> 형식의 <code>missionId</code> 발급. 일반 대화와 문자 발송을 분리해 <code>message-dispatcher</code> 전용 워크스페이스로 격리(<code>android_sms_send</code>만 허용). 처리된 <code>missionId</code>·결과를 캐시해 같은 ID엔 기존 결과 반환, 요청/반환 ID 불일치 시 즉시 실패, JSON 외 응답은 거부</td></tr>
+</table>
 
 <table>
-<tr><th align="center" width="50%">🔴 Before</th><th align="center" width="50%">🟢 After</th></tr>
+<tr><th align="center" width="50%">🚨 SOS 응급실 요청</th><th align="center" width="50%">📅 병원 예약 접수</th></tr>
 <tr>
-<td><img src="image/trouble2-before.png" width="100%" /></td>
-<td><img src="image/trouble2-after.png" width="100%" /></td>
+<td align="center"><img src="image/trouble2-sms-sos.png" width="45%" /></td>
+<td align="center"><img src="image/trouble2-sms-booking.png" width="45%" /></td>
 </tr>
 </table>
 
-- 에이전트 반복 종료 — 같은 실행에서 도구가 다시 호출되면 즉시 실행 종료
-- 장애 추적 개선 — `missionId` 하나로 Spring → OpenClaw → 플러그인 → Android 전 구간 추적
+- `missionId` 하나로 Spring → OpenClaw → 플러그인 → Android 전 구간 추적
+- 같은 실행에서 도구가 다시 호출되면 즉시 종료, `missionId` 변경·다른 미션 결과 반환 시 Spring이 차단
+
+**코드 — 요청/반환 `missionId` 검증**
+
+```java
+// MessageMissionDispatchServiceImpl.java
+if (!missionId.equals(resultMissionId)) {
+  throw new OpenClawGatewayException("OPENCLAW_MISSION_ID_MISMATCH");
+}
+```
 
 ---
 
 ### ③ AI 육아일기 이미지 리사이징
 
-| 🔴 문제 | 🔍 원인 | 🟢 해결 |
-| --- | --- | --- |
-| 사진에 따라 AI 일기 생성이 되기도 안 되기도 하고, 응답 속도 편차가 큼 | 백엔드가 원본 이미지를 base64로 그대로 Python에 전달 → 카메라 사진에서 타임아웃, 메모리 100% 근접 | Python에서 `image.thumbnail((1536, 1536), Image.LANCZOS)`로 축소 후 VARCO-VISION에 전달 (1536px 이하 원본은 그대로) |
+<table>
+<tr><td width="86" align="center">🔴<br/><b>문제</b></td><td>사진에 따라 AI 일기 생성이 되기도 안 되기도 하고, 응답 속도 편차가 큼</td></tr>
+<tr><td align="center">🔍<br/><b>원인</b></td><td>백엔드가 원본 이미지를 base64로 그대로 Python에 전달 → 카메라 사진에서 타임아웃, 메모리 100% 근접</td></tr>
+<tr><td align="center">🟢<br/><b>해결</b></td><td>Python에서 <code>image.thumbnail((1536, 1536), Image.LANCZOS)</code>로 축소 후 VARCO-VISION에 전달 (1536px 이하 원본은 그대로)</td></tr>
+</table>
 
 <table>
 <tr><th align="center" width="50%">🔴 Before</th><th align="center" width="50%">🟢 After</th></tr>
@@ -602,7 +672,23 @@ Team_The-Worst-Generation/
 - 고화질 사진에서도 타임아웃·메모리 부족 없이 정상 작동
 - 이미지 크기가 줄어든 만큼 결과 처리 속도 개선, 화질 손실이 가장 적은 LANCZOS 필터 사용
 
----
+**코드 — Python 리사이징 · 백엔드 원본 전송**
+
+```python
+# diary_vision_service.py — Python에서 이미지 리사이징
+image.thumbnail((MAX_IMAGE_DIMENSION, MAX_IMAGE_DIMENSION), Image.LANCZOS)
+```
+
+```java
+// DiaryVisionClient.java — 백엔드는 원본을 base64로 그대로 전송
+String base64Image = Base64.getEncoder().encodeToString(imageBytes);
+JsonObject body = new JsonObject();
+body.addProperty("imageBase64", base64Image);
+HttpRequest request = HttpRequest.newBuilder()
+    .uri(URI.create(baseUrl + "/api/v1/diary/generate"))
+    .POST(HttpRequest.BodyPublishers.ofString(body.toString()))
+    .build();
+```
 
 <div align="right"><a href="#-목차"><sub>▲ 목차로</sub></a></div>
 
@@ -619,25 +705,26 @@ Team_The-Worst-Generation/
 <tr>
 <td align="center">👶<br/><b>아이 등록·대시보드</b></td>
 <td align="center">📔<br/><b>육아일기·앨범</b></td>
+<td align="center">😴<br/><b>수면 조언</b></td>
 <td align="center">🧭<br/><b>AI 행동교정</b></td>
 <td align="center">💰<br/><b>AI 가계부</b></td>
-<td align="center">🔔<br/><b>리콜 알림</b></td>
 </tr>
 <tr>
+<td align="center">🔔<br/><b>리콜 알림</b></td>
 <td align="center">💬<br/><b>커뮤니티</b></td>
 <td align="center">🤝<br/><b>베이비시터</b></td>
 <td align="center">🧾<br/><b>알레르기</b></td>
 <td align="center">🩺<br/><b>건강 체크</b></td>
-<td align="center">🚶<br/><b>산책로 추천</b></td>
 </tr>
 <tr>
+<td align="center">🚶<br/><b>산책로 추천</b></td>
 <td align="center">🥔<br/><b>감자마켓</b></td>
 <td align="center">📹<br/><b>홈캠 감지</b></td>
 <td align="center">🔊<br/><b>울음소리</b></td>
 <td align="center">🔐<br/><b>로그인·가족</b></td>
-<td align="center">🚑<br/><b>병원·SOS</b></td>
 </tr>
 <tr>
+<td align="center">🚑<br/><b>병원·SOS</b></td>
 <td align="center">📖<br/><b>맞춤 동화</b></td>
 <td align="center">📋<br/><b>일일 퀘스트</b></td>
 <td align="center">🏛️<br/><b>정부지원금</b></td>
@@ -659,9 +746,14 @@ Team_The-Worst-Generation/
 
 - 아이 정보 등록부터 성장·예방접종·수면 기록까지 한 곳에서 CRUD
 - 아이 정보는 최상단 Page에서 props로 내려주고, 없으면 아이 등록 페이지로 이동
-- 최근 7일 수면 기록을 `TreeMap` + `HashSet`으로 집계해 Python AI가 패턴 분석·조언 제공
+- 성장·접종·수면 기록을 Recharts로 시각화해 한눈에 확인
 
-<img src="image/demo-babyinfo.gif" width="100%" />
+<table>
+<tr>
+<td align="center" width="50%"><img src="image/demo-babyinfo-1.gif" width="100%" /><br/><sub><b>아이 등록</b></sub></td>
+<td align="center" width="50%"><img src="image/demo-babyinfo-2.gif" width="100%" /><br/><sub><b>우리 아이</b></sub></td>
+</tr>
+</table>
 
 ---
 
@@ -673,18 +765,35 @@ Team_The-Worst-Generation/
 - `MultipartFile → byte[] → Base64`로 변환해 Python 서버에 전달
 - 앨범은 드래그 앤 드롭 + exifr로 촬영일자·위치 추출, 인화 주문은 Toss Payments로 결제 (`PENDING → PAID` 상태 관리로 중복 결제 방지)
 
-<img src="image/demo-diary.gif" width="100%" />
+<table>
+<tr>
+<td align="center" width="50%"><img src="image/demo-diary-1.gif" width="100%" /><br/><sub><b>육아일기</b></sub></td>
+<td align="center" width="50%"><img src="image/demo-diary-2.gif" width="100%" /><br/><sub><b>앨범</b></sub></td>
+</tr>
+</table>
 
 ---
 
-#### 3. 🧭 AI 행동교정 &nbsp;<kbd>Ollama qwen3</kbd> <kbd>Naver News</kbd> <kbd>YouTube Data</kbd>
+#### 3. 😴 AI 수면 조언 &nbsp;<kbd>scikit-learn</kbd> <kbd>Ollama qwen3</kbd>
+
+<img src="image/flow-sleep.png" width="100%" />
+
+- 아이 개월 수를 계산하고 최근 7일 수면 기록을 `TreeMap` + `HashSet`으로 집계해 Python 분석 서버에 전달
+- `LinearRegression`으로 7일간 하루 총 수면시간의 증감 기울기를 계산, `IsolationForest`로 그날 수면시간이 이상치인지 판단(전체의 5%를 이상치로 설정, 정상=1 / 이상=-1)
+- 추세·이상치 결과를 텍스트로 조립해 `Ollama qwen3`가 최종 수면 조언을 생성
+
+<p align="center"><img src="image/demo-sleep.gif" width="600" /><br/><sub><b>AI 수면 조언</b></sub></p>
+
+---
+
+#### 4. 🧭 AI 행동교정 &nbsp;<kbd>Ollama qwen3</kbd> <kbd>Naver News</kbd> <kbd>YouTube Data</kbd>
 
 <img src="image/flow-behavior.png" width="100%" />
 
 - 상담 내용을 AI가 분석해 검색 키워드 생성 → 네이버 뉴스 10건·유튜브 영상 5건 조회
 - AI가 기사를 필터링해 해결책 3개 + 영상 1개 선정, 상담·단계·출처를 DB에 저장하고 3단계로 반환
 
-<img src="image/demo-behavior.gif" width="100%" />
+<p align="center"><img src="image/demo-behavior.gif" width="600" /><br/><sub><b>AI 행동교정</b></sub></p>
 
 <img width="100%" src="https://capsule-render.vercel.app/api?type=rect&color=0:FFD6A5,100:FFAAA5&height=3" />
 
@@ -697,7 +806,7 @@ Team_The-Worst-Generation/
 - 카카오 인증만으로는 로그인시키지 않고 가입 완료 시점에만 JWT 발급
 - 가족 초대 + 다중 프로필로 한 계정 안에서 보호자별 프로필 분리
 
-<img src="image/demo-login.gif" width="100%" />
+<p align="center"><img src="image/demo-login.gif" width="600" /><br/><sub><b>Kakao 로그인 · 가족 관리</b></sub></p>
 
 ---
 
@@ -707,8 +816,14 @@ Team_The-Worst-Generation/
 
 - 지도에서 병원 검색, 예약·대기 현황 확인
 - SOS는 공공 API로 응급실 병상을 조회하고 문자로 도움 요청 전송
+- 문자는 `Source`(타입 — 병원예약·SOS·리콜 등) · `To`(보호자 번호) · `Context`(내용) 구조로 통일해 다른 파트에서도 재사용
 
-<img src="image/demo-hospital.gif" width="100%" />
+<table>
+<tr>
+<td align="center" width="50%"><img src="image/demo-hospital-1.gif" width="100%" /><br/><sub><b>병원</b></sub></td>
+<td align="center" width="50%"><img src="image/demo-hospital-2.gif" width="100%" /><br/><sub><b>SOS</b></sub></td>
+</tr>
+</table>
 
 ---
 
@@ -716,10 +831,11 @@ Team_The-Worst-Generation/
 
 <img src="image/flow-story.png" width="100%" />
 
-- 저작권이 끝난 전래동화·고전 우화의 사건 구조만 골격으로 쓰고 문장·배경은 아이 정보에 맞춰 새로 생성
-- 로컬 Ollama LLM을 4회 순차 호출해 4부 이야기 생성, Supertonic 한국어 ONNX 모델로 인터넷 없이 WAV 생성(실패 시 Piper 전환)
+- 아이 이름·개월 수·관심사·좋아하는 사물을 반영하고 취침·모험·우정·습관·가족 테마를 제공, 입력 정보에 따라 등장인물과 동화 구조를 자동 구성
+- 전체 동화를 4개 파트로 나누어 순차 생성 — 이전 파트의 등장인물·줄거리를 다음 파트에 전달, 파트별 430~650자 + JSON 형식 검증, 검증 실패 시 조건을 보강해 자동 재생성
+- 완성된 본문을 음성으로 변환해 WAV 재생·다운로드 제공, 기본 TTS 실패 시 보조 Provider로 자동 전환하고 Provider·Voice 정보를 함께 반환
 
-<img src="image/demo-story.gif" width="100%" />
+<p align="center"><img src="image/demo-story.gif" width="600" /><br/><sub><b>맞춤 동화 생성</b></sub></p>
 
 ---
 
@@ -727,11 +843,11 @@ Team_The-Worst-Generation/
 
 <img src="image/flow-subsidy.png" width="100%" />
 
-- 아이 월령·지역·가구 상황을 바탕으로 ChromaDB 임베딩 검색(RAG)해 **조건에 맞는 지원금 후보를 추천**
-- 스케줄러가 조건별 결과를 미리 계산해두어 조회 시 빠르게 응답
+- 아이 개월 수를 생애주기로 변환하고 거주지·가구원 수·소득 구간·가구 특성 + 질문을 결합해 **맞춤 검색어를 생성**
+- 지역·연령 Metadata Filtering으로 ChromaDB 검색 조건을 구성하고, RAG 구조로 근거를 보강한 뒤 Ollama가 **공식 출처와 함께 답변 생성**
 - <b>임대한</b> RAG 파이프라인·ChromaDB 색인 구축 · <b>윤승진</b> 정부지원금 공공 API 연동
 
-<img src="image/demo-subsidy.gif" width="100%" />
+<p align="center"><img src="image/demo-subsidy.gif" width="600" /><br/><sub><b>정부지원금 어시스턴트</b></sub></p>
 
 <img width="100%" src="https://capsule-render.vercel.app/api?type=rect&color=0:FFD6A5,100:FFAAA5&height=3" />
 
@@ -743,7 +859,7 @@ Team_The-Worst-Generation/
 
 - 거래완료는 "구매자 신청 → 판매자 확정" 순서를 코드 단에서 강제 — 단독/중복 완료를 검증 체인으로 차단
 
-<img src="image/demo-market.gif" width="100%" />
+<p align="center"><img src="image/demo-market.gif" width="600" /><br/><sub><b>감자마켓</b></sub></p>
 
 ---
 
@@ -754,7 +870,7 @@ Team_The-Worst-Generation/
 - COCO 클래스 중 '사람'만 걸러내고 신뢰도 0.4 미만 제거 → 저신뢰도 오탐 차단
 - 사람 박스 전체가 아닌 중심점으로 안전영역 판정 → 몸통이 실제로 벗어난 경우만 감지
 
-<img src="image/demo-homecam.gif" width="100%" />
+<p align="center"><img src="image/demo-homecam.gif" width="600" /><br/><sub><b>홈캠 이탈 감지</b></sub></p>
 
 ---
 
@@ -765,7 +881,7 @@ Team_The-Worst-Generation/
 - 피치가 200~1000Hz를 벗어나면 바로 반환해 불필요한 Ollama 호출 차단
 - LLM 응답에서 JSON을 못 찾으면 안전한 대체 응답으로 조용히 넘어가 파싱 에러 방지
 
-<img src="image/demo-crycheck.gif" width="100%" />
+<p align="center"><img src="image/demo-crycheck.gif" width="600" /><br/><sub><b>AI 울음소리 분석</b></sub></p>
 
 <img width="100%" src="https://capsule-render.vercel.app/api?type=rect&color=0:FFD6A5,100:FFAAA5&height=3" />
 
@@ -778,7 +894,7 @@ Team_The-Worst-Generation/
 - "스타벅스 아메리카노 4500원"처럼 자연어로 입력하면 Spring AI가 금액·수입/지출·카테고리·항목명을 추출해 자동 분류
 - 지출 내역을 모아 AI 브리핑으로 이번 달 소비 요약 제공
 
-<img src="image/demo-ledger.gif" width="100%" />
+<p align="center"><img src="image/demo-ledger.gif" width="600" /><br/><sub><b>AI 가계부</b></sub></p>
 
 ---
 
@@ -789,7 +905,7 @@ Team_The-Worst-Generation/
 - 제품 라벨 사진 → Google Vision OCR → Ollama가 제품명·브랜드·모델·인증번호를 JSON으로 구조화해 폼 자동 입력
 - 등록된 내 제품을 국내·해외·인증 리콜 정보와 임베딩 유사도로 대조, 리콜 대상이 되면 스케줄러가 감지해 SMS 자동 알림
 
-<img src="image/demo-recall.gif" width="100%" />
+<p align="center"><img src="image/demo-recall.gif" width="600" /><br/><sub><b>AI 리콜 알림</b></sub></p>
 
 ---
 
@@ -800,7 +916,7 @@ Team_The-Worst-Generation/
 - 게시글마다 1회만 AI 요약을 호출하고 DB에 캐싱, 글 수정 시 캐시 비움
 - 베이비시터는 거리 기반 검색 후 요청·수락, WebSocket 실시간 채팅으로 소통
 
-<img src="image/demo-community.gif" width="100%" />
+<p align="center"><img src="image/demo-community.gif" width="600" /><br/><sub><b>커뮤니티 · 베이비시터</b></sub></p>
 
 <img width="100%" src="https://capsule-render.vercel.app/api?type=rect&color=0:FFD6A5,100:FFAAA5&height=3" />
 
@@ -813,7 +929,7 @@ Team_The-Worst-Generation/
 - 아이 정보 미등록 시 기본 퀘스트 3개 자동 생성, 등록 후 월령·담당 부모·요일 기반으로 교체
 - 같은 계정의 다른 프로필 보호자에게 긴급 퀘스트를 실시간 푸시
 
-<img src="image/demo-quest.gif" width="100%" />
+<p align="center"><img src="image/demo-quest.gif" width="600" /><br/><sub><b>일일 퀘스트</b></sub></p>
 
 ---
 
@@ -824,7 +940,7 @@ Team_The-Worst-Generation/
 - 수면·수유·이유식·발달·훈육 등 육아 전반을 대화형으로 상담 — 진단·처방은 하지 않고, 위험 증상이면 병원·응급실 안내만
 - 이전 대화를 함께 전달해 맥락을 유지하고, LLM 응답에서 JSON만 추출해 파싱 실패 시 원문으로 안전하게 폴백
 
-<img src="image/demo-subsidy-chat.gif" width="100%" />
+<p align="center"><img src="image/demo-subsidy-chat.gif" width="600" /><br/><sub><b>육아 AI 상담 챗봇</b></sub></p>
 
 <img width="100%" src="https://capsule-render.vercel.app/api?type=rect&color=0:FFD6A5,100:FFAAA5&height=3" />
 
@@ -836,7 +952,7 @@ Team_The-Worst-Generation/
 
 - 성분표 이미지를 OCR로 읽어 등록된 알레르기 성분(공식 + 사용자 커스텀)과 **문자열로 대조** — AI가 판정하는 게 아니라 문자 비교로 일치 항목을 참고용으로 표시
 
-<img src="image/demo-allergy.gif" width="100%" />
+<p align="center"><img src="image/demo-allergy.gif" width="600" /><br/><sub><b>알레르기 성분표 검사</b></sub></p>
 
 ---
 
@@ -846,7 +962,7 @@ Team_The-Worst-Generation/
 
 - 피부·대변 사진을 업로드하면 비전 모델(`qwen2.5vl:7b` / `llava`)이 눈에 띄는 특징을 **참고용으로** 이해하기 쉬운 문장으로 정리 (진단 아님, 원본 사진은 저장하지 않음)
 
-<img src="image/demo-health.gif" width="100%" />
+<p align="center"><img src="image/demo-health.gif" width="600" /><br/><sub><b>건강관리 (피부 / 대변)</b></sub></p>
 
 ---
 
@@ -854,33 +970,11 @@ Team_The-Worst-Generation/
 
 <img src="image/flow-walk.png" width="100%" />
 
-- 날씨·위치 기반으로 산책 코스를 추천 (좌표 격자 캐싱으로 API 호출 절감)
+- 날씨·위치 기반으로 산책 코스를 추천 (좌표 격자 캐싱으로 Kakao API 호출 절감)
+- 주변에 조건에 맞는 공원이 없으면 **조기 반환**으로 날씨·AI 호출을 건너뜀
+- 날씨 조회나 AI 코멘트가 실패해도 대체 문구로 이어가 공원 목록은 항상 제공
 
-<img src="image/demo-walk.gif" width="100%" />
-
-<div align="right"><a href="#-목차"><sub>▲ 목차로</sub></a></div>
-
-<img width="100%" src="https://capsule-render.vercel.app/api?type=rect&color=0:FFD6A5,100:FFAAA5&height=3" />
-
-<!-- ============================================================= -->
-<!-- 반응형 웹                                                      -->
-<!-- ============================================================= -->
-
-## 📱 반응형 웹
-
-<kbd>CSS Flexbox/Grid</kbd> <kbd>Media Query</kbd>
-
-- PC·태블릿·모바일 등 다양한 디바이스 환경에 맞춰 레이아웃이 자동으로 변경되도록 구현해 어떤 화면에서도 최적의 UI 제공
-- 화면 크기에 따라 컴포넌트의 크기·배치·여백을 유동적으로 조정해 가독성과 사용성을 높이고 직관적인 사용자 경험 제공
-- 다양한 해상도·브라우저 환경에서도 일관된 UI/UX를 유지하도록 반응형 웹을 적용해 접근성과 호환성 향상
-
-<table>
-<tr><th align="center">💻 Web</th><th align="center">📱 App</th></tr>
-<tr>
-<td><img src="image/responsive-web.png" width="100%" /></td>
-<td><img src="image/responsive-app.png" width="100%" /></td>
-</tr>
-</table>
+<p align="center"><img src="image/demo-walk.gif" width="600" /><br/><sub><b>산책로 추천</b></sub></p>
 
 <div align="right"><a href="#-목차"><sub>▲ 목차로</sub></a></div>
 
@@ -890,7 +984,7 @@ Team_The-Worst-Generation/
 <!-- 배포                                                          -->
 <!-- ============================================================= -->
 
-## ☁️ 배포
+## ☁️ AWS 배포
 
 <kbd>AWS EC2</kbd> <kbd>Elastic Beanstalk</kbd> <kbd>RDS</kbd> <kbd>IAM</kbd>
 
@@ -921,21 +1015,17 @@ Team_The-Worst-Generation/
 <tr>
 <td valign="top">
 
-- **AI 전 과정 통합** — 챗봇·사진 분석·리콜 매칭·지원금 추천·홈캠 위험 감지까지 육아 전 과정에 AI 연결 (Ollama · Google Vision OCR · Python AI(sentence-transformers·YOLOv8) · Spring AI RAG(ChromaDB))
-- **손이 가던 일을 자동으로** — 영수증 사진 한 장으로 가계부 분류, 라벨 사진 한 장으로 리콜 등록
+- **AI 3종 통합** — Ollama · Google Vision OCR · Python AI(sentence-transformers·YOLOv8) · Spring AI RAG(ChromaDB) 를 하나의 플랫폼에서 연결
 - **실시간 커뮤니케이션** — WebSocket(STOMP) 기반 베이비시터·감자마켓 실시간 채팅
 - **검증된 성능 최적화** — 단일 쿼리 안읽음 배지 · 코드 스플리팅(13/14 라우터) · 좌표 캐싱 · 추론 전 이미지 축소
-- **Docker Compose 인프라** — MariaDB·Backend·Frontend·Ollama·OpenClaw + Python AI, 모델·자산 자동 준비(`ollama-init`, ai-server `[init]`)
+- **Docker Compose 인프라** — MariaDB·Backend·Frontend·Python AI·Ollama·OpenClaw 6개 서비스 오케스트레이션 (모델·자산 자동 준비)
 
 </td>
 <td valign="top">
 
 - **보안·설정은 처음부터** — `JWT_SECRET` 하나가 빠지면 로그인 전체가 막힌다는 걸 겪으며 설정값 관리 습관의 중요성 체감
 - **"동작한다" ≠ "안전하다"** — 문자 발송이 여러 번 재시도돼도 같은 결과가 나오도록(멱등성) 처음부터 설계
-- **로컬 전용 산출물은 자동화** — 벡터DB 색인처럼 사람이 한 번 실행해야 채워지는 데이터는 기동 스크립트 차원의 자동 감지·복구가 필요
-- **AI도 결국 사람이 확인해야 한다** — 답변이 항상 정확하진 않아 최종 확인은 사람 몫으로 남기는 설계가 필요
-- **느린 것과 안 되는 것은 다르다** — 오류로 보였던 게 실제론 처리 시간 문제였던 경우가 많아 기다림과 오류를 구분
-- **프롬프트 하나가 결과를 바꾼다** — 질문 작성 방식에 따라 AI 답변 품질이 크게 달라짐
+- **로컬 전용 산출물은 자동화** — 벡터DB 색인처럼 사람이 한 번 실행해야 채워지는 데이터는 문서화만으로는 부족하고 기동 스크립트 차원의 자동 감지·복구가 필요
 
 </td>
 </tr>
@@ -949,19 +1039,17 @@ Team_The-Worst-Generation/
 <tr>
 <td valign="top">
 
-- **AI 클라이언트 경로 이원화** — 대부분 기능은 자체 `OllamaClient`(raw HTTP), 가계부만 Spring AI ChatClient
-- **코드 스플리팅 예외** — `hospitalRouter` 한 곳이 `React.lazy` 패턴에서 빠짐
+- **AI 클라이언트 경로 이원화** — 대부분 기능은 자체 `OllamaClient`(raw HTTP), 가계부만 Spring AI ChatClient를 별도로 써서 구조 일관성이 떨어짐
+- **코드 스플리팅 예외** — `hospitalRouter` 한 곳이 `React.lazy` 패턴에서 빠져 완전히 통일되지 않음
 - **프론트 메모이제이션 제한적** — `useMemo`·`React.memo`가 비용 큰 연산 위주로 아직 널리 안 쓰임
-- **AI 응답 속도 편차** — 사진 분석·영상 생성처럼 무거운 작업은 처리 시간이 들쭉날쭉
 
 </td>
 <td valign="top">
 
-- **AI 클라이언트 통합** — 이원 구조를 하나의 추상화로 정리해 기능 추가를 쉽게
-- **본인인증 확장** — 카카오 외 소셜 로그인, 휴대폰 본인인증(SMS)로 허위가입 방지
-- **메모이제이션 정책 정립** — `useMemo`·`React.memo` 적용 범위 확대
-- **AI 답변 품질 점검 강화** — 잘못된 답변을 사람이 쉽게 바로잡는 장치 추가
-- **로컬 셋업 자동화 확대** · **더 다양한 상황에 AI 적용**
+- **본인인증 확장** — 카카오 외 소셜 로그인, 휴대폰 본인인증(SMS)로 이메일 인증만으로는 못 막는 허위가입까지 방지
+- **메모이제이션 정책 정립** — 비용 큰 연산·리스트 렌더링 위주로 `useMemo`·`React.memo` 적용 범위 확대
+- **AI 클라이언트 통합** — `OllamaClient` / Spring AI ChatClient 이원 구조를 하나의 추상화로 정리
+- **로컬 셋업 자동화 확대** — 벡터DB 자동 색인 패턴을 다른 로컬 전용 산출물에도 동일하게 적용
 
 </td>
 </tr>
