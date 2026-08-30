@@ -1,3 +1,5 @@
+name: baby_project
+
 services:
   mariadb:
     image: mariadb:11
@@ -15,6 +17,74 @@ services:
       interval: 5s
       timeout: 5s
       retries: 10
+    restart: unless-stopped
+
+  ollama:
+    image: ollama/ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+      - ./ai/ollama:/modelfiles:ro
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  # 최초 1회: 필요한 Ollama 모델을 자동으로 받고 커스텀 모델을 생성한다.
+  # 완료되면 종료(exited)되며, 이후 재실행 시 이미 있으면 빠르게 지나간다.
+  ollama-init:
+    image: ollama/ollama
+    depends_on:
+      ollama:
+        condition: service_healthy
+    volumes:
+      - ./ai/ollama:/modelfiles:ro
+    environment:
+      OLLAMA_HOST: "http://ollama:11434"
+    entrypoint:
+      - sh
+      - -c
+      - >
+        ollama pull qwen3:8b &&
+        ollama create parenting-qwen:8b -f /modelfiles/Modelfile &&
+        ollama pull llava &&
+        ollama pull qwen2.5vl:7b &&
+        echo '[ollama-init] 모델 준비 완료'
+    restart: "no"
+
+  ai-server:
+    build: ./ai/ai-server
+    ports:
+      - "5000:5000"
+    environment:
+      OLLAMA_BASE_URL: "http://ollama:11434"
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-parenting-qwen:8b}
+      OLLAMA_VISION_MODEL: ${OLLAMA_VISION_MODEL:-llava}
+      DATA_GO_KR_SERVICE_KEY: ${DATA_GO_KR_SERVICE_KEY:-}
+      AI_LOG_LEVEL: ${AI_LOG_LEVEL:-INFO}
+      STORY_LLM_ENABLED: ${STORY_LLM_ENABLED:-true}
+      STORY_TTS_PROVIDER: ${STORY_TTS_PROVIDER:-SUPERTONIC}
+      STORY_TTS_FALLBACK_PROVIDER: ${STORY_TTS_FALLBACK_PROVIDER:-PIPER}
+      STORY_TTS_MODEL_DIR: models/tts
+      STORY_TTS_SUPERTONIC_MODEL_DIR: ${STORY_TTS_SUPERTONIC_MODEL_DIR:-models/tts/sherpa-onnx-supertonic-3-tts-int8-2026-05-11}
+      STORY_TTS_PIPER_VOICE: ${STORY_TTS_PIPER_VOICE:-ko_KR-kss-medium}
+    volumes:
+      - ai_models:/app/models
+      - ai_chroma:/app/data/chroma_subsidies
+      - ai_generated:/app/generated
+    depends_on:
+      ollama:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/health')"]
+      interval: 15s
+      timeout: 5s
+      retries: 30
+      start_period: 300s
+    restart: unless-stopped
 
   backend:
     build: ./baby_back
@@ -24,48 +94,83 @@ services:
       SPRING_DATASOURCE_URL: jdbc:mariadb://mariadb:3306/BABYDB
       SPRING_DATASOURCE_USERNAME: BABYDBUSER
       SPRING_DATASOURCE_PASSWORD: BABYDBUSER
-      OLLAMA_BASE_URL: http://ollama:11434
-      OLLAMA_MODEL: parenting-qwen:8b
-      OLLAMA_VISION_MODEL: llava
-      OLLAMA_DIARY_VISION_MODEL: qwen2.5vl:7b
-      GOOGLE_VISION_API_KEY: ${GOOGLE_VISION_API_KEY}
-      JWT_SECRET: ${JWT_SECRET}
-      SAFETYKOREA_API_KEY: ${SAFETYKOREA_API_KEY}
-      HOSPITAL_ER_API_KEY: ${HOSPITAL_ER_API_KEY}
-      HOSPITAL_ER_BASE_URL: ${HOSPITAL_ER_BASE_URL}
+
+      # ---- Ollama ----
+      OLLAMA_BASE_URL: "http://ollama:11434"
+      OLLAMA_MODEL: ${OLLAMA_MODEL:-parenting-qwen:8b}
+      OLLAMA_VISION_MODEL: ${OLLAMA_VISION_MODEL:-llava}
+      OLLAMA_DIARY_VISION_MODEL: ${OLLAMA_DIARY_VISION_MODEL:-qwen2.5vl:7b}
+
+      # ---- Python AI 서버 (base-url 키 전부 ai-server 컨테이너로) ----
+      AI_SERVER_BASE_URL: "http://ai-server:5000"
+      PYTHON_VISION_BASE_URL: "http://ai-server:5000"
+      HOMECAM_AI_SERVER_URL: "http://ai-server:5000"
+      SLEEP_AI_BASE_URL: "http://ai-server:5000"
+      DIARY_AI_BASE_URL: "http://ai-server:5000"
+      VIDEO_AI_BASE_URL: "http://ai-server:5000"
+      RECALL_AI_BASE_URL: "http://ai-server:5000"
+
+      # ---- OpenClaw ----
+      OPENCLAW_BASE_URL: "http://openclaw:18789"
+      OPENCLAW_GATEWAY_TOKEN: ${OPENCLAW_GATEWAY_TOKEN:-}
+      OPENCLAW_INTERNAL_KEY: ${OPENCLAW_INTERNAL_KEY:-}
+
+      # ---- 외부 API 키 ----
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET .env에 필요}
+      GOOGLE_VISION_API_KEY: ${GOOGLE_VISION_API_KEY:-}
+      SAFETYKOREA_API_KEY: ${SAFETYKOREA_API_KEY:-}
+      DATA_GO_KR_SERVICE_KEY: ${DATA_GO_KR_SERVICE_KEY:-}
+      KAKAO_REST_API_KEY: ${KAKAO_REST_API_KEY:-}
+      TOSS_SECRET_KEY: ${TOSS_SECRET_KEY:-}
+      NAVER_CLIENT_ID: ${NAVER_CLIENT_ID:-}
+      NAVER_CLIENT_SECRET: ${NAVER_CLIENT_SECRET:-}
+      YOUTUBE_API_KEY: ${YOUTUBE_API_KEY:-}
+      WEATHER_API_SERVICE_KEY: ${WEATHER_API_SERVICE_KEY:-}
+      EMERGENCY_API_SERVICE_KEY: ${EMERGENCY_API_SERVICE_KEY:-${HOSPITAL_ER_API_KEY:-}}
+      EMERGENCY_API_BASE_URL: ${EMERGENCY_API_BASE_URL:-https://apis.data.go.kr/B552657/ErmctInfoInqireService}
+      ANDROID_SMS_BRIDGE_URL: ${ANDROID_SMS_BRIDGE_URL:-}
+      ANDROID_SMS_BRIDGE_KEY: ${ANDROID_SMS_BRIDGE_KEY:-}
+    volumes:
+      - backend_uploads:/app/upload
     depends_on:
       mariadb:
         condition: service_healthy
+      ai-server:
+        condition: service_started
+      ollama:
+        condition: service_started
+    restart: unless-stopped
 
   frontend:
     build:
       context: ./baby_front
       args:
-        VITE_KAKAO_REST_API_KEY: ${VITE_KAKAO_REST_API_KEY}
-        VITE_KAKAO_MAP_API_KEY: ${VITE_KAKAO_MAP_API_KEY}
+        VITE_KAKAO_REST_API_KEY: ${VITE_KAKAO_REST_API_KEY:-}
+        VITE_KAKAO_MAP_API_KEY: ${VITE_KAKAO_MAP_API_KEY:-}
+        VITE_TOSS_CLIENT_KEY: ${VITE_TOSS_CLIENT_KEY:-}
     ports:
       - "3000:80"
     depends_on:
       - backend
-
-  ollama:
-    image: ollama/ollama
-    ports:
-      - "11434:11434"
-    volumes:
-      - ollama_data:/root/.ollama
-      - ./ai/ollama:/modelfiles:ro
+    restart: unless-stopped
 
   openclaw:
     build: ./ai/openclaw
+    ports:
+      - "18789:18789"
     depends_on:
       - ollama
     environment:
-      OPENCLAW_INTERNAL_KEY: ${OPENCLAW_INTERNAL_KEY}
+      OPENCLAW_INTERNAL_KEY: ${OPENCLAW_INTERNAL_KEY:-}
     volumes:
       - openclaw_data:/root/.openclaw
+    restart: unless-stopped
 
 volumes:
   mariadb_data:
   ollama_data:
   openclaw_data:
+  backend_uploads:
+  ai_models:
+  ai_chroma:
+  ai_generated:
