@@ -19,7 +19,7 @@
 &nbsp;
 [![시연 영상](https://img.shields.io/badge/시연_영상-FF4B4B?style=for-the-badge&logo=youtube&logoColor=white)](https://youtu.be/pjrz7tYPWqI)
 &nbsp;
-[![풀스택 PDF](https://img.shields.io/badge/풀스택_PDF-E8927C?style=for-the-badge&logo=adobeacrobatreader&logoColor=white)](image/아이봄_풀스텍.pdf)
+[![풀스택 PDF](https://img.shields.io/badge/풀스택_PDF-E8927C?style=for-the-badge&logo=adobeacrobatreader&logoColor=white)](image/아이봄_풀스택.pdf)
 &nbsp;
 [![AI PDF](https://img.shields.io/badge/AI_PDF-D97E63?style=for-the-badge&logo=adobeacrobatreader&logoColor=white)](image/아이봄_AI.pdf)
 
@@ -76,9 +76,9 @@
 
 ### 왜 이런 사이트를 만들었나
 
-> **"늘어나는 출산율, 부모의 부담은 줄이고 편의성은 늘린다"**
+> **"늘어나는 출생아 수, 부모의 부담은 줄이고 편의성은 늘린다"**
 >
-> 출산율이 반등하며 새롭게 육아를 시작하는 가정이 늘고 있습니다.<br/>
+> 출생아 수가 반등하며 새롭게 육아를 시작하는 가정이 늘고 있습니다.<br/>
 > 그런데 이들을 기다리는 육아 환경은 여전히 흩어져 있습니다.
 >
 > <sub>출처 — 국가데이터처, 2026년 6월 및 2분기 인구동향</sub>
@@ -204,8 +204,6 @@
 
 ![Docker Compose](https://img.shields.io/badge/Docker_Compose-2496ED?style=for-the-badge&logo=docker&logoColor=white)
 
-<sub>Docker Desktop 하나만 있으면 6개 서비스가 한 번에</sub>
-
 </div>
 
 ### 1) 🐳 Docker Compose (권장)
@@ -273,26 +271,31 @@ docker compose up -d --build
 
 ### 2) 개별 실행
 
-> 공용 인프라(**MariaDB**, **Ollama**)가 먼저 떠 있어야 합니다.
+> **MariaDB**(`:3306`, DB `BABYDB`)를 먼저 띄워 둡니다.
+> 아래 **0~4번은 각각 별도 터미널**에서, 모두 **프로젝트 루트**에서 시작합니다. (환경: Windows PowerShell)
 
-```bash
-# 0) 인프라 — MariaDB(:3306, DB: BABYDB) 는 별도 기동
-#    Ollama 모델은 최초 1회
-ai\ollama\setup-ollama.cmd          # qwen3:8b + parenting-qwen:8b + llava + qwen2.5vl:7b
+```powershell
+# 0) Ollama 모델 준비 (최초 1회)
+#    qwen3:8b · parenting-qwen:8b · llava · qwen2.5vl:7b
+ai\ollama\setup-ollama.cmd
 
-# 1) 백엔드
-cd baby_back && ./gradlew bootRun
+# 1) 백엔드  ->  http://localhost:8080
+cd baby_back
+.\gradlew.bat bootRun
 
-# 2) 프론트엔드
-cd baby_front && npm install && npm run dev
+# 2) 프론트엔드  ->  http://localhost:3000
+cd baby_front
+npm install
+npm run dev
 
-# 3) Python AI 서버
-cd ai/ai-server
-python -m venv .venv && .\.venv\Scripts\Activate.ps1
+# 3) Python AI 서버  ->  http://localhost:5000
+cd ai\ai-server
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 uvicorn main:app --reload --host 127.0.0.1 --port 5000
 
-# 4) OpenClaw 게이트웨이 (리콜 SMS 발송용, :18789)
+# 4) OpenClaw 게이트웨이  ->  :18789  (리콜 SMS 발송용)
 ai\openclaw\setup-openclaw.cmd launch
 ```
 
@@ -317,7 +320,7 @@ flowchart LR
 
     FE --> FES["src/<br/>api · components · pages · router<br/>slices · hooks · layouts · styles"]
 
-    BE --> BES["src/main/java/com/backend/<br/>도메인 패키지 27개"]
+    BE --> BES["src/main/java/com/backend/<br/>도메인 패키지 26개 + global"]
     BES --> BE1["auth · babyInfo · diary · album<br/>ledger · recall · babysitter · community"]
     BES --> BE2["market · quest · assistant · health<br/>allergy · homecam · crycheck · hospital · story"]
     BES --> BE3["global/<br/>config · security · advice"]
@@ -340,7 +343,7 @@ Team_The-Worst-Generation/
 │       ├── slices/ · hooks/         # Redux Toolkit · Custom Hooks
 │       └── layouts/ · styles/
 ├── baby_back/                       # Spring Boot 3.5 + MyBatis
-│   └── src/main/java/com/backend/   # 도메인별 패키지 27개
+│   └── src/main/java/com/backend/   # 도메인별 패키지 26개 (+ global)
 │       ├── auth · babyInfo · diary · album · ledger · recall
 │       ├── babysitter · community · market · quest · assistant
 │       ├── health · allergy · homecam · crycheck · hospital · story …
@@ -350,7 +353,7 @@ Team_The-Worst-Generation/
 │   ├── ollama/                      # Modelfile (parenting-qwen:8b)
 │   └── openclaw/                    # SMS 발송 에이전트 + Android 브리지
 ├── docker/
-└── docker-compose.yml              # MariaDB · Backend · Frontend · Ollama · OpenClaw
+└── docker-compose.yml              # MariaDB · Backend · Frontend · Python AI · Ollama · OpenClaw
 ```
 
 </details>
@@ -482,10 +485,10 @@ Team_The-Worst-Generation/
 - `BabysitterLayoutPage`에서 20초 주기로 `getMyRoomList()`만 호출하고, 응답의 `unreadCount`를 합산해 배지로 표시
 - N+1을 나중에 제거한 게 아니라, 배지 기능을 추가하던 시점부터 O(1) 단일 쿼리로 설계
 
-| 지표 | 방마다 개별 조회 시 (가정) | 실제 구현 | 효과 |
+| 지표 | 방마다 개별 조회 방식 | 단일 쿼리 설계 (현재) | 기대 효과 |
 | --- | --- | --- | --- |
-| API 호출 수 (방 8개) | 9회 (목록 1 + 방별 8) | 1회 | **약 89% 감소** |
-| 응답시간 합산 | 약 141ms | 목록 + 안읽음 동시 계산 | **약 14.6배 단축** |
+| API 호출 수 (방 8개 기준) | 9회 (목록 1 + 방별 8) | 1회 | 호출 수 약 1/9 |
+| 조회 구조 | 목록 조회 후 방별로 추가 조회 | 목록 + 안읽음 수를 한 쿼리로 계산 | DB 왕복 상수화 |
 | 폴링 부하 | 방 개수(N)에 비례 | 방 개수 무관, 상수 | 확장성 확보 |
 
 ---
@@ -524,7 +527,7 @@ Team_The-Worst-Generation/
 - 캐시 키: 위·경도를 소수점 3자리로 반올림(약 90~111m 격자) — 같은 동네 사용자끼리 캐시 공유
 - Caffeine `expireAfterWrite(30분)` · `maximumSize(1000)` — 알러지 성분 캐싱과 전역 `CacheManager` 공유
 
-| 지표 | 캐싱 전 (가정) | 캐싱 후 (실제 구현) | 효과 |
+| 지표 | 캐싱 미적용 시 | 현재 구현 | 기대 효과 |
 | --- | --- | --- | --- |
 | Kakao API 호출 | 추천 요청마다 매번 1회 | 동일 격자·30분 이내 재요청 시 0회 | 일일 호출 쿼터 절감 |
 | 캐시 공유 범위 | 요청자 개별 (공유 없음) | 약 100m 격자 내 사용자끼리 공유 | 캐시 적중률 향상 |
@@ -638,7 +641,7 @@ Team_The-Worst-Generation/
 <td align="center">📖<br/><b>맞춤 동화</b></td>
 <td align="center">📋<br/><b>일일 퀘스트</b></td>
 <td align="center">🏛️<br/><b>정부지원금</b></td>
-<td align="center">💬<br/><b>AI 상담</b></td>
+<td align="center">🤖<br/><b>AI 상담</b></td>
 </tr>
 </table>
 <sub>플로우 이미지 1장 + 동작 GIF · <b>팀원별</b>로 아래에 정리</sub>
@@ -662,7 +665,7 @@ Team_The-Worst-Generation/
 
 ---
 
-#### 2. 📔 육아일기 & 앨범 &nbsp;<kbd>무한 스크롤</kbd> <kbd>exifr</kbd> <kbd>Toss Payments</kbd>
+#### 2. 📔 육아일기 & 앨범 &nbsp;<kbd>VARCO-VISION</kbd> <kbd>무한 스크롤</kbd> <kbd>exifr</kbd> <kbd>Toss Payments</kbd>
 
 <img src="image/flow-diary.png" width="100%" />
 
@@ -714,7 +717,7 @@ Team_The-Worst-Generation/
 <img src="image/flow-story.png" width="100%" />
 
 - 저작권이 끝난 전래동화·고전 우화의 사건 구조만 골격으로 쓰고 문장·배경은 아이 정보에 맞춰 새로 생성
-- 로컬 Ollama LLM을 4회 순차 호출해 4부 이야기 생성, Supertonic 3 한국어 ONNX로 인터넷 없이 WAV 생성(실패 시 Piper 전환)
+- 로컬 Ollama LLM을 4회 순차 호출해 4부 이야기 생성, Supertonic 한국어 ONNX 모델로 인터넷 없이 WAV 생성(실패 시 Piper 전환)
 
 <img src="image/demo-story.gif" width="100%" />
 
