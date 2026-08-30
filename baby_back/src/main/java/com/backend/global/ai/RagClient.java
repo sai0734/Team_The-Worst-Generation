@@ -5,6 +5,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.net.URI;
@@ -18,13 +19,20 @@ import java.util.List;
 @Log4j2
 public class RagClient {
 
-    private static final String BASE_URL = "http://127.0.0.1:5000/api/v1/subsidy";
+    // ai/ai-server (FastAPI). 로컬 dev는 기본값, 도커는 AI_SERVER_BASE_URL=http://ai-server:5000
+    @Value("${ai-server.base-url:http://127.0.0.1:5000}")
+    private String aiServerBaseUrl;
+
     private static final Duration REINDEX_TIMEOUT = Duration.ofMinutes(20);
 
     private final HttpClient http = HttpClient.newBuilder()
             .connectTimeout(Duration.ofSeconds(5))
             .version(HttpClient.Version.HTTP_1_1)
             .build();
+
+    private String subsidyUrl(String path) {
+        return aiServerBaseUrl + "/api/v1/subsidy" + path;
+    }
 
     public AskResult ask(
             String question,
@@ -51,7 +59,7 @@ public class RagClient {
 
         try {
             HttpRequest req = HttpRequest.newBuilder()
-                    .uri(URI.create(BASE_URL + "/ask"))
+                    .uri(URI.create(subsidyUrl("/ask")))
                     .header("Content-Type", "application/json")
                     .timeout(Duration.ofSeconds(90))
                     .POST(HttpRequest.BodyPublishers.ofString(body.toString()))
@@ -71,7 +79,7 @@ public class RagClient {
     public ReindexResult reindex() {
         try {
             HttpRequest req = HttpRequest.newBuilder()
-                    .uri(URI.create(BASE_URL + "/reindex"))
+                    .uri(URI.create(subsidyUrl("/reindex")))
                     .header("Content-Type", "application/json")
                     .timeout(REINDEX_TIMEOUT)
                     .POST(HttpRequest.BodyPublishers.ofString("{}"))
