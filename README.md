@@ -179,15 +179,15 @@
 
 #### 📦 그 외 라이브러리 · 외부 서비스
 
-| | 이름 | 용도 |
-| :--: | --- | --- |
-| 🔌 | `STOMP` / `SockJS` | WebSocket 실시간 채팅 |
-| ⚡ | `Caffeine` | 좌표·알러지 성분 캐싱 |
-| 🧬 | `sentence-transformers` | 리콜 유사도 매칭 임베딩 |
-| 🎬 | `moviepy` + `Supertonic` / `Piper` TTS | 육아일기 영상·동화 음성 생성 |
-| 🤖 | `OpenClaw` | SMS 발송 에이전트 |
-| 🛡️ | SafetyKorea Open API | 리콜·인증정보 공공 API |
-| 🌦️ | 기상청 단기예보 API | 산책 추천 날씨 |
+|     | 이름                                   | 용도                         |
+| :-: | -------------------------------------- | ---------------------------- |
+| 🔌  | `STOMP` / `SockJS`                     | WebSocket 실시간 채팅        |
+| ⚡  | `Caffeine`                             | 좌표·알러지 성분 캐싱        |
+| 🧬  | `sentence-transformers`                | 리콜 유사도 매칭 임베딩      |
+| 🎬  | `moviepy` + `Supertonic` / `Piper` TTS | 육아일기 영상·동화 음성 생성 |
+| 🤖  | `OpenClaw`                             | SMS 발송 에이전트            |
+| 🛡️  | SafetyKorea Open API                   | 리콜·인증정보 공공 API       |
+| 🌦️  | 기상청 단기예보 API                    | 산책 추천 날씨               |
 
 </div>
 
@@ -231,21 +231,21 @@ cp .env.example .env
 
 <br/>
 
-| 키 | 용도 |
-| --- | --- |
-| `JWT_SECRET` | JWT 로그인 토큰 서명 (없으면 기동 실패) |
-| `GOOGLE_VISION_API_KEY` | 알러지·리콜 라벨 OCR |
-| `SAFETYKOREA_API_KEY` | 리콜·인증정보 공공 API |
-| `VITE_KAKAO_REST_API_KEY` / `VITE_KAKAO_MAP_API_KEY` | 카카오 로그인 / 카카오맵 |
-| `HOSPITAL_ER_API_KEY` / `HOSPITAL_ER_BASE_URL` | 응급실 병상 조회 |
-| `DATA_GO_KR_SERVICE_KEY` | 공공데이터포털 (정부지원금) |
-| `TOSS_SECRET_KEY` / `VITE_TOSS_CLIENT_KEY` | 앨범 인화 주문 결제 |
-| `NAVER_CLIENT_ID` / `NAVER_CLIENT_SECRET` / `YOUTUBE_API_KEY` | AI 행동교정 자료 조회 |
-| `WEATHER_API_SERVICE_KEY` | 기상청 단기예보 (산책 추천) |
-| `OLLAMA_BASE_URL` / `OLLAMA_MODEL` | 온디바이스 LLM |
-| `AI_SERVER_BASE_URL` | Python FastAPI 서버 |
-| `ANDROID_SMS_BRIDGE_URL` / `ANDROID_SMS_BRIDGE_KEY` / `OPENCLAW_*` | SMS 실발송 브리지 |
-| `STORY_TTS_*` | 맞춤 동화 TTS (Supertonic / Piper) |
+| 키                                                                 | 용도                                    |
+| ------------------------------------------------------------------ | --------------------------------------- |
+| `JWT_SECRET`                                                       | JWT 로그인 토큰 서명 (없으면 기동 실패) |
+| `GOOGLE_VISION_API_KEY`                                            | 알러지·리콜 라벨 OCR                    |
+| `SAFETYKOREA_API_KEY`                                              | 리콜·인증정보 공공 API                  |
+| `VITE_KAKAO_REST_API_KEY` / `VITE_KAKAO_MAP_API_KEY`               | 카카오 로그인 / 카카오맵                |
+| `HOSPITAL_ER_API_KEY` / `HOSPITAL_ER_BASE_URL`                     | 응급실 병상 조회                        |
+| `DATA_GO_KR_SERVICE_KEY`                                           | 공공데이터포털 (정부지원금)             |
+| `TOSS_SECRET_KEY` / `VITE_TOSS_CLIENT_KEY`                         | 앨범 인화 주문 결제                     |
+| `NAVER_CLIENT_ID` / `NAVER_CLIENT_SECRET` / `YOUTUBE_API_KEY`      | AI 행동교정 자료 조회                   |
+| `WEATHER_API_SERVICE_KEY`                                          | 기상청 단기예보 (산책 추천)             |
+| `OLLAMA_BASE_URL` / `OLLAMA_MODEL`                                 | 온디바이스 LLM                          |
+| `AI_SERVER_BASE_URL`                                               | Python FastAPI 서버                     |
+| `ANDROID_SMS_BRIDGE_URL` / `ANDROID_SMS_BRIDGE_KEY` / `OPENCLAW_*` | SMS 실발송 브리지                       |
+| `STORY_TTS_*`                                                      | 맞춤 동화 TTS (Supertonic / Piper)      |
 
 </details>
 
@@ -255,13 +255,13 @@ cp .env.example .env
 docker compose up -d --build
 ```
 
-| 서비스 | 주소 |
-| --- | --- |
-| 프론트엔드 | http://localhost:3000 |
-| 백엔드 | http://localhost:8080 |
-| Python AI | http://localhost:5000/health |
-| Ollama | http://localhost:11434 |
-| MariaDB | localhost:3307 (컨테이너 내부 3306) |
+| 서비스     | 주소                                |
+| ---------- | ----------------------------------- |
+| 프론트엔드 | http://localhost:3000               |
+| 백엔드     | http://localhost:8080               |
+| Python AI  | http://localhost:5000/health        |
+| Ollama     | http://localhost:11434              |
+| MariaDB    | localhost:3307 (컨테이너 내부 3306) |
 
 > **첫 기동은 10~30분 걸립니다** — 모델·자산을 처음 내려받기 때문이며 온라인 연결이 필요합니다.
 >
@@ -466,11 +466,11 @@ Team_The-Worst-Generation/
 - `BabysitterLayoutPage`에서 20초 주기로 `getMyRoomList()`만 호출하고, 응답의 `unreadCount`를 합산해 배지로 표시
 - N+1을 나중에 제거한 게 아니라, 배지 기능을 추가하던 시점부터 O(1) 단일 쿼리로 설계
 
-| 지표 | 방마다 개별 조회 방식 | 단일 쿼리 설계 (현재) | 기대 효과 |
-| --- | --- | --- | --- |
-| API 호출 수 (방 8개 기준) | 9회 (목록 1 + 방별 8) | 1회 | 호출 수 약 1/9 |
-| 조회 구조 | 목록 조회 후 방별로 추가 조회 | 목록 + 안읽음 수를 한 쿼리로 계산 | DB 왕복 상수화 |
-| 폴링 부하 | 방 개수(N)에 비례 | 방 개수 무관, 상수 | 확장성 확보 |
+| 지표                      | 방마다 개별 조회 방식         | 단일 쿼리 설계 (현재)             | 기대 효과      |
+| ------------------------- | ----------------------------- | --------------------------------- | -------------- |
+| API 호출 수 (방 8개 기준) | 9회 (목록 1 + 방별 8)         | 1회                               | 호출 수 약 1/9 |
+| 조회 구조                 | 목록 조회 후 방별로 추가 조회 | 목록 + 안읽음 수를 한 쿼리로 계산 | DB 왕복 상수화 |
+| 폴링 부하                 | 방 개수(N)에 비례             | 방 개수 무관, 상수                | 확장성 확보    |
 
 ---
 
@@ -507,7 +507,7 @@ Team_The-Worst-Generation/
 ```tsx
 // recallRouter.tsx (13/14개 라우터에 동일 패턴)
 const List = lazy(() => import("../pages/recall/RecallListPage"));
-<Suspense fallback={Loading}>...</Suspense>
+<Suspense fallback={Loading}>...</Suspense>;
 ```
 
 ```tsx
@@ -533,11 +533,11 @@ const sentinelRef = useCallback((node: HTMLDivElement | null) => {
 - 캐시 키: 위·경도를 소수점 3자리로 반올림(약 90~111m 격자) — 같은 동네 사용자끼리 캐시 공유
 - Caffeine `expireAfterWrite(30분)` · `maximumSize(1000)` — 알러지 성분 캐싱과 전역 `CacheManager` 공유
 
-| 지표 | 캐싱 미적용 시 | 현재 구현 | 기대 효과 |
-| --- | --- | --- | --- |
-| Kakao API 호출 | 추천 요청마다 매번 1회 | 동일 격자·30분 이내 재요청 시 0회 | 일일 호출 쿼터 절감 |
-| 캐시 공유 범위 | 요청자 개별 (공유 없음) | 약 100m 격자 내 사용자끼리 공유 | 캐시 적중률 향상 |
-| 캐시 관리 | 없음 | Caffeine, TTL 30분, 최대 1000건 | 메모리 상한 확보 |
+| 지표           | 캐싱 미적용 시          | 현재 구현                         | 기대 효과           |
+| -------------- | ----------------------- | --------------------------------- | ------------------- |
+| Kakao API 호출 | 추천 요청마다 매번 1회  | 동일 격자·30분 이내 재요청 시 0회 | 일일 호출 쿼터 절감 |
+| 캐시 공유 범위 | 요청자 개별 (공유 없음) | 약 100m 격자 내 사용자끼리 공유   | 캐시 적중률 향상    |
+| 캐시 관리      | 없음                    | Caffeine, TTL 30분, 최대 1000건   | 메모리 상한 확보    |
 
 **코드 — @Cacheable 키 설계 · Caffeine 설정**
 
@@ -929,7 +929,12 @@ HttpRequest request = HttpRequest.newBuilder()
 - 아이 정보 미등록 시 기본 퀘스트 3개 자동 생성, 등록 후 월령·담당 부모·요일 기반으로 교체
 - 같은 계정의 다른 프로필 보호자에게 긴급 퀘스트를 실시간 푸시
 
-<p align="center"><img src="image/demo-quest.gif" width="600" /><br/><sub><b>일일 퀘스트</b></sub></p>
+<table>
+<tr>
+<td align="center" width="50%"><img src="image/demo-quest-1.gif" width="100%" /><br/><sub><b>일일 퀘스트</b></sub></td>
+<td align="center" width="50%"><img src="image/demo-quest-2.gif" width="100%" /><br/><sub><b>긴급 퀘스트</b></sub></td>
+</tr>
+</table>
 
 ---
 
