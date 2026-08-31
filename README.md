@@ -916,7 +916,12 @@ HttpRequest request = HttpRequest.newBuilder()
 - 게시글마다 1회만 AI 요약을 호출하고 DB에 캐싱, 글 수정 시 캐시 비움
 - 베이비시터는 거리 기반 검색 후 요청·수락, WebSocket 실시간 채팅으로 소통
 
-<p align="center"><img src="image/demo-community.gif" width="600" /><br/><sub><b>커뮤니티 · 베이비시터</b></sub></p>
+<table>
+<tr>
+<td align="center" width="50%"><img src="image/demo-community.gif" width="100%" /><br/><sub><b>커뮤니티</b></sub></td>
+<td align="center" width="50%"><img src="image/demo-babysitter.gif" width="100%" /><br/><sub><b>베이비시터</b></sub></td>
+</tr>
+</table>
 
 <img width="100%" src="https://capsule-render.vercel.app/api?type=rect&color=0:FFD6A5,100:FFAAA5&height=3" />
 
