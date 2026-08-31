@@ -59,7 +59,7 @@ const AlbumPage = () => {
   }
 
   return (
-    <div className="flex w-full flex-col items-start gap-6 py-4 lg:flex-row">
+    <div className="flex w-full max-w-[1200px] mx-auto flex-col items-start gap-6 py-4 lg:flex-row">
       <div className="flex w-full min-w-0 flex-1 flex-col gap-6">
         {babyList.length > 1 && (
           <div className="flex flex-wrap gap-2">

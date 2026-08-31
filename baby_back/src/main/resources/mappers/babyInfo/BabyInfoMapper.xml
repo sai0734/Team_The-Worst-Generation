@@ -43,7 +43,7 @@
         WHERE baby_no = #{babyNo} AND email = #{email}
     </delete>
 
-    <!-- 추가 시작 - babyNo로 연결된 18개 테이블을 손자→자식→부모 3단계 순서로 캐스케이드 삭제
+    <!-- babyNo로 연결된 18개 테이블을 손자→자식→부모 3단계 순서로 캐스케이드 삭제
          (한 문장에 부모·자식을 같이 넣으면 MariaDB가 삭제 순서를 보장 안 해서 FK 위반 발생, 3단계로 분리) -->
     <delete id="deleteCascadeGrandchildren">
         DELETE poi, rr, bcs, bcm, bcsrc
@@ -77,6 +77,5 @@
         LEFT JOIN tbl_cry_check cc ON cc.baby_no = bi.baby_no
         WHERE bi.baby_no = #{babyNo} AND bi.email = #{email}
     </delete>
-    <!-- 추가 끝 -->
 
 </mapper>

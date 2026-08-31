@@ -106,7 +106,7 @@ public class BabyInfoServiceImpl implements BabyInfoService{
 
     }
 
-    // 수정 시작 - 6개 Mapper 개별 호출 대신 deleteCascade() 한 번으로 18개 테이블 삭제
+    // 6개 Mapper 개별 호출 대신 deleteCascade() 한 번으로 18개 테이블 삭제
     @Override
     public void remove(Long babyNo, String email) {
 
@@ -131,7 +131,6 @@ public class BabyInfoServiceImpl implements BabyInfoService{
         customFileUtil.deleteFiles(photoFileNames);
 
     }
-    // 수정 끝
 
     private void validateRequiredFields(BabyInfoDTO babyInfoDTO) {
         if(babyInfoDTO.getBabyName() == null || babyInfoDTO.getBabyName().isEmpty()

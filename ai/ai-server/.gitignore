@@ -7,6 +7,9 @@ __pycache__/
 # Runtime data and trained model artifacts
 data/*
 !data/.gitkeep
+!data/subsidy_documents/
+data/subsidy_documents/*
+!data/subsidy_documents/aibom_family_plus_policy_catalog.docx
 models/*
 !models/.gitkeep
 
